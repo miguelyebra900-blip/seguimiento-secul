@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero de Riesgos y Seguimiento - Liquidación IEC</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --accent: #2563eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Indicadores KPI */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .kpi-card.red { border-top: 4px solid var(--danger); }
+        .kpi-card.yellow { border-top: 4px solid var(--warning); }
+        .kpi-card.green { border-top: 4px solid var(--success); }
+        .kpi-card.blue { border-top: 4px solid var(--accent); }
+
+        .kpi-val {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .kpi-lbl {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* Tabla Principal */
+        .table-container {
+            overflow-x: auto;
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #0f172a;
+            padding: 14px 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background-color: #26334d;
+        }
+
+        /* Semáforos y Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-red { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid var(--danger); }
+        .badge-yellow { background-color: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid var(--warning); }
+        .badge-green { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid var(--success); }
+
+        /* Botón Drive */
+        .btn-drive {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--accent);
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: background 0.2s ease;
+        }
+
+        .btn-drive:hover {
+            background-color: #1d4ed8;
+        }
+
+        .area-tag {
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Tablero Directivo de Riesgos y Seguimiento - Liquidación IEC</h1>
+        <p>Alineación Gerencial • Atención a Requerimientos ASEG • Control Operativo de Cierre</p>
+    </div>
+
+    <!-- Panel de Métricas / KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card red">
+            <div class="kpi-val" style="color: var(--danger)">12</div>
+            <div class="kpi-lbl">Riesgo Alto / Crítico</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-val" style="color: var(--warning)">18</div>
+            <div class="kpi-lbl">En Proceso / R. Medio</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-val" style="color: var(--success)">25</div>
+            <div class="kpi-lbl">Atendidos / Cumplidos</div>
+        </div>
+        <div class="kpi-card blue">
+            <div class="kpi-val" style="color: #60a5fa">55</div>
+            <div class="kpi-lbl">Total Requerimientos ASEG</div>
+        </div>
+    </div>
+
+    <!-- Tabla del Dashboard -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th width="5%">ID</th>
+                    <th width="22%">Requerimiento ASEG / Observación</th>
+                    <th width="12%">Estatus / Semáforo</th>
+                    <th width="23%">Análisis de Riesgo (Legal/Financiero/Op.)</th>
+                    <th width="18%">Acción Colaborativa Inmediata</th>
+                    <th width="12%">Área Responsable</th>
+                    <th width="8%">Evidencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>R-01</b></td>
+                    <td>Integración y finiquito de expedientes de personal rescindido o liquidado.</td>
+                    <td><span class="badge badge-red">Riesgo Alto</span></td>
+                    <td>Contingencias laborales, demandas de reinstalación y sanciones administrativas directas a titulares.</td>
+                    <td>Auditar expedientes individuales, validar indemnizaciones y formalizar convenios.</td>
+                    <td><span class="area-tag">Capital Humano</span></td>
+                    <td><a href="https://drive.google.com" target="_blank" class="btn-drive">📁 Subir Evidencia</a></td>
+                </tr>
+                <tr>
+                    <td><b>R-02</b></td>
+                    <td>Conciliación de inventario físico vs. resguardos contables de bienes muebles e inmuebles.</td>
+                    <td><span class="badge badge-yellow">En Proceso</span></td>
+                    <td>Discrepancias patrimoniales y pliegos de observaciones por faltantes no justificados.</td>
+                    <td>Levantamiento de inventario físico en sedes y cruce con saldos en libros contables.</td>
+                    <td><span class="area-tag">Servicios Generales</span></td>
+                    <td><a href="https://drive.google.com" target="_blank" class="btn-drive">📁 Subir Evidencia</a></td>
+                </tr>
+                <tr>
+                    <td><b>R-03</b></td>
+                    <td>Depuración de cuentas de pasivos, proveedores y retenciones fiscales pendientes.</td>
+                    <td><span class="badge badge-yellow">En Proceso</span></td>
+                    <td>Pasivos ocultos, contingencias fiscales para la Secretaría de Cultura y recargos.</td>
+                    <td>Revisión de saldos por pagar, validación de facturación y finiquito de pasivos.</td>
+                    <td><span class="area-tag">Dirección Financiera</span></td>
+                    <td><a href="https://drive.google.com" target="_blank" class="btn-drive">📁 Subir Evidencia</a></td>
+                </tr>
+                <tr>
+                    <td><b>R-04</b></td>
+                    <td>Cierre y suficiencia presupuestal del ejercicio de liquidación de la entidad.</td>
+                    <td><span class="badge badge-green">Cumplido</span></td>
+                    <td>Riesgo de subejercicio o sobreejercicio no autorizado en el presupuesto de extinción.</td>
+                    <td>Ajustes de partidas, cierre de suficiencias y conciliación presupuestal con Finanzas.</td>
+                    <td><span class="area-tag">Dirección de Presupuesto</span></td>
+                    <td><a href="https://drive.google.com" target="_blank" class="btn-drive">📁 Subir Evidencia</a></td>
+                </tr>
+                <tr>
+                    <td><b>R-05</b></td>
+                    <td>Acreditación integral y entrega-recepción de archivos históricos, contratos y convenios.</td>
+                    <td><span class="badge badge-red">Riesgo Crítico</span></td>
+                    <td>Falta de comprobación del gasto público ante la ASEG por expedientes incompletos.</td>
+                    <td>Compilado de expedientes unitarios con firmas, anexos técnicos y entregables.</td>
+                    <td><span class="area-tag">Dirección Administrativa</span></td>
+                    <td><a href="https://drive.google.com" target="_blank" class="btn-drive">📁 Subir Evidencia</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
