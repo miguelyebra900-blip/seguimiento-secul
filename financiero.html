@@ -2,54 +2,73 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Financiero - Seguimiento Secul</title>
-    <!-- Tabulator CSS -->
-    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <title>Seguimiento Secul | Financiero</title>
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f7f6; }
-        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        #tabla-financiera { margin-top: 20px; }
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; color: #333; }
+        .nav-header { background: var(--primary-color); color: white; padding: 1rem; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+        .btn-upload { background: var(--accent-color); }
+        .btn-download { background: #27ae60; }
+        #tabla-financiera { border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Carga de Balanza Contable</h2>
-    <input type="file" id="input-archivo" accept=".xlsx, .xls" />
+<div class="nav-header"><h1>Seguimiento Secul | Panel Financiero</h1></div>
+
+<div class="card">
+    <h3>Gestión de Balanzas de Liquidación</h3>
+    <input type="file" id="input-archivo" class="btn" accept=".xlsx" />
+    <button id="btn-descargar" class="btn btn-download">Descargar Balanza (Excel)</button>
+</div>
+
+<div class="card">
     <div id="tabla-financiera"></div>
 </div>
 
-<!-- Librerías -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-
 <script>
-    document.getElementById('input-archivo').addEventListener('change', function(e) {
+    let table;
+    const input = document.getElementById('input-archivo');
+
+    input.addEventListener('change', function(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
-
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
-            
-            // Leemos la hoja "Contable" (ajusta el nombre si es necesario)
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-            // Inicializar Tabla con Tabulator
-            new Tabulator("#tabla-financiera", {
-                data: jsonData,
-                autoColumns: true, // Crea columnas automáticamente según el Excel
-                layout: "fitColumns",
-                pagination: "local",
-                paginationSize: 10,
-                movableColumns: true,
-                renderHorizontal: "virtual"
-            });
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            renderTable(jsonData);
         };
         reader.readAsArrayBuffer(file);
     });
+
+    function renderTable(data) {
+        table = new Tabulator("#tabla-financiera", {
+            data: data,
+            layout: "fitColumns",
+            columns: [
+                {title: "Cuenta", field: "Cuenta", editor: "input"},
+                {title: "Nombre", field: "NombreCuenta", editor: "input"},
+                {title: "Saldo Ini", field: "SaldoIni", editor: "number", formatter: "money"},
+                {title: "Cargo", field: "Cargo", editor: "number", formatter: "money"},
+                {title: "Abono", field: "Abono", editor: "number", formatter: "money"},
+                {title: "Saldo Fin", field: "SaldoFin", formatter: "money"}
+            ],
+            cellEdited: function(cell) {
+                // Cálculo automático del Saldo Final al editar
+                let row = cell.getRow().getData();
+                let nuevoSaldo = row.SaldoIni + row.Cargo - row.Abono;
+                cell.getRow().update({"SaldoFin": nuevoSaldo});
+            }
+        });
+    }
+
+    document.getElementById('btn-descargar').onclick = () => table.download("xlsx", "Balanza_Liquidacion.xlsx");
 </script>
 
 </body>
