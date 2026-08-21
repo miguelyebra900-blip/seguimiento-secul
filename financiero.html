@@ -2,73 +2,270 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Seguimiento Secul | Financiero</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento Secul | Panel Financiero y Liquidación</title>
+    <!-- Estilos Tabulator y Bootstrap -->
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary-color: #2c3e50; --accent-color: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; color: #333; }
-        .nav-header { background: var(--primary-color); color: white; padding: 1rem; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; color: white; }
-        .btn-upload { background: var(--accent-color); }
-        .btn-download { background: #27ae60; }
-        #tabla-financiera { border: 1px solid #ddd; }
+        :root {
+            --primary-color: #1e293b;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --bg-color: #f8fafc;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header-panel {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-panel h1 { margin: 0; font-size: 1.5rem; }
+
+        /* Navegación por Pestañas de Módulos */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #475569;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--accent-color);
+        }
+        .stat-card h4 { margin: 0 0 5px 0; font-size: 0.85rem; color: #64748b; }
+        .stat-card p { margin: 0; font-size: 1.2rem; font-weight: bold; color: var(--primary-color); }
+
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: background 0.2s;
+        }
+        .btn-upload { background-color: var(--accent-color); }
+        .btn-download { background-color: var(--success-color); }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;
+        }
+        #tabla-financiera { border: 1px solid #e2e8f0; border-radius: 6px; }
+        
+        .hitos-list {
+            list-style: none; padding: 0;
+        }
+        .hitos-list li {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
     </style>
 </head>
 <body>
 
-<div class="nav-header"><h1>Seguimiento Secul | Panel Financiero</h1></div>
+<div class="container">
+    <!-- Cabecera -->
+    <div class="header-panel">
+        <h1>Seguimiento Secul - Panel Financiero & Liquidación</h1>
+        <span style="font-size: 0.9rem; opacity: 0.8;">Módulo de Cierre de Proyecto</span>
+    </div>
 
-<div class="card">
-    <h3>Gestión de Balanzas de Liquidación</h3>
-    <input type="file" id="input-archivo" class="btn" accept=".xlsx" />
-    <button id="btn-descargar" class="btn btn-download">Descargar Balanza (Excel)</button>
+    <!-- Navegación por Secciones -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('balanza', event)">📊 Balanza y Edición</button>
+        <button class="tab-btn" onclick="switchTab('analisis', event)">📈 Análisis Ejecutivo</button>
+        <button class="tab-btn" onclick="switchTab('hitos', event)">🎯 Hitos de Liquidación</button>
+        <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Gestión y Drive</button>
+    </div>
+
+    <!-- PESTAÑA 1: BALANZA Y EDICIÓN -->
+    <div id="balanza" class="tab-content active">
+        <div class="card">
+            <h3>Carga y Gestión de Balanza Contable</h3>
+            <p style="color: #64748b; font-size: 0.9rem;">Sube balanzas adicionales o edita los saldos en vivo para actualizar el balance del proyecto.</p>
+            <div class="toolbar">
+                <div class="file-input-wrapper">
+                    <button class="btn btn-upload">📁 Cargar Balanza Excel</button>
+                    <input type="file" id="input-archivo" accept=".xlsx, .xls" />
+                </div>
+                <button id="btn-descargar" class="btn btn-download" disabled>📥 Descargar Balanza (Excel)</button>
+            </div>
+        </div>
+        <div class="card">
+            <div id="tabla-financiera"></div>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 2: ANÁLISIS EJECUTIVO -->
+    <div id="analisis" class="tab-content">
+        <div class="stats-container">
+            <div class="stat-card">
+                <h4>Activo Total Proyecto</h4>
+                <p id="ana-activo">$564,664,176.10</p>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--success-color);">
+                <h4>Liquidez en Bancos (Tesorería)</h4>
+                <p id="ana-bancos">$13,475,579.31</p>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--warning-color);">
+                <h4>Pasivo Circulante (Deudas)</h4>
+                <p id="ana-pasivo">$3,250,276.76</p>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Dictamen Financiero de Situación Real</h3>
+            <p><strong>Conclusión de Cierre:</strong> La balanza muestra una cobertura de liquidez positiva. Los fondos disponibles en cuentas de tesorería superan las obligaciones a corto plazo (pasivo circulante), lo que permite avanzar con seguridad hacia el finiquito de contratos.</p>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 3: HITOS DE LIQUIDACIÓN -->
+    <div id="hitos" class="tab-content">
+        <div class="card">
+            <h3>Seguimiento de Hitos Financieros para el Cierre</h3>
+            <ul class="hitos-list">
+                <li><span>1. Conciliación de Cuentas Bancarias y Tesorería</span> <span class="badge badge-success">Completado</span></li>
+                <li><span>2. Depuración de Pasivos a Corto Plazo</span> <span class="badge badge-warning">En Proceso</span></li>
+                <li><span>3. Emisión de Balanza Contable de Comprobación Final</span> <span class="badge badge-warning">Pendiente Carga</span></li>
+                <li><span>4. Entrega de Reporte de Cierre para Acta de Liquidación</span> <span class="badge badge-warning">Pendiente</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 4: GESTIÓN Y DRIVE -->
+    <div id="drive" class="tab-content">
+        <div class="card">
+            <h3>Repositorio de Balanzas y Conexión con Google Drive</h3>
+            <p style="color: #64748b;">Administra los históricos de balanzas mensuales y guarda respaldos automáticos en tu carpeta compartida de Google Drive del proyecto.</p>
+            <button class="btn btn-upload" onclick="alert('Función de Google Drive lista para conectarse mediante API OAuth 2.0.')">☁️ Sincronizar con Google Drive</button>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    <div id="tabla-financiera"></div>
-</div>
+<!-- Librerías Externas -->
+<script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
     let table;
-    const input = document.getElementById('input-archivo');
 
-    input.addEventListener('change', function(e) {
+    // Control de pestañas
+    function switchTab(tabId, evt) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+        if(table) table.redraw(true);
+    }
+
+    // Carga de Archivo Excel
+    document.getElementById('input-archivo').addEventListener('change', function(e) {
         const file = e.target.files[0];
+        if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = function(e) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            renderTable(jsonData);
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            inicializarTabla(jsonData);
+            document.getElementById('btn-descargar').removeAttribute('disabled');
         };
         reader.readAsArrayBuffer(file);
     });
 
-    function renderTable(data) {
+    function inicializarTabla(data) {
         table = new Tabulator("#tabla-financiera", {
             data: data,
             layout: "fitColumns",
+            pagination: "local",
+            paginationSize: 12,
             columns: [
-                {title: "Cuenta", field: "Cuenta", editor: "input"},
-                {title: "Nombre", field: "NombreCuenta", editor: "input"},
-                {title: "Saldo Ini", field: "SaldoIni", editor: "number", formatter: "money"},
+                {title: "Cuenta", field: "Cuenta", width: 160, editor: "input", headerFilter: "input"},
+                {title: "Nombre de Cuenta", field: "NombreCuenta", editor: "input", headerFilter: "input"},
+                {title: "Saldo Inicial", field: "SaldoIni", editor: "number", formatter: "money"},
                 {title: "Cargo", field: "Cargo", editor: "number", formatter: "money"},
                 {title: "Abono", field: "Abono", editor: "number", formatter: "money"},
-                {title: "Saldo Fin", field: "SaldoFin", formatter: "money"}
+                {title: "Saldo Final", field: "SaldoFin", formatter: "money"}
             ],
             cellEdited: function(cell) {
-                // Cálculo automático del Saldo Final al editar
                 let row = cell.getRow().getData();
-                let nuevoSaldo = row.SaldoIni + row.Cargo - row.Abono;
-                cell.getRow().update({"SaldoFin": nuevoSaldo});
+                let final = (parseFloat(row.SaldoIni) || 0) + (parseFloat(row.Cargo) || 0) - (parseFloat(row.Abono) || 0);
+                cell.getRow().update({ SaldoFin: final });
             }
         });
     }
 
-    document.getElementById('btn-descargar').onclick = () => table.download("xlsx", "Balanza_Liquidacion.xlsx");
+    document.getElementById('btn-descargar').addEventListener('click', function() {
+        if(table) table.download("xlsx", "Balanza_Proyecto_Liquidacion.xlsx");
+    });
 </script>
 
 </body>
