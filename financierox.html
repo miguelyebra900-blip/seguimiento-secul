@@ -123,7 +123,7 @@
         .flow-content p { margin: 0; font-size: 0.85rem; color: #64748b; }
         .flow-badge { margin-left: auto; background: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; color: #334155; white-space: nowrap; }
 
-        /* Repositorio por Rubros Mejorado */
+        /* Repositorio por Rubros */
         .rubro-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -159,14 +159,18 @@
         .badge-success { background: #d1fae5; color: #065f46; }
         .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-urgent { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
 
-        /* Bitácora de Equipo Mejorada */
-        .chat-box { background: #f1f5f9; border-radius: 8px; padding: 15px; max-height: 250px; overflow-y: auto; margin-bottom: 15px; }
-        .chat-message { background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid var(--accent-color); }
-        .chat-message .author { font-weight: bold; font-size: 0.85rem; color: var(--primary-color); }
-        .chat-message .date { font-size: 0.75rem; color: #94a3b8; float: right; }
-        .chat-input-group { display: flex; gap: 10px; }
-        .chat-input-group input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; }
+        /* Bitácora de Equipo Estilo Chat Corporativo */
+        .chat-box { background: #f1f5f9; border-radius: 8px; padding: 15px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .chat-message { background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid var(--accent-color); }
+        .chat-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .chat-author { font-weight: bold; font-size: 0.9rem; color: var(--primary-color); display: flex; align-items: center; gap: 6px; }
+        .chat-date { font-size: 0.75rem; color: #94a3b8; }
+        .chat-input-container { display: flex; gap: 10px; flex-wrap: wrap; }
+        .chat-input-container select, .chat-input-container input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; }
+        .chat-input-container input[type="text"] { flex: 1; }
     </style>
 </head>
 <body>
@@ -178,38 +182,14 @@
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('balanza', event)">📊 Balanza y Presupuesto</button>
-        <button class="tab-btn" onclick="switchTab('analisis', event)">📈 Análisis y Metodología Visual</button>
+        <button class="tab-btn active" onclick="switchTab('balanza', event)">📊 Balanza, Indicadores y Presupuesto</button>
         <button class="tab-btn" onclick="switchTab('hitos', event)">🎯 Hitos y Evidencias</button>
-        <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Repositorio por Rubros</button>
+        <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Repositorio y Bitácora</button>
     </div>
 
-    <!-- PESTAÑA 1: BALANZA Y PRESUPUESTO -->
+    <!-- PESTAÑA 1: BALANZA, INDICADORES Y PRESUPUESTO (FUSIONADA) -->
     <div id="balanza" class="tab-content active">
-        <div class="card">
-            <h3>Carga Maestra de Balanzas (Contable / Presupuestal)</h3>
-            <p style="color: #64748b; font-size: 0.9rem;">Sube tu archivo maestro para actualizar automáticamente las métricas de cierre.</p>
-            
-            <div class="active-file-banner" id="banner-archivo-activo">
-                <span>📂 <strong>Archivo Activo:</strong> <span id="nombre-archivo-actual">0351_BZC_PEGT_IEC_2602.xlsx (Base del sistema)</span></span>
-                <span id="badge-estado-balanza" class="badge badge-success">Sincronizado</span>
-            </div>
-
-            <div class="toolbar">
-                <div class="file-input-wrapper">
-                    <button class="btn btn-upload">📁 Cargar Archivo Maestro Excel</button>
-                    <input type="file" id="input-archivo" accept=".xlsx, .xls" />
-                </div>
-                <button id="btn-descargar" class="btn btn-download">📥 Descargar Estado Actualizado</button>
-            </div>
-        </div>
-        <div class="card">
-            <div id="tabla-financiera"></div>
-        </div>
-    </div>
-
-    <!-- PESTAÑA 2: ANÁLISIS Y METODOLOGÍA VISUAL -->
-    <div id="analisis" class="tab-content">
+        <!-- Tarjetas Gerenciales en Tiempo Real -->
         <div class="stats-container">
             <div class="stat-card">
                 <h4>Activo Total Proyecto</h4>
@@ -233,24 +213,24 @@
             </div>
         </div>
 
+        <!-- Flujograma Visual Interactivo -->
         <div class="card">
-            <h3>🗺️ Flujograma Visual: ¿Cómo se calculan estos indicadores de cierre?</h3>
-            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Guía rápida paso a paso para la lectura gerencial y auditoría sin términos complejos:</p>
-            
+            <h3>🗺️ Flujograma Visual de Lectura Gerencial</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Cómo el sistema procesa los datos del archivo cargado para dictaminar el cierre:</p>
             <div class="flowchart-container">
                 <div class="flow-step" style="border-left: 4px solid var(--accent-color);">
                     <div class="flow-icon">📁</div>
                     <div class="flow-content">
                         <h5>1. Ingesta de la Balanza Contable</h5>
-                        <p>El sistema lee el archivo de Excel y examina cada renglón en busca del código jerárquico de la cuenta.</p>
+                        <p>El sistema procesa el Excel actualizando dinámicamente cada renglón y jerarquía.</p>
                     </div>
-                    <div class="flow-badge">Filtro por Código</div>
+                    <div class="flow-badge">Filtro Automático</div>
                 </div>
                 <div class="flow-step" style="border-left: 4px solid var(--success-color);">
                     <div class="flow-icon">💰</div>
                     <div class="flow-content">
-                        <h5>2. Identificación de Tesorería y Recursos</h5>
-                        <p>Se localizan las cuentas con prefijo <strong>1.1.1</strong> para conocer el dinero real disponible en cuentas bancarias para el finiquito.</p>
+                        <h5>2. Validación de Tesorería</h5>
+                        <p>Filtra prefijo <strong>1.1.1</strong> para medir el dinero real disponible en bancos para el finiquito.</p>
                     </div>
                     <div class="flow-badge">Prefijo: 1.1.1</div>
                 </div>
@@ -258,23 +238,34 @@
                     <div class="flow-icon">📋</div>
                     <div class="flow-content">
                         <h5>3. Detección de Deudas Inmediatas</h5>
-                        <p>Se filtran las cuentas con prefijo <strong>2.1</strong> (Pasivo Circulante) para saber exactamente qué compromisos comerciales deben saldarse.</p>
+                        <p>Filtra prefijo <strong>2.1</strong> (Pasivo Circulante) para saber qué compromisos deben saldarse antes del cierre.</p>
                     </div>
                     <div class="flow-badge">Prefijo: 2.1</div>
                 </div>
-                <div class="flow-step" style="border-left: 4px solid var(--danger-color);">
-                    <div class="flow-icon">📊</div>
-                    <div class="flow-content">
-                        <h5>4. Generación del Dictamen Gerencial</h5>
-                        <p>Se cruzan los recursos líquidos contra las deudas para dictaminar si el proyecto cuenta con el colchón financiero necesario para su liquidación.</p>
-                    </div>
-                    <div class="flow-badge">Resultado de Cierre</div>
-                </div>
             </div>
+        </div>
+
+        <!-- Carga y Tabla de Balanza -->
+        <div class="card">
+            <h3>Carga Maestra de Balanzas (Contable / Presupuestal)</h3>
+            <div class="active-file-banner" id="banner-archivo-activo">
+                <span>📂 <strong>Archivo Activo:</strong> <span id="nombre-archivo-actual">0351_BZC_PEGT_IEC_2602.xlsx (Base del sistema)</span></span>
+                <span id="badge-estado-balanza" class="badge badge-success">Sincronizado</span>
+            </div>
+            <div class="toolbar">
+                <div class="file-input-wrapper">
+                    <button class="btn btn-upload">📁 Cargar Archivo Maestro Excel</button>
+                    <input type="file" id="input-archivo" accept=".xlsx, .xls" />
+                </div>
+                <button id="btn-descargar" class="btn btn-download">📥 Descargar Estado Actualizado</button>
+            </div>
+        </div>
+        <div class="card">
+            <div id="tabla-financiera"></div>
         </div>
     </div>
 
-    <!-- PESTAÑA 3: HITOS Y EVIDENCIAS -->
+    <!-- PESTAÑA 2: HITOS Y EVIDENCIAS -->
     <div id="hitos" class="tab-content">
         <div class="card">
             <h3>Seguimiento en Tiempo Real de Hitos de Liquidación y Evidencia Documental</h3>
@@ -310,41 +301,23 @@
                     <input type="file" id="file-hito-2" style="font-size: 0.8rem;" onchange="subirEvidencia(2)" />
                 </div>
             </div>
-
-            <div class="hito-card">
-                <div class="hito-header">
-                    <strong>3. Emisión de Balanza Contable y Presupuestal Final</strong>
-                    <span class="badge badge-warning">30% Pendiente Validación</span>
-                </div>
-                <div class="progress-bar-container"><div class="progress-bar" style="width: 30%; background: var(--danger-color);"></div></div>
-                <ul class="evidence-list" id="list-evidencias-3">
-                    <li>⚠️ Falta validar balanza definitiva con firma del auditor.</li>
-                </ul>
-                <div class="evidence-box">
-                    <span style="font-size: 0.85rem; color: #64748b;">Añadir nueva evidencia:</span>
-                    <input type="file" id="file-hito-3" style="font-size: 0.8rem;" onchange="subirEvidencia(3)" />
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- PESTAÑA 4: REPOSITORIO POR RUBROS MEJORADO -->
+    <!-- PESTAÑA 3: REPOSITORIO Y BITÁCORA CORPORATIVA -->
     <div id="drive" class="tab-content">
         <div class="card">
             <h3>☁️ Repositorio Documental Dinámico por Rubros (Google Drive)</h3>
             <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Gestión categorizada de archivos de respaldo para el proceso de liquidación del IEC.</p>
             
             <div class="rubro-grid">
-                <!-- Rubro 1 -->
                 <div class="rubro-card">
                     <h5>📁 Tesorería y Bancos</h5>
                     <ul class="rubro-files" id="rubro-1-list">
                         <li><span>Estado_Cuenta.pdf</span> <span class="badge badge-success">OK</span></li>
-                        <li><span>Conciliacion.xlsx</span> <span class="badge badge-success">OK</span></li>
                     </ul>
                     <input type="file" style="font-size:0.75rem; margin-top:5px;" id="file-rubro-1" onchange="agregarArchivoRubro(1)" />
                 </div>
-                <!-- Rubro 2 -->
                 <div class="rubro-card">
                     <h5>📁 Depuración de Pasivos</h5>
                     <ul class="rubro-files" id="rubro-2-list">
@@ -352,7 +325,6 @@
                     </ul>
                     <input type="file" style="font-size:0.75rem; margin-top:5px;" id="file-rubro-2" onchange="agregarArchivoRubro(2)" />
                 </div>
-                <!-- Rubro 3 -->
                 <div class="rubro-card">
                     <h5>📁 Balanzas Maestras</h5>
                     <ul class="rubro-files" id="rubro-3-list">
@@ -360,7 +332,6 @@
                     </ul>
                     <input type="file" style="font-size:0.75rem; margin-top:5px;" id="file-rubro-3" onchange="agregarArchivoRubro(3)" />
                 </div>
-                <!-- Rubro 4 -->
                 <div class="rubro-card">
                     <h5>📁 Actas de Finiquito</h5>
                     <ul class="rubro-files" id="rubro-4-list">
@@ -369,23 +340,37 @@
                     <input type="file" style="font-size:0.75rem; margin-top:5px;" id="file-rubro-4" onchange="agregarArchivoRubro(4)" />
                 </div>
             </div>
-
             <button class="btn btn-upload" onclick="alert('Sincronización completa con Google Drive ejecutada correctamente.')">☁️ Sincronizar Todo con Google Drive</button>
         </div>
 
-        <!-- BITÁCORA DE EQUIPO MEJORADA Y UBICADA AQUÍ PARA MEJOR FLUJO -->
+        <!-- BITÁCORA ESTILO CHAT CORPORATIVO CON ROLES Y PRIORIDADES -->
         <div class="card">
             <h3>💬 Bitácora y Notas del Equipo Financiero (Seguimiento Secul)</h3>
-            <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 15px;">Avisos colaborativos y notas de control interno para el comité de liquidación.</p>
+            <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 15px;">Avisos colaborativos y control interno para el comité de liquidación.</p>
             
             <div class="chat-box" id="chat-container">
                 <div class="chat-message">
-                    <span class="author">Director de Liquidación (IEC)</span> <span class="date">Hoy, 10:00</span>
-                    <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Favor de verificar que cada rubro tenga su documentación completa antes de la auditoría final.</p>
+                    <div class="chat-header-info">
+                        <span class="chat-author">👔 Director de Liquidación (IEC)</span>
+                        <div>
+                            <span class="badge badge-urgent">Urgente</span>
+                            <span class="chat-date">Hoy, 10:00</span>
+                        </div>
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem;">Favor de verificar que cada rubro tenga su documentación completa antes de la auditoría final.</p>
                 </div>
             </div>
 
-            <div class="chat-input-group">
+            <div class="chat-input-container">
+                <select id="select-rol">
+                    <option value="👔 Director de Liquidación (IEC)">Director de Liquidación</option>
+                    <option value="📊 Contador General">Contador General</option>
+                    <option value="🔍 Auditor Externo">Auditor Externo</option>
+                </select>
+                <select id="select-prioridad">
+                    <option value="badge-info">Informativo</option>
+                    <option value="badge-urgent">Urgente</option>
+                </select>
                 <input type="text" id="input-mensaje" placeholder="Escribe un aviso para el equipo financiero..." />
                 <button class="btn btn-upload" onclick="agregarMensaje()">Enviar Nota</button>
             </div>
@@ -524,16 +509,29 @@
 
     function agregarMensaje() {
         let input = document.getElementById('input-mensaje');
+        let rolSelect = document.getElementById('select-rol');
+        let prioridadSelect = document.getElementById('select-prioridad');
+        
         let texto = input.value.trim();
         if(!texto) return;
+
+        let rol = rolSelect.value;
+        let prioridadClass = prioridadSelect.value;
+        let prioridadTexto = prioridadSelect.options[prioridadSelect.selectedIndex].text;
 
         let chatContainer = document.getElementById('chat-container');
         let horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         let msgHTML = `
             <div class="chat-message">
-                <span class="author">Administrador (IEC)</span> <span class="date">Hoy, ${horaActual}</span>
-                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">${texto}</p>
+                <div class="chat-header-info">
+                    <span class="chat-author">${rol}</span>
+                    <div>
+                        <span class="badge ${prioridadClass}">${prioridadTexto}</span>
+                        <span class="chat-date">Hoy, ${horaActual}</span>
+                    </div>
+                </div>
+                <p style="margin: 0; font-size: 0.9rem;">${texto}</p>
             </div>
         `;
         chatContainer.innerHTML += msgHTML;
