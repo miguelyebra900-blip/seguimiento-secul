@@ -102,7 +102,7 @@
             padding-top: 4px;
         }
 
-        /* Flujograma Visual */
+        /* Flujograma Visual con Aritmetica Explicada */
         .flowchart-container {
             display: flex;
             flex-direction: column;
@@ -162,13 +162,13 @@
         .badge-urgent { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
         .badge-info { background: #e0f2fe; color: #0369a1; }
 
-        /* Bitácora de Equipo Estilo Chat Corporativo */
+        /* Bitácora Interactiva Estilo Chat Corporativo */
         .chat-box { background: #f1f5f9; border-radius: 8px; padding: 15px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
         .chat-message { background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid var(--accent-color); }
         .chat-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .chat-author { font-weight: bold; font-size: 0.9rem; color: var(--primary-color); display: flex; align-items: center; gap: 6px; }
         .chat-date { font-size: 0.75rem; color: #94a3b8; }
-        .chat-input-container { display: flex; gap: 10px; flex-wrap: wrap; }
+        .chat-input-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .chat-input-container select, .chat-input-container input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; }
         .chat-input-container input[type="text"] { flex: 1; }
     </style>
@@ -187,9 +187,8 @@
         <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Repositorio y Bitácora</button>
     </div>
 
-    <!-- PESTAÑA 1: BALANZA, INDICADORES Y PRESUPUESTO (FUSIONADA) -->
+    <!-- PESTAÑA 1: BALANZA, INDICADORES Y PRESUPUESTO -->
     <div id="balanza" class="tab-content active">
-        <!-- Tarjetas Gerenciales en Tiempo Real -->
         <div class="stats-container">
             <div class="stat-card">
                 <h4>Activo Total Proyecto</h4>
@@ -213,39 +212,46 @@
             </div>
         </div>
 
-        <!-- Flujograma Visual Interactivo -->
+        <!-- Flujograma Visual con Aritmetica Explicada -->
         <div class="card">
-            <h3>🗺️ Flujograma Visual de Lectura Gerencial</h3>
-            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Cómo el sistema procesa los datos del archivo cargado para dictaminar el cierre:</p>
+            <h3>🗺️ Flujograma Visual y Memoria de Cálculo (Aritmética de Cierre)</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Cómo el sistema procesa matemáticamente los datos del archivo cargado:</p>
             <div class="flowchart-container">
                 <div class="flow-step" style="border-left: 4px solid var(--accent-color);">
                     <div class="flow-icon">📁</div>
                     <div class="flow-content">
-                        <h5>1. Ingesta de la Balanza Contable</h5>
-                        <p>El sistema procesa el Excel actualizando dinámicamente cada renglón y jerarquía.</p>
+                        <h5>1. Ingesta y Sumatoria de Activos</h5>
+                        <p>El sistema toma todas las cuentas que empiezan con <strong>1</strong> y suma su Saldo Final.</p>
                     </div>
-                    <div class="flow-badge">Filtro Automático</div>
+                    <div class="flow-badge">Suma Prefijo: 1</div>
                 </div>
                 <div class="flow-step" style="border-left: 4px solid var(--success-color);">
                     <div class="flow-icon">💰</div>
                     <div class="flow-content">
-                        <h5>2. Validación de Tesorería</h5>
-                        <p>Filtra prefijo <strong>1.1.1</strong> para medir el dinero real disponible en bancos para el finiquito.</p>
+                        <h5>2. Extracción de Tesorería</h5>
+                        <p>Filtra prefijo <strong>1.1.1</strong> para aislar el dinero líquido real en bancos.</p>
                     </div>
-                    <div class="flow-badge">Prefijo: 1.1.1</div>
+                    <div class="flow-badge">Suma Prefijo: 1.1.1</div>
                 </div>
                 <div class="flow-step" style="border-left: 4px solid var(--warning-color);">
                     <div class="flow-icon">📋</div>
                     <div class="flow-content">
-                        <h5>3. Detección de Deudas Inmediatas</h5>
-                        <p>Filtra prefijo <strong>2.1</strong> (Pasivo Circulante) para saber qué compromisos deben saldarse antes del cierre.</p>
+                        <h5>3. Acumulación de Deudas (Pasivo Circulante)</h5>
+                        <p>Filtra prefijo <strong>2.1</strong> y calcula su valor absoluto para totalizar compromisos.</p>
                     </div>
-                    <div class="flow-badge">Prefijo: 2.1</div>
+                    <div class="flow-badge">Suma Prefijo: 2.1</div>
+                </div>
+                <div class="flow-step" style="border-left: 4px solid var(--danger-color);">
+                    <div class="flow-icon">⚖️</div>
+                    <div class="flow-content">
+                        <h5>4. Dictamen de Cobertura y Cierre</h5>
+                        <p><strong>Aritmética:</strong> Se contrasta la Tesorería contra el Pasivo Circulante. Si el resultado es positivo ($> 0$), la liquidez cubre las deudas de cierre.</p>
+                    </div>
+                    <div class="flow-badge">Tesorería - Pasivo</div>
                 </div>
             </div>
         </div>
 
-        <!-- Carga y Tabla de Balanza -->
         <div class="card">
             <h3>Carga Maestra de Balanzas (Contable / Presupuestal)</h3>
             <div class="active-file-banner" id="banner-archivo-activo">
@@ -268,48 +274,47 @@
     <!-- PESTAÑA 2: HITOS Y EVIDENCIAS -->
     <div id="hitos" class="tab-content">
         <div class="card">
-            <h3>Seguimiento en Tiempo Real de Hitos de Liquidación y Evidencia Documental</h3>
-            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Sube o vincula documentos probatorios para certificar el avance de cada hito ante auditoría.</p>
+            <h3>🎯 Seguimiento Dinámico de Hitos de Liquidación</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Los hitos y acciones creados desde la bitácora aparecerán automáticamente aquí.</p>
             
-            <div class="hito-card">
-                <div class="hito-header">
-                    <strong>1. Conciliación de Cuentas Bancarias y Tesorería</strong>
-                    <span class="badge badge-success">100% Completado</span>
+            <div id="contenedor-hitos-dinamicos">
+                <div class="hito-card" id="hito-1">
+                    <div class="hito-header">
+                        <strong>1. Conciliación de Cuentas Bancarias y Tesorería</strong>
+                        <span class="badge badge-success">100% Completado</span>
+                    </div>
+                    <div class="progress-bar-container"><div class="progress-bar" style="width: 100%;"></div></div>
+                    <ul class="evidence-list" id="list-evidencias-1">
+                        <li>📄 Estado_Cuenta_Banamex_Cierre.pdf (Verificado)</li>
+                    </ul>
+                    <div class="evidence-box">
+                        <span style="font-size: 0.85rem; color: #64748b;">Añadir nueva evidencia:</span>
+                        <input type="file" id="file-hito-1" style="font-size: 0.8rem;" onchange="subirEvidencia(1)" />
+                    </div>
                 </div>
-                <div class="progress-bar-container"><div class="progress-bar" style="width: 100%;"></div></div>
-                <ul class="evidence-list" id="list-evidencias-1">
-                    <li>📄 Estado_Cuenta_Banamex_Cierre.pdf (Verificado)</li>
-                    <li>📄 Papel_Trabajo_Conciliacion.xlsx (Verificado)</li>
-                </ul>
-                <div class="evidence-box">
-                    <span style="font-size: 0.85rem; color: #64748b;">Añadir nueva evidencia:</span>
-                    <input type="file" id="file-hito-1" style="font-size: 0.8rem;" onchange="subirEvidencia(1)" />
-                </div>
-            </div>
 
-            <div class="hito-card">
-                <div class="hito-header">
-                    <strong>2. Depuración de Pasivos a Corto Plazo</strong>
-                    <span class="badge badge-warning">65% En Proceso</span>
-                </div>
-                <div class="progress-bar-container"><div class="progress-bar" style="width: 65%; background: var(--warning-color);"></div></div>
-                <ul class="evidence-list" id="list-evidencias-2">
-                    <li>📄 Relacion_Proveedores_Pendientes.xlsx (Verificado)</li>
-                </ul>
-                <div class="evidence-box">
-                    <span style="font-size: 0.85rem; color: #64748b;">Añadir nueva evidencia:</span>
-                    <input type="file" id="file-hito-2" style="font-size: 0.8rem;" onchange="subirEvidencia(2)" />
+                <div class="hito-card" id="hito-2">
+                    <div class="hito-header">
+                        <strong>2. Depuración de Pasivos a Corto Plazo</strong>
+                        <span class="badge badge-warning">65% En Proceso</span>
+                    </div>
+                    <div class="progress-bar-container"><div class="progress-bar" style="width: 65%; background: var(--warning-color);"></div></div>
+                    <ul class="evidence-list" id="list-evidencias-2">
+                        <li>📄 Relacion_Proveedores_Pendientes.xlsx (Verificado)</li>
+                    </ul>
+                    <div class="evidence-box">
+                        <span style="font-size: 0.85rem; color: #64748b;">Añadir nueva evidencia:</span>
+                        <input type="file" id="file-hito-2" style="font-size: 0.8rem;" onchange="subirEvidencia(2)" />
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PESTAÑA 3: REPOSITORIO Y BITÁCORA CORPORATIVA -->
+    <!-- PESTAÑA 3: REPOSITORIO Y BITÁCORA CON CREACIÓN DE HITOS -->
     <div id="drive" class="tab-content">
         <div class="card">
             <h3>☁️ Repositorio Documental Dinámico por Rubros (Google Drive)</h3>
-            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Gestión categorizada de archivos de respaldo para el proceso de liquidación del IEC.</p>
-            
             <div class="rubro-grid">
                 <div class="rubro-card">
                     <h5>📁 Tesorería y Bancos</h5>
@@ -343,10 +348,10 @@
             <button class="btn btn-upload" onclick="alert('Sincronización completa con Google Drive ejecutada correctamente.')">☁️ Sincronizar Todo con Google Drive</button>
         </div>
 
-        <!-- BITÁCORA ESTILO CHAT CORPORATIVO CON ROLES Y PRIORIDADES -->
+        <!-- BITÁCORA AVANZADA CON VINCULACIÓN A HITOS -->
         <div class="card">
             <h3>💬 Bitácora y Notas del Equipo Financiero (Seguimiento Secul)</h3>
-            <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 15px;">Avisos colaborativos y control interno para el comité de liquidación.</p>
+            <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 15px;">Avisos colaborativos con la opción de registrar acciones en hitos existentes o crear nuevos hitos.</p>
             
             <div class="chat-box" id="chat-container">
                 <div class="chat-message">
@@ -361,18 +366,39 @@
                 </div>
             </div>
 
-            <div class="chat-input-container">
-                <select id="select-rol">
-                    <option value="👔 Director de Liquidación (IEC)">Director de Liquidación</option>
-                    <option value="📊 Contador General">Contador General</option>
-                    <option value="🔍 Auditor Externo">Auditor Externo</option>
-                </select>
-                <select id="select-prioridad">
-                    <option value="badge-info">Informativo</option>
-                    <option value="badge-urgent">Urgente</option>
-                </select>
-                <input type="text" id="input-mensaje" placeholder="Escribe un aviso para el equipo financiero..." />
-                <button class="btn btn-upload" onclick="agregarMensaje()">Enviar Nota</button>
+            <div class="chat-input-container" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="select-rol">
+                        <option value="👔 Director de Liquidación (IEC)">Director de Liquidación</option>
+                        <option value="📊 Contador General">Contador General</option>
+                        <option value="🔍 Auditor Externo">Auditor Externo</option>
+                    </select>
+                    <select id="select-prioridad">
+                        <option value="badge-info">Informativo</option>
+                        <option value="badge-urgent">Urgente</option>
+                    </select>
+                    <select id="select-tipo-accion" onchange="toggleNuevoHitoInput()">
+                        <option value="nota">Solo Nota Informativa</option>
+                        <option value="accion_existente">Agregar Acción a Hito Existente</option>
+                        <option value="nuevo_hito">Crear Nuevo Hito de Liquidación</option>
+                    </select>
+                </div>
+
+                <div id="div-hito-existente" style="display: none;">
+                    <select id="select-hito-destino" style="width: 100%;">
+                        <option value="1">1. Conciliación de Cuentas Bancarias y Tesorería</option>
+                        <option value="2">2. Depuración de Pasivos a Corto Plazo</option>
+                    </select>
+                </div>
+
+                <div id="div-nuevo-hito" style="display: none;">
+                    <input type="text" id="input-nombre-nuevo-hito" placeholder="Escribe el nombre del nuevo Hito..." style="width: 100%;" />
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="input-mensaje" placeholder="Escribe tu comentario, tarea o acción..." style="flex: 1;" />
+                    <button class="btn btn-upload" onclick="agregarMensaje()">Publicar Nota / Acción</button>
+                </div>
             </div>
         </div>
     </div>
@@ -384,6 +410,7 @@
 
 <script>
     let table;
+    let contadorHitos = 2; // Ya tenemos 2 hitos base
     let datosActuales = [
         {Cuenta: "1", NombreCuenta: "ACTIVO", SaldoIni: 116432800, Cargo: 20585170.52, Abono: 24085129.21, SaldoFin: 564664176.10},
         {Cuenta: "1.1.1.2", NombreCuenta: "BANCOS TESORERÍA", SaldoIni: 4930826, Cargo: 356085.69, Abono: 795051.89, SaldoFin: 13475579.31},
@@ -507,10 +534,18 @@
         }
     }
 
+    // Control visual para mostrar opciones de hitos en la bitácora
+    function toggleNuevoHitoInput() {
+        let tipo = document.getElementById('select-tipo-accion').value;
+        document.getElementById('div-hito-existente').style.display = (tipo === 'accion_existente') ? 'block' : 'none';
+        document.getElementById('div-nuevo-hito').style.display = (tipo === 'nuevo_hito') ? 'block' : 'none';
+    }
+
     function agregarMensaje() {
         let input = document.getElementById('input-mensaje');
         let rolSelect = document.getElementById('select-rol');
         let prioridadSelect = document.getElementById('select-prioridad');
+        let tipoAccion = document.getElementById('select-tipo-accion').value;
         
         let texto = input.value.trim();
         if(!texto) return;
@@ -518,6 +553,52 @@
         let rol = rolSelect.value;
         let prioridadClass = prioridadSelect.value;
         let prioridadTexto = prioridadSelect.options[prioridadSelect.selectedIndex].text;
+        let etiquetaAccion = "";
+
+        // Lógica para crear hitos o agregar acciones dinámicamente
+        if (tipoAccion === 'accion_existente') {
+            let hitoId = document.getElementById('select-hito-destino').value;
+            let listaEvidencias = document.getElementById('list-evidencias-' + hitoId);
+            let li = document.createElement('li');
+            li.innerHTML = `📌 Acción/Nota: ${texto} <span class="badge badge-info" style="font-size:0.65rem;">Bitácora</span>`;
+            listaEvidencias.appendChild(li);
+            etiquetaAccion = ` <span class="badge badge-success">Acción añadida a Hito ${hitoId}</span>`;
+        } else if (tipoAccion === 'nuevo_hito') {
+            let nombreNuevoHito = document.getElementById('input-nombre-nuevo-hito').value.trim();
+            if (!nombreNuevoHito) {
+                alert("Por favor, escribe el nombre del nuevo hito.");
+                return;
+            }
+            contadorHitos++;
+            let contenedorHitos = document.getElementById('contenedor-hitos-dinamicos');
+            let nuevoHitoHTML = `
+                <div class="hito-card" id="hito-${contadorHitos}">
+                    <div class="hito-header">
+                        <strong>${contadorHitos}. ${nombreNuevoHito}</strong>
+                        <span class="badge badge-warning">0% Iniciado</span>
+                    </div>
+                    <div class="progress-bar-container"><div class="progress-bar" style="width: 0%; background: var(--warning-color);"></div></div>
+                    <ul class="evidence-list" id="list-evidencias-${contadorHitos}">
+                        <li>📄 Nota inicial: ${texto}</li>
+                    </ul>
+                    <div class="evidence-box">
+                        <span style="font-size: 0.85rem; color: #64748b;">Añadir nueva evidencia:</span>
+                        <input type="file" id="file-hito-${contadorHitos}" style="font-size: 0.8rem;" onchange="subirEvidencia(${contadorHitos})" />
+                    </div>
+                </div>
+            `;
+            contenedorHitos.innerHTML += nuevoHitoHTML;
+
+            // Actualizar select de hitos existentes en la bitácora
+            let selectHitosDestino = document.getElementById('select-hito-destino');
+            let opt = document.createElement('option');
+            opt.value = contadorHitos;
+            opt.text = `${contadorHitos}. ${nombreNuevoHito}`;
+            selectHitosDestino.add(opt);
+
+            etiquetaAccion = ` <span class="badge badge-warning">Nuevo Hito #${contadorHitos} Creado</span>`;
+            document.getElementById('input-nombre-nuevo-hito').value = '';
+        }
 
         let chatContainer = document.getElementById('chat-container');
         let horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -525,7 +606,7 @@
         let msgHTML = `
             <div class="chat-message">
                 <div class="chat-header-info">
-                    <span class="chat-author">${rol}</span>
+                    <span class="chat-author">${rol} ${etiquetaAccion}</span>
                     <div>
                         <span class="badge ${prioridadClass}">${prioridadTexto}</span>
                         <span class="chat-date">Hoy, ${horaActual}</span>
@@ -537,6 +618,10 @@
         chatContainer.innerHTML += msgHTML;
         input.value = '';
         chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        // Resetear selector
+        document.getElementById('select-tipo-accion').value = 'nota';
+        toggleNuevoHitoInput();
     }
 </script>
 
