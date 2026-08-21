@@ -102,6 +102,48 @@
             padding-top: 4px;
         }
 
+        /* Estilos del Flujograma Visual */
+        .flowchart-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            gap: 20px;
+        }
+        .flow-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+        .flow-content h5 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        .flow-content p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .flow-badge {
+            margin-left: auto;
+            background: #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #334155;
+            white-space: nowrap;
+        }
+
         .toolbar {
             display: flex;
             gap: 15px;
@@ -183,7 +225,7 @@
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('balanza', event)">📊 Balanza y Presupuesto</button>
-        <button class="tab-btn" onclick="switchTab('analisis', event)">📈 Análisis y Metodología</button>
+        <button class="tab-btn" onclick="switchTab('analisis', event)">📈 Análisis y Metodología Visual</button>
         <button class="tab-btn" onclick="switchTab('hitos', event)">🎯 Hitos y Evidencias</button>
         <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Repositorio y Drive</button>
     </div>
@@ -212,42 +254,76 @@
         </div>
     </div>
 
-    <!-- PESTAÑA 2: ANÁLISIS Y METODOLOGÍA -->
+    <!-- PESTAÑA 2: ANÁLISIS Y METODOLOGÍA VISUAL -->
     <div id="analisis" class="tab-content">
         <div class="stats-container">
             <div class="stat-card">
                 <h4>Activo Total Proyecto</h4>
                 <p id="ana-activo">$564,664,176.10</p>
-                <span class="info-tooltip">Suma de cuentas con cuenta inician en "1"</span>
+                <span class="info-tooltip">Cuentas que inician con "1"</span>
             </div>
             <div class="stat-card" style="border-left-color: var(--success-color);">
                 <h4>Liquidez en Tesorería</h4>
                 <p id="ana-bancos">$13,475,579.31</p>
-                <span class="info-tooltip">Suma de cuentas de efectivo y bancos (1.1.1)</span>
+                <span class="info-tooltip">Cuentas de efectivo y bancos (1.1.1)</span>
             </div>
             <div class="stat-card" style="border-left-color: var(--warning-color);">
                 <h4>Pasivo Circulante (Deudas)</h4>
                 <p id="ana-pasivo">$3,250,276.76</p>
-                <span class="info-tooltip">Suma de obligaciones a corto plazo (2.1)</span>
+                <span class="info-tooltip">Obligaciones a corto plazo (2.1)</span>
             </div>
             <div class="stat-card" style="border-left-color: var(--danger-color);">
                 <h4>Egresos Acumulados</h4>
                 <p id="ana-egresos">$50,100,444.60</p>
-                <span class="info-tooltip">Suma histórica de gastos devengados (5)</span>
+                <span class="info-tooltip">Gastos devengados históricos (5)</span>
             </div>
         </div>
 
         <div class="card">
-            <h3>📖 Memoria de Cálculo y Metodología Financiera (Explicación para Auditoría)</h3>
-            <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6;">
-                Este panel calcula automáticamente los indicadores clave extrayendo la información directamente de la columna <strong>SaldoFin</strong> agrupada por la jerarquía de la cuenta contable de la balanza cargada:
-            </p>
-            <ul style="color: #475569; font-size: 0.9rem; line-height: 1.6;">
-                <li><strong>Activo Total:</strong> Agrupa y totaliza todas las cuentas principales que empiezan con el dígito <code>1</code>. Representa los recursos y bienes administrados.</li>
-                <li><strong>Liquidez en Tesorería:</strong> Filtra exclusivamente las cuentas que comienzan con <code>1.1.1</code> (Bancos y efectivo). Es el dinero disponible real para respaldar los pagos de finiquito.</li>
-                <li><strong>Pasivo Circulante:</strong> Agrupa las cuentas que comienzan con <code>2.1</code>. Representa las deudas comerciales y fiscales a corto plazo que deben extinguirse antes de la liquidación total.</li>
-                <li><strong>Egresos Acumulados:</strong> Agrupa las cuentas que inician con <code>5</code>, reflejando el gasto total devengado en la operación histórica del proyecto.</li>
-            </ul>
+            <h3>🗺️ Flujograma Visual: ¿Cómo se calculan estos indicadores de cierre?</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Guía rápida paso a paso para la lectura gerencial y auditoría sin términos complejos:</p>
+            
+            <div class="flowchart-container">
+                <!-- Paso 1 -->
+                <div class="flow-step" style="border-left: 4px solid var(--accent-color);">
+                    <div class="flow-icon">📁</div>
+                    <div class="flow-content">
+                        <h5>1. Ingesta de la Balanza Contable</h5>
+                        <p>El sistema lee el archivo de Excel y examina cada renglón en busca del código jerárquico de la cuenta.</p>
+                    </div>
+                    <div class="flow-badge">Filtro por Código</div>
+                </div>
+
+                <!-- Paso 2 -->
+                <div class="flow-step" style="border-left: 4px solid var(--success-color);">
+                    <div class="flow-icon">💰</div>
+                    <div class="flow-content">
+                        <h5>2. Identificación de Tesorería y Recursos</h5>
+                        <p>Se localizan las cuentas con prefijo <strong>1.1.1</strong> para conocer el dinero real disponible en cuentas bancarias para el finiquito.</p>
+                    </div>
+                    <div class="flow-badge">Prefijo: 1.1.1</div>
+                </div>
+
+                <!-- Paso 3 -->
+                <div class="flow-step" style="border-left: 4px solid var(--warning-color);">
+                    <div class="flow-icon">📋</div>
+                    <div class="flow-content">
+                        <h5>3. Detección de Deudas Inmediatas</h5>
+                        <p>Se filtran las cuentas con prefijo <strong>2.1</strong> (Pasivo Circulante) para saber exactamente qué compromisos comerciales deben saldarse.</p>
+                    </div>
+                    <div class="flow-badge">Prefijo: 2.1</div>
+                </div>
+
+                <!-- Paso 4 -->
+                <div class="flow-step" style="border-left: 4px solid var(--danger-color);">
+                    <div class="flow-icon">📊</div>
+                    <div class="flow-content">
+                        <h5>4. Generación del Dictamen Gerencial</h5>
+                        <p>Se cruzan los recursos líquidos contra las deudas para dictaminar si el proyecto cuenta con el colchón financiero necesario para su liquidación.</p>
+                    </div>
+                    <div class="flow-badge">Resultado de Cierre</div>
+                </div>
+            </div>
         </div>
     </div>
 
