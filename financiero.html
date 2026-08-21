@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Financiero - Seguimiento Secul</title>
+    <!-- Tabulator CSS -->
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f7f6; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        #tabla-financiera { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Carga de Balanza Contable</h2>
+    <input type="file" id="input-archivo" accept=".xlsx, .xls" />
+    <div id="tabla-financiera"></div>
+</div>
+
+<!-- Librerías -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+
+<script>
+    document.getElementById('input-archivo').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            
+            // Leemos la hoja "Contable" (ajusta el nombre si es necesario)
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            // Inicializar Tabla con Tabulator
+            new Tabulator("#tabla-financiera", {
+                data: jsonData,
+                autoColumns: true, // Crea columnas automáticamente según el Excel
+                layout: "fitColumns",
+                pagination: "local",
+                paginationSize: 10,
+                movableColumns: true,
+                renderHorizontal: "virtual"
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    });
+</script>
+
+</body>
+</html>
