@@ -211,7 +211,7 @@
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-100">
                         <button onclick="openModal('modal-A')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-sliders"></i> Gestionar Hito A
+                            <i class="fa-solid fa-sliders"></i> Gestionar Hito A <span id="badge-A" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
                         </button>
                     </div>
                 </div>
@@ -243,7 +243,7 @@
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-100">
                         <button onclick="openModal('modal-B')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-scale-balanced"></i> Gestionar Hito B
+                            <i class="fa-solid fa-scale-balanced"></i> Gestionar Hito B <span id="badge-B" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
                         </button>
                     </div>
                 </div>
@@ -275,7 +275,7 @@
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-100">
                         <button onclick="openModal('modal-C')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-helmet-safety"></i> Gestionar Hito C
+                            <i class="fa-solid fa-helmet-safety"></i> Gestionar Hito C <span id="badge-C" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
                         </button>
                     </div>
                 </div>
@@ -307,7 +307,7 @@
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-100">
                         <button onclick="openModal('modal-D')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-vault"></i> Gestionar Hito D
+                            <i class="fa-solid fa-vault"></i> Gestionar Hito D <span id="badge-D" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
                         </button>
                     </div>
                 </div>
@@ -333,13 +333,13 @@
                             </li>
                             <li class="flex items-start gap-2">
                                 <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Inventarios documentales y actas circunstanciadas</span>
+                                <span>Inventarios documentales y actas circumstantiales</span>
                             </li>
                         </ul>
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-100">
                         <button onclick="openModal('modal-E')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-folder-tree"></i> Gestionar Hito E
+                            <i class="fa-solid fa-folder-tree"></i> Gestionar Hito E <span id="badge-E" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
                         </button>
                     </div>
                 </div>
@@ -371,7 +371,7 @@
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-100">
                         <button onclick="openModal('modal-F')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-file-signature"></i> Gestionar Hito F
+                            <i class="fa-solid fa-file-signature"></i> Gestionar Hito F <span id="badge-F" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
                         </button>
                     </div>
                 </div>
@@ -410,24 +410,32 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Estatus del Hito:</label>
-                    <select class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
-                        <option>En Desarrollo - 70% de Avance</option>
-                        <option>Concluido</option>
-                        <option>Con Observaciones</option>
+                    <select id="status-A" class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
+                        <option value="En Desarrollo">En Desarrollo - 70% de Avance</option>
+                        <option value="Concluido">Concluido</option>
+                        <option value="Con Observaciones">Con Observaciones</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-900 mb-1">Evidencia / Minutas Acreditadas:</label>
-                    <input type="file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                    <label class="block font-bold text-slate-900 mb-1">Evidencia Local (Archivo Físico):</label>
+                    <input type="file" id="file-A" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
+                    <div class="relative">
+                        <input type="url" id="drive-A" oninput="validateDriveUrl('A')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
+                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+                    <p id="drive-error-A" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
-                    <textarea class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Registrar comentarios del avance de la verificación física del inventario..."></textarea>
+                    <textarea id="notes-A" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Registrar comentarios del avance de la verificación física del inventario..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
                 <button onclick="closeModal('modal-A')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('modal-A')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+                <button onclick="saveModal('A')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -456,20 +464,32 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Estatus Jurídico:</label>
-                    <select class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
-                        <option>En Validación por Consejería Jurídica</option>
-                        <option>Dictamen Emitido</option>
-                        <option>Escrituración / Registro Concluido</option>
+                    <select id="status-B" class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
+                        <option value="En Validación">En Validación por Consejería Jurídica</option>
+                        <option value="Dictamen Emitido">Dictamen Emitido</option>
+                        <option value="Escrituración Concluida">Escrituración / Registro Concluido</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Adjuntar Instrumento Jurídico / Dictamen:</label>
-                    <input type="file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                    <input type="file" id="file-B" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
+                    <div class="relative">
+                        <input type="url" id="drive-B" oninput="validateDriveUrl('B')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
+                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+                    <p id="drive-error-B" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
+                    <textarea id="notes-B" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Comentarios sobre el avance de escrituración o dictámenes jurídicos..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
                 <button onclick="closeModal('modal-B')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('modal-B')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+                <button onclick="saveModal('B')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -498,17 +518,29 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Avance Físico-Financiero:</label>
-                    <input type="range" min="0" max="100" value="85" class="w-full accent-indigo-600">
-                    <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0%</span><span class="font-bold text-indigo-600">85% Comprobado</span><span>100%</span></div>
+                    <input type="range" id="progress-C" min="0" max="100" value="85" oninput="document.getElementById('progress-val-C').innerText = this.value + '% Comprobado'" class="w-full accent-indigo-600">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0%</span><span id="progress-val-C" class="font-bold text-indigo-600">85% Comprobado</span><span>100%</span></div>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Cargar Actas de Entrega-Recepción de Obra:</label>
-                    <input type="file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                    <input type="file" id="file-C" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
+                    <div class="relative">
+                        <input type="url" id="drive-C" oninput="validateDriveUrl('C')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
+                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+                    <p id="drive-error-C" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
+                    <textarea id="notes-C" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Avances en las obras del Teatro Juárez o Biblioteca Central..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
                 <button onclick="closeModal('modal-C')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('modal-C')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+                <button onclick="saveModal('C')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -537,20 +569,32 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Estatus del Cierre Bancario:</label>
-                    <select class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
-                        <option>En Proceso de Conciliación</option>
-                        <option>Reintegros TESOFE Realizados</option>
-                        <option>Cuentas Canceladas al 100%</option>
+                    <select id="status-D" class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
+                        <option value="En Conciliación">En Proceso de Conciliación</option>
+                        <option value="Reintegros Realizados">Reintegros TESOFE Realizados</option>
+                        <option value="Cuentas Canceladas">Cuentas Canceladas al 100%</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Cargar Comprobantes de Reintegro / Acuse SAT:</label>
-                    <input type="file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                    <input type="file" id="file-D" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
+                    <div class="relative">
+                        <input type="url" id="drive-D" oninput="validateDriveUrl('D')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
+                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+                    <p id="drive-error-D" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
+                    <textarea id="notes-D" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Estatus de las cuentas bancarias o trámites ante la TESOFE..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
                 <button onclick="closeModal('modal-D')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('modal-D')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+                <button onclick="saveModal('D')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -577,13 +621,25 @@
                     </ul>
                 </div>
                 <div>
+                    <label class="block font-bold text-slate-900 mb-1">Cargar Acta/Inventario Físico:</label>
+                    <input type="file" id="file-E" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
+                    <div class="relative">
+                        <input type="url" id="drive-E" oninput="validateDriveUrl('E')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
+                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+                    <p id="drive-error-E" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
+                </div>
+                <div>
                     <label class="block font-bold text-slate-900 mb-1">Inventarios Documentales Cargados:</label>
-                    <textarea class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Detalle de cajas y transferencias de concentración autorizadas..."></textarea>
+                    <textarea id="notes-E" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Detalle de cajas y transferencias de concentración autorizadas..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
                 <button onclick="closeModal('modal-E')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('modal-E')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+                <button onclick="saveModal('E')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -611,12 +667,24 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Cargar Informe Mensual de Avance:</label>
-                    <input type="file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                    <input type="file" id="file-F" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
+                    <div class="relative">
+                        <input type="url" id="drive-F" oninput="validateDriveUrl('F')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
+                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+                    <p id="drive-error-F" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
+                    <textarea id="notes-F" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Observaciones o notas del Comité de Extinción..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
                 <button onclick="closeModal('modal-F')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('modal-F')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+                <button onclick="saveModal('F')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -665,7 +733,7 @@
 
 
     <!-- ========================================== -->
-    <!-- SCRIPT DE INTERACTIVIDAD DE MODALES        -->
+    <!-- SCRIPT DE INTERACTIVIDAD DE MODALES Y LOGICA PERSISTENTE -->
     <!-- ========================================== -->
     <script>
         // Datos detallados para los Modales de Hitos Críticos
@@ -717,11 +785,6 @@
             document.getElementById(id).classList.add('hidden');
         }
 
-        function saveModal(id) {
-            alert('¡Cambios e información guardados correctamente en la plataforma!');
-            closeModal(id);
-        }
-
         function openCriticalModal(key) {
             const data = criticalData[key];
             if(!data) return;
@@ -738,6 +801,89 @@
 
             openModal('modal-critical');
         }
+
+        // Validación de URLs de Google Drive
+        function validateDriveUrl(hito) {
+            const input = document.getElementById(`drive-${hito}`);
+            const errorMsg = document.getElementById(`drive-error-${hito}`);
+            const url = input.value.trim();
+
+            if (url === "") {
+                errorMsg.classList.add('hidden');
+                return true;
+            }
+
+            const isDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
+            if (!isDrive) {
+                errorMsg.classList.remove('hidden');
+                return false;
+            } else {
+                errorMsg.classList.add('hidden');
+                return true;
+            }
+        }
+
+        // Guardar estado en localStorage y actualizar badges
+        function saveModal(hito) {
+            if (!validateDriveUrl(hito)) {
+                alert('Por favor corrige el enlace de Google Drive antes de guardar.');
+                return;
+            }
+
+            const fileInput = document.getElementById(`file-${hito}`);
+            const driveInput = document.getElementById(`drive-${hito}`);
+            const notesInput = document.getElementById(`notes-${hito}`);
+            const statusInput = document.getElementById(`status-${hito}`);
+
+            let evidenceCount = 0;
+            if (fileInput && fileInput.files.length > 0) evidenceCount++;
+            if (driveInput && driveInput.value.trim() !== '') evidenceCount++;
+
+            const hitoData = {
+                status: statusInput ? statusInput.value : '',
+                drive: driveInput ? driveInput.value : '',
+                notes: notesInput ? notesInput.value : '',
+                count: evidenceCount
+            };
+
+            localStorage.setItem(`hito_${hito}`, JSON.stringify(hitoData));
+            updateBadge(hito, evidenceCount);
+
+            alert(`¡Hito ${hito} guardado exitosamente! Evidencias registradas: ${evidenceCount}`);
+            closeModal(`modal-${hito}`);
+        }
+
+        function updateBadge(hito, count) {
+            const badge = document.getElementById(`badge-${hito}`);
+            if (badge) {
+                badge.innerText = `(${count})`;
+                if (count > 0) {
+                    badge.className = "bg-emerald-600 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1";
+                } else {
+                    badge.className = "bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1";
+                }
+            }
+        }
+
+        // Cargar datos guardados al iniciar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(hito => {
+                const saved = localStorage.getItem(`hito_${hito}`);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.drive && document.getElementById(`drive-${hito}`)) {
+                        document.getElementById(`drive-${hito}`).value = data.drive;
+                    }
+                    if (data.notes && document.getElementById(`notes-${hito}`)) {
+                        document.getElementById(`notes-${hito}`).value = data.notes;
+                    }
+                    if (data.status && document.getElementById(`status-${hito}`)) {
+                        document.getElementById(`status-${hito}`).value = data.status;
+                    }
+                    updateBadge(hito, data.count || 0);
+                }
+            });
+        });
     </script>
 </body>
 </html>
