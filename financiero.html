@@ -12,6 +12,7 @@
             --accent-color: #3b82f6;
             --success-color: #10b981;
             --warning-color: #f59e0b;
+            --danger-color: #ef4444;
             --bg-color: #f8fafc;
         }
         body {
@@ -40,6 +41,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .tab-btn {
             padding: 10px 20px;
@@ -67,6 +69,18 @@
             margin-bottom: 20px;
         }
         
+        .active-file-banner {
+            background: #eff6ff;
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -107,16 +121,41 @@
         }
         #tabla-financiera { border: 1px solid #e2e8f0; border-radius: 6px; }
         
-        .hitos-list {
-            list-style: none; padding: 0;
+        /* Hitos Interactivos con Barras de Progreso */
+        .hito-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fff;
         }
-        .hitos-list li {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
+        .hito-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 10px;
         }
+        .progress-bar-container {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-bar {
+            background: var(--success-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .file-evidence-list {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 8px;
+            padding-left: 15px;
+        }
+
         .badge {
             padding: 4px 10px;
             border-radius: 12px;
@@ -125,6 +164,28 @@
         }
         .badge-success { background: #d1fae5; color: #065f46; }
         .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        /* Mensajes de trabajo en equipo */
+        .chat-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .chat-message {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .chat-message .author { font-weight: bold; font-size: 0.85rem; color: var(--accent-color); }
+        .chat-message .date { font-size: 0.75rem; color: #94a3b8; float: right; }
+        .chat-input-group { display: flex; gap: 10px; }
+        .chat-input-group input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -133,28 +194,34 @@
     <!-- Cabecera -->
     <div class="header-panel">
         <h1>Seguimiento Secul - Panel Financiero & Liquidación</h1>
-        <span style="font-size: 0.9rem; opacity: 0.8;">Módulo de Cierre de Proyecto</span>
+        <span style="font-size: 0.9rem; opacity: 0.8;">Módulo de Cierre IEC</span>
     </div>
 
-    <!-- Navegación por Secciones -->
+    <!-- Navegación por Pestañas -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('balanza', event)">📊 Balanza y Edición</button>
         <button class="tab-btn" onclick="switchTab('analisis', event)">📈 Análisis Ejecutivo</button>
         <button class="tab-btn" onclick="switchTab('hitos', event)">🎯 Hitos de Liquidación</button>
-        <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Gestión y Drive</button>
+        <button class="tab-btn" onclick="switchTab('drive', event)">☁️ Repositorio y Drive</button>
     </div>
 
     <!-- PESTAÑA 1: BALANZA Y EDICIÓN -->
     <div id="balanza" class="tab-content active">
         <div class="card">
             <h3>Carga y Gestión de Balanza Contable</h3>
-            <p style="color: #64748b; font-size: 0.9rem;">Sube balanzas adicionales o edita los saldos en vivo para actualizar el balance del proyecto.</p>
+            <p style="color: #64748b; font-size: 0.9rem;">Sube la balanza de comprobación para alimentar dinámicamente el panel financiero.</p>
+            
+            <div class="active-file-banner" id="banner-archivo-activo">
+                <span>📂 <strong>Archivo Activo en Turno:</strong> <span id="nombre-archivo-actual">Ninguno cargado (Usando valores base del sistema)</span></span>
+                <span id="badge-estado-balanza" class="badge badge-warning">Sin Carga</span>
+            </div>
+
             <div class="toolbar">
                 <div class="file-input-wrapper">
-                    <button class="btn btn-upload">📁 Cargar Balanza Excel</button>
+                    <button class="btn btn-upload">📁 Cargar Nueva Balanza Excel</button>
                     <input type="file" id="input-archivo" accept=".xlsx, .xls" />
                 </div>
-                <button id="btn-descargar" class="btn btn-download" disabled>📥 Descargar Balanza (Excel)</button>
+                <button id="btn-descargar" class="btn btn-download" disabled>📥 Descargar Balanza Actualizada</button>
             </div>
         </div>
         <div class="card">
@@ -179,30 +246,105 @@
             </div>
         </div>
         <div class="card">
-            <h3>Dictamen Financiero de Situación Real</h3>
-            <p><strong>Conclusión de Cierre:</strong> La balanza muestra una cobertura de liquidez positiva. Los fondos disponibles en cuentas de tesorería superan las obligaciones a corto plazo (pasivo circulante), lo que permite avanzar con seguridad hacia el finiquito de contratos.</p>
+            <h3>Dictamen Financiero de Situación Real (IEC)</h3>
+            <p id="dictamen-texto"><strong>Conclusión de Cierre:</strong> La balanza activa muestra una cobertura de liquidez positiva. Los fondos disponibles en cuentas de tesorería superan las obligaciones a corto plazo (pasivo circulante), permitiendo el finiquito seguro de contratos.</p>
         </div>
     </div>
 
     <!-- PESTAÑA 3: HITOS DE LIQUIDACIÓN -->
     <div id="hitos" class="tab-content">
         <div class="card">
-            <h3>Seguimiento de Hitos Financieros para el Cierre</h3>
-            <ul class="hitos-list">
-                <li><span>1. Conciliación de Cuentas Bancarias y Tesorería</span> <span class="badge badge-success">Completado</span></li>
-                <li><span>2. Depuración de Pasivos a Corto Plazo</span> <span class="badge badge-warning">En Proceso</span></li>
-                <li><span>3. Emisión de Balanza Contable de Comprobación Final</span> <span class="badge badge-warning">Pendiente Carga</span></li>
-                <li><span>4. Entrega de Reporte de Cierre para Acta de Liquidación</span> <span class="badge badge-warning">Pendiente</span></li>
-            </ul>
+            <h3>Seguimiento y Progreso de Hitos Financieros para el Cierre</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Desglose operativo de avance y documentos que suman al cumplimiento de la liquidación.</p>
+            
+            <!-- Hito 1 -->
+            <div class="hito-card">
+                <div class="hito-header">
+                    <strong>1. Conciliación de Cuentas Bancarias y Tesorería</strong>
+                    <span class="badge badge-success">Completado (100%)</span>
+                </div>
+                <div class="progress-bar-container"><div class="progress-bar" style="width: 100%;"></div></div>
+                <ul class="file-evidence-list">
+                    <li>📄 Estado de Cuenta Bancario - Cierre Mes (PDF / Excel)</li>
+                    <li>📄 Papel de trabajo de conciliación contable vs. bancaria</li>
+                </ul>
+            </div>
+
+            <!-- Hito 2 -->
+            <div class="hito-card">
+                <div class="hito-header">
+                    <strong>2. Depuración de Pasivos a Corto Plazo</strong>
+                    <span class="badge badge-warning">En Proceso (65%)</span>
+                </div>
+                <div class="progress-bar-container"><div class="progress-bar" style="width: 65%; background: var(--warning-color);"></div></div>
+                <ul class="file-evidence-list">
+                    <li>📄 Relación analítica de proveedores pendientes de pago</li>
+                    <li>⚠️ Pólizas de diario por comprobar (Pendiente 3 facturas)</li>
+                </ul>
+            </div>
+
+            <!-- Hito 3 -->
+            <div class="hito-card">
+                <div class="hito-header">
+                    <strong>3. Emisión de Balanza Contable de Comprobación Final</strong>
+                    <span class="badge badge-warning">Pendiente Carga (30%)</span>
+                </div>
+                <div class="progress-bar-container"><div class="progress-bar" style="width: 30%; background: var(--danger-color);"></div></div>
+                <ul class="file-evidence-list">
+                    <li>📁 Archivo de Balanza de Comprobación Definitiva (Cargar en módulo 1)</li>
+                </ul>
+            </div>
+
+            <!-- Hito 4 -->
+            <div class="hito-card">
+                <div class="hito-header">
+                    <strong>4. Entrega de Reporte de Cierre para Acta de Liquidación</strong>
+                    <span class="badge badge-danger">Pendiente (0%)</span>
+                </div>
+                <div class="progress-bar-container"><div class="progress-bar" style="width: 0%;"></div></div>
+                <ul class="file-evidence-list">
+                    <li>📄 Borrador de Acta de Cierre Administrativo-Financiero</li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <!-- PESTAÑA 4: GESTIÓN Y DRIVE -->
+    <!-- PESTAÑA 4: REPOSITORIO Y DRIVE -->
     <div id="drive" class="tab-content">
         <div class="card">
-            <h3>Repositorio de Balanzas y Conexión con Google Drive</h3>
-            <p style="color: #64748b;">Administra los históricos de balanzas mensuales y guarda respaldos automáticos en tu carpeta compartida de Google Drive del proyecto.</p>
-            <button class="btn btn-upload" onclick="alert('Función de Google Drive lista para conectarse mediante API OAuth 2.0.')">☁️ Sincronizar con Google Drive</button>
+            <h3>Catálogo y Repositorio de Balanzas (Google Drive)</h3>
+            <p style="color: #64748b; font-size: 0.9rem;">Organización por rubros de cierre para vinculación directa con Google Drive.</p>
+            
+            <ul class="hitos-list" style="margin-bottom: 20px;">
+                <li><span>📁 Rubro Tesorería: Balanzas y Conciliaciones Bancarias</span> <span class="badge badge-success">Sincronizado</span></li>
+                <li><span>📁 Rubro Obligaciones: Depuración de Pasivos y Acreedores</span> <span class="badge badge-warning">Actualización Pendiente</span></li>
+                <li><span>📁 Rubro Comprobación: Balanzas de Cierre Oficial IEC</span> <span class="badge badge-warning">En Revisión</span></li>
+                <li><span>📁 Rubro Actas: Reportes Finales de Liquidación</span> <span class="badge badge-danger">Sin Archivos</span></li>
+            </ul>
+
+            <button class="btn btn-upload" onclick="alert('Conexión con Google Drive API OAuth 2.0 iniciada para respaldo automático.')">☁️ Sincronizar Repositorio con Google Drive</button>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE MENSAJES DE TRABAJO EN EQUIPO -->
+    <div class="card">
+        <h3>💬 Bitácora y Notas del Equipo Financiero (Seguimiento Secul)</h3>
+        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 15px;">Deja observaciones o notas de validación administrativa para los auditores y administradores del proyecto.</p>
+        
+        <div class="chat-box" id="chat-container">
+            <div class="chat-message">
+                <span class="author">Lic. Financiero (Admin)</span> <span class="date">Ayer, 16:30</span>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Se cargó la balanza preliminar de comprobación. Favor de revisar las cuentas de pasivo circulante.</p>
+            </div>
+            <div class="chat-message">
+                <span class="author">Contador General</span> <span class="date">Hoy, 09:15</span>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Recibido. Las cuentas bancarias de Banamex cuadran correctamente con los estados de cuenta.</p>
+            </div>
+        </div>
+
+        <div class="chat-input-group">
+            <input type="text" id="input-mensaje" placeholder="Escribe una nota o aviso para el equipo..." />
+            <button class="btn btn-upload" onclick="agregarMensaje()">Enviar Nota</button>
         </div>
     </div>
 </div>
@@ -223,10 +365,16 @@
         if(table) table.redraw(true);
     }
 
-    // Carga de Archivo Excel
+    // Carga y Procesamiento Dinámico de Balanza Excel
     document.getElementById('input-archivo').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Actualizar etiqueta visual del archivo activo
+        document.getElementById('nombre-archivo-actual').innerText = file.name;
+        let badge = document.getElementById('badge-estado-balanza');
+        badge.innerText = "Activo y Sincronizado";
+        badge.className = "badge badge-success";
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -236,6 +384,8 @@
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
             inicializarTabla(jsonData);
+            calcularIndicadoresDinamicos(jsonData);
+            
             document.getElementById('btn-descargar').removeAttribute('disabled');
         };
         reader.readAsArrayBuffer(file);
@@ -259,13 +409,66 @@
                 let row = cell.getRow().getData();
                 let final = (parseFloat(row.SaldoIni) || 0) + (parseFloat(row.Cargo) || 0) - (parseFloat(row.Abono) || 0);
                 cell.getRow().update({ SaldoFin: final });
+                calcularIndicadoresDinamicos(table.getData());
             }
         });
     }
 
+    // Cálculo dinámico de indicadores reales basados en la balanza del usuario
+    function calcularIndicadoresDinamicos(data) {
+        let activoTotal = 0;
+        let bancosTotal = 0;
+        let pasivoCirculante = 0;
+
+        data.forEach(row => {
+            let cuenta = String(row.Cuenta || '');
+            let saldoFin = parseFloat(row.SaldoFin) || 0;
+
+            if (cuenta.startsWith('1')) {
+                activoTotal += saldoFin;
+            }
+            if (cuenta.startsWith('1.1.1')) {
+                bancosTotal += saldoFin;
+            }
+            if (cuenta.startsWith('2.1')) {
+                pasivoCirculante += saldoFin;
+            }
+        });
+
+        // Actualizar tarjetas en la pestaña de análisis
+        document.getElementById('ana-activo').innerText = activoTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        document.getElementById('ana-bancos').innerText = bancosTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        document.getElementById('ana-pasivo').innerText = pasivoCirculante.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+
+        // Actualizar dictamen automático
+        let textDictamen = `<strong>Conclusión de Cierre (Actualizada):</strong> El archivo activo presenta un Activo Total de ${activoTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} y una disponibilidad en tesorería de ${bancosTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}.`;
+        document.getElementById('dictamen-texto').innerHTML = textDictamen;
+    }
+
+    // Descargar balanza actualizada
     document.getElementById('btn-descargar').addEventListener('click', function() {
-        if(table) table.download("xlsx", "Balanza_Proyecto_Liquidacion.xlsx");
+        if(table) table.download("xlsx", "Balanza_Proyecto_Liquidacion_Actualizada.xlsx");
     });
+
+    // Función para la sección de mensajes de equipo
+    function agregarMensaje() {
+        let input = document.getElementById('input-mensaje');
+        let texto = input.value.trim();
+        if(!texto) return;
+
+        let chatContainer = document.getElementById('chat-container');
+        let horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        let msgHTML = `
+            <div class="chat-message">
+                <span class="author">Usuario (Sesión Activa)</span> <span class="date">Hoy, ${horaActual}</span>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">${texto}</p>
+            </div>
+        `;
+        chatContainer.innerHTML += msgHTML;
+        input.value = '';
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 </script>
 
 </body>
