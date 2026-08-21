@@ -3,887 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tablero de Control y Cierre: Extinción IEC -> Secretaría de Cultura</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Acceso al Portal Cultural</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .modal-backdrop { background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); }
-        .critical-pulse {
-            box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
-            animation: pulse-red 2s infinite;
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        skycustom: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    }
+                }
+            }
         }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+    </script>
+    <style>
+        /* Fondo con degradado suave en tonos azul cielo */
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            min-height: 100vh;
+        }
+        /* Animación suave para la tarjeta de login */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        /* Transición suave para el mensaje motivacional */
+        .toast-msg {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+<body class="flex items-center justify-center p-4 relative overflow-hidden">
 
-    <!-- HEADER / HERO PRINCIPAL -->
-    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            <i class="fa-solid font-bold fa-rotate me-1"></i> En Proceso de Extinción
-                        </span>
-                        <span class="text-xs text-slate-400">Decreto No. 345 | GTO</span>
-                    </div>
-                    <h1 class="text-2xl font-extrabold tracking-tight mt-1 text-white">
-                        Tablero de Transición Institucional: IEC <i class="fa-solid fa-arrow-right text-xs text-amber-400 mx-1"></i> Secretaría de Cultura
-                    </h1>
-                    <p class="text-xs text-slate-300 mt-0.5">Seguimiento estricto a compromisos, regularización patrimonial, cierre fiscal y consolidación</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60 text-right">
-                        <span class="block text-[10px] text-slate-400 uppercase font-medium">Plazo Límite Legal</span>
-                        <span class="text-sm font-bold text-rose-400"><i class="fa-regular fa-clock me-1"></i> Diciembre 2025</span>
-                    </div>
-                </div>
-            </div>
+    <!-- Componente de Mensajes Motivacionales en la esquina superior izquierda -->
+    <div id="motivationalToast" class="fixed top-6 left-6 z-50 max-w-sm glass-card p-4 rounded-2xl shadow-xl border border-white/80 flex items-center space-x-3 toast-msg opacity-0 -translate-y-2 pointer-events-none">
+        <div class="w-10 h-10 rounded-full bg-skycustom-500 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+            <i class="fa-solid fa-users text-sm"></i>
         </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-
-        <!-- ========================================== -->
-        <!-- SECCIÓN DE HITOS CRÍTICOS Y DE TRANSICIÓN  -->
-        <!-- ========================================== -->
-        <section class="space-y-6">
-            <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Hitos Críticos y de Transición Legal
-                    </h2>
-                    <p class="text-xs text-slate-500">Cronograma ampliado de obligaciones con impacto jurídico, laboral y fiscal ineludible</p>
-                </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> Atención Directiva Requerida
-                </span>
-            </div>
-
-            <!-- TIMELINE VISUAL DE HITOS CRÍTICOS -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                <!-- HITO CRÍTICO 1 -->
-                <div class="bg-white rounded-2xl p-5 border-2 border-rose-200 shadow-md hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between">
-                    <div class="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-bl-full pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-100 text-rose-800 border border-rose-300">
-                                <i class="fa-regular fa-calendar-check me-1"></i> 09 MAY 2025
-                            </span>
-                            <span class="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">01. Laboral</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base leading-snug">Entrega-Recepción Expedientes Laborales</h3>
-                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Traspaso formal ante la DGRH de la Secretaría de Finanzas de expedientes individuales del personal transferido del IEC y Fórum Cultural Guanajuato.
-                        </p>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-[11px] font-medium text-slate-500">Sostenibilidad de Nómina</span>
-                        <button onclick="openCriticalModal('critical-1')" class="text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1">
-                            Detalles <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- HITO CRÍTICO 2 -->
-                <div class="bg-white rounded-2xl p-5 border-2 border-amber-200 shadow-md hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between">
-                    <div class="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-bl-full pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-100 text-amber-800 border border-amber-300">
-                                <i class="fa-regular fa-calendar-check me-1"></i> JULIO 2025
-                            </span>
-                            <span class="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">02. Fiscal Federal</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base leading-snug">Reporte Definitivo SRFT (SHCP)</h3>
-                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Cierre definitivo, conciliación y captura del ejercicio de recursos federales transferidos en el portal de la Secretaría de Hacienda.
-                        </p>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-[11px] font-medium text-slate-500">Cierre Cuenta Pública</span>
-                        <button onclick="openCriticalModal('critical-2')" class="text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1">
-                            Detalles <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- HITO CRÍTICO 3 -->
-                <div class="bg-white rounded-2xl p-5 border-2 border-rose-500 shadow-lg hover:shadow-2xl transition-all relative overflow-hidden flex flex-col justify-between critical-pulse">
-                    <div class="absolute top-0 right-0 bg-rose-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg uppercase">
-                        Límite Legal
-                    </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-600 text-white">
-                                <i class="fa-regular fa-calendar-check me-1"></i> DIC 2025
-                            </span>
-                            <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider">03. Extinción Total</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base leading-snug">Término Legal de Liquidación y Reporte Final</h3>
-                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Cumplimiento del límite legal de 15 meses (Decreto 345). Extinción total de obligaciones y presentación del Informe Final de Liquidación.
-                        </p>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-[11px] font-semibold text-rose-700">Extinción Legal IEC</span>
-                        <button onclick="openCriticalModal('critical-3')" class="text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1">
-                            Detalles <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- HITO CRÍTICO 4 -->
-                <div class="bg-white rounded-2xl p-5 border-2 border-slate-300 shadow-md hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between">
-                    <div class="absolute top-0 right-0 w-16 h-16 bg-slate-500/10 rounded-bl-full pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-200 text-slate-800 border border-slate-300">
-                                <i class="fa-regular fa-calendar-check me-1"></i> POST-LIQUIDACIÓN
-                            </span>
-                            <span class="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">04. Cierre Fiscal/SAT</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base leading-snug">Baja de RFC y Cierre Extraordinario</h3>
-                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Cancelación del RFC ante el SAT, entrega de la plaza de base nivel 8 y devolución de los 131 bienes asignados a la figura del Liquidador.
-                        </p>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-[11px] font-medium text-slate-500">Extinción Fiscal SAT</span>
-                        <button onclick="openCriticalModal('critical-4')" class="text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-1">
-                            Detalles <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ========================================== -->
-        <!-- SECCIÓN DE HITOS GENERALES POR ÁREA (A - F)-->
-        <!-- ========================================== -->
-        <section class="space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-layer-group text-indigo-600"></i> Hitos Operativos y Compromisos por Área Estratégica
-                </h2>
-                <p class="text-xs text-slate-500">Desglose estricto derivado del análisis de transición (Secciones A a F)</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                <!-- TARJETA A: RECURSOS HUMANOS -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">A</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">En Desarrollo</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Recursos Humanos y Estructura</h3>
-                        <p class="text-xs text-slate-500 mt-1">Gestión de expedientes laborales, plaza del Liquidador e inventario de 20,858 bienes muebles en SAP S/4 HANA.</p>
-                        
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Entrega-Recepción laboral DGRH Finanzas</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Resguardo de Plaza Nivel 8 y 131 bienes del Liquidador</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-circle-notch text-amber-500 animate-spin mt-0.5"></i>
-                                <span>Capitalización e inventario de 20,858 bienes en SAP</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-slate-100">
-                        <button onclick="openModal('modal-A')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-sliders"></i> Gestionar Hito A <span id="badge-A" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TARJETA B: JURÍDICO Y PATRIMONIO -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">B</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">En Validación</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Jurídico, Inmuebles y FIARCA</h3>
-                        <p class="text-xs text-slate-500 mt-1">Regularización de zonas arqueológicas, juicios en trámite y dictamen del Fideicomiso FIARCA.</p>
-                        
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-circle-notch text-amber-500 animate-spin mt-0.5"></i>
-                                <span>3 Predios Arqueológicos (Cóporo, Peralta, Plazuelas)</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Sustitución procesal en juicios jurídicos del IEC</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-clock text-slate-400 mt-0.5"></i>
-                                <span>Dictamen de Modificación/Extinción de FIARCA</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-slate-100">
-                        <button onclick="openModal('modal-B')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-scale-balanced"></i> Gestionar Hito B <span id="badge-B" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TARJETA C: INFRAESTRUCTURA Y PROYECTOS -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">C</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">En Ejecución</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Infraestructura y Programas Q, G, P</h3>
-                        <p class="text-xs text-slate-500 mt-1">Cierre del Teatro Juárez, Biblioteca León y metas en Zonas Arqueológicas y Culturas Populares.</p>
-                        
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Cierre Teatro Juárez (Etapa 2 SICOM)</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-circle-notch text-amber-500 animate-spin mt-0.5"></i>
-                                <span>Elevador/Montacargas Biblioteca Central León</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-circle-notch text-amber-500 animate-spin mt-0.5"></i>
-                                <span>Concursos P0427 y Zonas Arqueológicas QC0014</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-slate-100">
-                        <button onclick="openModal('modal-C')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-helmet-safety"></i> Gestionar Hito C <span id="badge-C" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TARJETA D: CIERRE FINANCIERO Y FISCAL -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">D</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Pendiente Cierre</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Cierre Financiero, Fiscal y TI</h3>
-                        <p class="text-xs text-slate-500 mt-1">Cancelación de cuentas bancarias, reintegros a TESOFE, baja de RFC y migración de licencias digitales.</p>
-                        
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-clock text-slate-400 mt-0.5"></i>
-                                <span>Cancelación de cuentas bancarias y reintegro TESOFE</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-clock text-slate-400 mt-0.5"></i>
-                                <span>Trámite de Baja de RFC del IEC ante SAT</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Transferencia de accesos, e.firma y sistemas SAP</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-slate-100">
-                        <button onclick="openModal('modal-D')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-vault"></i> Gestionar Hito D <span id="badge-D" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TARJETA E: GESTIÓN DOCUMENTAL -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">E</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">En Proceso</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Gestión Documental y Archivo</h3>
-                        <p class="text-xs text-slate-500 mt-1">Transferencia de archivos de trámite y concentración a la SC y acervo histórico al Archivo General.</p>
-                        
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-circle-notch text-amber-500 animate-spin mt-0.5"></i>
-                                <span>Archivos de Trámite y Concentración a la SC</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-clock text-slate-400 mt-0.5"></i>
-                                <span>Acreditación documental ante Archivo General</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Inventarios documentales y actas circumstantiales</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-slate-100">
-                        <button onclick="openModal('modal-E')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-folder-tree"></i> Gestionar Hito E <span id="badge-E" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TARJETA F: INFORMES Y LIQUIDACIÓN -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">F</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Supervisión</span>
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Informes y Reportes de Liquidación</h3>
-                        <p class="text-xs text-slate-500 mt-1">Informes periódicos de avance y elaboración del Informe Final de Liquidación para el Comité de Extinción.</p>
-                        
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Reportes periódicos mensuales al Comité</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-clock text-slate-400 mt-0.5"></i>
-                                <span>Integración del Informe Final Cierre de Liquidación</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
-                                <span>Aprobación y finiquito del Comité de Extinción</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-slate-100">
-                        <button onclick="openModal('modal-F')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-file-signature"></i> Gestionar Hito F <span id="badge-F" class="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1">(0)</span>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-
-
-    <!-- ========================================== -->
-    <!-- MODALES DE HITOS GENERALES (A - F)        -->
-    <!-- ========================================== -->
-
-    <!-- MODAL HITO A -->
-    <div id="modal-A" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-amber-400">A</span>
-                    <div>
-                        <h3 class="font-bold text-base">Hito A: Recursos Humanos y Estructura</h3>
-                        <p class="text-xs text-slate-300">Detalles de compromisos y acciones operativas</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-A')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-2">Compromisos Clave:</h4>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Expedientes Laborales:</strong> Entrega-recepción formal el 09 de mayo de 2025 ante la DGRH de Secretaría de Finanzas.</li>
-                        <li><strong>Plaza del Liquidador:</strong> Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.</li>
-                        <li><strong>Inventarios:</strong> Revisión de 20,858 bienes muebles para actualizar resguardos y capitalizar en SAP S/4 HANA.</li>
-                    </ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Estatus del Hito:</label>
-                    <select id="status-A" class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
-                        <option value="En Desarrollo">En Desarrollo - 70% de Avance</option>
-                        <option value="Concluido">Concluido</option>
-                        <option value="Con Observaciones">Con Observaciones</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Evidencia Local (Archivo Físico):</label>
-                    <input type="file" id="file-A" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
-                    <div class="relative">
-                        <input type="url" id="drive-A" oninput="validateDriveUrl('A')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
-                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
-                    </div>
-                    <p id="drive-error-A" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
-                    <textarea id="notes-A" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Registrar comentarios del avance de la verificación física del inventario..."></textarea>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-A')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('A')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
-            </div>
+        <div>
+            <p id="motivationalText" class="text-xs font-semibold text-gray-800 leading-snug"></p>
         </div>
     </div>
 
-    <!-- MODAL HITO B -->
-    <div id="modal-B" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-amber-400">B</span>
-                    <div>
-                        <h3 class="font-bold text-base">Hito B: Jurídico, Inmuebles y FIARCA</h3>
-                        <p class="text-xs text-slate-300">Regularización patrimonial y sustitución jurídica</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-B')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+    <div class="absolute top-10 left-10 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform -rotate-12">
+        <i class="fa-solid fa-masks-theater"></i>
+    </div>
+    <div class="absolute bottom-12 left-16 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform rotate-12">
+        <i class="fa-solid fa-palette"></i>
+    </div>
+    <div class="absolute top-16 right-16 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform rotate-45">
+        <i class="fa-solid fa-music"></i>
+    </div>
+    <div class="absolute bottom-10 right-10 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform -rotate-6">
+        <i class="fa-solid fa-person-dancing"></i>
+    </div>
+
+    <div class="w-full max-w-md glass-card rounded-3xl shadow-2xl p-8 z-10 relative">
+        
+        <div class="text-center mb-8">
+            <!-- Circulo modificado con el texto SeCu -->
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skycustom-100 text-skycustom-600 mb-3 shadow-inner font-extrabold text-2xl tracking-tighter">
+                SeCu
             </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-2">Compromisos Clave:</h4>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Sitios Arqueológicos:</strong> Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).</li>
-                        <li><strong>Sustitución Procesal:</strong> Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.</li>
-                        <li><strong>Fideicomiso FIARCA:</strong> Dictamen formal con Procuraduría Fiscal para modificar o extinguir el fideicomiso.</li>
-                    </ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Estatus Jurídico:</label>
-                    <select id="status-B" class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
-                        <option value="En Validación">En Validación por Consejería Jurídica</option>
-                        <option value="Dictamen Emitido">Dictamen Emitido</option>
-                        <option value="Escrituración Concluida">Escrituración / Registro Concluido</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Adjuntar Instrumento Jurídico / Dictamen:</label>
-                    <input type="file" id="file-B" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
-                    <div class="relative">
-                        <input type="url" id="drive-B" oninput="validateDriveUrl('B')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
-                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
-                    </div>
-                    <p id="drive-error-B" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
-                    <textarea id="notes-B" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Comentarios sobre el avance de escrituración o dictámenes jurídicos..."></textarea>
+            <h1 class="text-2xl font-bold text-gray-800 tracking-wide">Portal Cultural</h1>
+            <p class="text-xs text-skycustom-600 font-medium tracking-widest uppercase mt-1">
+                <i class="fa-solid fa-pen-nib mr-1"></i> Teatro &bull; Música &bull; Danza &bull; Pintura
+            </p>
+        </div>
+
+        <div id="errorMessage" class="hidden mb-4 p-3 rounded-xl bg-red-100 border border-red-200 text-red-700 text-sm text-center">
+            Credenciales incorrectas. Por favor, verifica tus datos.
+        </div>
+
+        <form id="loginForm" onsubmit="validarAcceso(event)" class="space-y-5">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1 tracking-wider">Usuario</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-skycustom-500">
+                        <i class="fa-solid fa-user"></i>
+                    </span>
+                    <input type="text" id="username" required placeholder="Ingresa tu usuario"
+                        class="w-full pl-10 pr-4 py-3 bg-white/80 border border-skycustom-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-skycustom-400 text-gray-700 text-sm transition-all duration-200 placeholder-gray-400">
                 </div>
             </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-B')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('B')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1 tracking-wider">Contraseña</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-skycustom-500">
+                        <i class="fa-solid fa-key"></i>
+                    </span>
+                    <input type="password" id="password" required placeholder="••••••••"
+                        class="w-full pl-10 pr-4 py-3 bg-white/80 border border-skycustom-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-skycustom-400 text-gray-700 text-sm transition-all duration-200 placeholder-gray-400">
+                </div>
             </div>
+
+            <button type="submit" id="btnSubmit"
+                class="w-full py-3.5 px-4 bg-gradient-to-r from-skycustom-400 to-skycustom-600 hover:from-skycustom-500 hover:to-skycustom-600 text-white font-semibold rounded-xl shadow-lg shadow-skycustom-300/50 hover:shadow-xl transition duration-300 flex items-center justify-center space-x-2">
+                <span>Ingresar al Sistema</span>
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-skycustom-100 pt-4">
+            <p class="text-xs text-gray-500 flex items-center justify-center space-x-3">
+                <span><i class="fa-solid fa-guitar mr-1"></i>Música</span>
+                <span>&bull;</span>
+                <span><i class="fa-solid fa-theater-masks mr-1"></i>Teatro</span>
+                <span>&bull;</span>
+                <span><i class="fa-solid fa-paintbrush mr-1"></i>Artes</span>
+            </p>
         </div>
     </div>
 
-    <!-- MODAL HITO C -->
-    <div id="modal-C" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-amber-400">C</span>
-                    <div>
-                        <h3 class="font-bold text-base">Hito C: Infraestructura y Programas Q, G, P</h3>
-                        <p class="text-xs text-slate-300">Cierre de obras públicas y metas operativas</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-C')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-2">Compromisos Clave:</h4>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Teatro Juárez (QC3233):</strong> Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.</li>
-                        <li><strong>Biblioteca León (QB3981):</strong> Instalación de elevador y montacargas.</li>
-                        <li><strong>Culturas Populares (P0427):</strong> Conclusión de concursos artesanales y exposiciones.</li>
-                    </ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Avance Físico-Financiero:</label>
-                    <input type="range" id="progress-C" min="0" max="100" value="85" oninput="document.getElementById('progress-val-C').innerText = this.value + '% Comprobado'" class="w-full accent-indigo-600">
-                    <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0%</span><span id="progress-val-C" class="font-bold text-indigo-600">85% Comprobado</span><span>100%</span></div>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Cargar Actas de Entrega-Recepción de Obra:</label>
-                    <input type="file" id="file-C" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
-                    <div class="relative">
-                        <input type="url" id="drive-C" oninput="validateDriveUrl('C')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
-                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
-                    </div>
-                    <p id="drive-error-C" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
-                    <textarea id="notes-C" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Avances en las obras del Teatro Juárez o Biblioteca Central..."></textarea>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-C')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('C')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL HITO D -->
-    <div id="modal-D" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-amber-400">D</span>
-                    <div>
-                        <h3 class="font-bold text-base">Hito D: Cierre Financiero, Fiscal y TI</h3>
-                        <p class="text-xs text-slate-300">Cuentas bancarias, TESOFE y baja de RFC</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-D')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-2">Compromisos Clave:</h4>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Cuentas Bancarias:</strong> Reintegro de remanentes a TESOFE y cancelación formal de cuentas bancarias del IEC.</li>
-                        <li><strong>Baja de RFC:</strong> Trámite ante el SAT al finalizar el saldado de pasivos y activos.</li>
-                        <li><strong>TI y Software:</strong> Migración de licencias, usuarios SAP y e.firma a la Secretaría de Cultura.</li>
-                    </ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Estatus del Cierre Bancario:</label>
-                    <select id="status-D" class="w-full p-2 border rounded-lg bg-slate-50 text-xs">
-                        <option value="En Conciliación">En Proceso de Conciliación</option>
-                        <option value="Reintegros Realizados">Reintegros TESOFE Realizados</option>
-                        <option value="Cuentas Canceladas">Cuentas Canceladas al 100%</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Cargar Comprobantes de Reintegro / Acuse SAT:</label>
-                    <input type="file" id="file-D" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
-                    <div class="relative">
-                        <input type="url" id="drive-D" oninput="validateDriveUrl('D')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
-                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
-                    </div>
-                    <p id="drive-error-D" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
-                    <textarea id="notes-D" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Estatus de las cuentas bancarias o trámites ante la TESOFE..."></textarea>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-D')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('D')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL HITO E -->
-    <div id="modal-E" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-amber-400">E</span>
-                    <div>
-                        <h3 class="font-bold text-base">Hito E: Gestión Documental y Archivo</h3>
-                        <p class="text-xs text-slate-300">Transferencia de acervos institucionales e históricos</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-E')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-2">Compromisos Clave:</h4>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Archivos de Trámite y Concentración:</strong> Entrega e inventariado a la Secretaría de Cultura.</li>
-                        <li><strong>Archivo Histórico:</strong> Transferencia formal al Archivo General del Estado de Guanajuato.</li>
-                    </ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Cargar Acta/Inventario Físico:</label>
-                    <input type="file" id="file-E" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
-                    <div class="relative">
-                        <input type="url" id="drive-E" oninput="validateDriveUrl('E')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
-                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
-                    </div>
-                    <p id="drive-error-E" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Inventarios Documentales Cargados:</label>
-                    <textarea id="notes-E" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Detalle de cajas y transferencias de concentración autorizadas..."></textarea>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-E')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('E')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL HITO F -->
-    <div id="modal-F" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-amber-400">F</span>
-                    <div>
-                        <h3 class="font-bold text-base">Hito F: Informes y Reportes de Liquidación</h3>
-                        <p class="text-xs text-slate-300">Rendición de cuentas ante el Comité de Extinción</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-F')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-2">Compromisos Clave:</h4>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Reportes Periódicos:</strong> Informes mensuales al Comité de Extinción.</li>
-                        <li><strong>Informe Final de Liquidación:</strong> Entrega del documento formal de cierre contable, patrimonial y legal al concluir los 15 meses.</li>
-                    </ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Cargar Informe Mensual de Avance:</label>
-                    <input type="file" id="file-F" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Resguardo Digital (Google Drive):</label>
-                    <div class="relative">
-                        <input type="url" id="drive-F" oninput="validateDriveUrl('F')" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-2.5 pl-8 border border-slate-300 rounded-lg text-xs"/>
-                        <i class="fa-fab fa-google-drive absolute left-2.5 top-3 text-slate-400"></i>
-                    </div>
-                    <p id="drive-error-F" class="text-[10px] text-rose-600 mt-1 hidden">Por favor ingresa una URL válida de Google Drive (ej. drive.google.com o docs.google.com).</p>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones:</label>
-                    <textarea id="notes-F" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs" rows="3" placeholder="Observaciones o notas del Comité de Extinción..."></textarea>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-F')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-400">Cancelar</button>
-                <button onclick="saveModal('F')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ========================================== -->
-    <!-- MODAL DETALLADO DE HITOS CRÍTICOS          -->
-    <!-- ========================================== -->
-    <div id="modal-critical" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div id="critical-modal-header" class="p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-white/20 rounded-lg text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div>
-                        <h3 id="critical-title" class="font-bold text-base">Detalle de Hito Crítico</h3>
-                        <p id="critical-subtitle" class="text-xs text-white/80">Análisis ampliado de impacto y dependencias</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-critical')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
-                <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Descripción y Contexto Técnico:</h4>
-                    <p id="critical-description" class="leading-relaxed text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200">--</p>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Por qué es Crítico / Riesgo Operativo:</h4>
-                    <p id="critical-risk" class="leading-relaxed text-rose-900 bg-rose-50 p-3.5 rounded-xl border border-rose-200">--</p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                        <span class="block font-bold text-slate-500 text-[10px] uppercase">Instancias Involucradas</span>
-                        <span id="critical-entities" class="font-semibold text-slate-800 text-xs">--</span>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                        <span class="block font-bold text-slate-500 text-[10px] uppercase">Fundamento / Referencia</span>
-                        <span id="critical-ref" class="font-semibold text-slate-800 text-xs">--</span>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
-                <button onclick="closeModal('modal-critical')" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-900">Entendido / Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ========================================== -->
-    <!-- SCRIPT DE INTERACTIVIDAD DE MODALES Y LOGICA PERSISTENTE -->
-    <!-- ========================================== -->
     <script>
-        // Datos detallados para los Modales de Hitos Críticos
-        const criticalData = {
-            'critical-1': {
-                title: '01. Entrega-Recepción de Expedientes Laborales',
-                subtitle: 'Plazo Ineludible: 09 de Mayo de 2025 (10:00 hrs)',
-                headerBg: 'bg-gradient-to-r from-rose-700 to-rose-900',
-                description: 'Realización del acto formal de entrega-recepción física y digital de la totalidad de las carpetas y expedientes individuales de los trabajadores que migraron de la estructura descentralizada del IEC y Fórum Cultural Guanajuato hacia la Secretaría de Cultura.',
-                risk: 'Este paso transfiere formalmente la responsabilidad de la relación laboral, la nómina, el historial de prestaciones y el registro de antigüedad a la Secretaría de Finanzas. Es indispensable para garantizar la continuidad laboral de los servidores públicos sin generar interrupciones en el pago de nóminas o vacíos jurídicos.',
-                entities: 'IEC / Fórum Cultural / DGRH Sec. Finanzas',
-                ref: 'Anexo IV.a - Documento de Transición'
-            },
-            'critical-2': {
-                title: '02. Reporte Definitivo de Recursos Federales (SRFT - SHCP)',
-                subtitle: 'Plazo Límite: Julio de 2025 (Ejercicio Subsecuente)',
-                headerBg: 'bg-gradient-to-r from-amber-600 to-amber-800',
-                description: 'Registro, conciliación y captura del informe definitivo del ejercicio, destino y resultados de los recursos asignados al IEC a través de convenios con la Federación (Ramo 23 / Apoyos a la Cultura) en la plataforma del Sistema de Recursos Federales Transferidos (SRFT).',
-                risk: 'El cumplimiento ante la SHCP es una obligación legal y fiscal estricta. La omisión o retraso en este cierre de cuentas públicas federales puede derivar en observaciones por parte de la Auditoría Superior de la Federación (ASF), fincamiento de responsabilidades administrativas o la obligación de reintegrar fondos no comprobados.',
-                entities: 'Liquidador IEC / SHCP / Sec. de Finanzas',
-                ref: 'Art. 29 Lineamientos de Extinción'
-            },
-            'critical-3': {
-                title: '03. Término Legal de Liquidación e Informe Final',
-                subtitle: 'Plazo Máximo Legal: Diciembre de 2025 (15 Meses)',
-                headerBg: 'bg-gradient-to-r from-rose-800 via-rose-900 to-slate-900',
-                description: 'Fecha límite jurídica para que el Liquidador extinga la totalidad de las obligaciones contables, financieras, operativas y patrimoniales del IEC. Incluye la extinción de pasivos, la consolidación del inventario patrimonial (20,858 bienes) y la presentación formal del Informe Final de Liquidación.',
-                risk: 'Marca el fin definitivo de la existencia jurídica del Instituto como organismo descentralizado. A partir de este hito, no puede existir ninguna cuenta activa, contrato inconcluso o pendiente presupuestal a nombre del IEC, operando únicamente la Secretaría de Cultura como ente centralizado sustituto.',
-                entities: 'Comité de Extinción / Liquidador / SC / SFIN',
-                ref: 'Art. 6 Lineamientos / Decreto 345'
-            },
-            'critical-4': {
-                title: '04. Baja de RFC del IEC y Entrega Extraordinaria de Cierre',
-                subtitle: 'Fase Final: Post-Liquidación Aprobada',
-                headerBg: 'bg-gradient-to-r from-slate-800 to-slate-950',
-                description: 'Consiste en dos actos finales: 1) Cancelación del RFC del IEC ante el SAT por extinción total. 2) Entrega-recepción extraordinaria para la devolución de la plaza de base nivel 8 (Jefe/a C, sec. 30068799) y los 131 bienes muebles asignados al Liquidador.',
-                risk: 'Es el sello definitivo de la transición. Cancela jurídicamente las obligaciones tributarias del IEC ante el SAT (impidiendo futuras contingencias o auditorías fiscales) y cierra formalmente la estructura administrativa transitoria que operó durante el proceso.',
-                entities: 'Liquidador / SAT / Secretaría de Cultura',
-                ref: 'Art. 5 Lineamientos / Anexo IV.b'
-            }
-        };
+        // Mensajes Motivacionales
+        const frasesMotivacionales = [
+            "¡Juntos alcanzamos la meta!",
+            "En equipo los resultados son mejores.",
+            "El talento gana juegos, pero el trabajo en equipo gana campeonatos.",
+            "Ninguno de nosotros es tan bueno como todos nosotros juntos.",
+            "Sumando esfuerzos, multiplicamos logros.",
+            "El éxito es el resultado del esfuerzo coordinado de todos.",
+            "La fuerza del equipo es cada uno de sus miembros."
+        ];
 
-        // Funciones de apertura y cierre de modales
-        function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
+        function mostrarMensajeAleatorio() {
+            const toast = document.getElementById('motivationalToast');
+            const textElem = document.getElementById('motivationalText');
+            
+            // Ocultar mensaje previo
+            toast.classList.add('opacity-0', '-translate-y-2');
+            
+            setTimeout(() => {
+                // Seleccionar frase aleatoria
+                const frase = frasesMotivacionales[Math.floor(Math.random() * frasesMotivacionales.length)];
+                textElem.innerText = frase;
+                
+                // Mostrar mensaje
+                toast.classList.remove('opacity-0', '-translate-y-2');
+                toast.classList.add('opacity-100', 'translate-y-0');
+            }, 500);
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
+        // Iniciar rotación de mensajes cada 6 segundos
+        mostrarMensajeAleatorio();
+        setInterval(mostrarMensajeAleatorio, 6000);
 
-        function openCriticalModal(key) {
-            const data = criticalData[key];
-            if(!data) return;
+        // Configuración de Supabase con tu clave pública
+        const SUPABASE_URL = 'https://Fpfii6S04VVIuhWw8ycekw.supabase.co'; // URL proyectada de tu clave publishable
+        const SUPABASE_ANON_KEY = 'sb_publishable_Fpfii6S04VVIuhWw8ycekw_yQqud-us';
 
-            document.getElementById('critical-title').innerText = data.title;
-            document.getElementById('critical-subtitle').innerText = data.subtitle;
-            document.getElementById('critical-description').innerText = data.description;
-            document.getElementById('critical-risk').innerText = data.risk;
-            document.getElementById('critical-entities').innerText = data.entities;
-            document.getElementById('critical-ref').innerText = data.ref;
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            const header = document.getElementById('critical-modal-header');
-            header.className = `p-5 text-white flex justify-between items-center ${data.headerBg}`;
+        async function validarAcceso(event) {
+            event.preventDefault();
 
-            openModal('modal-critical');
-        }
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+            const btn = document.getElementById('btnSubmit');
 
-        // Validación de URLs de Google Drive
-        function validateDriveUrl(hito) {
-            const input = document.getElementById(`drive-${hito}`);
-            const errorMsg = document.getElementById(`drive-error-${hito}`);
-            const url = input.value.trim();
+            errorDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span> Verificando...</span>';
 
-            if (url === "") {
-                errorMsg.classList.add('hidden');
-                return true;
-            }
+            try {
+                // Consulta a la tabla usuarios_acceso
+                const { data, error } = await _supabase
+                    .from('usuarios_acceso')
+                    .select('*')
+                    .eq('usuario', userVal)
+                    .eq('password', passVal)
+                    .single();
 
-            const isDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
-            if (!isDrive) {
-                errorMsg.classList.remove('hidden');
-                return false;
-            } else {
-                errorMsg.classList.add('hidden');
-                return true;
-            }
-        }
-
-        // Guardar estado en localStorage y actualizar badges
-        function saveModal(hito) {
-            if (!validateDriveUrl(hito)) {
-                alert('Por favor corrige el enlace de Google Drive antes de guardar.');
-                return;
-            }
-
-            const fileInput = document.getElementById(`file-${hito}`);
-            const driveInput = document.getElementById(`drive-${hito}`);
-            const notesInput = document.getElementById(`notes-${hito}`);
-            const statusInput = document.getElementById(`status-${hito}`);
-
-            let evidenceCount = 0;
-            if (fileInput && fileInput.files.length > 0) evidenceCount++;
-            if (driveInput && driveInput.value.trim() !== '') evidenceCount++;
-
-            const hitoData = {
-                status: statusInput ? statusInput.value : '',
-                drive: driveInput ? driveInput.value : '',
-                notes: notesInput ? notesInput.value : '',
-                count: evidenceCount
-            };
-
-            localStorage.setItem(`hito_${hito}`, JSON.stringify(hitoData));
-            updateBadge(hito, evidenceCount);
-
-            alert(`¡Hito ${hito} guardado exitosamente! Evidencias registradas: ${evidenceCount}`);
-            closeModal(`modal-${hito}`);
-        }
-
-        function updateBadge(hito, count) {
-            const badge = document.getElementById(`badge-${hito}`);
-            if (badge) {
-                badge.innerText = `(${count})`;
-                if (count > 0) {
-                    badge.className = "bg-emerald-600 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1";
+                if (error || !data) {
+                    errorDiv.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
                 } else {
-                    badge.className = "bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1";
+                    // Credenciales válidas: Redirección a la página del panel
+                    window.location.href = 'seguimiento-secul/panel.html';
                 }
+            } catch (err) {
+                console.error("Error al autenticar:", err);
+                errorDiv.innerText = "Ocurrió un error en la conexión.";
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
             }
         }
-
-        // Cargar datos guardados al iniciar la página
-        window.addEventListener('DOMContentLoaded', () => {
-            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(hito => {
-                const saved = localStorage.getItem(`hito_${hito}`);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    if (data.drive && document.getElementById(`drive-${hito}`)) {
-                        document.getElementById(`drive-${hito}`).value = data.drive;
-                    }
-                    if (data.notes && document.getElementById(`notes-${hito}`)) {
-                        document.getElementById(`notes-${hito}`).value = data.notes;
-                    }
-                    if (data.status && document.getElementById(`status-${hito}`)) {
-                        document.getElementById(`status-${hito}`).value = data.status;
-                    }
-                    updateBadge(hito, data.count || 0);
-                }
-            });
-        });
     </script>
 </body>
 </html>
