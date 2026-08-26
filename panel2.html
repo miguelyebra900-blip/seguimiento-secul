@@ -1619,9 +1619,7 @@
         }
 
         function enviarAlertaVencimientos() {
-            alert('¡Alerta de Vencimientos Emitida!
-
-Se ha disparado la notificación programada a los correos de los enlaces para el Hito Crítico 01 (Entrega de Expedientes Laborales).');
+            alert('¡Alerta de Vencimientos Emitida!\n\nSe ha disparado la notificación programada a los correos de los enlaces para el Hito Crítico 01 (Entrega de Expedientes Laborales).');
             registrarAuditoria('Emisión Alerta Correo', { alerta: 'Hitos por Vencer', destino: 'Enlaces Registrados' });
         }
 
@@ -1692,7 +1690,7 @@ Se ha disparado la notificación programada a los correos de los enlaces para el
                         return;
                     }
 
-                    // Determinar si es Administrador por rol o jerarquía
+                    // Validación estricta por columna 'rol'
                     const esAdmin = (data.rol === 'admin');
 
                     currentUser = {
@@ -1703,7 +1701,7 @@ Se ha disparado la notificación programada a los correos de los enlaces para el
                     };
                 } else {
                     // Fallback local
-                    const esAdmin = (usuarioInput.startsWith('dir_') || usuarioInput.startsWith('coord_') || usuarioInput === 'admin');
+                    const esAdmin = (usuarioInput === 'admin');
                     currentUser = {
                         id: 'local-id',
                         usuario: usuarioInput,
