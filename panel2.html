@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .modal-backdrop { background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); }
+        .modal-backdrop { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
         .critical-pulse {
             box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
             animation: pulse-red 2s infinite;
@@ -41,12 +41,12 @@
                 <div>
                     <div class="flex items-center gap-3">
                         <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
-                            <i class="fa-solid fa-rotate animate-spin text-[10px]"></i> En Liquidación & Fiscalización
+                            <i class="fa-solid fa-rotate animate-spin text-[10px]"></i> En Extinción
                         </span>
                         <span class="text-xs text-slate-400 border-l border-slate-700 pl-3">Decreto No. 345 | GTO</span>
                     </div>
                     <h1 class="text-lg sm:text-xl font-extrabold tracking-tight mt-0.5 text-white">
-                        Transición Institucional: IEC <i class="fa-solid fa-arrow-right text-xs text-amber-400 mx-1"></i> Secretaría de Cultura & ASEG
+                        Transición Institucional: IEC <i class="fa-solid fa-arrow-right text-xs text-amber-400 mx-1"></i> Secretaría de Cultura
                     </h1>
                 </div>
 
@@ -94,7 +94,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 1: VISTA DE ADMINISTRADOR Y AUDITORÍA             -->
+        <!-- SECCIÓN 1: VISTA DE ADMINISTRADOR Y AUDITORÍA (Condicional)-->
         <!-- ========================================================= -->
         <section id="viewAdminSection" class="space-y-6 hidden">
             <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white border border-indigo-900/50 shadow-xl">
@@ -147,12 +147,14 @@
                                 <th class="p-3 text-center">Resolución</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaAdminSolicitudes" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="tablaAdminSolicitudes" class="divide-y divide-slate-100">
+                            <!-- Inyección dinámica -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Bitácora de Auditoría -->
+            <!-- Bitácora de Auditoría del Sistema (Huella Digital) -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 pb-3">
                     <div>
@@ -175,12 +177,14 @@
                                 <th class="p-3">Detalle / Registro</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaAuditoriaLogs" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="tablaAuditoriaLogs" class="divide-y divide-slate-100">
+                            <!-- Inyección dinámica -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Centro de Notificaciones -->
+            <!-- Centro de Utilidades y Notificaciones de Correo -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 pb-3">
                     <div>
@@ -214,137 +218,7 @@
         </section>
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 2: CONTROL MAESTRO DE DOBLE VERTIENTE (V1 Y V2)   -->
-        <!-- ========================================================= -->
-        <section class="bg-white rounded-2xl border-2 border-indigo-200 shadow-xl p-6 space-y-6">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 uppercase tracking-wide">
-                            Centro de Fiscalización & Liquidación
-                        </span>
-                        <span class="text-xs text-slate-400">Oficio AECF(CEP)/PEGT_IEC_25/003</span>
-                    </div>
-                    <h2 class="text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
-                        <i class="fa-solid fa-diagram-project text-indigo-600"></i> Hitos de Liquidación IEC & Fiscalización ASEG
-                    </h2>
-                    <p class="text-xs text-slate-500">
-                        Monitoreo integral clasificado por vertiente, área ejecutora dentro de la Secretaría de Cultura y carga de expedientes.
-                    </p>
-                </div>
-
-                <!-- Tabs Rápidos de Vertientes -->
-                <div class="bg-slate-100 p-1.5 rounded-2xl flex flex-wrap items-center gap-1 border border-slate-200">
-                    <button onclick="setVertienteFilter('ALL')" id="tabBtnAll" class="px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow">
-                        Todos (32)
-                    </button>
-                    <button onclick="setVertienteFilter('V1')" id="tabBtnV1" class="px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-building text-blue-600"></i> [V1] Liquidación IEC (10)
-                    </button>
-                    <button onclick="setVertienteFilter('V2')" id="tabBtnV2" class="px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-scale-balanced text-amber-600"></i> [V2] Auditoría ASEG (22)
-                    </button>
-                </div>
-            </div>
-
-            <!-- Métricas Clave -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-                <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/50 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 block">V1 - Liquidación IEC</span>
-                        <span class="text-2xl font-extrabold text-blue-900">10 Hitos</span>
-                        <span class="text-[11px] text-blue-600 block mt-0.5">3 Críticos / 5 Altos</span>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-building"></i>
-                    </div>
-                </div>
-
-                <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">V2 - Auditoría ASEG</span>
-                        <span class="text-2xl font-extrabold text-amber-900">22 Requerimientos</span>
-                        <span class="text-[11px] text-amber-600 block mt-0.5">Cuenta Pública 2025</span>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-scale-balanced"></i>
-                    </div>
-                </div>
-
-                <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/50 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-700 block">Riesgo Crítico Total</span>
-                        <span class="text-2xl font-extrabold text-rose-900">5 Puntos</span>
-                        <span class="text-[11px] text-rose-600 block mt-0.5">Atención Inmediata</span>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                </div>
-
-                <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">Expedientes Subidos</span>
-                        <span id="kpiDocsAcreditados" class="text-2xl font-extrabold text-emerald-900">0 / 0</span>
-                        <span class="text-[11px] text-emerald-600 block mt-0.5">Con soporte oficial</span>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-file-circle-check"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filtros Dinámicos -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Área Responsable en Secretaría de Cultura:</label>
-                    <select id="filterAreaMaster" onchange="renderTablaFiscalizacion()" class="w-full p-2 border rounded-lg bg-white">
-                        <option value="ALL">Todas las Áreas</option>
-                        <option value="Administración">Dirección General de Administración / Finanzas</option>
-                        <option value="Jurídica">Dirección Jurídica</option>
-                        <option value="Planeación">Dirección de Planeación y Evaluación</option>
-                        <option value="Materiales">Recursos Materiales y Servicios Generales</option>
-                        <option value="Archivos">Coordinación de Archivos</option>
-                        <option value="Tecnologías">Unidad de Tecnologías de la Información</option>
-                        <option value="Liquidador">Líquidador IEC / Comité de Extinción</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nivel de Riesgo:</label>
-                    <select id="filterRiesgoMaster" onchange="renderTablaFiscalizacion()" class="w-full p-2 border rounded-lg bg-white">
-                        <option value="ALL">Todos los Riesgos</option>
-                        <option value="Crítico">Crítico</option>
-                        <option value="Alto">Alto</option>
-                        <option value="Medio">Medio</option>
-                        <option value="Bajo">Bajo</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Búsqueda rápida por concepto:</label>
-                    <input type="text" id="filterSearchMaster" oninput="renderTablaFiscalizacion()" placeholder="Buscar por tema, folio o requerimiento..." class="w-full p-2 border rounded-lg bg-white">
-                </div>
-            </div>
-
-            <!-- TABLA DE DOBLE VERTIENTE -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-700">
-                    <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
-                        <tr>
-                            <th class="p-3">Vertiente & ID</th>
-                            <th class="p-3">Hito / Requerimiento Oficial</th>
-                            <th class="p-3">Área Responsable (SC / IEC)</th>
-                            <th class="p-3">Nivel Riesgo</th>
-                            <th class="p-3">Progreso Docs.</th>
-                            <th class="p-3 text-center">Gestión Documental</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaHitosFiscalizacion" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- ========================================================= -->
-        <!-- SECCIÓN 3: DASHBOARD EJECUTIVO INTERACTIVO (CLICKEABLE)   -->
+        <!-- SECCIÓN 2: DASHBOARD EJECUTIVO INTERACTIVO (CLICKEABLE)   -->
         <!-- ========================================================= -->
         <section id="viewTableroSection" class="space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
@@ -360,6 +234,7 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
                 <!-- Resumen Hitos Críticos -->
                 <div class="bg-white rounded-2xl p-5 border border-rose-100 shadow-sm space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -413,11 +288,102 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </section>
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 4: MATRIZ CONSOLIDADA DE ACCIONES Y COMPROMISOS   -->
+        <!-- NUEVA SECCIÓN: FISCALIZACIÓN ASEG & LIQUIDACIÓN IEC       -->
+        <!-- (DOBLE VERTIENTE: V1 - LIQUIDACIÓN / V2 - AUDITORÍA ASEG) -->
+        <!-- ========================================================= -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+                            Seguimiento Cool Panel 2
+                        </span>
+                        <span class="text-xs text-slate-400">Oficio AECF(CEP)/PEGT_IEC_25/003</span>
+                    </div>
+                    <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2 mt-1">
+                        <i class="fa-solid fa-scale-balanced text-amber-600"></i> Hitos de Fiscalización Superior ASEG y Liquidación IEC
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                        Control por área responsable para solventación y carga documental en tiempo real.
+                    </p>
+                </div>
+
+                <!-- Filtros Dinámicos -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <select id="filterVertiente" onchange="filterHitosFiscalizacion()" class="p-2 border rounded-xl text-xs bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500">
+                        <option value="ALL">Todas las Vertientes (V1 y V2)</option>
+                        <option value="V1">🏛️ [V1 - Liquidación IEC]</option>
+                        <option value="V2">⚖️ [V2 - Fiscalización ASEG]</option>
+                    </select>
+
+                    <select id="filterAreaResp" onchange="filterHitosFiscalizacion()" class="p-2 border rounded-xl text-xs bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500 max-w-xs truncate">
+                        <option value="ALL">Todas las Áreas Responsables</option>
+                        <option value="Dirección General de Administración">Dirección General de Administración / Finanzas</option>
+                        <option value="Dirección Jurídica">Dirección Jurídica</option>
+                        <option value="Dirección de Planeación">Dirección de Planeación y Evaluación</option>
+                        <option value="Dirección de Recursos Materiales">Recursos Materiales y Servicios Generales</option>
+                        <option value="Coordinación de Archivos">Coordinación de Archivos</option>
+                        <option value="Unidad de Tecnologías">Unidad de Tecnologías de la Información</option>
+                        <option value="Líquidador IEC">Liquidador IEC / Comité de Extinción</option>
+                    </select>
+
+                    <select id="filterRiesgo" onchange="filterHitosFiscalizacion()" class="p-2 border rounded-xl text-xs bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500">
+                        <option value="ALL">Todos los Riesgos</option>
+                        <option value="Crítico">Crítico</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Medio">Medio</option>
+                        <option value="Bajo">Bajo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- KPIs Rápidos de Carga -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span class="text-[10px] uppercase font-bold text-slate-500 block">Total Hitos</span>
+                    <span id="kpiTotalHitos" class="text-xl font-extrabold text-slate-900">32</span>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                    <span class="text-[10px] uppercase font-bold text-amber-700 block">ASEG (V2)</span>
+                    <span id="kpiAsegHitos" class="text-xl font-extrabold text-amber-800">22</span>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                    <span class="text-[10px] uppercase font-bold text-blue-700 block">Liquidación (V1)</span>
+                    <span id="kpiLiquidacionHitos" class="text-xl font-extrabold text-blue-800">10</span>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                    <span class="text-[10px] uppercase font-bold text-emerald-700 block">Docs. Subidos</span>
+                    <span id="kpiDocsSubidos" class="text-xl font-extrabold text-emerald-800">0 / 0</span>
+                </div>
+            </div>
+
+            <!-- Tabla Dinámica de Hitos y Documentos -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-700">
+                    <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">Vertiente & ID</th>
+                            <th class="p-3">Hito / Requerimiento Oficial</th>
+                            <th class="p-3">Área Responsable (SC / IEC)</th>
+                            <th class="p-3">Nivel Riesgo</th>
+                            <th class="p-3">Progreso Docs.</th>
+                            <th class="p-3 text-center">Gestión Documental</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaHitosFiscalizacion" class="divide-y divide-slate-100">
+                        <!-- Inyección dinámica con dataset completo -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SECCIÓN 3: MATRIZ CONSOLIDADA CON EDICIÓN Y AUDITORÍA     -->
         <!-- ========================================================= -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -427,6 +393,7 @@
                     </h3>
                     <p class="text-xs text-slate-500">Gestión individual de compromisos: ver, editar estatus, observaciones y enlaces Drive</p>
                 </div>
+                <!-- Filtros rápidos -->
                 <div class="flex flex-wrap items-center gap-2">
                     <select id="filterRubro" onchange="filterActionsTable()" class="p-2 border rounded-xl text-xs bg-slate-50 text-slate-700 focus:ring-2 focus:ring-indigo-500">
                         <option value="ALL">Todos los Rubros</option>
@@ -457,13 +424,15 @@
                             <th class="p-3 text-center">Acciones / Drive</th>
                         </tr>
                     </thead>
-                    <tbody id="tablaAccionesMatriz" class="divide-y divide-slate-100"></tbody>
+                    <tbody id="tablaAccionesMatriz" class="divide-y divide-slate-100">
+                        <!-- Inyección dinámica -->
+                    </tbody>
                 </table>
             </div>
         </section>
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 5: TIMELINE VISUAL DE HITOS CRÍTICOS              -->
+        <!-- SECCIÓN 4: HITOS CRÍTICOS Y DE TRANSICIÓN LEGAL           -->
         <!-- ========================================================= -->
         <section class="space-y-6">
             <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -478,7 +447,9 @@
                 </span>
             </div>
 
+            <!-- TIMELINE VISUAL DE HITOS CRÍTICOS -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
                 <!-- HITO CRÍTICO 1 -->
                 <div class="bg-white rounded-2xl p-5 border-2 border-rose-200 shadow-md hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between">
                     <div class="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-bl-full pointer-events-none"></div>
@@ -572,11 +543,12 @@
                         </button>
                     </div>
                 </div>
+
             </div>
         </section>
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 6: HITOS OPERATIVOS POR ÁREA (A - F)              -->
+        <!-- SECCIÓN 5: HITOS OPERATIVOS POR ÁREA (A - F) RESTAURADOS  -->
         <!-- ========================================================= -->
         <section class="space-y-6">
             <div class="border-b border-slate-200 pb-4">
@@ -587,6 +559,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
                 <!-- TARJETA A: RECURSOS HUMANOS -->
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between">
                     <div>
@@ -778,12 +751,16 @@
                         </button>
                     </div>
                 </div>
+
             </div>
         </section>
 
     </main>
 
-    <!-- MODAL DE CARGA DOCUMENTAL -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL: GESTIÓN Y CARGA DE DOCUMENTOS PARA FISCALIZACIÓN   -->
+    <!-- ========================================================= -->
     <div id="modal-hito-fiscalizacion" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
             <div id="modalFiscalHeader" class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex justify-between items-center">
@@ -792,7 +769,7 @@
                         <i class="fa-solid fa-scale-balanced"></i>
                     </span>
                     <div>
-                        <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">--</span>
+                        <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">[V2 - FISCALIZACIÓN ASEG]</span>
                         <h3 id="modalFiscalTitle" class="font-bold text-base leading-snug">Detalle del Hito</h3>
                     </div>
                 </div>
@@ -813,17 +790,20 @@
 
                 <div>
                     <h4 class="font-bold text-slate-900 text-xs mb-2">Expedientes y Documentales Requeridas:</h4>
-                    <div id="modalFiscalDocsList" class="space-y-2.5"></div>
+                    <div id="modalFiscalDocsList" class="space-y-2.5">
+                        <!-- Lista de documentos con upload individual -->
+                    </div>
                 </div>
 
+                <!-- Formulario de Carga de Evidencias -->
                 <div class="border-t border-slate-200 pt-4 space-y-3">
                     <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i> Vincular Evidencia Oficial (Drive / Archivo)
+                        <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i> Cargar Evidencia Oficial (PDF / Enlace)
                     </h4>
                     <input type="hidden" id="uploadHitoId">
-                    <select id="uploadSelectDoc" class="w-full p-2 border rounded-xl bg-slate-50 text-xs font-semibold"></select>
+                    <select id="uploadSelectDoc" class="w-full p-2 border rounded-xl bg-slate-50 text-xs"></select>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input type="url" id="uploadDocUrl" placeholder="Enlace de Google Drive..." class="p-2 border rounded-xl text-xs">
+                        <input type="url" id="uploadDocUrl" placeholder="URL / Enlace Drive..." class="p-2 border rounded-xl text-xs">
                         <input type="file" id="uploadDocFile" class="p-1.5 border rounded-xl text-xs bg-slate-50">
                     </div>
                 </div>
@@ -838,7 +818,37 @@
         </div>
     </div>
 
-    <!-- MODAL DETALLE HITOS A-F -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL 1: DESGLOSE ANALÍTICO DEL DASHBOARD (INTERACTIVO)   -->
+    <!-- ========================================================= -->
+    <div id="modal-dashboard-detail" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
+            <div id="dashDetailHeader" class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-white/10 rounded-xl text-lg"><i class="fa-solid fa-chart-line text-amber-400"></i></div>
+                    <div>
+                        <h3 id="dashDetailTitle" class="font-bold text-base">Desglose Analítico</h3>
+                        <p id="dashDetailSubtitle" class="text-xs text-slate-300">Detalle de compromisos, instancias responsables y avance</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-dashboard-detail')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 text-xs">
+                <div id="dashDetailContainer" class="space-y-3">
+                    <!-- Filas inyectadas -->
+                </div>
+            </div>
+            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
+                <button onclick="closeModal('modal-dashboard-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar Detalle</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MODAL 2: GESTIÓN DETALLADA DE HITOS A - F (RESTAURADO)    -->
+    <!-- ========================================================= -->
     <div id="modal-hito-detailed" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
             <div id="hitoDetailHeader" class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
@@ -854,7 +864,9 @@
             <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <h4 class="font-bold text-slate-900 mb-3 text-sm">Compromisos Clave y Acciones Detalladas:</h4>
-                    <ul id="hitoDetailItemsList" class="space-y-4"></ul>
+                    <ul id="hitoDetailItemsList" class="space-y-4">
+                        <!-- Generación dinámica con botones Drive individuales -->
+                    </ul>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Estatus del Hito:</label>
@@ -867,7 +879,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones Generales:</label>
-                    <textarea id="hitoDetailTextarea" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs" rows="3" placeholder="Registrar comentarios generales..."></textarea>
+                    <textarea id="hitoDetailTextarea" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs" rows="3" placeholder="Registrar comentarios generales del avance del hito..."></textarea>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
@@ -877,7 +889,10 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR ACCIÓN INDIVIDUAL -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL 3: EDICIÓN DE ACCIÓN INDIVIDUAL (MATRIZ)            -->
+    <!-- ========================================================= -->
     <div id="modal-edit-action" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
             <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
@@ -912,7 +927,10 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación del Cambio:</label>
-                    <textarea id="editActionAuditNote" rows="2" class="w-full p-2.5 border rounded-xl" placeholder="Indique el motivo..." required></textarea>
+                    <textarea id="editActionAuditNote" rows="2" class="w-full p-2.5 border rounded-xl" placeholder="Indique el motivo de la modificación o número de oficio..." required></textarea>
+                </div>
+                <div class="bg-indigo-50 p-2.5 rounded-xl text-[11px] text-indigo-800 border border-indigo-200">
+                    <i class="fa-solid fa-fingerprint me-1"></i> Se firmará este cambio con su cuenta institucional activa.
                 </div>
                 <div class="flex justify-end gap-2 pt-2 border-t">
                     <button type="button" onclick="closeModal('modal-edit-action')" class="px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
@@ -922,7 +940,10 @@
         </div>
     </div>
 
-    <!-- MODAL DRIVE -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL 4: SUBIDA / VINCULACIÓN DRIVE                       -->
+    <!-- ========================================================= -->
     <div id="modal-doc-upload" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
             <div class="bg-indigo-900 p-4 text-white flex justify-between items-center">
@@ -934,11 +955,22 @@
             <div class="p-5 space-y-4 text-xs text-slate-700">
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Descripción del Documento:</label>
-                    <input type="text" id="doc-description" class="w-full p-2.5 border rounded-xl" placeholder="Ej. Minuta firmada...">
+                    <input type="text" id="doc-description" class="w-full p-2.5 border rounded-xl" placeholder="Ej. Minuta firmada de entrega de expedientes...">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Instancia Responsable:</label>
+                    <select id="doc-instance" class="w-full p-2.5 border rounded-xl bg-slate-50">
+                        <option>Instituto Estatal de la Cultura (IEC)</option>
+                        <option>Secretaría de Cultura (SC)</option>
+                        <option>Secretaría de Finanzas (SF)</option>
+                        <option>Secretaría de la Honestidad (SH)</option>
+                        <option>Comité de Extinción</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 mb-1">Enlace de Google Drive (URL):</label>
                     <input type="url" id="doc-drive-url" class="w-full p-2.5 border rounded-xl" placeholder="https://drive.google.com/file/d/...">
+                    <span class="text-[10px] text-slate-400 mt-1 block">Pegue aquí el enlace compartido del archivo alojado en Google Drive.</span>
                 </div>
             </div>
             <div class="bg-slate-100 p-3.5 flex justify-end gap-2 border-t">
@@ -950,13 +982,23 @@
         </div>
     </div>
 
-    <!-- MODAL SOLICITUD -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL 5: SOLICITUD DE ALTA / MODIFICACIÓN                 -->
+    <!-- ========================================================= -->
     <div id="modal-solicitud" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
             <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm">Solicitar Alta o Modificación de Hito / Acción</h3>
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-white/10 rounded-xl"><i class="fa-solid fa-paper-plane text-indigo-300"></i></div>
+                    <div>
+                        <h3 class="font-bold text-sm">Solicitar Alta o Modificación de Hito / Acción</h3>
+                        <p class="text-[11px] text-slate-300">Módulo de propuestas con trazabilidad y notificación</p>
+                    </div>
+                </div>
                 <button onclick="closeModal('modal-solicitud')" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
+            
             <form id="formSolicitudModal" onsubmit="enviarSolicitudModal(event)" class="p-5 space-y-4 text-xs overflow-y-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -975,123 +1017,685 @@
                         <select id="modalSolTipo" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs focus:ring-2 focus:ring-indigo-500">
                             <option value="Nuevo Hito">Crear Nuevo Hito / Tarea</option>
                             <option value="Modificar Acción">Modificar Acción Existente</option>
+                            <option value="Alerta de Vencimiento">Alerta de Vencimiento / Riesgo</option>
+                            <option value="Evidencia Drive">Subir / Vincular Evidencia Drive</option>
                         </select>
                     </div>
                 </div>
+
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Título / Resumen</label>
-                    <input type="text" id="modalSolTitulo" class="w-full p-2.5 border rounded-xl text-xs" required>
+                    <label class="block font-bold text-slate-700 mb-1">Título / Resumen de la Petición</label>
+                    <input type="text" id="modalSolTitulo" class="w-full p-2.5 border rounded-xl text-xs" placeholder="Ej. Actualización de inventario físico en recintos" required>
                 </div>
+
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Descripción</label>
-                    <textarea id="modalSolDesc" rows="3" class="w-full p-2.5 border rounded-xl text-xs" required></textarea>
+                    <label class="block font-bold text-slate-700 mb-1">Descripción Justificada y Fundamento</label>
+                    <textarea id="modalSolDesc" rows="3" class="w-full p-2.5 border rounded-xl text-xs" placeholder="Describa el motivo, sustento normativo o requerimiento..." required></textarea>
                 </div>
+
+                <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex items-center gap-2 text-indigo-700 text-[11px]">
+                    <i class="fa-solid fa-shield-halved text-indigo-500"></i>
+                    <span>La acción quedará registrada con la cuenta: <strong id="authAuditoriaUserLabel" class="text-indigo-900">No identificado</strong></span>
+                </div>
+
                 <div class="flex justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeModal('modal-solicitud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Enviar Solicitud</button>
+                    <button type="button" onclick="closeModal('modal-solicitud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL AUTENTICACIÓN -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL 6: AUTENTICACIÓN DIRECTA SUPABASE                   -->
+    <!-- ========================================================= -->
     <div id="modal-auth" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col p-5 space-y-4 text-xs">
-            <h3 class="font-bold text-sm text-slate-900">Acceso Institucional</h3>
-            <input type="text" id="authUsuario" placeholder="Usuario" class="w-full p-2.5 border rounded-xl" required>
-            <input type="password" id="authPass" placeholder="Contraseña" class="w-full p-2.5 border rounded-xl" required>
-            <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modal-auth')" class="px-3.5 py-1.5 bg-slate-200 rounded-xl font-bold">Cancelar</button>
-                <button onclick="handleLoginSubmit(event)" id="btnLoginSubmit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Ingresar</button>
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+            <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user-lock text-indigo-400"></i> Acceso Institucional
+                </h3>
+                <button onclick="closeModal('modal-auth')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            <form onsubmit="handleLoginSubmit(event)" class="p-5 space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Usuario Registrado:</label>
+                    <input type="text" id="authUsuario" class="w-full p-2.5 border rounded-xl" placeholder="Ej. dir_proyecto_ejecutivo o dir_general" required>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Contraseña (password):</label>
+                    <input type="password" id="authPass" class="w-full p-2.5 border rounded-xl" placeholder="••••••••" required>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl text-[10px] text-slate-500 border">
+                    Validación directa contra la tabla <code class="text-indigo-600 font-bold">usuarios_acceso</code> de Supabase.
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-auth')" class="px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" id="btnLoginSubmit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 flex items-center gap-1.5">
+                        <span>Ingresar</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL HITOS CRÍTICOS -->
+
+    <!-- ========================================================= -->
+    <!-- MODAL 7: DETALLE DE HITOS CRÍTICOS                        -->
+    <!-- ========================================================= -->
     <div id="modal-critical" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div id="critical-modal-header" class="p-5 text-white flex justify-between items-center bg-slate-900">
-                <h3 id="critical-title" class="font-bold text-base">Detalle de Hito Crítico</h3>
-                <button onclick="closeModal('modal-critical')" class="text-white hover:text-white/80 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <div id="critical-modal-header" class="p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-white/20 rounded-xl text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <h3 id="critical-title" class="font-bold text-base">Detalle de Hito Crítico</h3>
+                        <p id="critical-subtitle" class="text-xs text-white/80">Análisis ampliado de impacto y dependencias</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-critical')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
                 <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Descripción:</h4>
-                    <p id="critical-description" class="bg-slate-50 p-3 rounded-xl border border-slate-200">--</p>
+                    <h4 class="font-bold text-slate-900 text-sm mb-1">Descripción y Contexto Técnico:</h4>
+                    <p id="critical-description" class="leading-relaxed text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200">--</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Riesgo:</h4>
-                    <p id="critical-risk" class="bg-rose-50 text-rose-900 p-3 rounded-xl border border-rose-200">--</p>
+                    <h4 class="font-bold text-slate-900 text-sm mb-1">Por qué es Crítico / Riesgo Operativo:</h4>
+                    <p id="critical-risk" class="leading-relaxed text-rose-900 bg-rose-50 p-3.5 rounded-xl border border-rose-200">--</p>
                 </div>
-                <div id="critical-entities-rows" class="space-y-2"></div>
                 <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Fundamento:</h4>
-                    <p id="critical-ref" class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">--</p>
+                    <h4 class="font-bold text-slate-900 text-sm mb-2">Instancias Involucradas y Acciones Específicas:</h4>
+                    <div id="critical-entities-rows" class="space-y-2"></div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-sm mb-1">Fundamento / Referencia:</h4>
+                    <p id="critical-ref" class="font-semibold text-slate-800 bg-slate-100 p-2.5 rounded-xl border border-slate-200">--</p>
                 </div>
             </div>
             <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
-                <button onclick="closeModal('modal-critical')" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold">Cerrar</button>
+                <button onclick="closeModal('modal-critical')" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Entendido / Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA Y ARQUITECTURA -->
+
+    <!-- ========================================================= -->
+    <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA                 -->
+    <!-- ========================================================= -->
     <script>
+        // Configuración de Supabase
         const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
 
-        let supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+        let supabaseClient = null;
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+
+        // Estado del usuario activo
         let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
-        let activeVertienteTab = 'ALL';
 
-        // 10 HITOS V1 + 22 REQUERIMIENTOS V2
-        const masterHitosData = [
-            { id: "V1-01", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "1", titulo: "Formalización de Prórroga y Cronograma Oficial", normativa: "Lineamientos Art. 3 Fracc. II y Art. 6", area: "Líquidador IEC / Comité de Extinción", riesgo: "Crítico", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-01-A", nombre: "Acta de Sesión del Comité (Prórroga)", subido: false, url: null }, { id_doc: "DOC-V1-01-B", nombre: "Cronograma de Liquidación Actualizado", subido: false, url: null }] },
-            { id: "V1-02", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "2", titulo: "Levantamiento Físico de Bienes Muebles (20,858 bienes)", normativa: "Lineamientos Art. 15 Fracc. II", area: "Dirección de Recursos Materiales", riesgo: "Alto", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-02-A", nombre: "Cédula de Conciliación Física vs. Catálogo SAP", subido: false, url: null }] },
-            { id: "V1-03", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "3", titulo: "Conciliación Financiera y Depuración Contable (Trilateral)", normativa: "Lineamientos Art. 10 y Art. 16", area: "Dirección General de Administración", riesgo: "Crítico", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-03-A", nombre: "Bitácora Maestra de Conciliación Trilateral", subido: false, url: null }] },
-            { id: "V1-04", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "4", titulo: "Liquidación y Finiquito de Pasivos Pendientes", normativa: "Lineamientos Art. 17", area: "Dirección General de Administración", riesgo: "Alto", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-04-A", nombre: "Cédula de Pasivos Circulantes y Finiquitos", subido: false, url: null }] },
-            { id: "V1-05", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "5", titulo: "Regularización FIARCA y Sitios Arqueológicos", normativa: "Lineamientos Art. 15 Fracc. VI", area: "Dirección Jurídica", riesgo: "Alto", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-05-A", nombre: "Convenio Modificatorio FIARCA Banorte y Predios", subido: false, url: null }] },
-            { id: "V1-06", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "6", titulo: "Reintegro Final de Recursos Estatales y Rendimientos", normativa: "Lineamientos Art. 10 y Art. 23", area: "Dirección General de Administración", riesgo: "Medio", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-06-A", nombre: "Constancias de Cierre Bancario y Recibos Finanzas", subido: false, url: null }] },
-            { id: "V1-07", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "7", titulo: "Apertura y Cierre de Cuenta Liquidadora", normativa: "Lineamientos Art. 19 y Art. 20", area: "Dirección General de Administración", riesgo: "Alto", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-07-A", nombre: "Póliza Contable de Apertura de Cuenta Liquidadora", subido: false, url: null }] },
-            { id: "V1-08", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "8", titulo: "Transferencia de Archivos y Cuadro CADIDO", normativa: "Lineamientos Art. 30", area: "Coordinación de Archivos", riesgo: "Bajo", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-08-A", nombre: "Inventario General de Expedientes y Acuse AGEG", subido: true, url: "https://drive.google.com" }] },
-            { id: "V1-09", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "9", titulo: "Migración Tecnológica e Infraestructura Digital", normativa: "Lineamientos Art. 11", area: "Unidad de Tecnologías", riesgo: "Bajo", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-09-A", nombre: "Cédula de Cierre de Usuarios SAP y Servidores", subido: true, url: "https://drive.google.com" }] },
-            { id: "V1-10", vertiente: "V1", vertienteNombre: "V1 - LIQUIDACIÓN IEC", numeral: "10", titulo: "Cierre Formal: Informe Final, Baja RFC y Publicación", normativa: "Decreto 345 / CFF", area: "Líquidador IEC / Comité de Extinción", riesgo: "Crítico", badgeColor: "#2563EB", icon: "fa-building", documentos: [{ id_doc: "DOC-V1-10-A", nombre: "Informe Final de Liquidación Aprobado", subido: false, url: null }, { id_doc: "DOC-V1-10-B", nombre: "Acuse de Cancelación de RFC ante SAT", subido: false, url: null }] },
-            { id: "V2-01", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "1", titulo: "Cronograma de Actividades y Modificaciones", normativa: "Lineamientos Art. 3 Fracc. II", area: "Líquidador IEC / Comité de Extinción", riesgo: "Alto", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-01", nombre: "Cronograma en PDF con tiempos y responsables", subido: false, url: null }] },
-            { id: "V2-02", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "2", titulo: "Acreditación de Conclusión en 15 Meses", normativa: "Lineamientos Art. 6", area: "Líquidador IEC / Dirección Jurídica", riesgo: "Crítico", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-02", nombre: "Acta de Cierre Definitivo en Plazo Legal", subido: false, url: null }] },
-            { id: "V2-03", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "3", titulo: "Justificación Normativa de No Conclusión al 31/12/2025", normativa: "Lineamientos Art. 6", area: "Líquidador IEC / Dirección Jurídica", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-03", nombre: "Nota Técnica y Acuerdo de Prórroga del Comité", subido: true, url: "https://drive.google.com" }] },
-            { id: "V2-04", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "4", titulo: "Adecuaciones Presupuestales (Ingreso y Egreso)", normativa: "Lineamientos Art. 9 Párrafo 2", area: "Dirección General de Administración", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-04-A", nombre: "Oficios DA 520, 549, 553, 555 sellados por Finanzas", subido: true, url: "https://drive.google.com" }, { id_doc: "DOC-ASEG-04-B", nombre: "Memoria de Cálculo de Economías Reintegradas", subido: false, url: null }] },
-            { id: "V2-05", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "5", titulo: "Conciliación Presupuestal, Contable y Financiera", normativa: "Lineamientos Art. 10 Párrs. 1 y 2", area: "Dirección General de Administración", riesgo: "Alto", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-05", nombre: "Cédula Analítica del Análisis Trilateral cuadrada", subido: false, url: null }] },
-            { id: "V2-06", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "6", titulo: "Transferencia de Recursos e Intereses a Finanzas", normativa: "Lineamientos Art. 10 Párrs. 1 y 2", area: "Dirección General de Administración", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-06-A", nombre: "Cédula de Desglose Plurianual (27 MDP y Taquillas FIC)", subido: true, url: "https://drive.google.com" }, { id_doc: "DOC-ASEG-06-B", nombre: "Estados de Cuenta Bancarios con Intereses devengados", subido: false, url: null }] },
-            { id: "V2-07", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "7", titulo: "Notificación de Bajas y Modificaciones a DGTIT", normativa: "Lineamientos Art. 11", area: "Unidad de Tecnologías", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-07", nombre: "Cédula Concentrada de Folios DGTIT y SAP", subido: true, url: "https://drive.google.com" }] },
-            { id: "V2-08", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "8", titulo: "Actualización de Estructura PbR-SED", normativa: "Lineamientos Art. 12 Párrafo 1", area: "Dirección de Planeación", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-08-A", nombre: "Oficio Circular 040/2025 (Seguimiento SED/SIAE)", subido: true, url: "https://drive.google.com" }, { id_doc: "DOC-ASEG-08-B", nombre: "Acuse de Atención a Proyectos QC4042-QC4048", subido: false, url: null }] },
-            { id: "V2-09", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "9", titulo: "Informe de Metas e Indicadores al 3er Trimestre (MIR)", normativa: "Lineamientos Art. 13 Párrafo 1", area: "Dirección de Planeación", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-09-A", nombre: "Reporte MIR al 3er Trimestre", subido: true, url: "https://drive.google.com" }, { id_doc: "DOC-ASEG-09-B", nombre: "Acta de Asunción de Metas por Secretaría de Cultura", subido: false, url: null }] },
-            { id: "V2-10", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "10", titulo: "Informe de Evaluaciones a Acciones y Programas", normativa: "Lineamientos Art. 14 Párrafo 1", area: "Dirección de Planeación", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-10", nombre: "Nota Técnica de Inaplicabilidad por Liquidación", subido: true, url: "https://drive.google.com" }] },
-            { id: "V2-11", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "11", titulo: "Estado Integral del IEC (7 Rubros Patrimoniales)", normativa: "Lineamientos Art. 15 Fracc. I a VII", area: "Líquidador IEC / Dirección General de Administración", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-11", nombre: "Expediente con Anexos III, V, VI, VIII y X", subido: true, url: "https://drive.google.com" }] },
-            { id: "V2-12", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "12", titulo: "Depuración Contable y Saldado de Cuentas de Resultados", normativa: "Lineamientos Art. 16", area: "Dirección General de Administración", riesgo: "Alto", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-12", nombre: "Nota Técnica de Capitalización con Contabilidad SF", subido: true, url: "https://drive.google.com" }] },
-            { id: "V2-13", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "13", titulo: "Liquidación de Obligaciones Pendientes de Pago", normativa: "Lineamientos Art. 17", area: "Dirección General de Administración", riesgo: "Crítico", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-13", nombre: "Cédula de Pasivos Finiquitados y Asunción SC", subido: false, url: null }] },
-            { id: "V2-14", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "14", titulo: "Expedientes de Bienes Muebles e Inmuebles", normativa: "Lineamientos Art. 18", area: "Dirección de Recursos Materiales", riesgo: "Alto", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-14", nombre: "Expedientes Técnico-Jurídicos de Inmuebles y Muebles", subido: false, url: null }] },
-            { id: "V2-15", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "15", titulo: "Cuenta Exclusiva de Patrimonio a Transferir (Liquidadora)", normativa: "Lineamientos Art. 19", area: "Dirección General de Administración", riesgo: "Alto", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-15", nombre: "Póliza y Balance al 31/12/2025 de Cuenta Liquidadora", subido: false, url: null }] },
-            { id: "V2-16", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "16", titulo: "Cuenta Contable de Contrapartida Patrimonial en Finanzas", normativa: "Lineamientos Art. 20", area: "Dirección General de Administración", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-16", nombre: "Constancia de Contrapartida emitida por Finanzas SF", subido: false, url: null }] },
-            { id: "V2-17", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "17", titulo: "Reintegro de Recursos Estatales de Constitución o Capital", normativa: "Lineamientos Art. 23", area: "Dirección General de Administración", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-17", nombre: "Cédula Histórica de Capital Fundacional", subido: false, url: null }] },
-            { id: "V2-18", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "18", titulo: "Cédula de Determinación de Recursos a Finiquitar", normativa: "Lineamientos Art. 25", area: "Dirección General de Administración", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-18", nombre: "Cédula Art. 25 de Proyectos de Inversión y Metas", subido: false, url: null }] },
-            { id: "V2-19", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "19", titulo: "Reintegro de Inversiones No Comprometidas ni Autorizadas", normativa: "Lineamientos Art. 27", area: "Dirección General de Administración", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-19", nombre: "Recibos Oficiales de Reintegro de Inversión Pública", subido: false, url: null }] },
-            { id: "V2-20", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "20", titulo: "Inventario Documental y Archivos Transferidos", normativa: "Lineamientos Art. 30", area: "Coordinación de Archivos", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-20", nombre: "Reporte de Inventario Documental presentado al AGEG", subido: false, url: null }] },
-            { id: "V2-21", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "21", titulo: "Reportes Periódicos al Comité de Extinción (2025)", normativa: "Lineamientos Art. 34", area: "Líquidador IEC / Comité de Extinción", riesgo: "Medio", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-21", nombre: "Compilación de Actas e Informes 2025 del Comité", subido: false, url: null }] },
-            { id: "V2-22", vertiente: "V2", vertienteNombre: "V2 - FISCALIZACIÓN ASEG", numeral: "22", titulo: "Acta de Entrega-Recepción Extraordinaria General", normativa: "Lineamientos Art. 37", area: "Líquidador IEC / Dirección Jurídica", riesgo: "Bajo", badgeColor: "#D97706", icon: "fa-scale-balanced", documentos: [{ id_doc: "DOC-ASEG-22", nombre: "Acta Protocolizada de Entrega-Recepción con Anexos", subido: false, url: null }] }
+        // DATASET INTEGRADO: VERTIENTE 1 (LIQUIDACIÓN IEC) Y VERTIENTE 2 (FISCALIZACIÓN ASEG)
+        let hitosFiscalizacionData = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || [
+            // --- VERTIENTE 1: LIQUIDACIÓN IEC (10 HITOS) ---
+            {
+                id: "V1-01",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "1",
+                titulo: "Formalización de Prórroga y Cronograma Oficial",
+                normativa: "Lineamientos Art. 3 Fracc. II y Art. 6",
+                area: "Líquidador IEC / Comité de Extinción",
+                riesgo: "Crítico",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-01-A", nombre: "Acta de Sesión del Comité de Extinción (Prórroga)", subido: false, url: null },
+                    { id_doc: "DOC-V1-01-B", nombre: "Cronograma Oficial de Liquidación Actualizado", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-02",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "2",
+                titulo: "Levantamiento Físico de Bienes Muebles (20,858 bienes)",
+                normativa: "Lineamientos Art. 15 Fracc. II",
+                area: "Dirección de Recursos Materiales y Servicios Generales (SC)",
+                riesgo: "Alto",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-02-A", nombre: "Cédula de Conciliación Física vs. Catálogo SAP S/4HANA", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-03",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "3",
+                titulo: "Conciliación Financiera y Depuración Contable (Análisis Trilateral)",
+                normativa: "Lineamientos Art. 10 y Art. 16",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Crítico",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-03-A", nombre: "Bitácora Maestra de Conciliación Trilateral", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-04",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "4",
+                titulo: "Liquidación y Finiquito de Pasivos Pendientes",
+                normativa: "Lineamientos Art. 17",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Alto",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-04-A", nombre: "Cédula de Pasivos Circulantes y Finiquitos", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-05",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "5",
+                titulo: "Regularización FIARCA y Sitios Arqueológicos",
+                normativa: "Lineamientos Art. 15 Fracc. VI",
+                area: "Dirección Jurídica (SC) / Procuraduría Fiscal",
+                riesgo: "Alto",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-05-A", nombre: "Convenio Modificatorio FIARCA Banorte y Predios", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-06",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "6",
+                titulo: "Reintegro Final de Recursos Estatales y Rendimientos",
+                normativa: "Lineamientos Art. 10 y Art. 23",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Medio",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-06-A", nombre: "Constancias de Cierre Bancario y Recibos Finanzas", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-07",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "7",
+                titulo: "Apertura y Cierre de Cuenta Liquidadora",
+                normativa: "Lineamientos Art. 19 y Art. 20",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Alto",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-07-A", nombre: "Póliza Contable de Apertura de Cuenta Liquidadora", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V1-08",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "8",
+                titulo: "Transferencia de Archivos y Cuadro CADIDO",
+                normativa: "Lineamientos Art. 30",
+                area: "Coordinación de Archivos (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-08-A", nombre: "Inventario General de Expedientes y Acuse AGEG", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V1-09",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "9",
+                titulo: "Migración Tecnológica e Infraestructura Digital",
+                normativa: "Lineamientos Art. 11",
+                area: "Unidad de Tecnologías de la Información (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-09-A", nombre: "Cédula de Cierre de Usuarios SAP y Servidores", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V1-10",
+                vertiente: "V1",
+                vertienteNombre: "V1 - LIQUIDACIÓN IEC",
+                numeral: "10",
+                titulo: "Cierre Formal: Informe Final, Baja RFC y Publicación",
+                normativa: "Decreto 345 / CFF",
+                area: "Líquidador IEC / Comité de Extinción",
+                riesgo: "Crítico",
+                badgeColor: "#2563EB",
+                icon: "fa-building",
+                documentos: [
+                    { id_doc: "DOC-V1-10-A", nombre: "Informe Final de Liquidación Aprobado", subido: false, url: null },
+                    { id_doc: "DOC-V1-10-B", nombre: "Acuse de Cancelación de RFC ante SAT", subido: false, url: null },
+                    { id_doc: "DOC-V1-10-C", nombre: "Publicación en Periódico Oficial", subido: false, url: null }
+                ]
+            },
+
+            // --- VERTIENTE 2: FISCALIZACIÓN ASEG (22 NUMERALES) ---
+            {
+                id: "V2-01",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "1",
+                titulo: "Cronograma de Actividades y Modificaciones",
+                normativa: "Lineamientos Art. 3 Fracc. II",
+                area: "Líquidador IEC / Comité de Extinción",
+                riesgo: "Alto",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-01", nombre: "Cronograma en PDF con tiempos y responsables", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-02",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "2",
+                titulo: "Acreditación de Conclusión en 15 Meses",
+                normativa: "Lineamientos Art. 6",
+                area: "Líquidador IEC / Dirección Jurídica",
+                riesgo: "Crítico",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-02", nombre: "Acta de Cierre Definitivo en Plazo Legal", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-03",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "3",
+                titulo: "Justificación Normativa de No Conclusión al 31/12/2025",
+                normativa: "Lineamientos Art. 6",
+                area: "Líquidador IEC / Dirección Jurídica",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-03", nombre: "Nota Técnica y Acuerdo de Prórroga del Comité", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V2-04",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "4",
+                titulo: "Adecuaciones Presupuestales (Ingreso y Egreso)",
+                normativa: "Lineamientos Art. 9 Párrafo 2",
+                area: "Dirección General de Administración / Presupuesto (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-04-A", nombre: "Oficios DA 520, 549, 553, 555 sellados por Finanzas", subido: true, url: "https://drive.google.com" },
+                    { id_doc: "DOC-ASEG-04-B", nombre: "Memoria de Cálculo de Economías Reintegradas", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-05",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "5",
+                titulo: "Conciliación Presupuestal, Contable y Financiera",
+                normativa: "Lineamientos Art. 10 Párrs. 1 y 2",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Alto",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-05", nombre: "Cédula Analítica del Análisis Trilateral cuadrada", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-06",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "6",
+                titulo: "Transferencia de Recursos e Intereses a Finanzas",
+                normativa: "Lineamientos Art. 10 Párrs. 1 y 2",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-06-A", nombre: "Cédula de Desglose Plurianual (27 MDP y Taquilla FIC)", subido: true, url: "https://drive.google.com" },
+                    { id_doc: "DOC-ASEG-06-B", nombre: "Estados de Cuenta Bancarios con Intereses devengados", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-07",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "7",
+                titulo: "Notificación de Bajas y Modificaciones a DGTIT",
+                normativa: "Lineamientos Art. 11",
+                area: "Unidad de Tecnologías de la Información (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-07", nombre: "Cédula Concentrada de Folios DGTIT y SAP", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V2-08",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "8",
+                titulo: "Actualización de Estructura PbR-SED",
+                normativa: "Lineamientos Art. 12 Párrafo 1",
+                area: "Dirección de Planeación y Evaluación (SC)",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-08-A", nombre: "Oficio Circular 040/2025 (Seguimiento SED/SIAE)", subido: true, url: "https://drive.google.com" },
+                    { id_doc: "DOC-ASEG-08-B", nombre: "Acuse de Atención a Proyectos QC4042-QC4048", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-09",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "9",
+                titulo: "Informe de Metas e Indicadores al 3er Trimestre (MIR)",
+                normativa: "Lineamientos Art. 13 Párrafo 1",
+                area: "Dirección de Planeación y Evaluación (SC)",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-09-A", nombre: "Reporte MIR al 3er Trimestre", subido: true, url: "https://drive.google.com" },
+                    { id_doc: "DOC-ASEG-09-B", nombre: "Acta de Asunción de Metas por Secretaría de Cultura", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-10",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "10",
+                titulo: "Informe de Evaluaciones a Acciones y Programas",
+                normativa: "Lineamientos Art. 14 Párrafo 1",
+                area: "Dirección de Planeación y Evaluación (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-10", nombre: "Nota Técnica de Inaplicabilidad por Liquidación", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V2-11",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "11",
+                titulo: "Estado Integral del IEC (7 Rubros Patrimoniales/Legales)",
+                normativa: "Lineamientos Art. 15 Fracc. I a VII",
+                area: "Líquidador IEC / Dirección General de Administración",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-11", nombre: "Expediente con Anexos III, V, VI, VIII y X", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V2-12",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "12",
+                titulo: "Depuración Contable y Saldado de Cuentas de Resultados",
+                normativa: "Lineamientos Art. 16",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Alto",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-12", nombre: "Nota Técnica de Capitalización con Contabilidad Gob.", subido: true, url: "https://drive.google.com" }
+                ]
+            },
+            {
+                id: "V2-13",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "13",
+                titulo: "Liquidación de Obligaciones Pendientes de Pago",
+                normativa: "Lineamientos Art. 17",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Crítico",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-13", nombre: "Cédula de Pasivos Finiquitados y Asunción SC", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-14",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "14",
+                titulo: "Expedientes de Bienes Muebles e Inmuebles",
+                normativa: "Lineamientos Art. 18",
+                area: "Dirección de Recursos Materiales y Servicios Generales (SC)",
+                riesgo: "Alto",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-14", nombre: "Expedientes Técnico-Jurídicos de Inmuebles y Muebles", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-15",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "15",
+                titulo: "Cuenta Exclusiva de Patrimonio a Transferir (Liquidadora)",
+                normativa: "Lineamientos Art. 19",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Alto",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-15", nombre: "Póliza y Balance al 31/12/2025 de Cuenta Liquidadora", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-16",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "16",
+                titulo: "Cuenta Contable de Contrapartida Patrimonial en Finanzas",
+                normativa: "Lineamientos Art. 20",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-16", nombre: "Constancia de Contrapartida emitida por Finanzas SF", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-17",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "17",
+                titulo: "Reintegro de Recursos Estatales de Constitución o Capital",
+                normativa: "Lineamientos Art. 23",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-17", nombre: "Cédula Histórica de Capital Fundacional", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-18",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "18",
+                titulo: "Cédula de Determinación de Recursos a Finiquitar",
+                normativa: "Lineamientos Art. 25",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-18", nombre: "Cédula Art. 25 de Proyectos de Inversión y Metas", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-19",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "19",
+                titulo: "Reintegro de Inversiones No Comprometidas ni Autorizadas",
+                normativa: "Lineamientos Art. 27",
+                area: "Dirección General de Administración / Finanzas (SC)",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-19", nombre: "Recibos Oficiales de Reintegro de Inversión Pública", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-20",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "20",
+                titulo: "Inventario Documental y Archivos Transferidos",
+                normativa: "Lineamientos Art. 30",
+                area: "Coordinación de Archivos (SC)",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-20", nombre: "Reporte de Inventario Documental presentado al AGEG", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-21",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "21",
+                titulo: "Reportes Periódicos al Comité de Extinción (2025)",
+                normativa: "Lineamientos Art. 34",
+                area: "Líquidador IEC / Comité de Extinción",
+                riesgo: "Medio",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-21", nombre: "Compilación de Actas e Informes 2025 del Comité", subido: false, url: null }
+                ]
+            },
+            {
+                id: "V2-22",
+                vertiente: "V2",
+                vertienteNombre: "V2 - FISCALIZACIÓN ASEG",
+                numeral: "22",
+                titulo: "Acta de Entrega-Recepción Extraordinaria General",
+                normativa: "Lineamientos Art. 37",
+                area: "Líquidador IEC / Dirección Jurídica",
+                riesgo: "Bajo",
+                badgeColor: "#D97706",
+                icon: "fa-scale-balanced",
+                documentos: [
+                    { id_doc: "DOC-ASEG-22", nombre: "Acta Protocolizada de Entrega-Recepción con Anexos", subido: false, url: null }
+                ]
+            }
         ];
-
-        let hitosFiscalizacionData = masterHitosData;
 
         // Base de Datos Estructurada de Hitos Operativos (A - F)
         const hitosDetailedData = {
-            'A': { id: 'A', nombre: 'Recursos Humanos y Estructura', desc: 'Gestión de expedientes laborales, plaza del Liquidador e inventario de 20,858 bienes muebles en SAP S/4 HANA.', items: [{ titulo: 'Expedientes Laborales', detalle: 'Entrega-recepción formal el 09 de mayo de 2025 ante la DGRH de Secretaría de Finanzas.', accion: 'Traspaso formal físico y digital de carpetas individuales para garantizar continuidad de derechos y nómina.' }, { titulo: 'Plaza del Liquidador', detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.', accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.' }, { titulo: 'Inventarios SAP', detalle: 'Revisión de 20,858 bienes muebles para actualizar resguardos y capitalizar en SAP S/4 HANA.', accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.' }] },
-            'B': { id: 'B', nombre: 'Jurídico, Inmuebles y FIARCA', desc: 'Regularización de zonas arqueológicas, juicios en trámite y dictamen del Fideicomiso FIARCA.', items: [{ titulo: 'Sitios Arqueológicos', detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).', accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.' }, { titulo: 'Sustitución Procesal', detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.', accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.' }, { titulo: 'Fideicomiso FIARCA', detalle: 'Dictamen formal con Procuraduría Fiscal para modificar o extinguir el fideicomiso.', accion: 'Validar proyecto de decreto modificatorio con Procuraduría Fiscal y Consejería Jurídica.' }] },
-            'C': { id: 'C', nombre: 'Infraestructura y Programas Q, G, P', desc: 'Cierre del Teatro Juárez, Biblioteca León y metas en Zonas Arqueológicas y Culturas Populares.', items: [{ titulo: 'Teatro Juárez (QC3233)', detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.', accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.' }, { titulo: 'Biblioteca León (QB3981)', detalle: 'Instalación de elevador y montacargas.', accion: 'Ejecución presupuestal y contractual del proyecto pendiente.' }, { titulo: 'Culturas Populares (P0427)', detalle: 'Conclusión de concursos artesanales y exposiciones.', accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.' }] },
-            'D': { id: 'D', nombre: 'Cierre Financiero, Fiscal y TI', desc: 'Cancelación de cuentas bancarias, reintegros a TESOFE, baja de RFC y migración de licencias digitales.', items: [{ titulo: 'Cuentas Bancarias', detalle: 'Reintegro de remanentes a TESOFE y cancelación formal de cuentas bancarias del IEC.', accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.' }, { titulo: 'Baja de RFC', detalle: 'Trámite ante el SAT al finalizar el saldado de pasivos y activos.', accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.' }, { titulo: 'TI y Software', detalle: 'Migración de licencias, usuarios SAP y e.firma a la Secretaría de Cultura.', accion: 'Notificación a DG de Tecnologías de Información de la SF para bajas y reasignaciones.' }] },
-            'E': { id: 'E', nombre: 'Gestión Documental y Archivo', desc: 'Transferencia de archivos de trámite y concentración a la SC y acervo histórico al Archivo General.', items: [{ titulo: 'Archivos de Trámite y Concentración', detalle: 'Entrega e inventariado a la Secretaría de Cultura.', accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.' }, { titulo: 'Archivo Histórico', detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.', accion: 'Acreditación y entrega de acervo con valor histórico superior.' }] },
-            'F': { id: 'F', nombre: 'Informes y Reportes de Liquidación', desc: 'Informes periódicos de avance y elaboración del Informe Final de Liquidación para el Comité de Extinción.', items: [{ titulo: 'Reportes Periódicos', detalle: 'Informes mensuales al Comité de Extinción.', accion: 'Integración y presentación de avances mensuales del liquidador.' }, { titulo: 'Informe Final de Liquidación', detalle: 'Entrega del documento formal de cierre contable, patrimonial y legal al concluir los 15 meses.', accion: 'Integración del informe final para aprobación y finiquito del Comité.' }] }
+            'A': {
+                id: 'A',
+                nombre: 'Recursos Humanos y Estructura',
+                desc: 'Gestión de expedientes laborales, plaza del Liquidador e inventario de 20,858 bienes muebles en SAP S/4 HANA.',
+                items: [
+                    { titulo: 'Expedientes Laborales', detalle: 'Entrega-recepción formal el 09 de mayo de 2025 ante la DGRH de Secretaría de Finanzas.', accion: 'Traspaso formal físico y digital de carpetas individuales para garantizar continuidad de derechos y nómina.' },
+                    { titulo: 'Plaza del Liquidador', detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.', accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.' },
+                    { titulo: 'Inventarios SAP', detalle: 'Revisión de 20,858 bienes muebles para actualizar resguardos y capitalizar en SAP S/4 HANA.', accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.' }
+                ]
+            },
+            'B': {
+                id: 'B',
+                nombre: 'Jurídico, Inmuebles y FIARCA',
+                desc: 'Regularización de zonas arqueológicas, juicios en trámite y dictamen del Fideicomiso FIARCA.',
+                items: [
+                    { titulo: 'Sitios Arqueológicos', detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).', accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.' },
+                    { titulo: 'Sustitución Procesal', detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.', accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.' },
+                    { titulo: 'Fideicomiso FIARCA', detalle: 'Dictamen formal con Procuraduría Fiscal para modificar o extinguir el fideicomiso.', accion: 'Validar proyecto de decreto modificatorio con Procuraduría Fiscal y Consejería Jurídica.' }
+                ]
+            },
+            'C': {
+                id: 'C',
+                nombre: 'Infraestructura y Programas Q, G, P',
+                desc: 'Cierre del Teatro Juárez, Biblioteca León y metas en Zonas Arqueológicas y Culturas Populares.',
+                items: [
+                    { titulo: 'Teatro Juárez (QC3233)', detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.', accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.' },
+                    { titulo: 'Biblioteca León (QB3981)', detalle: 'Instalación de elevador y montacargas.', accion: 'Ejecución presupuestal y contractual del proyecto pendiente.' },
+                    { titulo: 'Culturas Populares (P0427)', detalle: 'Conclusión de concursos artesanales y exposiciones.', accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.' }
+                ]
+            },
+            'D': {
+                id: 'D',
+                nombre: 'Cierre Financiero, Fiscal y TI',
+                desc: 'Cancelación de cuentas bancarias, reintegros a TESOFE, baja de RFC y migración de licencias digitales.',
+                items: [
+                    { titulo: 'Cuentas Bancarias', detalle: 'Reintegro de remanentes a TESOFE y cancelación formal de cuentas bancarias del IEC.', accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.' },
+                    { titulo: 'Baja de RFC', detalle: 'Trámite ante el SAT al finalizar el saldado de pasivos y activos.', accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.' },
+                    { titulo: 'TI y Software', detalle: 'Migración de licencias, usuarios SAP y e.firma a la Secretaría de Cultura.', accion: 'Notificación a DG de Tecnologías de Información de la SF para bajas y reasignaciones.' }
+                ]
+            },
+            'E': {
+                id: 'E',
+                nombre: 'Gestión Documental y Archivo',
+                desc: 'Transferencia de archivos de trámite y concentración a la SC y acervo histórico al Archivo General.',
+                items: [
+                    { titulo: 'Archivos de Trámite y Concentración', detalle: 'Entrega e inventariado a la Secretaría de Cultura.', accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.' },
+                    { titulo: 'Archivo Histórico', detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.', accion: 'Acreditación y entrega de acervo con valor histórico superior.' }
+                ]
+            },
+            'F': {
+                id: 'F',
+                nombre: 'Informes y Reportes de Liquidación',
+                desc: 'Informes periódicos de avance y elaboración del Informe Final de Liquidación para el Comité de Extinción.',
+                items: [
+                    { titulo: 'Reportes Periódicos', detalle: 'Informes mensuales al Comité de Extinción.', accion: 'Integración y presentación de avances mensuales del liquidador.' },
+                    { titulo: 'Informe Final de Liquidación', detalle: 'Entrega del documento formal de cierre contable, patrimonial y legal al concluir los 15 meses.', accion: 'Integración del informe final para aprobación y finiquito del Comité.' }
+                ]
+            }
         };
 
+        // Matriz Consolidada de Acciones Detalladas
         let accionesMatriz = [
             { id: 1, hito: 'A - RH', rubro: 'Laboral', accion: 'Entrega formal de 303 carpetas de personal a DGRH', responsable: 'IEC Liquidador / SF', estatus: 'Validación', driveUrl: '' },
             { id: 2, hito: 'A - RH', rubro: 'Laboral', accion: 'Resguardo de Plaza Nivel 8 y 131 bienes del Liquidador', responsable: 'Liquidador IEC', estatus: 'Concluido', driveUrl: '' },
@@ -1110,53 +1714,24 @@
         ];
 
         let logsAuditoria = JSON.parse(localStorage.getItem('secul_audit_logs')) || [
-            { fecha: new Date().toLocaleString(), usuario: 'Sistema', accion: 'Inicialización', detalle: 'Tablero Cool Panel 2 cargado con éxito' }
+            { fecha: new Date().toLocaleString(), usuario: 'Sistema', accion: 'Inicialización', detalle: 'Tablero institucional cargado con éxito' }
         ];
 
-        const criticalData = {
-            'critical-1': { title: '01. Entrega-Recepción de Expedientes Laborales', subtitle: '09 de Mayo de 2025', headerBg: 'bg-gradient-to-r from-rose-700 to-rose-900', description: 'Traspaso formal físico y digital de 303 carpetas de personal transferido.', risk: 'Interrupción en nómina o reclamos de antigüedad.', ref: 'Anexo IV.a - Documento de Transición', entities: [{ name: 'IEC / Liquidador', action: 'Inventariar y entregar expedientes.' }, { name: 'DGRH Finanzas', action: 'Recibir y asegurar nómina.' }] },
-            'critical-2': { title: '02. Reporte Definitivo de Recursos Federales (SRFT - SHCP)', subtitle: 'Julio de 2025', headerBg: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Captura y cierre en plataforma de Hacienda.', risk: 'Observaciones de la ASF y reintegros.', ref: 'Art. 29 de Lineamientos IEC', entities: [{ name: 'Liquidador IEC', action: 'Conciliar y reportar.' }, { name: 'Secretaría de Finanzas', action: 'Validar plataformas.' }] },
-            'critical-3': { title: '03. Término Legal de Liquidación e Informe Final', subtitle: 'Diciembre de 2025 (15 Meses)', headerBg: 'bg-gradient-to-r from-rose-800 to-slate-900', description: 'Extinción total de pasivos y rendición del Informe Final.', risk: 'Rebasar límite vulnera el Decreto 345.', ref: 'Art. Quinto Transitorio Decreto 345', entities: [{ name: 'Comité de Extinción', action: 'Aprobar finiquito.' }, { name: 'Liquidador IEC', action: 'Consolidar balance final.' }] },
-            'critical-4': { title: '04. Baja de RFC del IEC y Entrega Extraordinaria', subtitle: 'Post-Liquidación', headerBg: 'bg-gradient-to-r from-slate-800 to-slate-950', description: 'Cancelación formal del RFC ante SAT y devolución de bienes.', risk: 'Multas tributarias extemporáneas.', ref: 'Art. 37 de Lineamientos', entities: [{ name: 'Liquidador IEC', action: 'Tramitar aviso SAT.' }, { name: 'Secretaría de la Honestidad', action: 'Supervisar entrega final.' }] }
-        };
-
-        function setVertienteFilter(tab) {
-            activeVertienteTab = tab;
-            document.getElementById('tabBtnAll').className = tab === 'ALL' ? "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow" : "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900";
-            document.getElementById('tabBtnV1').className = tab === 'V1' ? "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-blue-600 text-white shadow flex items-center gap-1.5" : "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
-            document.getElementById('tabBtnV2').className = tab === 'V2' ? "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-amber-600 text-white shadow flex items-center gap-1.5" : "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
-            renderTablaFiscalizacion();
-        }
-
-        function renderTablaFiscalizacion() {
+        // LÓGICA DE RENDERIZADO Y CONTROL DE FISCALIZACIÓN ASEG (DOBLE VERTIENTE)
+        function renderTablaFiscalizacion(items) {
             const tbody = document.getElementById('tablaHitosFiscalizacion');
             if(!tbody) return;
             tbody.innerHTML = '';
 
-            const areaFilter = document.getElementById('filterAreaMaster').value;
-            const riesgoFilter = document.getElementById('filterRiesgoMaster').value;
-            const searchFilter = document.getElementById('filterSearchMaster').value.toLowerCase();
-
             let docsTotales = 0;
             let docsSubidos = 0;
 
-            hitosFiscalizacionData.forEach(h => {
-                docsTotales += h.documentos.length;
-                docsSubidos += h.documentos.filter(d => d.subido).length;
-            });
-            document.getElementById('kpiDocsAcreditados').innerText = `${docsSubidos} / ${docsTotales}`;
-
-            const filtrados = hitosFiscalizacionData.filter(h => {
-                const matchV = (activeVertienteTab === 'ALL' || h.vertiente === activeVertienteTab);
-                const matchA = (areaFilter === 'ALL' || h.area.toLowerCase().includes(areaFilter.toLowerCase()));
-                const matchR = (riesgoFilter === 'ALL' || h.riesgo === riesgoFilter);
-                const matchS = (h.titulo.toLowerCase().includes(searchFilter) || h.id.toLowerCase().includes(searchFilter));
-                return matchV && matchA && matchR && matchS;
-            });
-
-            filtrados.forEach(h => {
+            items.forEach((h) => {
                 const totalD = h.documentos.length;
                 const subidosD = h.documentos.filter(d => d.subido).length;
+                docsTotales += totalD;
+                docsSubidos += subidosD;
+
                 const porcentaje = totalD > 0 ? Math.round((subidosD / totalD) * 100) : 0;
 
                 let badgeRiesgo = 'bg-slate-100 text-slate-700 border-slate-200';
@@ -1165,16 +1740,16 @@
                 if(h.riesgo === 'Medio') badgeRiesgo = 'bg-amber-100 text-amber-800 border-amber-200';
                 if(h.riesgo === 'Bajo') badgeRiesgo = 'bg-emerald-100 text-emerald-800 border-emerald-200';
 
-                const badgeVertiente = h.vertiente === 'V1' 
-                    ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200"><i class="fa-solid fa-building me-1"></i>[V1 - IEC]</span>`
-                    : `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-scale-balanced me-1"></i>[V2 - ASEG]</span>`;
+                const vertienteBadge = h.vertiente === 'V1' 
+                    ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200"><i class="fa-solid fa-building me-1"></i>V1 - IEC</span>`
+                    : `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-scale-balanced me-1"></i>V2 - ASEG</span>`;
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                         <td class="p-3">
                             <div class="flex flex-col gap-1">
-                                ${badgeVertiente}
-                                <span class="font-bold text-slate-900 font-mono text-xs">${h.id} (Pto. ${h.numeral})</span>
+                                ${vertienteBadge}
+                                <span class="font-bold text-slate-900 font-mono text-[11px]">${h.id} (Pto. ${h.numeral})</span>
                             </div>
                         </td>
                         <td class="p-3 max-w-sm">
@@ -1208,6 +1783,25 @@
                     </tr>
                 `;
             });
+
+            // Actualizar KPIs
+            document.getElementById('kpiTotalHitos').innerText = items.length;
+            document.getElementById('kpiDocsSubidos').innerText = `${docsSubidos} / ${docsTotales}`;
+        }
+
+        function filterHitosFiscalizacion() {
+            const vertiente = document.getElementById('filterVertiente').value;
+            const area = document.getElementById('filterAreaResp').value;
+            const riesgo = document.getElementById('filterRiesgo').value;
+
+            let filtrados = hitosFiscalizacionData.filter(h => {
+                const matchV = (vertiente === 'ALL' || h.vertiente === vertiente);
+                const matchA = (area === 'ALL' || h.area.toLowerCase().includes(area.toLowerCase()));
+                const matchR = (riesgo === 'ALL' || h.riesgo === riesgo);
+                return matchV && matchA && matchR;
+            });
+
+            renderTablaFiscalizacion(filtrados);
         }
 
         function abrirModalGestionFiscalizacion(id) {
@@ -1225,10 +1819,13 @@
             listContainer.innerHTML = '';
             selectDoc.innerHTML = '';
 
-            hito.documentos.forEach(doc => {
+            hito.documentos.forEach((doc, idx) => {
                 selectDoc.innerHTML += `<option value="${doc.id_doc}">${doc.nombre}</option>`;
+
                 const statusBadge = doc.subido 
-                    ? `<a href="${doc.url}" target="_blank" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-[10px] flex items-center gap-1 border border-emerald-300 transition"><i class="fa-solid fa-file-pdf text-rose-600"></i> Ver PDF Oficial</a>`
+                    ? `<a href="${doc.url}" target="_blank" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-[10px] flex items-center gap-1 border border-emerald-300 transition">
+                         <i class="fa-solid fa-file-pdf text-rose-600"></i> Ver PDF Oficial
+                       </a>`
                     : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Pendiente de Carga</span>`;
 
                 listContainer.innerHTML += `
@@ -1247,7 +1844,7 @@
 
         function guardarEvidenciaFiscalizacion() {
             if(!currentUser) {
-                alert('Debe iniciar sesión para registrar y subir evidencia.');
+                alert('Debe identificarse con su cuenta institucional para registrar y subir evidencia.');
                 openModal('modal-auth');
                 return;
             }
@@ -1259,7 +1856,7 @@
 
             let finalUrl = urlInput;
             if(!finalUrl && fileInput.files.length > 0) {
-                finalUrl = URL.createObjectURL(fileInput.files[0]);
+                finalUrl = URL.createObjectURL(fileInput.files[0]); // Simulación de carga local
             }
 
             if(!finalUrl) {
@@ -1273,22 +1870,38 @@
                 if(doc) {
                     doc.subido = true;
                     doc.url = finalUrl;
-                    registrarAuditoria('Carga Documento', { hito: hitoId, doc: doc.nombre, url: finalUrl });
-                    alert('¡Documento acreditado con éxito! Se actualizó el avance.');
-                    renderTablaFiscalizacion();
+
+                    localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+
+                    registrarAuditoria('Carga Documento ASEG', {
+                        hito_id: hitoId,
+                        doc_id: docId,
+                        documento: doc.nombre,
+                        area: hito.area,
+                        url: finalUrl
+                    });
+
+                    alert('¡Documento registrado con éxito! El porcentaje de avance del hito se ha actualizado.');
+                    filterHitosFiscalizacion();
                     abrirModalGestionFiscalizacion(hitoId);
                 }
             }
         }
 
+        // Renderizado de tabla de Matriz de Acciones
         function renderActionsTable(items) {
             const tbody = document.getElementById('tablaAccionesMatriz');
             if(!tbody) return;
             tbody.innerHTML = '';
-            items.forEach(a => {
-                let badgeColor = a.estatus === 'Concluido' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200';
+
+            items.forEach((a) => {
+                let badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
+                if(a.estatus === 'Concluido') badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                if(a.estatus === 'Validación') badgeColor = 'bg-amber-50 text-amber-700 border-amber-200';
+                if(a.estatus === 'En Proceso') badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
+
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                         <td class="p-3 font-bold text-indigo-700">${a.hito}</td>
                         <td class="p-3 font-semibold text-slate-800">${a.accion}</td>
                         <td class="p-3 text-slate-600">${a.responsable}</td>
@@ -1309,106 +1922,436 @@
         function filterActionsTable() {
             const rubro = document.getElementById('filterRubro').value;
             const status = document.getElementById('filterStatus').value;
-            let filtered = accionesMatriz.filter(a => (rubro === 'ALL' || a.rubro === rubro) && (status === 'ALL' || a.estatus === status));
+
+            let filtered = accionesMatriz.filter(a => {
+                const matchRubro = (rubro === 'ALL' || a.rubro === rubro);
+                const matchStatus = (status === 'ALL' || a.estatus === status);
+                return matchRubro && matchStatus;
+            });
             renderActionsTable(filtered);
         }
 
+        // Modal Detallado de Hitos A - F
         function openHitoDetailedModal(areaKey) {
             const data = hitosDetailedData[areaKey];
             if(!data) return;
+
             document.getElementById('hitoDetailBadge').innerText = data.id;
             document.getElementById('hitoDetailTitle').innerText = `Hito ${data.id}: ${data.nombre}`;
+
             const listContainer = document.getElementById('hitoDetailItemsList');
             listContainer.innerHTML = '';
+
             data.items.forEach(item => {
                 listContainer.innerHTML += `
                     <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
                         <strong class="text-slate-900 block text-xs mb-0.5">• ${item.titulo}: ${item.detalle}</strong>
-                        <span class="text-slate-500 block text-[11px] mb-2 leading-relaxed"><strong>Acción:</strong> ${item.accion}</span>
+                        <span class="text-slate-500 block text-[11px] mb-2 leading-relaxed"><strong>Acción a realizar:</strong> ${item.accion}</span>
                         <button onclick="openDocModal('Hito ${data.id} - ${item.titulo}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 font-bold transition flex items-center gap-1.5 text-[11px]">
-                            <i class="fa-brands fa-google-drive text-amber-500"></i> Subir Drive
+                            <i class="fa-brands fa-google-drive text-amber-500"></i> Subir Documentos Drive
                         </button>
                     </li>
                 `;
             });
+
             openModal('modal-hito-detailed');
         }
 
         function guardarHitoDetailed() {
             if(!currentUser) {
-                alert('Debe iniciar sesión.');
+                alert('Debe iniciar sesión para registrar cambios en este hito.');
                 openModal('modal-auth');
                 return;
             }
-            registrarAuditoria('Actualización Hito', { estatus: document.getElementById('hitoDetailStatusSelect').value });
-            alert('¡Cambios guardados!');
+            const status = document.getElementById('hitoDetailStatusSelect').value;
+            const obs = document.getElementById('hitoDetailTextarea').value;
+
+            registrarAuditoria('Actualización Hito', { estatus: status, observaciones: obs });
+            alert('¡Cambios guardados con éxito y firmados en la bitácora de auditoría!');
             closeModal('modal-hito-detailed');
         }
 
+        // Modal de Desglose del Dashboard Interactivo
         function openDashboardDetailModal(categoria) {
             const container = document.getElementById('dashDetailContainer');
             const title = document.getElementById('dashDetailTitle');
+            const subtitle = document.getElementById('dashDetailSubtitle');
             container.innerHTML = '';
+
             const mapas = {
-                'criticos_vencer': { t: 'Hitos Críticos: Por Vencer Inmediato', items: [{ hito: '01. Entrega-Recepción Expedientes Laborales', fecha: '09 MAY 2025', resp: 'IEC / DGRH Finanzas', desc: 'Traspaso físico y digital.', estatus: 'Urgente' }] },
-                'criticos_proceso': { t: 'Hitos Críticos: En Proceso Activo', items: [{ hito: '02. Reporte Definitivo SRFT (SHCP)', fecha: 'JULIO 2025', resp: 'Liquidador / Finanzas', desc: 'Cierre recursos federales.', estatus: 'En Tiempo' }, { hito: '03. Término Legal de Liquidación', fecha: 'DICIEMBRE 2025', resp: 'Comité / Liquidador', desc: 'Límite de 15 meses.', estatus: 'En Tiempo' }] },
-                'criticos_post': { t: 'Hitos Críticos: Post-Liquidación', items: [{ hito: '04. Baja de RFC y Cierre Extraordinario', fecha: 'POST-CIERRE', resp: 'Liquidador / SAT', desc: 'Cancelación de RFC.', estatus: 'Programado' }] },
-                'operativos_desarrollo': { t: 'Hitos Operativos: En Desarrollo', items: [{ hito: 'Área A - RH', fecha: 'Avance 75%', resp: 'DGRH / IEC', desc: '303 plazas.', estatus: 'En Desarrollo' }, { hito: 'Área E - Archivo', fecha: 'Avance 70%', resp: 'IEC / AGEG', desc: 'Transferencia archivos.', estatus: 'En Desarrollo' }] },
-                'operativos_validacion': { t: 'Hitos Operativos: En Validación', items: [{ hito: 'Área B - Jurídico', fecha: 'Avance 60%', resp: 'Procuraduría Fiscal', desc: 'FIARCA.', estatus: 'En Validación' }, { hito: 'Área D - Finanzas', fecha: 'Avance 65%', resp: 'Finanzas / SAT', desc: 'Cuentas bancarias.', estatus: 'En Validación' }] },
-                'operativos_ejecucion': { t: 'Hitos Operativos: En Ejecución', items: [{ hito: 'Área C - Obras', fecha: 'Avance 85%', resp: 'SICOM / SC', desc: 'Teatro Juárez.', estatus: 'En Ejecución' }, { hito: 'Área F - Informes', fecha: 'Avance 80%', resp: 'Comité', desc: 'Informes mensuales.', estatus: 'En Ejecución' }] }
+                'criticos_vencer': {
+                    t: 'Hitos Críticos: Por Vencer Inmediato',
+                    st: 'Obligaciones de cumplimiento ineludible en el corto plazo',
+                    items: [
+                        { hito: '01. Entrega-Recepción Expedientes Laborales', fecha: '09 MAY 2025', resp: 'IEC / DGRH Finanzas', desc: 'Traspaso físico y digital de 303 carpetas de personal.', estatus: 'Urgente' }
+                    ]
+                },
+                'criticos_proceso': {
+                    t: 'Hitos Críticos: En Proceso Activo',
+                    st: 'Compromisos con seguimiento trimestral y federal',
+                    items: [
+                        { hito: '02. Reporte Definitivo SRFT (SHCP)', fecha: 'JULIO 2025', resp: 'Liquidador IEC / Finanzas', desc: 'Cierre y captura del ejercicio de recursos federales transferidos.', estatus: 'En Tiempo' },
+                        { hito: '03. Término Legal de Liquidación e Informe Final', fecha: 'DICIEMBRE 2025', resp: 'Comité de Extinción / Liquidador', desc: 'Cumplimiento del límite legal de 15 meses (Decreto 345).', estatus: 'En Tiempo' }
+                    ]
+                },
+                'criticos_post': {
+                    t: 'Hitos Críticos: Post-Liquidación y Cierre SAT',
+                    st: 'Actos de extinción tributaria y devolución de bienes',
+                    items: [
+                        { hito: '04. Baja de RFC y Cierre Extraordinario', fecha: 'POST-CIERRE', resp: 'Liquidador / SAT / SH', desc: 'Cancelación del RFC ante el SAT y entrega extraordinaria de 131 bienes.', estatus: 'Programado' }
+                    ]
+                },
+                'operativos_desarrollo': {
+                    t: 'Hitos Operativos: En Desarrollo',
+                    st: 'Áreas estratégicas con trámites y validaciones en curso',
+                    items: [
+                        { hito: 'Área A - Recursos Humanos y Estructura', fecha: 'Avance 75%', resp: 'DGRH Finanzas / IEC', desc: '303 plazas transferidas y resguardo de plaza nivel 8.', estatus: 'En Desarrollo' },
+                        { hito: 'Área E - Gestión Documental y Archivo', fecha: 'Avance 70%', resp: 'IEC / AGEG / SC', desc: 'Transferencia de trámite a SC y archivo histórico al AGEG.', estatus: 'En Desarrollo' }
+                    ]
+                },
+                'operativos_validacion': {
+                    t: 'Hitos Operativos: En Validación Normativa',
+                    st: 'Áreas con proyectos de decreto o conciliaciones fiscales',
+                    items: [
+                        { hito: 'Área B - Jurídico, Inmuebles y FIARCA', fecha: 'Avance 60%', resp: 'Procuraduría Fiscal / SC', desc: 'Dictamen de FIARCA y regularización predios Cóporo, Peralta, Plazuelas.', estatus: 'En Validación' },
+                        { hito: 'Área D - Cierre Financiero, Fiscal y TI', fecha: 'Avance 65%', resp: 'Finanzas / SAT / IEC', desc: 'Cancelación de cuentas bancarias y reintegro TESOFE.', estatus: 'En Validación' }
+                    ]
+                },
+                'operativos_ejecucion': {
+                    t: 'Hitos Operativos: En Ejecución Activa',
+                    st: 'Obras públicas, proyectos de infraestructura y reportes periódicos',
+                    items: [
+                        { hito: 'Área C - Infraestructura y Programas Q, G, P', fecha: 'Avance 85%', resp: 'SICOM / SC', desc: 'Cierre Teatro Juárez, elevador Biblioteca León y metas artesanales.', estatus: 'En Ejecución' },
+                        { hito: 'Área F - Informes y Reportes de Liquidación', fecha: 'Avance 80%', resp: 'Comité de Extinción', desc: 'Informes mensuales periódicos al Comité.', estatus: 'En Ejecución' }
+                    ]
+                }
             };
+
             const data = mapas[categoria];
             if(!data) return;
+
             title.innerText = data.t;
+            subtitle.innerText = data.st;
+
             data.items.forEach(item => {
                 container.innerHTML += `
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <div>
-                            <span class="font-bold text-slate-900 block">${item.hito} (${item.fecha})</span>
-                            <span class="text-slate-600 text-[11px]">${item.desc}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-900 text-xs">${item.hito}</span>
+                                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded-full">${item.fecha}</span>
+                            </div>
+                            <span class="text-slate-600 block text-[11px] mt-0.5">${item.desc}</span>
+                            <span class="text-slate-400 block text-[10px]"><strong>Responsable:</strong> ${item.resp}</span>
                         </div>
-                        <span class="px-2.5 py-1 bg-white border rounded font-bold text-[10px]">${item.estatus}</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm shrink-0">
+                            ${item.estatus}
+                        </span>
                     </div>
                 `;
             });
+
             openModal('modal-dashboard-detail');
         }
 
+        // Edición de Acción Individual de la Matriz
         function abrirModalEdicionAccion(id) {
             if(!currentUser) {
-                alert('Debe iniciar sesión.');
+                alert('Debe iniciar sesión para ver y editar compromisos institucionales.');
                 openModal('modal-auth');
                 return;
             }
+
             const item = accionesMatriz.find(a => a.id === id);
             if(!item) return;
+
             document.getElementById('editActionId').value = item.id;
             document.getElementById('editActionTitle').value = `[${item.hito}] ${item.accion}`;
             document.getElementById('editActionResp').value = item.responsable;
             document.getElementById('editActionStatus').value = item.estatus;
             document.getElementById('editActionDriveUrl').value = item.driveUrl || '';
+            document.getElementById('editActionAuditNote').value = '';
+
             openModal('modal-edit-action');
         }
 
         function guardarEdicionAccion(e) {
             e.preventDefault();
             const id = parseInt(document.getElementById('editActionId').value);
+            const status = document.getElementById('editActionStatus').value;
+            const url = document.getElementById('editActionDriveUrl').value;
+            const nota = document.getElementById('editActionAuditNote').value;
+
             const idx = accionesMatriz.findIndex(a => a.id === id);
             if(idx !== -1) {
-                accionesMatriz[idx].estatus = document.getElementById('editActionStatus').value;
-                accionesMatriz[idx].driveUrl = document.getElementById('editActionDriveUrl').value;
-                registrarAuditoria('Edición Matriz', { id: id, nuevo_estatus: accionesMatriz[idx].estatus });
+                const anterior = accionesMatriz[idx].estatus;
+                accionesMatriz[idx].estatus = status;
+                accionesMatriz[idx].driveUrl = url;
+
+                registrarAuditoria('Edición Matriz', {
+                    accion_id: id,
+                    compromiso: accionesMatriz[idx].accion,
+                    estatus_anterior: anterior,
+                    estatus_nuevo: status,
+                    driveUrl: url,
+                    justificacion: nota
+                });
+
                 filterActionsTable();
                 closeModal('modal-edit-action');
-                alert('¡Actualizado con éxito!');
+                alert('¡Compromiso actualizado con éxito y registrado en la bitácora de auditoría!');
             }
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function handleSolicitarClick() { openModal(currentUser ? 'modal-solicitud' : 'modal-auth'); }
+        // Modales Básicos
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if(m) m.classList.remove('hidden');
+        }
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if(m) m.classList.add('hidden');
+        }
+
+        function handleSolicitarClick() {
+            if(!currentUser) {
+                alert('Debe identificarse con su cuenta institucional para enviar una solicitud con trazabilidad.');
+                openModal('modal-auth');
+                return;
+            }
+            document.getElementById('authAuditoriaUserLabel').innerText = `${currentUser.nombre} (${currentUser.usuario})`;
+            openModal('modal-solicitud');
+        }
+
+        function openDocModal(compromiseName) {
+            document.getElementById('doc-modal-title-span').innerText = compromiseName;
+            openModal('modal-doc-upload');
+        }
+
+        function saveDocUpload() {
+            const url = document.getElementById('doc-drive-url').value;
+            if(!url) {
+                alert('Por favor ingrese un enlace compartido válido de Google Drive.');
+                return;
+            }
+            if(currentUser) {
+                registrarAuditoria('Vinculación Drive', { compromiso: document.getElementById('doc-modal-title-span').innerText, url: url });
+            }
+            alert('¡Enlace de Google Drive vinculado exitosamente!');
+            document.getElementById('doc-drive-url').value = '';
+            document.getElementById('doc-description').value = '';
+            closeModal('modal-doc-upload');
+        }
+
+        function openCriticalModal(key) {
+            const data = criticalData[key];
+            if(!data) return;
+
+            document.getElementById('critical-title').innerText = data.title;
+            document.getElementById('critical-subtitle').innerText = data.subtitle;
+            document.getElementById('critical-description').innerText = data.description;
+            document.getElementById('critical-risk').innerText = data.risk;
+            document.getElementById('critical-ref').innerText = data.ref;
+
+            const header = document.getElementById('critical-modal-header');
+            header.className = `p-5 text-white flex justify-between items-center ${data.headerBg}`;
+
+            const container = document.getElementById('critical-entities-rows');
+            container.innerHTML = '';
+            data.entities.forEach(entity => {
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <span class="font-bold text-slate-900 block"><i class="fa-solid fa-building-columns text-indigo-600 me-1"></i> ${entity.name}</span>
+                            <span class="text-slate-600 text-[11px] block mt-0.5"><strong>Acción:</strong> ${entity.action}</span>
+                        </div>
+                        <button onclick="openDocModal('${data.title} - ${entity.name}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200 transition shrink-0">
+                            <i class="fa-brands fa-google-drive me-1"></i>Subir Drive
+                        </button>
+                    </div>
+                `;
+            });
+            openModal('modal-critical');
+        }
+
+        // Solicitudes Modal
+        async function enviarSolicitudModal(e) {
+            e.preventDefault();
+            if(!currentUser) {
+                alert('Debe iniciar sesión para enviar una solicitud.');
+                openModal('modal-auth');
+                return;
+            }
+
+            const nueva = {
+                id: Date.now(),
+                area: document.getElementById('modalSolArea').value,
+                tipo: document.getElementById('modalSolTipo').value,
+                titulo: document.getElementById('modalSolTitulo').value,
+                desc: document.getElementById('modalSolDesc').value,
+                solicitante: currentUser.usuario,
+                estado: 'Pendiente',
+                fecha: new Date().toLocaleDateString()
+            };
+
+            solicitudesAdmin.unshift(nueva);
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+            registrarAuditoria('Nueva Solicitud', nueva);
+
+            alert('¡Solicitud registrada correctamente y enviada al Administrador del Comité!');
+            document.getElementById('formSolicitudModal').reset();
+            closeModal('modal-solicitud');
+            renderAdminTable();
+        }
+
+        // Pestañas de Vista y Roles
+        function switchViewTab(tabId) {
+            const tablero = document.getElementById('viewTableroSection');
+            const admin = document.getElementById('viewAdminSection');
+            const btnT = document.getElementById('btnTabOperativo');
+            const btnA = document.getElementById('btnTabAdmin');
+
+            if(tabId === 'tab-admin') {
+                tablero.classList.add('hidden');
+                admin.classList.remove('hidden');
+                btnA.className = "px-3 py-1.5 text-xs rounded-lg font-bold transition bg-indigo-600 text-white flex items-center gap-1";
+                btnT.className = "px-3 py-1.5 text-xs rounded-lg font-bold transition text-slate-400 hover:text-white";
+                renderAdminTable();
+                actualizarLogsAuditoria();
+            } else {
+                admin.classList.add('hidden');
+                tablero.classList.remove('hidden');
+                btnT.className = "px-3 py-1.5 text-xs rounded-lg font-bold transition bg-indigo-600 text-white";
+                btnA.className = "px-3 py-1.5 text-xs rounded-lg font-bold transition text-slate-400 hover:text-white flex items-center gap-1";
+            }
+        }
+
+        // Render Admin Table
+        function renderAdminTable() {
+            const tbody = document.getElementById('tablaAdminSolicitudes');
+            const count = document.getElementById('adminCountSolicitudes');
+            if(!tbody || !count) return;
+
+            tbody.innerHTML = '';
+            let pendientes = 0;
+
+            solicitudesAdmin.forEach((s, index) => {
+                if(s.estado === 'Pendiente') pendientes++;
+                let badge = 'bg-amber-100 text-amber-800 border-amber-200';
+                if(s.estado === 'Aprobado') badge = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                if(s.estado === 'Rechazado') badge = 'bg-rose-100 text-rose-800 border-rose-200';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="p-3 font-bold text-indigo-700">Área ${s.area}</td>
+                        <td class="p-3 font-semibold text-slate-700">${s.tipo}</td>
+                        <td class="p-3"><strong class="text-slate-900 block">${s.titulo}</strong><span class="text-slate-500 text-[11px] block">${s.desc}</span></td>
+                        <td class="p-3 text-slate-600">${s.solicitante}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badge}">${s.estado}</span></td>
+                        <td class="p-3 text-center space-x-1 whitespace-nowrap">
+                            ${s.estado === 'Pendiente' ? `
+                                <button onclick="resolverSolicitud(${index}, 'Aprobado')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Aprobar</button>
+                                <button onclick="resolverSolicitud(${index}, 'Rechazado')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Rechazar</button>
+                            ` : '<span class="text-slate-400 text-[11px]">Procesado</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+            count.innerText = pendientes;
+        }
+
+        function resolverSolicitud(index, resolucion) {
+            solicitudesAdmin[index].estado = resolucion;
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+            registrarAuditoria(`Resolución Solicitud (${resolucion})`, solicitudesAdmin[index]);
+            renderAdminTable();
+            alert(`Solicitud ${resolucion.toLowerCase()} con éxito.`);
+        }
+
+        // Trazabilidad de Auditoría
+        async function registrarAuditoria(tipoAccion, detalles) {
+            const nuevoLog = {
+                fecha: new Date().toLocaleString(),
+                usuario: currentUser ? `${currentUser.nombre} (${currentUser.usuario})` : 'Anónimo',
+                accion: tipoAccion,
+                detalle: typeof detalles === 'object' ? JSON.stringify(detalles) : detalles
+            };
+
+            logsAuditoria.unshift(nuevoLog);
+            localStorage.setItem('secul_audit_logs', JSON.stringify(logsAuditoria));
+
+            if(supabaseClient && currentUser) {
+                try {
+                    await supabaseClient.from('auditoria_logs').insert([{
+                        usuario_id: currentUser.id,
+                        usuario: currentUser.usuario,
+                        accion: tipoAccion,
+                        detalles: detalles,
+                        created_at: new Date().toISOString()
+                    }]);
+                } catch(err) {
+                    console.warn("Tabla auditoria_logs opcional en Supabase:", err);
+                }
+            }
+            actualizarLogsAuditoria();
+        }
+
+        function actualizarLogsAuditoria() {
+            const tbody = document.getElementById('tablaAuditoriaLogs');
+            const count = document.getElementById('adminCountLogs');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            logsAuditoria.forEach(l => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="p-3 text-slate-500 whitespace-nowrap">${l.fecha}</td>
+                        <td class="p-3 font-bold text-slate-800">${l.usuario}</td>
+                        <td class="p-3 font-semibold text-indigo-700">${l.accion}</td>
+                        <td class="p-3 text-slate-600 font-mono text-[10px] max-w-xs truncate">${l.detalle}</td>
+                    </tr>
+                `;
+            });
+            if(count) count.innerText = logsAuditoria.length;
+        }
+
+        function enviarAlertaVencimientos() {
+            alert('¡Alerta de Vencimientos Emitida!\n\nSe ha disparado la notificación programada a los correos de los enlaces para el Hito Crítico 01 (Entrega de Expedientes Laborales).');
+            registrarAuditoria('Emisión Alerta Correo', { alerta: 'Hitos por Vencer', destino: 'Enlaces Registrados' });
+        }
+
+        // Control de Sesión y Autenticación Supabase
+        function updateAuthUI() {
+            const dot = document.getElementById('userStatusDot');
+            const name = document.getElementById('userNameDisplay');
+            const role = document.getElementById('userRoleDisplay');
+            const btn = document.getElementById('btnAuthAction');
+            const navSelector = document.getElementById('navViewSelector');
+
+            if(currentUser) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                name.innerText = currentUser.nombre;
+                role.innerText = currentUser.esAdmin ? "Administrador" : "Usuario Enlace";
+                btn.innerHTML = '<i class="fa-solid fa-right-from-bracket me-1"></i>Salir';
+
+                if(currentUser.esAdmin) {
+                    navSelector.classList.remove('hidden');
+                } else {
+                    navSelector.classList.add('hidden');
+                }
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-slate-400";
+                name.innerText = "No autenticado";
+                role.innerText = "Modo Consulta";
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar';
+                navSelector.classList.add('hidden');
+                switchViewTab('tab-operativo');
+            }
+        }
+
         function handleAuthClick() {
             if(currentUser) {
+                registrarAuditoria('Cierre de Sesión', {});
                 currentUser = null;
                 localStorage.removeItem('secul_user');
                 updateAuthUI();
@@ -1417,69 +2360,69 @@
                 openModal('modal-auth');
             }
         }
-        function openDocModal(name) {
-            document.getElementById('doc-modal-title-span').innerText = name;
-            openModal('modal-doc-upload');
-        }
-        function saveDocUpload() {
-            alert('¡Enlace vinculado!');
-            closeModal('modal-doc-upload');
-        }
-        function openCriticalModal(k) {
-            const d = criticalData[k];
-            if(!d) return;
-            document.getElementById('critical-title').innerText = d.title;
-            document.getElementById('critical-description').innerText = d.description;
-            document.getElementById('critical-risk').innerText = d.risk;
-            document.getElementById('critical-ref').innerText = d.ref;
-            openModal('modal-critical');
-        }
-        function enviarSolicitudModal(e) {
+
+        async function handleLoginSubmit(e) {
             e.preventDefault();
-            alert('¡Solicitud enviada!');
-            closeModal('modal-solicitud');
-        }
-        function switchViewTab(tab) {
-            document.getElementById('viewTableroSection').classList.toggle('hidden', tab === 'tab-admin');
-            document.getElementById('viewAdminSection').classList.toggle('hidden', tab !== 'tab-admin');
-        }
-        function handleLoginSubmit(e) {
-            e.preventDefault();
-            currentUser = { id: 1, usuario: document.getElementById('authUsuario').value, nombre: "Juan Miguel", esAdmin: true };
-            localStorage.setItem('secul_user', JSON.stringify(currentUser));
-            updateAuthUI();
-            closeModal('modal-auth');
-            alert('¡Sesión iniciada con éxito!');
-        }
-        function updateAuthUI() {
-            const name = document.getElementById('userNameDisplay');
-            const nav = document.getElementById('navViewSelector');
-            if(currentUser) {
-                name.innerText = currentUser.nombre;
-                nav.classList.remove('hidden');
-            } else {
-                name.innerText = "No autenticado";
-                nav.classList.add('hidden');
+            const usuarioInput = document.getElementById('authUsuario').value.trim();
+            const passInput = document.getElementById('authPass').value.trim();
+            const btnSubmit = document.getElementById('btnLoginSubmit');
+
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Validando...';
+            btnSubmit.disabled = true;
+
+            try {
+                if(supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from('usuarios_acceso')
+                        .select('*')
+                        .eq('usuario', usuarioInput)
+                        .eq('password', passInput)
+                        .single();
+
+                    if(error || !data) {
+                        alert('Credenciales incorrectas. Verifique su usuario y contraseña en usuarios_acceso.');
+                        btnSubmit.innerHTML = 'Ingresar';
+                        btnSubmit.disabled = false;
+                        return;
+                    }
+
+                    const esAdmin = (data.rol === 'admin');
+
+                    currentUser = {
+                        id: data.id,
+                        usuario: data.usuario,
+                        nombre: data.nombre,
+                        esAdmin: esAdmin
+                    };
+                } else {
+                    const esAdmin = (usuarioInput === 'admin');
+                    currentUser = {
+                        id: 'local-id',
+                        usuario: usuarioInput,
+                        nombre: usuarioInput.replace('_', ' ').toUpperCase(),
+                        esAdmin: esAdmin
+                    };
+                }
+
+                localStorage.setItem('secul_user', JSON.stringify(currentUser));
+                updateAuthUI();
+                registrarAuditoria('Inicio de Sesión', { usuario: currentUser.usuario, rol: currentUser.esAdmin ? 'Admin' : 'Usuario' });
+                closeModal('modal-auth');
+                alert(`¡Bienvenido/a, ${currentUser.nombre}! Acceso concedido como ${currentUser.esAdmin ? 'Administrador' : 'Usuario Enlace'}.`);
+            } catch(err) {
+                console.error("Error al autenticar:", err);
+                alert("Error de conexión con la base de datos.");
+            } finally {
+                btnSubmit.innerHTML = 'Ingresar';
+                btnSubmit.disabled = false;
             }
         }
-        function registrarAuditoria(acc, det) {
-            logsAuditoria.unshift({ fecha: new Date().toLocaleString(), usuario: currentUser ? currentUser.usuario : 'Anónimo', accion: acc, detalle: JSON.stringify(det) });
-        }
-        function actualizarLogsAuditoria() {
-            const tbody = document.getElementById('tablaAuditoriaLogs');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            logsAuditoria.forEach(l => {
-                tbody.innerHTML += `<tr><td class="p-2">${l.fecha}</td><td class="p-2">${l.usuario}</td><td class="p-2">${l.accion}</td><td class="p-2">${l.detalle}</td></tr>`;
-            });
-        }
-        function enviarAlertaVencimientos() { alert('Alerta enviada.'); }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            renderTablaFiscalizacion();
-            renderActionsTable(accionesMatriz);
-            updateAuthUI();
-        });
+        // Inicialización integral
+        renderActionsTable(accionesMatriz);
+        renderTablaFiscalizacion(hitosFiscalizacionData);
+        updateAuthUI();
+        actualizarLogsAuditoria();
     </script>
 </body>
 </html>
