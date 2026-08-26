@@ -1665,65 +1665,65 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
         // Login contra tabla usuarios_acceso de Supabase
-        async function handleLoginSubmit(e) {
-            e.preventDefault();
-            const usuarioInput = document.getElementById('authUsuario').value.trim();
-            const passInput = document.getElementById('authPass').value.trim();
-            const btnSubmit = document.getElementById('btnLoginSubmit');
+      // Reemplazar la función handleLoginSubmit en tu <script>:
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const usuarioInput = document.getElementById('authUsuario').value.trim();
+    const passInput = document.getElementById('authPass').value.trim();
+    const btnSubmit = document.getElementById('btnLoginSubmit');
 
-            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Validando...';
-            btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Validando...';
+    btnSubmit.disabled = true;
 
-            try {
-                if(supabaseClient) {
-                    const { data, error } = await supabaseClient
-                        .from('usuarios_acceso')
-                        .select('*')
-                        .eq('usuario', usuarioInput)
-                        .eq('password', passInput)
-                        .single();
+    const endpoint = `https://ubfjvydblmntbkbzutvl.supabase.co/rest/v1/usuarios_acceso?usuario=eq.${encodeURIComponent(usuarioInput)}&password=eq.${encodeURIComponent(passInput)}&select=*`;
 
-                    if(error || !data) {
-                        alert('Credenciales incorrectas. Verifique su usuario y contraseña en usuarios_acceso.');
-                        btnSubmit.innerHTML = 'Ingresar';
-                        btnSubmit.disabled = false;
-                        return;
-                    }
-
-                    // Validación estricta por columna 'rol'
-                    const esAdmin = (data.rol === 'admin');
-
-                    currentUser = {
-                        id: data.id,
-                        usuario: data.usuario,
-                        nombre: data.nombre,
-                        esAdmin: esAdmin
-                    };
-                } else {
-                    // Fallback local
-                    const esAdmin = (usuarioInput === 'admin');
-                    currentUser = {
-                        id: 'local-id',
-                        usuario: usuarioInput,
-                        nombre: usuarioInput.replace('_', ' ').toUpperCase(),
-                        esAdmin: esAdmin
-                    };
-                }
-
-                localStorage.setItem('secul_user', JSON.stringify(currentUser));
-                updateAuthUI();
-                registrarAuditoria('Inicio de Sesión', { usuario: currentUser.usuario, rol: currentUser.esAdmin ? 'Admin' : 'Usuario' });
-                closeModal('modal-auth');
-                alert(`¡Bienvenido/a, ${currentUser.nombre}! Acceso concedido como ${currentUser.esAdmin ? 'Administrador' : 'Usuario Enlace'}.`);
-            } catch(err) {
-                console.error("Error al autenticar:", err);
-                alert("Error de conexión con la base de datos.");
-            } finally {
-                btnSubmit.innerHTML = 'Ingresar';
-                btnSubmit.disabled = false;
+    try {
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json'
             }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error en servidor Supabase: ${response.status} ${response.statusText}`);
         }
 
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            alert('Usuario o contraseña no encontrados en usuarios_acceso. Verifique los datos ingresados.');
+            btnSubmit.innerHTML = 'Ingresar';
+            btnSubmit.disabled = false;
+            return;
+        }
+
+        const userRecord = data[0];
+        const esAdmin = (userRecord.rol === 'admin');
+
+        currentUser = {
+            id: userRecord.id,
+            usuario: userRecord.usuario,
+            nombre: userRecord.nombre,
+            esAdmin: esAdmin
+        };
+
+        localStorage.setItem('secul_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        registrarAuditoria('Inicio de Sesión', { usuario: currentUser.usuario, rol: currentUser.esAdmin ? 'Admin' : 'Usuario' });
+        closeModal('modal-auth');
+        alert(`¡Bienvenido/a, ${currentUser.nombre}! Acceso concedido.`);
+
+    } catch (err) {
+        console.error("Detalle del error de conexión:", err);
+        alert(`Fallo de conexión con Supabase:\n\n${err.message}\n\nSi el error es de DNS o red, verifique la conexión en modo incógnito.`);
+    } finally {
+        btnSubmit.innerHTML = 'Ingresar';
+        btnSubmit.disabled = false;
+    }
+}
         // Inicialización al cargar la página
         renderActionsTable(accionesMatriz);
         updateAuthUI();
