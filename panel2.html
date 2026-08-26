@@ -977,14 +977,14 @@
     <!-- ========================================================= -->
     <script>
         // Configuración oficial y limpia de Supabase
-        const SUPABASE_URL = "https://ubfjvydblmntbkbzutvl.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
+       // La URL base debe quedar limpia sin "/rest/v1/" al final
+const SUPABASE_URL = "https://ubfjvydblmntbkbzutvl.supabase.co";
 
-        let supabaseClient = null;
-        if (typeof supabase !== 'undefined') {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
+// Tu clave pública anon
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
 
+// Inicialización del cliente
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         // Estado del usuario activo
         let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
 
