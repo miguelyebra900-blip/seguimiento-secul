@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel 2 - Transición Institucional IEC a SECUL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen">
+
+    <!-- HEADER INSTITUCIONAL -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-6 py-4 flex flex-wrap justify-between items-center shadow-xl">
+        <div class="flex items-center space-x-4">
+            <span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                <i class="fa-solid fa-spinner animate-spin"></i> En Proceso de Extinción
+            </span>
+            <span class="text-xs text-slate-400 border-l border-slate-700 pl-4">Decreto No. 345 | GTO</span>
+        </div>
+        
+        <div class="flex items-center space-x-4 mt-2 sm:mt-0">
+            <!-- Selector de Rol (Simulación de Permisos) -->
+            <div class="bg-slate-800 p-1 rounded-lg flex items-center border border-slate-700">
+                <span class="text-xs text-slate-400 px-2 font-medium">Modo Vista:</span>
+                <button onclick="setRole('user')" id="btnRoleUser" class="px-3 py-1 text-xs rounded-md font-semibold transition bg-indigo-600 text-white shadow">Usuario General</button>
+                <button onclick="setRole('admin')" id="btnRoleAdmin" class="px-3 py-1 text-xs rounded-md font-semibold transition text-slate-400 hover:text-white">Administrador</button>
+            </div>
+            <a href="https://seguimiento-secul.pages.dev/panel" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs px-3 py-2 rounded-lg border border-indigo-500/30 transition flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left"></i> Panel Principal 1
+            </a>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        
+        <!-- TÍTULO Y RESUMEN -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                    Tablero de Transición Institucional <span class="text-indigo-400">IEC ➔ SECUL</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Gestión avanzada, validación de solicitudes y control normativo de liquidación.</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-right">
+                <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Plazo Límite Legal</span>
+                <span class="text-sm font-bold text-amber-400"><i class="fa-regular fa-calendar-days"></i> Diciembre 2025</span>
+            </div>
+        </div>
+
+        <!-- VISTA DE USUARIO GENERAL: SOLICITUDES -->
+        <section id="viewUser" class="space-y-6">
+            <div class="glass-card p-6 rounded-2xl border border-indigo-500/20 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-indigo-400"></i> Solicitar Alta o Modificación de Hito / Acción
+                    </h2>
+                    <span class="text-xs text-indigo-300 bg-indigo-950/50 px-3 py-1 rounded-full border border-indigo-500/30">Módulo Operativo de Propuestas</span>
+                </div>
+                <form id="formSolicitud" onsubmit="enviarSolicitud(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Área Estratégica (A-L)</label>
+                        <select id="solArea" class="w-auto bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500" required>
+                            <option value="A">A - Recursos Humanos y Estructura</option>
+                            <option value="B">B - Jurídico, Inmuebles y FIARCA</option>
+                            <option value="C">C - Infraestructura y Programas</option>
+                            <option value="D">D - Finanzas y Cuenta Pública</option>
+                            <option value="E">E - Patrimonio e Inventarios SAP</option>
+                            <option value="F">F - Fiscal / SAT / RFC</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Tipo de Solicitud</label>
+                        <select id="solTipo" class="w-auto bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500">
+                            <option value="Nuevo Hito">Crear Nuevo Hito</option>
+                            <option value="Modificar Acción">Modificar Acción Existente</option>
+                            <option value="Baja Preventiva">Solicitar Revisión de Riesgo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Título / Resumen de la Petición</label>
+                        <input type="text" id="solTitulo" placeholder="Ej. Actualización de resguardos SAP" class="w-auto bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500" required>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Descripción Justificada para el Comité</label>
+                        <textarea id="solDesc" rows="2" placeholder="Describa el motivo y sustento normativo..." class="w-auto bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500" required></textarea>
+                    </div>
+                    <div class="md:col-span-3 flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg text-xs font-semibold shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-check"></i> Enviar a Validación del Administrador
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VISTA DE ADMINISTRADOR: GESTIÓN Y VALIDACIÓN (Oculta por defecto) -->
+        <section id="viewAdmin" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Estadísticas Admin -->
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 text-xs">Solicitudes Pendientes</span>
+                    <h3 id="countPendientes" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 text-xs">Hitos Activos en Tablero</span>
+                    <h3 class="text-2xl font-bold text-emerald-400 mt-1">21</h3>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 text-xs">Nivel de Cumplimiento Global</span>
+                    <h3 class="text-2xl font-bold text-indigo-400 mt-1">82%</h3>
+                </div>
+            </div>
+
+            <!-- Tabla de Validación de Solicitudes -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 shadow-xl">
+                <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-400"></i> Bandeja de Validación de Solicitudes (Admin)
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Área</th>
+                                <th class="p-3">Tipo</th>
+                                <th class="p-3">Título / Descripción</th>
+                                <th class="p-3">Estado</th>
+                                <th class="p-3 text-center">Acciones Directivas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaSolicitudes" class="divide-y divide-slate-800">
+                            <!-- Inserción dinámica por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Gestión de Usuarios -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-users-gear text-indigo-400"></i> Administración de Usuarios y Roles Institucionales
+                    </h2>
+                    <button onclick="alert('Usuario agregado al sistema de forma segura.')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
+                        <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+                    </button>
+                </div>
+                <div class="text-xs text-slate-400 space-y-2">
+                    <div class="flex justify-between items-center bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                        <div><strong class="text-white">C.P. Andrés Contreras Gasca</strong> <span class="text-indigo-400">(Liquidador Principal)</span></div>
+                        <span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full text-[10px]">Administrador Global</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                        <div><strong class="text-white">Enlace Área Jurídica / FIARCA</strong> <span class="text-slate-400">(Área B)</span></div>
+                        <span class="bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full text-[10px]">Usuario Validador</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE HITOS ACTIVOS (Común y Sincronizado) -->
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-bars-progress text-indigo-400"></i> Estado Actual de Hitos Estratégicos Integrados
+            </h2>
+            <div id="contenedorHitos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Se inyectan dinámicamente -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SCRIPT DE CONTROL Y ARQUITECTURA -->
+    <script>
+        // Estado inicial de datos en el cliente (LocalStorage Simulation)
+        let solicitudes = JSON.parse(localStorage.getItem('secul_solicitudes')) || [
+            { id: 1, area: 'B', tipo: 'Modificar Acción', titulo: 'Actualización Decreto FIARCA', desc: 'Validar estatus con Procuraduría Fiscal.', estado: 'Pendiente' }
+        ];
+
+        let hitosActivos = JSON.parse(localStorage.getItem('secul_hitos')) || [
+            { id: 'A', nombre: 'Recursos Humanos y Estructura', estado: 'En Desarrollo', desc: 'Gestión de expedientes laborales y 303 plazas transferidas.', semtex: 'bg-emerald-500/20 text-emerald-300' },
+            { id: 'B', nombre: 'Jurídico, Inmuebles y FIARCA', estado: 'En Validación', desc: 'Regularización de zonas arqueológicas y dictamen FIARCA.', semtex: 'bg-amber-500/20 text-amber-300' },
+            { id: 'C', nombre: 'Infraestructura y Programas Q,G,P', estado: 'En Ejecución', desc: 'Cierre Teatro Juárez y metas físicas pendientes.', semtex: 'bg-indigo-500/20 text-indigo-300' }
+        ];
+
+        function setRole(role) {
+            const viewUser = document.getElementById('viewUser');
+            const viewAdmin = document.getElementById('viewAdmin');
+            const btnUser = document.getElementById('btnRoleUser');
+            const btnAdmin = document.getElementById('btnRoleAdmin');
+
+            if(role === 'admin') {
+                viewUser.classList.add('hidden');
+                viewAdmin.classList.remove('hidden');
+                btnAdmin.className = "px-3 py-1 text-xs rounded-md font-semibold transition bg-indigo-600 text-white shadow";
+                btnUser.className = "px-3 py-1 text-xs rounded-md font-semibold transition text-slate-400 hover:text-white";
+                renderAdminTable();
+            } else {
+                viewAdmin.classList.add('hidden');
+                viewUser.classList.remove('hidden');
+                btnUser.className = "px-3 py-1 text-xs rounded-md font-semibold transition bg-indigo-600 text-white shadow";
+                btnAdmin.className = "px-3 py-1 text-xs rounded-md font-semibold transition text-slate-400 hover:text-white";
+            }
+        }
+
+        function enviarSolicitud(e) {
+            e.preventDefault();
+            const nueva = {
+                id: Date.now(),
+                area: document.getElementById('solArea').value,
+                tipo: document.getElementById('solTipo').value,
+                titulo: document.getElementById('solTitulo').value,
+                desc: document.getElementById('solDesc').value,
+                estado: 'Pendiente'
+            };
+            solicitudes.push(nueva);
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudes));
+            alert('¡Solicitud enviada con éxito al Administrador!');
+            document.getElementById('formSolicitud').reset();
+            renderAdminTable();
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('tablaSolicitudes');
+            const count = document.getElementById('countPendientes');
+            tbody.innerHTML = '';
+            let pendientesCount = 0;
+
+            solicitudes.forEach((s, index) => {
+                if(s.estado === 'Pendiente') pendientesCount++;
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/40">
+                        <td class="p-3 font-bold text-indigo-400">${s.area}</td>
+                        <td class="p-3">${s.tipo}</td>
+                        <td class="p-3"><strong class="text-white">${s.titulo}</strong><br><span class="text-slate-400">${s.desc}</span></td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300">${s.estado}</span></td>
+                        <td class="p-3 text-center space-x-2">
+                            ${s.estado === 'Pendiente' ? `
+                                <button onclick="aprobarSolicitud(${index})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded text-[10px] font-semibold"><i class="fa-solid fa-check"></i> Aprobar</button>
+                                <button onclick="rechazarSolicitud(${index})" class="bg-rose-600 hover:bg-rose-500 text-white px-2 py-1 rounded text-[10px] font-semibold"><i class="fa-solid fa-xmark"></i></button>
+                            ` : '<span class="text-emerald-400 text-[10px]">Procesado</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+            count.innerText = pendientesCount;
+        }
+
+        function aprobarSolicitud(index) {
+            solicitudes[index].estado = 'Aprobado';
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudes));
+            renderAdminTable();
+            renderHitos();
+            alert('Solicitud aprobada e integrada al flujo.');
+        }
+
+        function rechazarSolicitud(index) {
+            solicitudes[index].estado = 'Rechazado';
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudes));
+            renderAdminTable();
+        }
+
+        function renderHitos() {
+            const container = document.getElementById('contenedorHitos');
+            container.innerHTML = '';
+            hitosActivos.forEach(h => {
+                container.innerHTML += `
+                    <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-indigo-600/20 text-indigo-300 font-bold px-2 py-0.5 rounded text-xs border border-indigo-500/30">Área ${h.id}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${h.semtex}">${h.estado}</span>
+                        </div>
+                        <h3 class="font-bold text-white text-sm">${h.nombre}</h3>
+                        <p class="text-xs text-slate-400">${h.desc}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Inicializar renderizados
+        renderHitos();
+        renderAdminTable();
+    </script>
+</body>
+</html>
