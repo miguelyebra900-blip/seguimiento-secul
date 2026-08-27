@@ -2218,6 +2218,83 @@
                 documentos: [{ id_doc: "DOC-ASEG-22", nombre: "Acta Protocolizada con Secretaría de la Honestidad (Marzo 2025)", subido: true, url: "https://drive.google.com" }]
             }
         ];
+// =========================================================================
+        // LÓGICA PARA EL MODAL DE RIESGOS DIRECTIVOS (R-01 A R-05)
+        // =========================================================================
+        const riskDatabase = {
+            'R-01': {
+                id: 'R-01',
+                area: 'Control Patrimonial',
+                nivel: 'ALTO (Crítico)',
+                causa: '2,570 bienes muebles no localizados de un total de 20,658 (PAICE, Orquestas, Huatzindeo Salvatierra). Riesgo latente de pliego de observaciones ante la ASF y ASEG.',
+                estrategia: 'Brigadas de búsqueda física, revisión de archivo histórico para facturas y levantamiento de actas de baja por desuso ante Control Patrimonial.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('V1-02');
+                }
+            },
+            'R-02': {
+                id: 'R-02',
+                area: 'Fiscal / SAT',
+                nivel: 'MEDIO',
+                causa: 'Impedimento técnico para cancelar el RFC ante el SAT debido a cuentas residuales activas e impuestos pendientes de dispersión de nómina.',
+                estrategia: 'Liquidar retenciones pendientes, cancelar cuentas residuales bancarias (BBVA, Salamanca, Ocampo) y acudir a la cita presencial en el SAT Celaya.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('INF-D02');
+                }
+            },
+            'R-03': {
+                id: 'R-03',
+                area: 'Jurídica / FIARCA',
+                nivel: 'MEDIO',
+                causa: 'Pasivos y operatividad en Sitios Arqueológicos tramitados indebidamente bajo la figura del IEC tras la publicación del Decreto Gubernativo 19.',
+                estrategia: 'Urgir a Fiduciaria Banorte y a la Consejería Jurídica la firma definitiva del 2do Convenio Modificatorio a favor de la Secretaría de Cultura (SCUL).',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('INF-C01');
+                }
+            },
+            'R-04': {
+                id: 'R-04',
+                area: 'Patrimonio Inmueble',
+                nivel: 'MEDIO',
+                causa: 'Falta de certeza jurídica y acuerdos de destino formalizados en recintos históricos y predios que operaba el Instituto.',
+                estrategia: 'Instruir a la Dirección General Jurídica la formalización prioritaria de los Acuerdos de Destino en coordinación con la Consejería del Ejecutivo.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('V1-05');
+                }
+            },
+            'R-05': {
+                id: 'R-05',
+                area: 'Gobierno / Control',
+                nivel: 'MEDIO',
+                causa: 'Invalidez técnica del acta de sesión del 10 de diciembre de 2025 al constar como borrador carente de firmas autógrafas de validación.',
+                estrategia: 'Circular de inmediato el acta protocolizada para recabar las firmas institucionales de Finanzas, Honestidad, Jurídico y Secretaría de Cultura.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('V1-01');
+                }
+            }
+        };
+
+        function openRiskDetailModal(riskId) {
+            const data = riskDatabase[riskId];
+            if(!data) return;
+
+            document.getElementById('riskModalBadge').innerText = data.id;
+            document.getElementById('riskModalTitle').innerText = `Riesgo ${data.id}: ${data.area}`;
+            document.getElementById('riskModalArea').innerText = data.area;
+            document.getElementById('riskModalLevel').innerText = data.nivel;
+            document.getElementById('riskModalDescription').innerText = data.causa;
+            document.getElementById('riskModalMitigation').innerText = data.estrategia;
+
+            const btn = document.getElementById('riskModalActionBtn');
+            btn.onclick = data.accionVincular;
+
+            openModal('modal-risk-detail');
+        }
 
         // Base de Datos Estructurada de Hitos Operativos (A - F)
         const hitosDetailedData = {
