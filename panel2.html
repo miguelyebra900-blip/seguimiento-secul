@@ -9,7 +9,9 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -50,12 +52,17 @@
                     </h1>
                 </div>
 
-                <!-- Barra de Acciones y Sesión de Usuario -->
-                <div class="flex flex-wrap items-center gap-3">
+                <!-- Barra de Acciones, Manual y Sesión de Usuario -->
+                <div class="flex flex-wrap items-center gap-2.5">
                     
+                    <!-- Botón Ver Manual de Usuario -->
+                    <button onclick="openModal('modal-manual-usuario')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-book-open-reader text-indigo-400"></i> Manual & Flujograma
+                    </button>
+
                     <!-- Botón Solicitar Hito -->
-                    <button onclick="handleSolicitarClick()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
-                        <i class="fa-solid fa-paper-plane"></i> Solicitar Hito / Acción
+                    <button onclick="handleSolicitarClick()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> Solicitar Hito
                     </button>
 
                     <!-- Pestaña de Navegación de Vistas (Admin/Operativo) -->
@@ -94,7 +101,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 0: MÓDULO ESTRATÉGICO DIRECTIVO (CONSOLIDADO 2024-2025) -->
+        <!-- SECCIÓN 0: MÓDULO ESTRATÉGICO DIRECTIVO (CONSOLIDADO)     -->
         <!-- ========================================================= -->
         <section class="space-y-6">
             <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white border border-indigo-900/50 shadow-xl">
@@ -117,7 +124,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mt-5">
                     <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-center">
                         <span class="text-[10px] uppercase font-bold text-indigo-400 block">Avance Global</span>
-                        <span class="text-2xl sm:text-3xl font-black text-white">75%</span>
+                        <span id="kpiAvanceGlobalTop" class="text-2xl sm:text-3xl font-black text-white">75%</span>
                         <span class="text-[10px] text-slate-400 block mt-0.5">Fase de Cierre Físico</span>
                     </div>
                     <div class="bg-slate-900/90 p-4 rounded-2xl border border-rose-900/50 bg-rose-950/20 text-center">
@@ -205,6 +212,70 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SECCIÓN: ANALÍTICA Y GRÁFICAS DIRECTIVAS (CHART.JS)       -->
+        <!-- ========================================================= -->
+        <section class="bg-white rounded-3xl border border-slate-200 shadow-md p-6 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                        Analítica de Cumplimiento
+                    </span>
+                    <h3 class="text-lg font-black text-slate-900 mt-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-600"></i> Métricas Consolidadas de Transición y Fiscalización
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="refreshDashboardCharts()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrows-rotate"></i> Actualizar Métricas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid 2x2 de Gráficas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Gráfica 1: Dona de Avance Global -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between items-center text-center">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Avance Ponderado Global</span>
+                    <div class="relative w-40 h-40 my-2 flex items-center justify-center">
+                        <canvas id="chartAvanceGlobal"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span id="labelChartAvanceGlobal" class="text-2xl font-black text-slate-900">75%</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Cumplimiento</span>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-slate-500 font-medium">48 Hitos y Requerimientos</span>
+                </div>
+
+                <!-- Gráfica 2: Semáforo de Prioridades -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 text-center">Distribución por Prioridad</span>
+                    <div class="relative h-44 w-full">
+                        <canvas id="chartPrioridades"></canvas>
+                    </div>
+                    <span class="text-[11px] text-slate-500 text-center font-medium">Urgente / Alta / Media / Baja</span>
+                </div>
+
+                <!-- Gráfica 3: Estatus Operativo -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 text-center">Estatus de Compromisos</span>
+                    <div class="relative h-44 w-full">
+                        <canvas id="chartEstatus"></canvas>
+                    </div>
+                    <span class="text-[11px] text-slate-500 text-center font-medium">Concluido vs. Proceso vs. Validación</span>
+                </div>
+
+                <!-- Gráfica 4: Avance por Área -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 text-center">Rendimiento por Área (SCUL)</span>
+                    <div class="relative h-44 w-full">
+                        <canvas id="chartAreas"></canvas>
+                    </div>
+                    <span class="text-[11px] text-slate-500 text-center font-medium">% promedio de avance</span>
                 </div>
             </div>
         </section>
@@ -346,7 +417,6 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
                 <!-- Resumen Hitos Críticos -->
                 <div class="bg-white rounded-2xl p-5 border border-rose-100 shadow-sm space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -400,7 +470,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
@@ -408,7 +477,6 @@
         <!-- SECCIÓN: CONTROL DE DOBLE VERTIENTE (V1 - IEC / V2 - ASEG)-->
         <!-- ========================================================= -->
         <section class="bg-white rounded-2xl border-2 border-indigo-200 shadow-xl p-6 space-y-6">
-            
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
                     <div class="flex items-center gap-2">
@@ -428,7 +496,10 @@
                 <!-- Tabs de Selección por Vertiente -->
                 <div class="bg-slate-100 p-1.5 rounded-2xl flex flex-wrap items-center gap-1 border border-slate-200">
                     <button type="button" onclick="setVertienteFilter('ALL')" id="tabBtnAll" class="px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow">
-                        Todos (32)
+                        Todos (48)
+                    </button>
+                    <button type="button" onclick="setVertienteFilter('INF')" id="tabBtnINF" class="px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-emerald-600"></i> Informes Mensuales (16)
                     </button>
                     <button type="button" onclick="setVertienteFilter('V1')" id="tabBtnV1" class="px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-building text-blue-600"></i> [V1] Liquidación IEC (10)
@@ -502,13 +573,13 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nivel de Riesgo Operativo:</label>
+                    <label class="block font-bold text-slate-700 mb-1">Nivel de Prioridad / Riesgo:</label>
                     <select id="filterRiesgoMaster" onchange="renderTablaFiscalizacion()" class="w-full p-2 border rounded-lg bg-white">
                         <option value="ALL">Todos los Niveles</option>
-                        <option value="Crítico">Crítico</option>
-                        <option value="Alto">Alto</option>
-                        <option value="Medio">Medio</option>
-                        <option value="Bajo">Bajo</option>
+                        <option value="Urgente">Urgente / Crítico</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
                     </select>
                 </div>
                 <div>
@@ -525,8 +596,8 @@
                             <th class="p-3">Vertiente & Folio</th>
                             <th class="p-3">Hito / Requerimiento Oficial</th>
                             <th class="p-3">Área Responsable (Secretaría de Cultura)</th>
-                            <th class="p-3">Nivel Riesgo</th>
-                            <th class="p-3">Progreso Docs.</th>
+                            <th class="p-3 text-center">Prioridad</th>
+                            <th class="p-3">Progreso Docs. / Avance</th>
                             <th class="p-3 text-center">Acción / Evidencias</th>
                         </tr>
                     </thead>
@@ -600,7 +671,6 @@
 
             <!-- TIMELINE VISUAL DE HITOS CRÍTICOS -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
                 <!-- HITO CRÍTICO 1 -->
                 <div class="bg-white rounded-2xl p-5 border-2 border-rose-200 shadow-md hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between">
                     <div class="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-bl-full pointer-events-none"></div>
@@ -694,7 +764,6 @@
                         </button>
                     </div>
                 </div>
-
             </div>
         </section>
 
@@ -910,17 +979,17 @@
 
 
     <!-- ========================================================= -->
-    <!-- MODAL: GESTIÓN Y CARGA DE DOCUMENTOS PARA FISCALIZACIÓN   -->
+    <!-- MODAL: GESTIÓN DIRECTA DEL ÁREA RESPONSABLE (PUNTO 4)    -->
     <!-- ========================================================= -->
     <div id="modal-hito-fiscalizacion" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
             <div id="modalFiscalHeader" class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <span id="modalFiscalIcon" class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-amber-400 text-lg">
-                        <i class="fa-solid fa-scale-balanced"></i>
+                        <i class="fa-solid fa-folder-tree"></i>
                     </span>
                     <div>
-                        <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">[V2 - FISCALIZACIÓN ASEG]</span>
+                        <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">Gestión del Área</span>
                         <h3 id="modalFiscalTitle" class="font-bold text-base leading-snug">Detalle del Hito</h3>
                     </div>
                 </div>
@@ -934,35 +1003,138 @@
                         <span id="modalFiscalArea" class="font-bold text-slate-800 text-xs">--</span>
                     </div>
                     <div>
-                        <span class="text-slate-500 font-bold block text-[10px]">Referencia Legal:</span>
+                        <span class="text-slate-500 font-bold block text-[10px]">Referencia Legal / Oficio:</span>
                         <span id="modalFiscalNorma" class="font-bold text-slate-800 text-xs">--</span>
+                    </div>
+                </div>
+
+                <!-- Controles del Área: Prioridad, Estatus y Slider de Avance -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-xl border border-indigo-100">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Prioridad del Área:</label>
+                        <select id="modalFiscalPrioridad" class="w-full p-2 border rounded-lg bg-white text-xs font-semibold">
+                            <option value="Urgente">🔴 Urgente</option>
+                            <option value="Alta">🟠 Alta</option>
+                            <option value="Media" selected>🔵 Media</option>
+                            <option value="Baja">⚪ Baja</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus Operativo:</label>
+                        <select id="modalFiscalEstatus" class="w-full p-2 border rounded-lg bg-white text-xs font-semibold">
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Validación">En Validación</option>
+                            <option value="Concluido">Concluido al 100%</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="font-bold text-slate-700">Avance (%):</label>
+                            <span id="modalFiscalAvanceLabel" class="font-extrabold text-indigo-700">50%</span>
+                        </div>
+                        <input type="range" id="modalFiscalAvance" min="0" max="100" step="5" value="50" oninput="document.getElementById('modalFiscalAvanceLabel').innerText = this.value + '%'" class="w-full accent-indigo-600 cursor-pointer">
                     </div>
                 </div>
 
                 <div>
                     <h4 class="font-bold text-slate-900 text-xs mb-2">Expedientes y Documentales Requeridas:</h4>
-                    <div id="modalFiscalDocsList" class="space-y-2.5"></div>
+                    <div id="modalFiscalDocsList" class="space-y-2"></div>
                 </div>
 
-                <!-- Formulario de Carga de Evidencias -->
-                <div class="border-t border-slate-200 pt-4 space-y-3">
+                <!-- Formulario de Vinculación Google Drive -->
+                <div class="border-t border-slate-200 pt-3 space-y-3">
                     <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i> Cargar Evidencia Oficial (PDF / Enlace)
+                        <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Vincular Enlace de Google Drive Institucional
                     </h4>
                     <input type="hidden" id="uploadHitoId">
-                    <select id="uploadSelectDoc" class="w-full p-2 border rounded-xl bg-slate-50 text-xs"></select>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input type="url" id="uploadDocUrl" placeholder="URL / Enlace Drive..." class="p-2 border rounded-xl text-xs">
-                        <input type="file" id="uploadDocFile" class="p-1.5 border rounded-xl text-xs bg-slate-50">
+                    <select id="uploadSelectDoc" class="w-full p-2 border rounded-xl bg-slate-50 text-xs font-medium"></select>
+                    <input type="url" id="uploadDocUrl" placeholder="URL Google Drive (https://drive.google.com/...)" class="w-full p-2.5 border rounded-xl text-xs bg-white">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Observaciones / Folio del Oficio:</label>
+                        <textarea id="modalFiscalObs" rows="2" placeholder="Número de oficio, observaciones del enlace o justificación..." class="w-full p-2 border rounded-xl text-xs"></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-hito-fiscalizacion')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-400 transition">Cerrar</button>
+                <button onclick="closeModal('modal-hito-fiscalizacion')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-400 transition">Cancelar</button>
                 <button onclick="guardarEvidenciaFiscalizacion()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-floppy-disk"></i> Registrar y Actualizar Avance
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Avance y Evidencia
                 </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MODAL: MANUAL DE USUARIO Y FLUJOGRAMA (PUNTO 5)           -->
+    <!-- ========================================================= -->
+    <div id="modal-manual-usuario" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-white/10 rounded-xl text-lg"><i class="fa-solid fa-book-open-reader text-amber-400"></i></div>
+                    <div>
+                        <h3 class="font-bold text-base">Guía Operativa & Manual de Usuario</h3>
+                        <p class="text-xs text-slate-300">Flujograma de operación para enlaces de área y administradores</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-manual-usuario')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+                <!-- Flujograma Visual 6 Pasos -->
+                <div>
+                    <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-diagram-project text-indigo-600"></i> Flujograma del Proceso de Captura
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-center">
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">1</span>
+                            <strong class="block text-[11px] text-slate-800">Ingreso</strong>
+                            <span class="text-[10px] text-slate-500">Credenciales de Área</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">2</span>
+                            <strong class="block text-[11px] text-slate-800">Filtrado</strong>
+                            <span class="text-[10px] text-slate-500">Por Área y Vertiente</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">3</span>
+                            <strong class="block text-[11px] text-slate-800">Gestión</strong>
+                            <span class="text-[10px] text-slate-500">Ver / Subir Docs</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">4</span>
+                            <strong class="block text-[11px] text-slate-800">Avance</strong>
+                            <span class="text-[10px] text-slate-500">Slider y Prioridad</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">5</span>
+                            <strong class="block text-[11px] text-slate-800">URL Drive</strong>
+                            <span class="text-[10px] text-slate-500">Pegar Enlace Oficial</span>
+                        </div>
+                        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">6</span>
+                            <strong class="block text-[11px] text-emerald-800">Firma</strong>
+                            <span class="text-[10px] text-emerald-600">Huella Inmutable</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Perfiles de Acceso -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <h4 class="font-bold text-slate-900 text-xs">Perfiles y Niveles de Acceso:</h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-600">
+                        <li><strong>• Administrador:</strong> Validación de solicitudes, emisión de alertas y gestión de usuarios.</li>
+                        <li><strong>• Enlace de Área:</strong> Actualización de avance, prioridad y vinculación de archivos Drive de su adscripción.</li>
+                        <li><strong>• Modo Consulta / Auditor:</strong> Acceso a indicadores ejecutivos y descarga de soportes oficiales.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
+                <button onclick="closeModal('modal-manual-usuario')" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Entendido / Cerrar</button>
             </div>
         </div>
     </div>
@@ -1208,7 +1380,7 @@
             <form onsubmit="handleLoginSubmit(event)" class="p-5 space-y-4 text-xs">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Usuario Registrado:</label>
-                    <input type="text" id="authUsuario" class="w-full p-2.5 border rounded-xl" placeholder="Ej. dir_proyecto_ejecutivo o dir_general" required>
+                    <input type="text" id="authUsuario" class="w-full p-2.5 border rounded-xl" placeholder="Ej. dir_general o control_patrimonial" required>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Contraseña (password):</label>
@@ -1283,10 +1455,181 @@
 
         // Estado del usuario activo
         let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
+        let currentVertienteTab = 'ALL';
 
-        // DATASET INTEGRADO: VERTIENTE 1 (LIQUIDACIÓN IEC) Y VERTIENTE 2 (FISCALIZACIÓN ASEG)
+        // DATASET INTEGRADO: INFORMES MENSUALES (16) + LIQUIDACIÓN IEC (10) + FISCALIZACIÓN ASEG (22)
         let hitosFiscalizacionData = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || [
-            // --- VERTIENTE 1: LIQUIDACIÓN IEC (10 HITOS) ---
+            // --- BLOQUE 0: INFORMES MENSUALES DE GESTIÓN (OCT 24 - NOV 25) ---
+            {
+                id: "INF-A01",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "A1",
+                titulo: "Capitalización Fase 1 (1,682 Activos Reasignados)",
+                normativa: "Informe Noviembre 2025 / Contabilidad Gob.",
+                area: "Dirección de Recursos Materiales / Bienes",
+                riesgo: "Alto",
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 75,
+                documentos: [{ id_doc: "DOC-INF-A01", nombre: "Actas de Reasignación y Póliza de Capitalización", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-A02",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "A2",
+                titulo: "Transferencia y Endoso del Parque Vehicular (28 Unidades)",
+                normativa: "Informes Mayo, Julio y Septiembre 2025",
+                area: "Dirección de Recursos Materiales / Control Patrimonial",
+                riesgo: "Medio",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-A02", nombre: "Endoso de Facturas (14 autos + 14 remolques)", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-A03",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "A3",
+                titulo: "Bajas Masivas de Bienes en Mal Estado / Inutilidad",
+                normativa: "Informes Dic 24, Abr, Jul y Nov 2025",
+                area: "Dirección de Recursos Materiales / DGRMSGC",
+                riesgo: "Medio",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-A03", nombre: "Actas de Entrega a Desecho y Bajas DGRMSGC", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-A04",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "A4",
+                titulo: "Búsqueda Focalizada de 2,570 Bienes Faltantes",
+                normativa: "Oficio L-IEC 099-2025 / Acta Comité 10-Dic-2025",
+                area: "Recursos Materiales / Archivo Histórico",
+                riesgo: "Crítico",
+                prioridadArea: "Urgente",
+                estatus: "En Proceso",
+                avancePorcentaje: 40,
+                documentos: [{ id_doc: "DOC-INF-A04", nombre: "Cédula de Búsqueda (Salvatierra, PAICE, Orquestas)", subido: false, url: null }]
+            },
+            {
+                id: "INF-B01",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "B1",
+                titulo: "Reintegros Masivos al Gobierno del Estado ($43.41 MDP)",
+                normativa: "Informes Ago, Oct y Nov 2025 / Oficio 099-2025",
+                area: "Dirección General de Administración / Finanzas",
+                riesgo: "Alto",
+                prioridadArea: "Alta",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-B01", nombre: "Recibos Oficiales SF ($16.35M FIC + $27M Propios)", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-B02",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "B2",
+                titulo: "Solventación y Reintegro a TESOFE Auditoría ASF PACMYC 2019",
+                normativa: "Informes Marzo y Abril 2025",
+                area: "Dirección de Presupuesto / Liquidador IEC",
+                riesgo: "Medio",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-B02", nombre: "Fichas de Transferencia TESOFE ($206,512.25)", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-B03",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "B3",
+                titulo: "Delimitación Contable Devengado vs. Ejercido y Balanza",
+                normativa: "Informes Mensuales Continuos",
+                area: "Dirección General de Administración / Contabilidad",
+                riesgo: "Alto",
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 85,
+                documentos: [{ id_doc: "DOC-INF-B03", nombre: "Balanzas Depuradas y Estados Financieros Trimestrales", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-B04",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "B4",
+                titulo: "Armonización Contable SEVAC y Metas SED (P's)",
+                normativa: "Informes Feb, May, Jul, Ago, Nov 2025",
+                area: "Dirección de Presupuesto y Planeación",
+                riesgo: "Medio",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-B04", nombre: "Constancias SEVAC 1T-3T y Cierre de Metas SED", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-B05",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "B5",
+                titulo: "Integración del Paquete Fiscal 2026 (Capítulo 1000)",
+                normativa: "Informe Septiembre 2025",
+                area: "Dirección de Presupuesto / Liquidador IEC",
+                riesgo: "Medio",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-B05", nombre: "Presupuesto Aprobado Capítulo 1000 Liquidador", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-C01",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "C1",
+                titulo: "2do Convenio Modificatorio FIARCA (Decreto Gub. 19)",
+                normativa: "Informes Dic 24, Ene, Feb, May 2025",
+                area: "Dirección Jurídica / Fiduciaria Banorte",
+                riesgo: "Alto",
+                prioridadArea: "Alta",
+                estatus: "Validación",
+                avancePorcentaje: 70,
+                documentos: [{ id_doc: "DOC-INF-C01", nombre: "Decreto 19 y Proyecto de Convenio Banorte", subido: false, url: null }]
+            },
+            {
+                id: "INF-D01",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "D1",
+                titulo: "Renovación y Obtención de la e.Firma en SAT Irapuato",
+                normativa: "Informes Nov 24, Jul, Sep 2025",
+                area: "Liquidador IEC / SAT Irapuato",
+                riesgo: "Alto",
+                prioridadArea: "Alta",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-INF-D01", nombre: "Acuse de e.Firma Institucional Vigente", subido: true, url: "https://drive.google.com" }]
+            },
+            {
+                id: "INF-D02",
+                vertiente: "INF",
+                vertienteNombre: "Informes Mensuales IEC",
+                numeral: "D2",
+                titulo: "Radicación de Baja de RFC en Módulo SAT Celaya",
+                normativa: "Informe Nov 2025 / Oficio 099-2025",
+                area: "Liquidador IEC / SAT Celaya",
+                riesgo: "Crítico",
+                prioridadArea: "Urgente",
+                estatus: "En Proceso",
+                avancePorcentaje: 65,
+                documentos: [{ id_doc: "DOC-INF-D02", nombre: "Acuse de Cita SAT Celaya (09/Dic/2025)", subido: false, url: null }]
+            },
+
+            // --- BLOQUE 1: VERTIENTE 1 - LIQUIDACIÓN IEC (10 HITOS) ---
             {
                 id: "V1-01",
                 vertiente: "V1",
@@ -1296,8 +1639,9 @@
                 normativa: "Lineamientos Art. 3 Fracc. II y Art. 6",
                 area: "Líquidador IEC / Comité de Extinción",
                 riesgo: "Crítico",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 50,
                 documentos: [
                     { id_doc: "DOC-V1-01-A", nombre: "Acta de Sesión del Comité de Extinción (Prórroga Dic 2025)", subido: false, url: null },
                     { id_doc: "DOC-V1-01-B", nombre: "Cronograma Oficial de Liquidación Actualizado", subido: false, url: null }
@@ -1312,8 +1656,9 @@
                 normativa: "Lineamientos Art. 15 Fracc. II",
                 area: "Dirección de Recursos Materiales y Servicios Generales (SC)",
                 riesgo: "Crítico",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Urgente",
+                estatus: "En Proceso",
+                avancePorcentaje: 65,
                 documentos: [
                     { id_doc: "DOC-V1-02-A", nombre: "Cédula de Capitalización de 1,682 activos reasignados", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-V1-02-B", nombre: "Padrón de 2,570 bienes en proceso de localización (PAICE/Orq)", subido: false, url: null }
@@ -1328,8 +1673,9 @@
                 normativa: "Lineamientos Art. 10 y Art. 16",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Crítico",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 80,
                 documentos: [
                     { id_doc: "DOC-V1-03-A", nombre: "Bitácora Maestra de Delimitación Devengado/Ejercido", subido: true, url: "https://drive.google.com" }
                 ]
@@ -1343,8 +1689,9 @@
                 normativa: "Lineamientos Art. 17",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Alto",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Media",
+                estatus: "Validación",
+                avancePorcentaje: 85,
                 documentos: [
                     { id_doc: "DOC-V1-04-A", nombre: "Cédula de Pasivos y Validación de Liberaciones L-11", subido: false, url: null }
                 ]
@@ -1358,8 +1705,9 @@
                 normativa: "Lineamientos Art. 15 Fracc. VI / Dec. Gub. 19",
                 area: "Dirección Jurídica (SC) / Procuraduría Fiscal",
                 riesgo: "Alto",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Alta",
+                estatus: "Validación",
+                avancePorcentaje: 70,
                 documentos: [
                     { id_doc: "DOC-V1-05-A", nombre: "2do Convenio Modificatorio FIARCA con Banorte", subido: false, url: null }
                 ]
@@ -1373,8 +1721,9 @@
                 normativa: "Lineamientos Art. 10 y Art. 23",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Medio",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Alta",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
                 documentos: [
                     { id_doc: "DOC-V1-06-A", nombre: "Recibo SF Reintegro Taquilla FIC ($16,354,747.21)", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-V1-06-B", nombre: "Recibo SF Reintegro Recursos Propios 2021-2024 ($27.0 MDP)", subido: true, url: "https://drive.google.com" },
@@ -1390,8 +1739,9 @@
                 normativa: "Lineamientos Art. 19 y Art. 20",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Alto",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 65,
                 documentos: [
                     { id_doc: "DOC-V1-07-A", nombre: "Oficios de Cancelación BBVA, Salamanca y M. Ocampo", subido: true, url: "https://drive.google.com" }
                 ]
@@ -1405,8 +1755,9 @@
                 normativa: "Lineamientos Art. 30",
                 area: "Coordinación de Archivos (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Media",
+                estatus: "En Proceso",
+                avancePorcentaje: 75,
                 documentos: [
                     { id_doc: "DOC-V1-08-A", nombre: "Inventario General de Expedientes y Acuse AGEG", subido: true, url: "https://drive.google.com" }
                 ]
@@ -1420,8 +1771,9 @@
                 normativa: "Lineamientos Art. 11",
                 area: "Unidad de Tecnologías de la Información (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
                 documentos: [
                     { id_doc: "DOC-V1-09-A", nombre: "Endoso de Facturas de 14 Vehículos y 14 Remolques", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-V1-09-B", nombre: "Cédula de Cierre de Usuarios SAP y Reasignación DGTIT", subido: true, url: "https://drive.google.com" }
@@ -1436,15 +1788,16 @@
                 normativa: "Decreto 345 / CFF",
                 area: "Líquidador IEC / Comité de Extinción",
                 riesgo: "Crítico",
-                badgeColor: "#2563EB",
-                icon: "fa-building",
+                prioridadArea: "Urgente",
+                estatus: "En Proceso",
+                avancePorcentaje: 70,
                 documentos: [
                     { id_doc: "DOC-V1-10-A", nombre: "Constancia de Renovación e.Firma (SAT Irapuato)", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-V1-10-B", nombre: "Acuse de Trámite de Baja de RFC ante SAT (Celaya)", subido: false, url: null }
                 ]
             },
 
-            // --- VERTIENTE 2: FISCALIZACIÓN ASEG (22 NUMERALES) ---
+            // --- BLOQUE 2: VERTIENTE 2 - FISCALIZACIÓN ASEG (22 NUMERALES) ---
             {
                 id: "V2-01",
                 vertiente: "V2",
@@ -1454,11 +1807,10 @@
                 normativa: "Lineamientos Art. 3 Fracc. II",
                 area: "Líquidador IEC / Comité de Extinción",
                 riesgo: "Alto",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-01", nombre: "Cronograma en PDF con tiempos y responsables", subido: false, url: null }
-                ]
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 60,
+                documentos: [{ id_doc: "DOC-ASEG-01", nombre: "Cronograma en PDF con tiempos y responsables", subido: false, url: null }]
             },
             {
                 id: "V2-02",
@@ -1469,11 +1821,10 @@
                 normativa: "Lineamientos Art. 6",
                 area: "Líquidador IEC / Dirección Jurídica",
                 riesgo: "Crítico",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-02", nombre: "Acta de Sesión de Prórroga del Comité de Extinción", subido: false, url: null }
-                ]
+                prioridadArea: "Urgente",
+                estatus: "Validación",
+                avancePorcentaje: 75,
+                documentos: [{ id_doc: "DOC-ASEG-02", nombre: "Acta de Sesión de Prórroga del Comité de Extinción", subido: false, url: null }]
             },
             {
                 id: "V2-03",
@@ -1484,11 +1835,10 @@
                 normativa: "Lineamientos Art. 6",
                 area: "Líquidador IEC / Dirección Jurídica",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-03", nombre: "Nota Técnica y Acuerdo de Prórroga del Comité", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Media",
+                estatus: "Validación",
+                avancePorcentaje: 80,
+                documentos: [{ id_doc: "DOC-ASEG-03", nombre: "Nota Técnica y Acuerdo de Prórroga del Comité", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-04",
@@ -1499,8 +1849,9 @@
                 normativa: "Lineamientos Art. 9 Párrafo 2",
                 area: "Dirección General de Administración / Presupuesto (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
+                prioridadArea: "Baja",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
                 documentos: [
                     { id_doc: "DOC-ASEG-04-A", nombre: "Oficios DA 520, 549, 553, 555 sellados por Finanzas", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-ASEG-04-B", nombre: "Memoria de Cálculo de Economías Reintegradas", subido: false, url: null }
@@ -1515,11 +1866,10 @@
                 normativa: "Lineamientos Art. 10 Párrs. 1 y 2",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Alto",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-05", nombre: "Cédula Analítica del Análisis Trilateral cuadrada", subido: false, url: null }
-                ]
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 70,
+                documentos: [{ id_doc: "DOC-ASEG-05", nombre: "Cédula Analítica del Análisis Trilateral cuadrada", subido: false, url: null }]
             },
             {
                 id: "V2-06",
@@ -1530,8 +1880,9 @@
                 normativa: "Lineamientos Art. 10 Párrs. 1 y 2",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
                 documentos: [
                     { id_doc: "DOC-ASEG-06-A", nombre: "Cédula de Desglose Plurianual ($43.41 MDP)", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-ASEG-06-B", nombre: "Estados de Cuenta Bancarios con Intereses devengados", subido: false, url: null }
@@ -1546,11 +1897,10 @@
                 normativa: "Lineamientos Art. 11",
                 area: "Unidad de Tecnologías de la Información (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-07", nombre: "Cédula Concentrada de Folios DGTIT y SAP", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Baja",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-ASEG-07", nombre: "Cédula Concentrada de Folios DGTIT y SAP", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-08",
@@ -1561,8 +1911,9 @@
                 normativa: "Lineamientos Art. 12 Párrafo 1",
                 area: "Dirección de Planeación y Evaluación (SC)",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
                 documentos: [
                     { id_doc: "DOC-ASEG-08-A", nombre: "Oficio Circular 040/2025 (Seguimiento SED/SIAE)", subido: true, url: "https://drive.google.com" },
                     { id_doc: "DOC-ASEG-08-B", nombre: "Acuse de Cumplimiento de Metas Procesos P's", subido: true, url: "https://drive.google.com" }
@@ -1577,11 +1928,10 @@
                 normativa: "Lineamientos Art. 13 Párrafo 1",
                 area: "Dirección de Planeación y Evaluación (SC)",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-09-A", nombre: "Reporte MIR y Evaluaciones SEVAC 1T, 2T y 3T", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-ASEG-09-A", nombre: "Reporte MIR y Evaluaciones SEVAC 1T, 2T y 3T", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-10",
@@ -1592,11 +1942,10 @@
                 normativa: "Lineamientos Art. 14 Párrafo 1",
                 area: "Dirección de Planeación y Evaluación (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-10", nombre: "Nota Técnica de Inaplicabilidad por Liquidación", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Baja",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-ASEG-10", nombre: "Nota Técnica de Inaplicabilidad por Liquidación", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-11",
@@ -1607,11 +1956,10 @@
                 normativa: "Lineamientos Art. 15 Fracc. I a VII",
                 area: "Líquidador IEC / Dirección General de Administración",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-11", nombre: "Expediente con Anexos III, V, VI, VIII y X", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Media",
+                estatus: "En Proceso",
+                avancePorcentaje: 75,
+                documentos: [{ id_doc: "DOC-ASEG-11", nombre: "Expediente con Anexos III, V, VI, VIII y X", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-12",
@@ -1622,11 +1970,10 @@
                 normativa: "Lineamientos Art. 16",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Alto",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-12", nombre: "Nota Técnica de Capitalización con Contabilidad Gob.", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 70,
+                documentos: [{ id_doc: "DOC-ASEG-12", nombre: "Nota Técnica de Capitalización con Contabilidad Gob.", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-13",
@@ -1637,11 +1984,10 @@
                 normativa: "Lineamientos Art. 17",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Crítico",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-13", nombre: "Cédula de Pasivos Finiquitados y Asunción SC", subido: false, url: null }
-                ]
+                prioridadArea: "Urgente",
+                estatus: "En Proceso",
+                avancePorcentaje: 80,
+                documentos: [{ id_doc: "DOC-ASEG-13", nombre: "Cédula de Pasivos Finiquitados y Asunción SC", subido: false, url: null }]
             },
             {
                 id: "V2-14",
@@ -1652,11 +1998,10 @@
                 normativa: "Lineamientos Art. 18",
                 area: "Dirección de Recursos Materiales y Servicios Generales (SC)",
                 riesgo: "Alto",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-14", nombre: "Expedientes Técnico-Jurídicos de Inmuebles y Muebles", subido: false, url: null }
-                ]
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 60,
+                documentos: [{ id_doc: "DOC-ASEG-14", nombre: "Expedientes Técnico-Jurídicos de Inmuebles y Muebles", subido: false, url: null }]
             },
             {
                 id: "V2-15",
@@ -1667,11 +2012,10 @@
                 normativa: "Lineamientos Art. 19",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Alto",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-15", nombre: "Póliza y Balance al 31/12/2025 de Cuenta Liquidadora", subido: false, url: null }
-                ]
+                prioridadArea: "Alta",
+                estatus: "En Proceso",
+                avancePorcentaje: 65,
+                documentos: [{ id_doc: "DOC-ASEG-15", nombre: "Póliza y Balance al 31/12/2025 de Cuenta Liquidadora", subido: false, url: null }]
             },
             {
                 id: "V2-16",
@@ -1682,11 +2026,10 @@
                 normativa: "Lineamientos Art. 20",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-16", nombre: "Constancia de Contrapartida emitida por Finanzas SF", subido: false, url: null }
-                ]
+                prioridadArea: "Media",
+                estatus: "En Proceso",
+                avancePorcentaje: 60,
+                documentos: [{ id_doc: "DOC-ASEG-16", nombre: "Constancia de Contrapartida emitida por Finanzas SF", subido: false, url: null }]
             },
             {
                 id: "V2-17",
@@ -1697,11 +2040,10 @@
                 normativa: "Lineamientos Art. 23",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-17", nombre: "Cédula Histórica de Capital Fundacional", subido: false, url: null }
-                ]
+                prioridadArea: "Baja",
+                estatus: "En Proceso",
+                avancePorcentaje: 50,
+                documentos: [{ id_doc: "DOC-ASEG-17", nombre: "Cédula Histórica de Capital Fundacional", subido: false, url: null }]
             },
             {
                 id: "V2-18",
@@ -1712,11 +2054,10 @@
                 normativa: "Lineamientos Art. 25",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-18", nombre: "Cédula Art. 25 de Proyectos de Inversión y Metas", subido: false, url: null }
-                ]
+                prioridadArea: "Media",
+                estatus: "Validación",
+                avancePorcentaje: 75,
+                documentos: [{ id_doc: "DOC-ASEG-18", nombre: "Cédula Art. 25 de Proyectos de Inversión y Metas", subido: false, url: null }]
             },
             {
                 id: "V2-19",
@@ -1727,11 +2068,10 @@
                 normativa: "Lineamientos Art. 27",
                 area: "Dirección General de Administración / Finanzas (SC)",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-19", nombre: "Recibos Oficiales de Reintegro de Inversión Pública", subido: false, url: null }
-                ]
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-ASEG-19", nombre: "Recibos Oficiales de Reintegro de Inversión Pública", subido: false, url: null }]
             },
             {
                 id: "V2-20",
@@ -1742,11 +2082,10 @@
                 normativa: "Lineamientos Art. 30",
                 area: "Coordinación de Archivos (SC)",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-20", nombre: "Reporte de Inventario Documental presentado al AGEG", subido: false, url: null }
-                ]
+                prioridadArea: "Baja",
+                estatus: "En Proceso",
+                avancePorcentaje: 75,
+                documentos: [{ id_doc: "DOC-ASEG-20", nombre: "Reporte de Inventario Documental presentado al AGEG", subido: false, url: null }]
             },
             {
                 id: "V2-21",
@@ -1757,11 +2096,10 @@
                 normativa: "Lineamientos Art. 34",
                 area: "Líquidador IEC / Comité de Extinción",
                 riesgo: "Medio",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-21", nombre: "Compilación de los 14 Informes Mensuales (Oct 24 - Nov 25)", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Media",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-ASEG-21", nombre: "Compilación de los 14 Informes Mensuales (Oct 24 - Nov 25)", subido: true, url: "https://drive.google.com" }]
             },
             {
                 id: "V2-22",
@@ -1772,11 +2110,10 @@
                 normativa: "Lineamientos Art. 37",
                 area: "Líquidador IEC / Dirección Jurídica",
                 riesgo: "Bajo",
-                badgeColor: "#D97706",
-                icon: "fa-scale-balanced",
-                documentos: [
-                    { id_doc: "DOC-ASEG-22", nombre: "Acta Protocolizada con Secretaría de la Honestidad (Marzo 2025)", subido: true, url: "https://drive.google.com" }
-                ]
+                prioridadArea: "Baja",
+                estatus: "Concluido",
+                avancePorcentaje: 100,
+                documentos: [{ id_doc: "DOC-ASEG-22", nombre: "Acta Protocolizada con Secretaría de la Honestidad (Marzo 2025)", subido: true, url: "https://drive.google.com" }]
             }
         ];
 
@@ -1787,21 +2124,9 @@
                 nombre: 'Recursos Humanos y Estructura',
                 desc: 'Gestión de expedientes laborales, plaza del Liquidador e inventario de 20,658 bienes muebles en SAP S/4 HANA.',
                 items: [
-                    {
-                        titulo: 'Expedientes Laborales',
-                        detalle: 'Entrega-recepción formal concluida ante la DGRH de Secretaría de Finanzas.',
-                        accion: 'Traspaso de carpetas individuales para garantizar continuidad de derechos y nómina.'
-                    },
-                    {
-                        titulo: 'Plaza del Liquidador',
-                        detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.',
-                        accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.'
-                    },
-                    {
-                        titulo: 'Inventarios y Capitalización',
-                        detalle: '1,682 bienes reasignados capitalizados en Nov 2025 y búsqueda de 2,570 faltantes.',
-                        accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.'
-                    }
+                    { titulo: 'Expedientes Laborales', detalle: 'Entrega-recepción formal concluida ante la DGRH de Secretaría de Finanzas.', accion: 'Traspaso de carpetas individuales para garantizar continuidad de derechos y nómina.' },
+                    { titulo: 'Plaza del Liquidador', detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.', accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.' },
+                    { titulo: 'Inventarios y Capitalización', detalle: '1,682 bienes reasignados capitalizados en Nov 2025 y búsqueda de 2,570 faltantes.', accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.' }
                 ]
             },
             'B': {
@@ -1809,21 +2134,9 @@
                 nombre: 'Jurídico, Inmuebles y FIARCA',
                 desc: 'Regularización de zonas arqueológicas, juicios en trámite y dictamen del Fideicomiso FIARCA.',
                 items: [
-                    {
-                        titulo: 'Sitios Arqueológicos',
-                        detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).',
-                        accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.'
-                    },
-                    {
-                        titulo: 'Sustitución Procesal',
-                        detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.',
-                        accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.'
-                    },
-                    {
-                        titulo: 'Fideicomiso FIARCA',
-                        detalle: 'Formalización del 2do Convenio Modificatorio con Fiduciaria Banorte (Decreto Gub. 19).',
-                        accion: 'Validar convenio modificatorio con Fiduciaria Banorte y Consejería Jurídica.'
-                    }
+                    { titulo: 'Sitios Arqueológicos', detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).', accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.' },
+                    { titulo: 'Sustitución Procesal', detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.', accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.' },
+                    { titulo: 'Fideicomiso FIARCA', detalle: 'Formalización del 2do Convenio Modificatorio con Fiduciaria Banorte (Decreto Gub. 19).', accion: 'Validar convenio modificatorio con Fiduciaria Banorte y Consejería Jurídica.' }
                 ]
             },
             'C': {
@@ -1831,21 +2144,9 @@
                 nombre: 'Infraestructura y Programas Q, G, P',
                 desc: 'Cierre del Teatro Juárez, Biblioteca León y metas en Zonas Arqueológicas y Culturas Populares.',
                 items: [
-                    {
-                        titulo: 'Teatro Juárez (QC3233)',
-                        detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.',
-                        accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.'
-                    },
-                    {
-                        titulo: 'Biblioteca León (QB3981)',
-                        detalle: 'Instalación de elevador y montacargas.',
-                        accion: 'Ejecución presupuestal y contractual del proyecto pendiente.'
-                    },
-                    {
-                        titulo: 'Culturas Populares (P0427)',
-                        detalle: 'Conclusión de concursos artesanales y exposiciones.',
-                        accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.'
-                    }
+                    { titulo: 'Teatro Juárez (QC3233)', detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.', accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.' },
+                    { titulo: 'Biblioteca León (QB3981)', detalle: 'Instalación de elevador y montacargas.', accion: 'Ejecución presupuestal y contractual del proyecto pendiente.' },
+                    { titulo: 'Culturas Populares (P0427)', detalle: 'Conclusión de concursos artesanales y exposiciones.', accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.' }
                 ]
             },
             'D': {
@@ -1853,21 +2154,9 @@
                 nombre: 'Cierre Financiero, Fiscal y TI',
                 desc: 'Cancelación de cuentas bancarias, reintegros a Finanzas ($43.41 MDP), baja de RFC y e.firma SAT.',
                 items: [
-                    {
-                        titulo: 'Reintegros Realizados',
-                        detalle: 'Devolución de $43,409,858.26 MXN (Taquilla FIC, Recursos Propios e intereses).',
-                        accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.'
-                    },
-                    {
-                        titulo: 'Baja de RFC y e.Firma',
-                        detalle: 'e.Firma renovada en SAT Irapuato (Sep 2025); cita de baja en Celaya (Dic 2025).',
-                        accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.'
-                    },
-                    {
-                        titulo: 'Flotilla Vehicular Transferida',
-                        detalle: '100% de vehículos (14 autos y 14 remolques) endosados a la Secretaría de Cultura.',
-                        accion: 'Notificación a DG de Tecnologías y Control Patrimonial para reasignaciones.'
-                    }
+                    { titulo: 'Reintegros Realizados', detalle: 'Devolución de $43,409,858.26 MXN (Taquilla FIC, Recursos Propios e intereses).', accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.' },
+                    { titulo: 'Baja de RFC y e.Firma', detalle: 'e.Firma renovada en SAT Irapuato (Sep 2025); cita de baja en Celaya (Dic 2025).', accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.' },
+                    { titulo: 'Flotilla Vehicular Transferida', detalle: '100% de vehículos (14 autos y 14 remolques) endosados a la Secretaría de Cultura.', accion: 'Notificación a DG de Tecnologías y Control Patrimonial para reasignaciones.' }
                 ]
             },
             'E': {
@@ -1875,16 +2164,8 @@
                 nombre: 'Gestión Documental y Archivo',
                 desc: 'Transferencia de archivos de trámite y concentración a la SC y acervo histórico al Archivo General.',
                 items: [
-                    {
-                        titulo: 'Archivos de Trámite y Concentración',
-                        detalle: 'Entrega e inventariado a la Secretaría de Cultura.',
-                        accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.'
-                    },
-                    {
-                        titulo: 'Archivo Histórico',
-                        detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.',
-                        accion: 'Acreditación y entrega de acervo con valor histórico superior.'
-                    }
+                    { titulo: 'Archivos de Trámite y Concentración', detalle: 'Entrega e inventariado a la Secretaría de Cultura.', accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.' },
+                    { titulo: 'Archivo Histórico', detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.', accion: 'Acreditación y entrega de acervo con valor histórico superior.' }
                 ]
             },
             'F': {
@@ -1892,16 +2173,8 @@
                 nombre: 'Informes y Reportes de Liquidación',
                 desc: 'Informes periódicos de avance y elaboración del Informe Final de Liquidación para el Comité de Extinción.',
                 items: [
-                    {
-                        titulo: '14 Informes Mensuales',
-                        detalle: 'Reportes rendidos de Octubre 2024 a Noviembre 2025 ante el Comité de Extinción.',
-                        accion: 'Integración y presentación de avances mensuales del liquidador.'
-                    },
-                    {
-                        titulo: 'Paquete Fiscal 2026',
-                        detalle: 'Presupuesto integrado exclusivamente en Capítulo 1000 para la figura liquidadora.',
-                        accion: 'Asegurar continuidad administrativa durante el periodo de prórroga.'
-                    }
+                    { titulo: '14 Informes Mensuales', detalle: 'Reportes rendidos de Octubre 2024 a Noviembre 2025 ante el Comité de Extinción.', accion: 'Integración y presentación de avances mensuales del liquidador.' },
+                    { titulo: 'Paquete Fiscal 2026', detalle: 'Presupuesto integrado exclusivamente en Capítulo 1000 para la figura liquidadora.', accion: 'Asegurar continuidad administrativa durante el periodo de prórroga.' }
                 ]
             }
         };
@@ -1929,7 +2202,7 @@
         ];
 
         // RENDERIZADO Y CONTROL DE FISCALIZACIÓN
-        function renderTablaFiscalizacion(items) {
+        function renderTablaFiscalizacion() {
             const tbody = document.getElementById('tablaHitosFiscalizacion');
             if(!tbody) return;
             tbody.innerHTML = '';
@@ -1938,13 +2211,12 @@
             const riesgoMaster = document.getElementById('filterRiesgoMaster') ? document.getElementById('filterRiesgoMaster').value : 'ALL';
             const searchMaster = document.getElementById('filterSearchMaster') ? document.getElementById('filterSearchMaster').value.toLowerCase().trim() : '';
 
-            let list = items || hitosFiscalizacionData;
-
-            let filtrados = list.filter(h => {
+            let filtrados = hitosFiscalizacionData.filter(h => {
+                const matchTab = (currentVertienteTab === 'ALL' || h.vertiente === currentVertienteTab);
                 const matchA = (areaMaster === 'ALL' || h.area.toLowerCase().includes(areaMaster.toLowerCase()));
-                const matchR = (riesgoMaster === 'ALL' || h.riesgo === riesgoMaster);
+                const matchR = (riesgoMaster === 'ALL' || h.riesgo === riesgoMaster || h.prioridadArea === riesgoMaster);
                 const matchS = (!searchMaster || h.titulo.toLowerCase().includes(searchMaster) || h.id.toLowerCase().includes(searchMaster) || h.normativa.toLowerCase().includes(searchMaster));
-                return matchA && matchR && matchS;
+                return matchTab && matchA && matchR && matchS;
             });
 
             let docsTotales = 0;
@@ -1956,17 +2228,18 @@
                 docsTotales += totalD;
                 docsSubidos += subidosD;
 
-                const porcentaje = totalD > 0 ? Math.round((subidosD / totalD) * 100) : 0;
+                const porcentaje = h.avancePorcentaje !== undefined ? h.avancePorcentaje : (totalD > 0 ? Math.round((subidosD / totalD) * 100) : 0);
 
-                let badgeRiesgo = 'bg-slate-100 text-slate-700 border-slate-200';
-                if(h.riesgo === 'Crítico') badgeRiesgo = 'bg-rose-100 text-rose-800 border-rose-300';
-                if(h.riesgo === 'Alto') badgeRiesgo = 'bg-orange-100 text-orange-800 border-orange-200';
-                if(h.riesgo === 'Medio') badgeRiesgo = 'bg-amber-100 text-amber-800 border-amber-200';
-                if(h.riesgo === 'Bajo') badgeRiesgo = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                let badgePrioridad = 'bg-slate-100 text-slate-700 border-slate-200';
+                const prio = h.prioridadArea || h.riesgo;
+                if(prio === 'Urgente' || prio === 'Crítico') badgePrioridad = 'bg-rose-100 text-rose-800 border-rose-300';
+                else if(prio === 'Alta') badgePrioridad = 'bg-amber-100 text-amber-800 border-amber-200';
+                else if(prio === 'Media') badgePrioridad = 'bg-blue-100 text-blue-800 border-blue-200';
+                else if(prio === 'Baja') badgePrioridad = 'bg-slate-100 text-slate-800 border-slate-200';
 
-                const vertienteBadge = h.vertiente === 'V1' 
-                    ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200"><i class="fa-solid fa-building me-1"></i>V1 - IEC</span>`
-                    : `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-scale-balanced me-1"></i>V2 - ASEG</span>`;
+                let vertienteBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200"><i class="fa-solid fa-building me-1"></i>V1 - IEC</span>`;
+                if(h.vertiente === 'V2') vertienteBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-scale-balanced me-1"></i>V2 - ASEG</span>`;
+                if(h.vertiente === 'INF') vertienteBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-file-lines me-1"></i>Informes</span>`;
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition border-b border-slate-100">
@@ -1986,9 +2259,9 @@
                                 <span>${h.area}</span>
                             </div>
                         </td>
-                        <td class="p-3">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeRiesgo}">
-                                ${h.riesgo}
+                        <td class="p-3 text-center">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgePrioridad}">
+                                ${prio}
                             </span>
                         </td>
                         <td class="p-3">
@@ -1996,7 +2269,7 @@
                                 <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${porcentaje}%"></div>
                             </div>
                             <span class="text-[10px] font-bold ${porcentaje === 100 ? 'text-emerald-600' : 'text-slate-600'}">
-                                ${subidosD} de ${totalD} (${porcentaje}%)
+                                ${porcentaje}% (${subidosD}/${totalD} Docs)
                             </span>
                         </td>
                         <td class="p-3 text-center whitespace-nowrap">
@@ -2010,29 +2283,29 @@
 
             const kpiDocs = document.getElementById('kpiDocsAcreditados');
             if(kpiDocs) kpiDocs.innerText = `${docsSubidos} / ${docsTotales}`;
+            
+            renderCharts(hitosFiscalizacionData);
         }
 
         function setVertienteFilter(tab) {
+            currentVertienteTab = tab;
             const btnAll = document.getElementById('tabBtnAll');
+            const btnINF = document.getElementById('tabBtnINF');
             const btnV1 = document.getElementById('tabBtnV1');
             const btnV2 = document.getElementById('tabBtnV2');
 
-            btnAll.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900";
-            btnV1.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
-            btnV2.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+            const inactiveCls = "px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+            btnAll.className = inactiveCls;
+            btnINF.className = inactiveCls;
+            btnV1.className = inactiveCls;
+            btnV2.className = inactiveCls;
 
-            let filtrados = hitosFiscalizacionData;
-            if(tab === 'ALL') {
-                btnAll.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow";
-            } else if(tab === 'V1') {
-                btnV1.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-blue-600 text-white shadow flex items-center gap-1.5";
-                filtrados = hitosFiscalizacionData.filter(h => h.vertiente === 'V1');
-            } else if(tab === 'V2') {
-                btnV2.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-amber-600 text-white shadow flex items-center gap-1.5";
-                filtrados = hitosFiscalizacionData.filter(h => h.vertiente === 'V2');
-            }
+            if(tab === 'ALL') btnAll.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow";
+            if(tab === 'INF') btnINF.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white shadow flex items-center gap-1.5";
+            if(tab === 'V1') btnV1.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-blue-600 text-white shadow flex items-center gap-1.5";
+            if(tab === 'V2') btnV2.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-amber-600 text-white shadow flex items-center gap-1.5";
 
-            renderTablaFiscalizacion(filtrados);
+            renderTablaFiscalizacion();
         }
 
         function abrirModalGestionFiscalizacion(id) {
@@ -2045,6 +2318,20 @@
             document.getElementById('modalFiscalArea').innerText = hito.area;
             document.getElementById('modalFiscalNorma').innerText = hito.normativa;
 
+            const selectPrioridad = document.getElementById('modalFiscalPrioridad');
+            const selectEstatus = document.getElementById('modalFiscalEstatus');
+            const inputAvance = document.getElementById('modalFiscalAvance');
+            const labelAvance = document.getElementById('modalFiscalAvanceLabel');
+            const textareaObs = document.getElementById('modalFiscalObs');
+
+            if(selectPrioridad) selectPrioridad.value = hito.prioridadArea || "Media";
+            if(selectEstatus) selectEstatus.value = hito.estatus || "En Proceso";
+            if(inputAvance) {
+                inputAvance.value = hito.avancePorcentaje !== undefined ? hito.avancePorcentaje : 50;
+                if(labelAvance) labelAvance.innerText = `${inputAvance.value}%`;
+            }
+            if(textareaObs) textareaObs.value = hito.observacionesArea || "";
+
             const listContainer = document.getElementById('modalFiscalDocsList');
             const selectDoc = document.getElementById('uploadSelectDoc');
             listContainer.innerHTML = '';
@@ -2055,9 +2342,9 @@
 
                 const statusBadge = doc.subido 
                     ? `<a href="${doc.url}" target="_blank" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-[10px] flex items-center gap-1 border border-emerald-300 transition">
-                         <i class="fa-solid fa-file-pdf text-rose-600"></i> Ver PDF Oficial
+                         <i class="fa-brands fa-google-drive text-emerald-700"></i> Ver Archivo Drive
                        </a>`
-                    : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Pendiente de Carga</span>`;
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Pendiente de Enlace</span>`;
 
                 listContainer.innerHTML += `
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -2082,41 +2369,168 @@
 
             const hitoId = document.getElementById('uploadHitoId').value;
             const docId = document.getElementById('uploadSelectDoc').value;
-            const urlInput = document.getElementById('uploadDocUrl').value;
-            const fileInput = document.getElementById('uploadDocFile');
-
-            let finalUrl = urlInput;
-            if(!finalUrl && fileInput.files.length > 0) {
-                finalUrl = URL.createObjectURL(fileInput.files[0]);
-            }
-
-            if(!finalUrl) {
-                alert('Por favor ingrese un enlace de Google Drive o seleccione un archivo PDF.');
-                return;
-            }
+            const urlInput = document.getElementById('uploadDocUrl').value.trim();
+            const prioridad = document.getElementById('modalFiscalPrioridad').value;
+            const estatus = document.getElementById('modalFiscalEstatus').value;
+            const avance = parseInt(document.getElementById('modalFiscalAvance').value);
+            const observaciones = document.getElementById('modalFiscalObs').value.trim();
 
             const hito = hitosFiscalizacionData.find(h => h.id === hitoId);
             if(hito) {
-                const doc = hito.documentos.find(d => d.id_doc === docId);
-                if(doc) {
-                    doc.subido = true;
-                    doc.url = finalUrl;
+                hito.prioridadArea = prioridad;
+                hito.estatus = estatus;
+                hito.avancePorcentaje = avance;
+                hito.observacionesArea = observaciones;
 
-                    localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
-
-                    registrarAuditoria('Carga Documento ASEG', {
-                        hito_id: hitoId,
-                        doc_id: docId,
-                        documento: doc.nombre,
-                        area: hito.area,
-                        url: finalUrl
-                    });
-
-                    alert('¡Documento registrado con éxito! El porcentaje de avance del hito se ha actualizado.');
-                    renderTablaFiscalizacion();
-                    abrirModalGestionFiscalizacion(hitoId);
+                if(urlInput) {
+                    const doc = hito.documentos.find(d => d.id_doc === docId);
+                    if(doc) {
+                        doc.subido = true;
+                        doc.url = urlInput;
+                    }
                 }
+
+                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+
+                registrarAuditoria('Actualización de Hito por Área', {
+                    hito_id: hitoId,
+                    area: hito.area,
+                    prioridad: prioridad,
+                    estatus: estatus,
+                    avance: `${avance}%`,
+                    url_drive: urlInput || "Sin cambio de URL",
+                    observaciones: observaciones
+                });
+
+                alert(`¡Hito ${hitoId} actualizado exitosamente por el Área Responsable!`);
+                renderTablaFiscalizacion();
+                closeModal('modal-hito-fiscalizacion');
             }
+        }
+
+        // Renderizado de Gráficas Chart.js
+        let chartGlobalInstance = null, chartPrioridadesInstance = null, chartEstatusInstance = null, chartAreasInstance = null;
+
+        function renderCharts(dataset) {
+            if (!dataset || dataset.length === 0) return;
+
+            const totalRegistros = dataset.length;
+            const sumaAvance = dataset.reduce((acc, curr) => acc + (curr.avancePorcentaje || 0), 0);
+            const avancePromedio = Math.round(sumaAvance / totalRegistros);
+
+            const labelGlobal = document.getElementById('labelChartAvanceGlobal');
+            if (labelGlobal) labelGlobal.innerText = `${avancePromedio}%`;
+
+            const kpiTop = document.getElementById('kpiAvanceGlobalTop');
+            if(kpiTop) kpiTop.innerText = `${avancePromedio}%`;
+
+            // 1. Dona Avance Global
+            const ctxGlobal = document.getElementById('chartAvanceGlobal');
+            if (ctxGlobal) {
+                if (chartGlobalInstance) chartGlobalInstance.destroy();
+                chartGlobalInstance = new Chart(ctxGlobal, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completado', 'Pendiente'],
+                        datasets: [{
+                            data: [avancePromedio, 100 - avancePromedio],
+                            backgroundColor: ['#2563EB', '#E2E8F0'],
+                            borderWidth: 0,
+                            cutout: '75%'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+
+            // 2. Prioridades
+            const conteoPrioridades = {
+                'Urgente': dataset.filter(d => (d.prioridadArea === 'Urgente' || d.riesgo === 'Crítico')).length,
+                'Alta': dataset.filter(d => (d.prioridadArea === 'Alta' || d.riesgo === 'Alto')).length,
+                'Media': dataset.filter(d => (d.prioridadArea === 'Media' || d.riesgo === 'Medio')).length,
+                'Baja': dataset.filter(d => (d.prioridadArea === 'Baja' || d.riesgo === 'Bajo')).length
+            };
+
+            const ctxPrioridad = document.getElementById('chartPrioridades');
+            if (ctxPrioridad) {
+                if (chartPrioridadesInstance) chartPrioridadesInstance.destroy();
+                chartPrioridadesInstance = new Chart(ctxPrioridad, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Urgente', 'Alta', 'Media', 'Baja'],
+                        datasets: [{
+                            data: [conteoPrioridades.Urgente, conteoPrioridades.Alta, conteoPrioridades.Media, conteoPrioridades.Baja],
+                            backgroundColor: ['#DC2626', '#D97706', '#2563EB', '#94A3B8'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } } }
+                });
+            }
+
+            // 3. Estatus
+            const conteoEstatus = {
+                'Concluido': dataset.filter(d => d.estatus === 'Concluido').length,
+                'En Proceso': dataset.filter(d => d.estatus === 'En Proceso').length,
+                'Validación': dataset.filter(d => d.estatus === 'Validación').length
+            };
+
+            const ctxEstatus = document.getElementById('chartEstatus');
+            if (ctxEstatus) {
+                if (chartEstatusInstance) chartEstatusInstance.destroy();
+                chartEstatusInstance = new Chart(ctxEstatus, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Concluido', 'En Proceso', 'Validación'],
+                        datasets: [{
+                            data: [conteoEstatus['Concluido'], conteoEstatus['En Proceso'], conteoEstatus['Validación']],
+                            backgroundColor: ['#16A34A', '#2563EB', '#D97706'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } } }
+                });
+            }
+
+            // 4. Áreas
+            const areasLabels = ['Patrimonio', 'Jurídico', 'Obras', 'Finanzas', 'Archivo', 'Auditoría'];
+            const areasKeys = ['Materiales', 'Jurídic', 'Planeación', 'Finanzas', 'Archivo', 'Liquidador'];
+
+            const promediosAreas = areasKeys.map(key => {
+                const itemsArea = dataset.filter(d => (d.area || '').toLowerCase().includes(key.toLowerCase()));
+                if (itemsArea.length === 0) return 0;
+                const sum = itemsArea.reduce((acc, c) => acc + (c.avancePorcentaje || 0), 0);
+                return Math.round(sum / itemsArea.length);
+            });
+
+            const ctxAreas = document.getElementById('chartAreas');
+            if (ctxAreas) {
+                if (chartAreasInstance) chartAreasInstance.destroy();
+                chartAreasInstance = new Chart(ctxAreas, {
+                    type: 'bar',
+                    data: {
+                        labels: areasLabels,
+                        datasets: [{
+                            label: '% Avance',
+                            data: promediosAreas,
+                            backgroundColor: '#1E3A8A',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { x: { min: 0, max: 100, ticks: { font: { size: 8 } } }, y: { ticks: { font: { size: 8 } } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
+
+        function refreshDashboardCharts() {
+            renderCharts(hitosFiscalizacionData);
+            alert('¡Métricas y analítica reactiva actualizadas!');
         }
 
         // Renderizado de tabla de Matriz de Acciones
@@ -2202,7 +2616,7 @@
             closeModal('modal-hito-detailed');
         }
 
-        // Modales de Detalle
+        // Modales de Detalle Crítico
         const criticalData = {
             'critical-1': {
                 title: '01. Entrega-Recepción de Expedientes Laborales',
@@ -2565,15 +2979,14 @@
 
             if(supabaseClient && currentUser) {
                 try {
-                    await supabaseClient.from('auditoria_logs').insert([{
-                        usuario_id: currentUser.id,
-                        usuario: currentUser.usuario,
+                    await supabaseClient.from('auditoria_trazabilidad').insert([{
+                        usuario: `${currentUser.nombre} (${currentUser.usuario})`,
                         accion: tipoAccion,
                         detalles: detalles,
-                        created_at: new Date().toISOString()
+                        fecha_hora: new Date().toISOString()
                     }]);
                 } catch(err) {
-                    console.warn("Tabla auditoria_logs opcional en Supabase:", err);
+                    console.warn("Tabla auditoria_trazabilidad en Supabase sincronizada localmente.");
                 }
             }
             actualizarLogsAuditoria();
@@ -2703,7 +3116,7 @@
 
         // Inicialización integral
         renderActionsTable(accionesMatriz);
-        renderTablaFiscalizacion(hitosFiscalizacionData);
+        renderTablaFiscalizacion();
         updateAuthUI();
         actualizarLogsAuditoria();
     </script>
