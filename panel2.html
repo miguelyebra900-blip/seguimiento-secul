@@ -1,4 +1,4 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -293,91 +293,132 @@ DOCTYPE html>
         </section>
 
         <!-- ========================================================= -->
-        <!-- NUEVA SECCIÓN: FISCALIZACIÓN ASEG & LIQUIDACIÓN IEC       -->
-        <!-- (DOBLE VERTIENTE: V1 - LIQUIDACIÓN / V2 - AUDITORÍA ASEG) -->
+        <!-- SECCIÓN: CONTROL DE DOBLE VERTIENTE (V1 - IEC / V2 - ASEG)-->
         <!-- ========================================================= -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <section class="bg-white rounded-2xl border-2 border-indigo-200 shadow-xl p-6 space-y-6">
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
-                            Seguimiento Cool Panel 2
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 uppercase tracking-wide">
+                            Control Fiscal & Liquidación
                         </span>
                         <span class="text-xs text-slate-400">Oficio AECF(CEP)/PEGT_IEC_25/003</span>
                     </div>
-                    <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2 mt-1">
-                        <i class="fa-solid fa-scale-balanced text-amber-600"></i> Hitos de Fiscalización Superior ASEG y Liquidación IEC
-                    </h3>
+                    <h2 class="text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-indigo-600"></i> Hitos de Liquidación IEC & Fiscalización Superior ASEG
+                    </h2>
                     <p class="text-xs text-slate-500">
-                        Control por área responsable para solventación y carga documental en tiempo real.
+                        Monitoreo integral clasificado por vertiente, área ejecutora dentro de la Secretaría de Cultura y carga de expedientes.
                     </p>
                 </div>
 
-                <!-- Filtros Dinámicos -->
-                <div class="flex flex-wrap items-center gap-2.5">
-                    <select id="filterVertiente" onchange="filterHitosFiscalizacion()" class="p-2 border rounded-xl text-xs bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500">
-                        <option value="ALL">Todas las Vertientes (V1 y V2)</option>
-                        <option value="V1">🏛️ [V1 - Liquidación IEC]</option>
-                        <option value="V2">⚖️ [V2 - Fiscalización ASEG]</option>
-                    </select>
+                <!-- Tabs de Selección por Vertiente -->
+                <div class="bg-slate-100 p-1.5 rounded-2xl flex flex-wrap items-center gap-1 border border-slate-200">
+                    <button type="button" onclick="setVertienteFilter('ALL')" id="tabBtnAll" class="px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow">
+                        Todos (32)
+                    </button>
+                    <button type="button" onclick="setVertienteFilter('V1')" id="tabBtnV1" class="px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-building text-blue-600"></i> [V1] Liquidación IEC (10)
+                    </button>
+                    <button type="button" onclick="setVertienteFilter('V2')" id="tabBtnV2" class="px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-scale-balanced text-amber-600"></i> [V2] Auditoría ASEG (22)
+                    </button>
+                </div>
+            </div>
 
-                    <select id="filterAreaResp" onchange="filterHitosFiscalizacion()" class="p-2 border rounded-xl text-xs bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500 max-w-xs truncate">
-                        <option value="ALL">Todas las Áreas Responsables</option>
-                        <option value="Dirección General de Administración">Dirección General de Administración / Finanzas</option>
-                        <option value="Dirección Jurídica">Dirección Jurídica</option>
-                        <option value="Dirección de Planeación">Dirección de Planeación y Evaluación</option>
-                        <option value="Dirección de Recursos Materiales">Recursos Materiales y Servicios Generales</option>
-                        <option value="Coordinación de Archivos">Coordinación de Archivos</option>
-                        <option value="Unidad de Tecnologías">Unidad de Tecnologías de la Información</option>
-                        <option value="Líquidador IEC">Liquidador IEC / Comité de Extinción</option>
-                    </select>
+            <!-- KPIs Resumen -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+                <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/50 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 block">V1 - Liquidación IEC</span>
+                        <span class="text-2xl font-extrabold text-blue-900">10 Hitos</span>
+                        <span class="text-[11px] text-blue-600 block mt-0.5">3 Críticos / 5 Altos</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                </div>
 
-                    <select id="filterRiesgo" onchange="filterHitosFiscalizacion()" class="p-2 border rounded-xl text-xs bg-slate-50 font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500">
-                        <option value="ALL">Todos los Riesgos</option>
+                <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">V2 - Auditoría ASEG</span>
+                        <span class="text-2xl font-extrabold text-amber-900">22 Requerimientos</span>
+                        <span class="text-[11px] text-amber-600 block mt-0.5">Cuenta Pública 2025</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/50 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-700 block">Riesgo Crítico Total</span>
+                        <span class="text-2xl font-extrabold text-rose-900">5 Puntos</span>
+                        <span class="text-[11px] text-rose-600 block mt-0.5">Atención Directiva Inmediata</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">Documentos Subidos</span>
+                        <span id="kpiDocsAcreditados" class="text-2xl font-extrabold text-emerald-900">0 / 0</span>
+                        <span class="text-[11px] text-emerald-600 block mt-0.5">Con soporte oficial</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Dinámicos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Área Responsable en Secretaría de Cultura:</label>
+                    <select id="filterAreaMaster" onchange="renderTablaFiscalizacion()" class="w-full p-2 border rounded-lg bg-white">
+                        <option value="ALL">Todas las Áreas</option>
+                        <option value="Administración">Dirección General de Administración / Finanzas</option>
+                        <option value="Jurídica">Dirección Jurídica</option>
+                        <option value="Planeación">Dirección de Planeación y Evaluación</option>
+                        <option value="Materiales">Recursos Materiales y Servicios Generales</option>
+                        <option value="Archivos">Coordinación de Archivos</option>
+                        <option value="Tecnologías">Unidad de Tecnologías de la Información</option>
+                        <option value="Liquidador">Líquidador IEC / Comité de Extinción</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nivel de Riesgo Operativo:</label>
+                    <select id="filterRiesgoMaster" onchange="renderTablaFiscalizacion()" class="w-full p-2 border rounded-lg bg-white">
+                        <option value="ALL">Todos los Niveles</option>
                         <option value="Crítico">Crítico</option>
                         <option value="Alto">Alto</option>
                         <option value="Medio">Medio</option>
                         <option value="Bajo">Bajo</option>
                     </select>
                 </div>
-            </div>
-
-            <!-- KPIs Rápidos de Carga -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-500 block">Total Hitos</span>
-                    <span id="kpiTotalHitos" class="text-xl font-extrabold text-slate-900">32</span>
-                </div>
-                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
-                    <span class="text-[10px] uppercase font-bold text-amber-700 block">ASEG (V2)</span>
-                    <span id="kpiAsegHitos" class="text-xl font-extrabold text-amber-800">22</span>
-                </div>
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
-                    <span class="text-[10px] uppercase font-bold text-blue-700 block">Liquidación (V1)</span>
-                    <span id="kpiLiquidacionHitos" class="text-xl font-extrabold text-blue-800">10</span>
-                </div>
-                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
-                    <span class="text-[10px] uppercase font-bold text-emerald-700 block">Docs. Subidos</span>
-                    <span id="kpiDocsSubidos" class="text-xl font-extrabold text-emerald-800">0 / 0</span>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Búsqueda rápida por concepto:</label>
+                    <input type="text" id="filterSearchMaster" oninput="renderTablaFiscalizacion()" placeholder="Buscar por tema, folio, requerimiento..." class="w-full p-2 border rounded-lg bg-white">
                 </div>
             </div>
 
-            <!-- Tabla Dinámica de Hitos y Documentos -->
+            <!-- Tabla de Datos Reactiva -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-700">
                     <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
                         <tr>
-                            <th class="p-3">Vertiente & ID</th>
+                            <th class="p-3">Vertiente & Folio</th>
                             <th class="p-3">Hito / Requerimiento Oficial</th>
-                            <th class="p-3">Área Responsable (SC / IEC)</th>
+                            <th class="p-3">Área Responsable (Secretaría de Cultura)</th>
                             <th class="p-3">Nivel Riesgo</th>
                             <th class="p-3">Progreso Docs.</th>
-                            <th class="p-3 text-center">Gestión Documental</th>
+                            <th class="p-3 text-center">Acción / Evidencias</th>
                         </tr>
                     </thead>
-                    <tbody id="tablaHitosFiscalizacion" class="divide-y divide-slate-100">
-                        <!-- Inyección dinámica con dataset completo -->
-                    </tbody>
+                    <tbody id="tablaHitosFiscalizacion" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </section>
@@ -1640,9 +1681,21 @@ DOCTYPE html>
                 nombre: 'Recursos Humanos y Estructura',
                 desc: 'Gestión de expedientes laborales, plaza del Liquidador e inventario de 20,858 bienes muebles en SAP S/4 HANA.',
                 items: [
-                    { titulo: 'Expedientes Laborales', detalle: 'Entrega-recepción formal el 09 de mayo de 2025 ante la DGRH de Secretaría de Finanzas.', accion: 'Traspaso formal físico y digital de carpetas individuales para garantizar continuidad de derechos y nómina.' },
-                    { titulo: 'Plaza del Liquidador', detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.', accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.' },
-                    { titulo: 'Inventarios SAP', detalle: 'Revisión de 20,858 bienes muebles para actualizar resguardos y capitalizar en SAP S/4 HANA.', accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.' }
+                    {
+                        titulo: 'Expedientes Laborales',
+                        detalle: 'Entrega-recepción formal el 09 de mayo de 2025 ante la DGRH de Secretaría de Finanzas.',
+                        accion: 'Traspaso formal físico y digital de carpetas individuales para garantizar continuidad de derechos y nómina.'
+                    },
+                    {
+                        titulo: 'Plaza del Liquidador',
+                        detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.',
+                        accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.'
+                    },
+                    {
+                        titulo: 'Inventarios SAP',
+                        detalle: 'Revisión de 20,858 bienes muebles para actualizar resguardos y capitalizar en SAP S/4 HANA.',
+                        accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.'
+                    }
                 ]
             },
             'B': {
@@ -1650,9 +1703,21 @@ DOCTYPE html>
                 nombre: 'Jurídico, Inmuebles y FIARCA',
                 desc: 'Regularización de zonas arqueológicas, juicios en trámite y dictamen del Fideicomiso FIARCA.',
                 items: [
-                    { titulo: 'Sitios Arqueológicos', detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).', accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.' },
-                    { titulo: 'Sustitución Procesal', detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.', accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.' },
-                    { titulo: 'Fideicomiso FIARCA', detalle: 'Dictamen formal con Procuraduría Fiscal para modificar o extinguir el fideicomiso.', accion: 'Validar proyecto de decreto modificatorio con Procuraduría Fiscal y Consejería Jurídica.' }
+                    {
+                        titulo: 'Sitios Arqueológicos',
+                        detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).',
+                        accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.'
+                    },
+                    {
+                        titulo: 'Sustitución Procesal',
+                        detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.',
+                        accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.'
+                    },
+                    {
+                        titulo: 'Fideicomiso FIARCA',
+                        detalle: 'Dictamen formal con Procuraduría Fiscal para modificar o extinguir el fideicomiso.',
+                        accion: 'Validar proyecto de decreto modificatorio con Procuraduría Fiscal y Consejería Jurídica.'
+                    }
                 ]
             },
             'C': {
@@ -1660,9 +1725,21 @@ DOCTYPE html>
                 nombre: 'Infraestructura y Programas Q, G, P',
                 desc: 'Cierre del Teatro Juárez, Biblioteca León y metas en Zonas Arqueológicas y Culturas Populares.',
                 items: [
-                    { titulo: 'Teatro Juárez (QC3233)', detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.', accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.' },
-                    { titulo: 'Biblioteca León (QB3981)', detalle: 'Instalación de elevador y montacargas.', accion: 'Ejecución presupuestal y contractual del proyecto pendiente.' },
-                    { titulo: 'Culturas Populares (P0427)', detalle: 'Conclusión de concursos artesanales y exposiciones.', accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.' }
+                    {
+                        titulo: 'Teatro Juárez (QC3233)',
+                        detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.',
+                        accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.'
+                    },
+                    {
+                        titulo: 'Biblioteca León (QB3981)',
+                        detalle: 'Instalación de elevador y montacargas.',
+                        accion: 'Ejecución presupuestal y contractual del proyecto pendiente.'
+                    },
+                    {
+                        titulo: 'Culturas Populares (P0427)',
+                        detalle: 'Conclusión de concursos artesanales y exposiciones.',
+                        accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.'
+                    }
                 ]
             },
             'D': {
@@ -1670,9 +1747,21 @@ DOCTYPE html>
                 nombre: 'Cierre Financiero, Fiscal y TI',
                 desc: 'Cancelación de cuentas bancarias, reintegros a TESOFE, baja de RFC y migración de licencias digitales.',
                 items: [
-                    { titulo: 'Cuentas Bancarias', detalle: 'Reintegro de remanentes a TESOFE y cancelación formal de cuentas bancarias del IEC.', accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.' },
-                    { titulo: 'Baja de RFC', detalle: 'Trámite ante el SAT al finalizar el saldado de pasivos y activos.', accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.' },
-                    { titulo: 'TI y Software', detalle: 'Migración de licencias, usuarios SAP y e.firma a la Secretaría de Cultura.', accion: 'Notificación a DG de Tecnologías de Información de la SF para bajas y reasignaciones.' }
+                    {
+                        titulo: 'Cuentas Bancarias',
+                        detalle: 'Reintegro de remanentes a TESOFE y cancelación formal de cuentas bancarias del IEC.',
+                        accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.'
+                    },
+                    {
+                        titulo: 'Baja de RFC',
+                        detalle: 'Trámite ante el SAT al finalizar el saldado de pasivos y activos.',
+                        accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.'
+                    },
+                    {
+                        titulo: 'TI y Software',
+                        detalle: 'Migración de licencias, usuarios SAP y e.firma a la Secretaría de Cultura.',
+                        accion: 'Notificación a DG de Tecnologías de Información de la SF para bajas y reasignaciones.'
+                    }
                 ]
             },
             'E': {
@@ -1680,8 +1769,16 @@ DOCTYPE html>
                 nombre: 'Gestión Documental y Archivo',
                 desc: 'Transferencia de archivos de trámite y concentración a la SC y acervo histórico al Archivo General.',
                 items: [
-                    { titulo: 'Archivos de Trámite y Concentración', detalle: 'Entrega e inventariado a la Secretaría de Cultura.', accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.' },
-                    { titulo: 'Archivo Histórico', detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.', accion: 'Acreditación y entrega de acervo con valor histórico superior.' }
+                    {
+                        titulo: 'Archivos de Trámite y Concentración',
+                        detalle: 'Entrega e inventariado a la Secretaría de Cultura.',
+                        accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.'
+                    },
+                    {
+                        titulo: 'Archivo Histórico',
+                        detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.',
+                        accion: 'Acreditación y entrega de acervo con valor histórico superior.'
+                    }
                 ]
             },
             'F': {
@@ -1689,8 +1786,16 @@ DOCTYPE html>
                 nombre: 'Informes y Reportes de Liquidación',
                 desc: 'Informes periódicos de avance y elaboración del Informe Final de Liquidación para el Comité de Extinción.',
                 items: [
-                    { titulo: 'Reportes Periódicos', detalle: 'Informes mensuales al Comité de Extinción.', accion: 'Integración y presentación de avances mensuales del liquidador.' },
-                    { titulo: 'Informe Final de Liquidación', detalle: 'Entrega del documento formal de cierre contable, patrimonial y legal al concluir los 15 meses.', accion: 'Integración del informe final para aprobación y finiquito del Comité.' }
+                    {
+                        titulo: 'Reportes Periódicos',
+                        detalle: 'Informes mensuales al Comité de Extinción.',
+                        accion: 'Integración y presentación de avances mensuales del liquidador.'
+                    },
+                    {
+                        titulo: 'Informe Final de Liquidación',
+                        detalle: 'Entrega del documento formal de cierre contable, patrimonial y legal al concluir los 15 meses.',
+                        accion: 'Integración del informe final para aprobación y finiquito del Comité.'
+                    }
                 ]
             }
         };
@@ -1723,10 +1828,12 @@ DOCTYPE html>
             if(!tbody) return;
             tbody.innerHTML = '';
 
+            const listToRender = items || hitosFiscalizacionData;
+
             let docsTotales = 0;
             let docsSubidos = 0;
 
-            items.forEach((h) => {
+            listToRender.forEach((h) => {
                 const totalD = h.documentos.length;
                 const subidosD = h.documentos.filter(d => d.subido).length;
                 docsTotales += totalD;
@@ -1785,14 +1892,24 @@ DOCTYPE html>
             });
 
             // Actualizar KPIs
-            document.getElementById('kpiTotalHitos').innerText = items.length;
-            document.getElementById('kpiDocsSubidos').innerText = `${docsSubidos} / ${docsTotales}`;
+            const kpiTotal = document.getElementById('kpiTotalHitos');
+            const kpiDocs = document.getElementById('kpiDocsSubidos');
+            if(kpiTotal) kpiTotal.innerText = listToRender.length;
+            if(kpiDocs) kpiDocs.innerText = `${docsSubidos} / ${docsTotales}`;
+        }
+
+        function setVertienteFilter(tab) {
+            const filterVertienteElem = document.getElementById('filterVertiente');
+            if(filterVertienteElem) {
+                filterVertienteElem.value = tab;
+            }
+            filterHitosFiscalizacion();
         }
 
         function filterHitosFiscalizacion() {
-            const vertiente = document.getElementById('filterVertiente').value;
-            const area = document.getElementById('filterAreaResp').value;
-            const riesgo = document.getElementById('filterRiesgo').value;
+            const vertiente = document.getElementById('filterVertiente') ? document.getElementById('filterVertiente').value : 'ALL';
+            const area = document.getElementById('filterAreaResp') ? document.getElementById('filterAreaResp').value : 'ALL';
+            const riesgo = document.getElementById('filterRiesgo') ? document.getElementById('filterRiesgo').value : 'ALL';
 
             let filtrados = hitosFiscalizacionData.filter(h => {
                 const matchV = (vertiente === 'ALL' || h.vertiente === vertiente);
@@ -1856,7 +1973,7 @@ DOCTYPE html>
 
             let finalUrl = urlInput;
             if(!finalUrl && fileInput.files.length > 0) {
-                finalUrl = URL.createObjectURL(fileInput.files[0]); // Simulación de carga local
+                finalUrl = URL.createObjectURL(fileInput.files[0]);
             }
 
             if(!finalUrl) {
@@ -1972,6 +2089,58 @@ DOCTYPE html>
         }
 
         // Modal de Desglose del Dashboard Interactivo
+        const criticalData = {
+            'critical-1': {
+                title: '01. Entrega-Recepción de Expedientes Laborales',
+                subtitle: 'Plazo Ineludible: 09 de Mayo de 2025',
+                headerBg: 'bg-gradient-to-r from-rose-700 to-rose-900',
+                description: 'Realización del acto formal de entrega-recepción física y digital de la totalidad de las carpetas individuales del personal transferido del IEC y Fórum a la Secretaría de Cultura (303 plazas).',
+                risk: 'La omisión genera riesgos de interrupción en la nómina de trabajadores o vacíos jurídicos en antigüedad.',
+                ref: 'Anexo IV.a - Documento de Transición / Oficio DRLP/783/2025',
+                entities: [
+                    { name: 'IEC / Liquidador', action: 'Inventariar y entregar expedientes laborales físicos y digitales.' },
+                    { name: 'DGRH (Finanzas)', action: 'Recibir formalmente y asegurar dispersión continua de nómina.' },
+                    { name: 'Secretaría de Cultura (SC)', action: 'Supervisar correcta asunción de plantilla transferida.' }
+                ]
+            },
+            'critical-2': {
+                title: '02. Reporte Definitivo de Recursos Federales (SRFT - SHCP)',
+                subtitle: 'Plazo Límite: Julio de 2025',
+                headerBg: 'bg-gradient-to-r from-amber-600 to-amber-800',
+                description: 'Captura y cierre formal del ejercicio y destino de recursos federales transferidos en la plataforma de la Secretaría de Hacienda.',
+                risk: 'Observaciones graves de la Auditoría Superior de la Federación (ASF) y reintegros económicos forzosos.',
+                ref: 'Artículo 29 de los Lineamientos de Liquidación IEC',
+                entities: [
+                    { name: 'Liquidador IEC', action: 'Conciliar los recursos y emitir informe de cierre.' },
+                    { name: 'Secretaría de Finanzas', action: 'Validar y cerrar usuarios en la plataforma federal.' }
+                ]
+            },
+            'critical-3': {
+                title: '03. Término Legal de Liquidación e Informe Final',
+                subtitle: 'Plazo Máximo: Diciembre de 2025 (15 Meses)',
+                headerBg: 'bg-gradient-to-r from-rose-800 to-slate-900',
+                description: 'Cumplimiento estricto del plazo legal del Decreto 345 para extinguir derechos, obligaciones y pasivos del IEC, rindiendo el informe final.',
+                risk: 'Rebasar el límite legal vulnera el marco normativo y deja en indefensión los pasivos remanentes.',
+                ref: 'Artículo Quinto Transitorio del Decreto 345',
+                entities: [
+                    { name: 'Comité de Extinción', action: 'Aprobar el informe final y finiquito del proceso.' },
+                    { name: 'Liquidador IEC', action: 'Consolidar entrega-recepción integral y balance final.' }
+                ]
+            },
+            'critical-4': {
+                title: '04. Baja de RFC del IEC y Entrega Extraordinaria',
+                subtitle: 'Post-Liquidación Definitiva',
+                headerBg: 'bg-gradient-to-r from-slate-800 to-slate-950',
+                description: 'Cancelación formal del RFC ante el SAT por extinción y entrega-recepción extraordinaria de la plaza nivel 8 y 131 bienes muebles.',
+                risk: 'Mantener personalidad fiscal genera riesgos de multas tributarias extemporáneas.',
+                ref: 'Artículo 37 de los Lineamientos de Liquidación',
+                entities: [
+                    { name: 'Liquidador IEC', action: 'Tramitar aviso de cancelación de RFC en el portal SAT.' },
+                    { name: 'Secretaría de la Honestidad', action: 'Supervisar el acta extraordinaria de entrega final.' }
+                ]
+            }
+        };
+
         function openDashboardDetailModal(categoria) {
             const container = document.getElementById('dashDetailContainer');
             const title = document.getElementById('dashDetailTitle');
