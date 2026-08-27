@@ -3290,7 +3290,115 @@
                 btnSubmit.disabled = false;
             }
         }
+// MODAL DETALLADO DE HITOS A - F (Áreas Estratégicas)
+        function openHitoDetailedModal(areaKey) {
+            const data = hitosDetailedData[areaKey];
+            if(!data) return;
 
+            document.getElementById('hitoDetailBadge').innerText = data.id;
+            document.getElementById('hitoDetailTitle').innerText = `Hito ${data.id}: ${data.nombre}`;
+
+            const listContainer = document.getElementById('hitoDetailItemsList');
+            listContainer.innerHTML = '';
+
+            data.items.forEach(item => {
+                listContainer.innerHTML += `
+                    <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+                        <strong class="text-slate-900 block text-xs mb-0.5">• ${item.titulo}: ${item.detalle}</strong>
+                        <span class="text-slate-500 block text-[11px] mb-2 leading-relaxed"><strong>Acción a realizar:</strong> ${item.accion}</span>
+                        <button onclick="openDocModal('Hito ${data.id} - ${item.titulo}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 font-bold transition flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-brands fa-google-drive text-amber-500"></i> Subir Documentos Drive
+                        </button>
+                    </li>
+                `;
+            });
+
+            openModal('modal-hito-detailed');
+        }
+
+        // DATOS Y CONTROL DE HITOS CRÍTICOS Y DE TRANSICIÓN LEGAL
+        const criticalData = {
+            'critical-1': {
+                title: '01. Entrega-Recepción de Expedientes Laborales',
+                subtitle: 'Plazo Formal: Mayo 2025',
+                headerBg: 'bg-gradient-to-r from-rose-700 to-rose-900',
+                description: 'Realización del acto formal de entrega-recepción física y digital de carpetas del personal del IEC y Fórum a la Secretaría de Cultura (303 plazas).',
+                risk: 'Vulnerabilidad jurídica en derechos adquiridos y antigüedad de los trabajadores.',
+                ref: 'Decreto 345 / Lineamientos de Extinción IEC',
+                entities: [
+                    { name: 'IEC / Liquidador', action: 'Inventariar y entregar expedientes laborales físicos y digitales.' },
+                    { name: 'DGRH (Finanzas)', action: 'Recibir formalmente y asegurar dispersión continua de nómina.' },
+                    { name: 'Secretaría de Cultura (SC)', action: 'Supervisar correcta asunción de plantilla transferida.' }
+                ]
+            },
+            'critical-2': {
+                title: '02. Reporte Definitivo de Recursos Federales (SRFT - SHCP)',
+                subtitle: 'Plazo Límite: Julio de 2025',
+                headerBg: 'bg-gradient-to-r from-amber-600 to-amber-800',
+                description: 'Captura y cierre formal del ejercicio y destino de recursos federales transferidos en la plataforma de la SHCP.',
+                risk: 'Observaciones de la Auditoría Superior de la Federación (ASF) y reintegros económicos forzosos.',
+                ref: 'Artículo 29 de los Lineamientos de Liquidación IEC',
+                entities: [
+                    { name: 'Liquidador IEC', action: 'Conciliar los recursos y emitir informe de cierre.' },
+                    { name: 'Secretaría de Finanzas', action: 'Validar y cerrar usuarios en la plataforma federal.' }
+                ]
+            },
+            'critical-3': {
+                title: '03. Término Legal de Liquidación y Prórroga de Comité',
+                subtitle: 'Plazo Ampliado: 2025 – 2026',
+                headerBg: 'bg-gradient-to-r from-rose-800 to-slate-900',
+                description: 'Concesión de prórroga formal en el Comité de Extinción para concluir la búsqueda de 2,570 bienes muebles faltantes y culminar la regularización con Control Patrimonial.',
+                risk: 'Riesgo de pliego de observaciones si no se formaliza el acta definitiva con firmas autógrafas.',
+                ref: 'Acta de Sesión de Comité de Extinción (10/Dic/2025)',
+                entities: [
+                    { name: 'Comité de Extinción', action: 'Aprobar prórroga y validar cronograma con Control Patrimonial.' },
+                    { name: 'Liquidador IEC', action: 'Depuración total de 20,658 bienes muebles y cierre contable.' }
+                ]
+            },
+            'critical-4': {
+                title: '04. Baja de RFC del IEC y Entrega Extraordinaria',
+                subtitle: 'Cierre Fiscal Definitivo',
+                headerBg: 'bg-gradient-to-r from-slate-800 to-slate-950',
+                description: 'Cancelación del RFC ante el SAT (cita oficinas Celaya), liquidación de impuestos de nómina y entrega de plaza nivel 8 con 131 bienes resguardados.',
+                risk: 'Mantener personalidad fiscal genera responsabilidades tributarias extemporáneas.',
+                ref: 'Artículo 37 de los Lineamientos de Liquidación / Código Fiscal',
+                entities: [
+                    { name: 'Liquidador IEC', action: 'Concluir trámite de baja fiscal ante el SAT con e.Firma vigente.' },
+                    { name: 'Secretaría de la Honestidad', action: 'Supervisar el acta extraordinaria de entrega final.' }
+                ]
+            }
+        };
+
+        function openCriticalModal(key) {
+            const data = criticalData[key];
+            if(!data) return;
+
+            document.getElementById('critical-title').innerText = data.title;
+            document.getElementById('critical-subtitle').innerText = data.subtitle;
+            document.getElementById('critical-description').innerText = data.description;
+            document.getElementById('critical-risk').innerText = data.risk;
+            document.getElementById('critical-ref').innerText = data.ref;
+
+            const header = document.getElementById('critical-modal-header');
+            header.className = `p-5 text-white flex justify-between items-center ${data.headerBg}`;
+
+            const container = document.getElementById('critical-entities-rows');
+            container.innerHTML = '';
+            data.entities.forEach(entity => {
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <span class="font-bold text-slate-900 block"><i class="fa-solid fa-building-columns text-indigo-600 me-1"></i> ${entity.name}</span>
+                            <span class="text-slate-600 text-[11px] block mt-0.5"><strong>Acción:</strong> ${entity.action}</span>
+                        </div>
+                        <button onclick="openDocModal('${data.title} - ${entity.name}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200 transition shrink-0">
+                            <i class="fa-brands fa-google-drive me-1"></i>Subir Drive
+                        </button>
+                    </div>
+                `;
+            });
+            openModal('modal-critical');
+        }
         // Inicialización integral
         renderActionsTable(accionesMatriz);
         renderTablaFiscalizacion();
