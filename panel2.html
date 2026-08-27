@@ -1084,7 +1084,58 @@
             </div>
         </div>
     </div>
+<!-- MODAL UNIVERSAL DE RIESGOS (R-01 a R-05) -->
+    <div id="modal-risk-detail" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span id="riskModalBadge" class="px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30">R-0X</span>
+                    <div>
+                        <h3 id="riskModalTitle" class="font-bold text-base leading-snug">Detalle Analítico del Riesgo</h3>
+                        <p class="text-xs text-slate-300">Causa raíz, trazabilidad y enlace de actualización operativa</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-risk-detail')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div>
+                        <span class="text-slate-500 font-bold block text-[10px]">Área Responsable:</span>
+                        <span id="riskModalArea" class="font-bold text-slate-800 text-xs">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 font-bold block text-[10px]">Nivel de Riesgo Mapeado:</span>
+                        <span id="riskModalLevel" class="font-bold text-rose-700 text-xs">--</span>
+                    </div>
+                </div>
 
+                <div>
+                    <h4 class="font-bold text-slate-900 text-xs mb-1">Descripción del Riesgo y Causa Raíz:</h4>
+                    <p id="riskModalDescription" class="bg-rose-50/60 p-3 rounded-xl border border-rose-100 text-slate-700 leading-relaxed">--</p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 text-xs mb-1">Estrategia de Mitigación Inmediata:</h4>
+                    <p id="riskModalMitigation" class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 text-slate-700 leading-relaxed">--</p>
+                </div>
+
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex items-center justify-between">
+                    <div>
+                        <strong class="text-indigo-900 block text-xs">¿Deseas actualizar el avance o subir evidencia para este punto?</strong>
+                        <span class="text-indigo-700 text-[11px]">Accede directamente al módulo de gestión y control vinculado.</span>
+                    </div>
+                    <button id="riskModalActionBtn" onclick="" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shrink-0 shadow">
+                        Ir a Gestión <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
+                <button onclick="closeModal('modal-risk-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ========================================================= -->
     <!-- MODAL: MANUAL DE USUARIO Y FLUJOGRAMA                     -->
@@ -2954,7 +3005,80 @@
             alert('¡Cambios guardados con éxito y firmados en la bitácora de auditoría!');
             closeModal('modal-hito-detailed');
         }
+const riskDatabase = {
+            'R-01': {
+                id: 'R-01',
+                area: 'Control Patrimonial',
+                nivel: 'ALTO (Crítico)',
+                causa: '2,570 bienes muebles no localizados de un total de 20,658 (PAICE, Orquestas, Huatzindeo Salvatierra). Riesgo latente de pliego de observaciones ante la ASF y ASEG.',
+                estrategia: 'Brigadas de búsqueda física, revisión de archivo histórico para facturas y levantamiento de actas de baja por desuso ante Control Patrimonial.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('V1-02');
+                }
+            },
+            'R-02': {
+                id: 'R-02',
+                area: 'Fiscal / SAT',
+                nivel: 'MEDIO',
+                causa: 'Impedimento técnico para cancelar el RFC ante el SAT debido a cuentas residuales activas e impuestos pendientes de dispersión de nómina.',
+                estrategia: 'Liquidar retenciones pendientes, cancelar cuentas residuales bancarias (BBVA, Salamanca, Ocampo) y acudir a la cita presencial en el SAT Celaya.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('INF-D02');
+                }
+            },
+            'R-03': {
+                id: 'R-03',
+                area: 'Jurídica / FIARCA',
+                nivel: 'MEDIO',
+                causa: 'Pasivos y operatividad en Sitios Arqueológicos tramitados indebidamente bajo la figura del IEC tras la publicación del Decreto Gubernativo 19.',
+                estrategia: 'Urgir a Fiduciaria Banorte y a la Consejería Jurídica la firma definitiva del 2do Convenio Modificatorio a favor de la Secretaría de Cultura (SCUL).',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('INF-C01');
+                }
+            },
+            'R-04': {
+                id: 'R-04',
+                area: 'Patrimonio Inmueble',
+                nivel: 'MEDIO',
+                causa: 'Falta de certeza jurídica y acuerdos de destino formalizados en recintos históricos y predios que operaba el Instituto.',
+                estrategia: 'Instruir a la Dirección General Jurídica la formalización prioritaria de los Acuerdos de Destino en coordinación con la Consejería del Ejecutivo.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('V1-05');
+                }
+            },
+            'R-05': {
+                id: 'R-05',
+                area: 'Gobierno / Control',
+                nivel: 'MEDIO',
+                causa: 'Invalidez técnica del acta de sesión del 10 de diciembre de 2025 al constar como borrador carente de firmas autógrafas de validación.',
+                estrategia: 'Circular de inmediato el acta protocolizada para recabar las firmas institucionales de Finanzas, Honestidad, Jurídico y Secretaría de Cultura.',
+                accionVincular: () => {
+                    closeModal('modal-risk-detail');
+                    abrirModalGestionFiscalizacion('V1-01');
+                }
+            }
+        };
 
+        function openRiskDetailModal(riskId) {
+            const data = riskDatabase[riskId];
+            if(!data) return;
+
+            document.getElementById('riskModalBadge').innerText = data.id;
+            document.getElementById('riskModalTitle').innerText = `Riesgo ${data.id}: ${data.area}`;
+            document.getElementById('riskModalArea').innerText = data.area;
+            document.getElementById('riskModalLevel').innerText = data.nivel;
+            document.getElementById('riskModalDescription').innerText = data.causa;
+            document.getElementById('riskModalMitigation').innerText = data.estrategia;
+
+            const btn = document.getElementById('riskModalActionBtn');
+            btn.onclick = data.accionVincular;
+
+            openModal('modal-risk-detail');
+        }
         // Modales de Detalle Crítico
         const criticalData = {
             'critical-1': {
