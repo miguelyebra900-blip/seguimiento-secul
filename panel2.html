@@ -2959,7 +2959,54 @@
             });
             renderActionsTable(filtered);
         }
+// Edición de Acción Individual de la Matriz (Matriz Consolidada)
+        function abrirModalEdicionAccion(id) {
+            if(!currentUser) {
+                alert('Debe iniciar sesión para ver y editar compromisos institucionales.');
+                openModal('modal-auth');
+                return;
+            }
 
+            const item = accionesMatriz.find(a => a.id === id);
+            if(!item) return;
+
+            document.getElementById('editActionId').value = item.id;
+            document.getElementById('editActionTitle').value = `[${item.hito}] ${item.accion}`;
+            document.getElementById('editActionResp').value = item.responsable;
+            document.getElementById('editActionStatus').value = item.estatus;
+            document.getElementById('editActionDriveUrl').value = item.driveUrl || '';
+            document.getElementById('editActionAuditNote').value = '';
+
+            openModal('modal-edit-action');
+        }
+
+        function guardarEdicionAccion(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editActionId').value);
+            const status = document.getElementById('editActionStatus').value;
+            const url = document.getElementById('editActionDriveUrl').value;
+            const nota = document.getElementById('editActionAuditNote').value;
+
+            const idx = accionesMatriz.findIndex(a => a.id === id);
+            if(idx !== -1) {
+                const anterior = accionesMatriz[idx].estatus;
+                accionesMatriz[idx].estatus = status;
+                accionesMatriz[idx].driveUrl = url;
+
+                registrarAuditoria('Edición Matriz', {
+                    accion_id: id,
+                    compromiso: accionesMatriz[idx].accion,
+                    estatus_anterior: anterior,
+                    estatus_nuevo: status,
+                    driveUrl: url,
+                    justificacion: nota
+                });
+
+                filterActionsTable();
+                closeModal('modal-edit-action');
+                alert('¡Compromiso actualizado con éxito y registrado en la bitácora de auditoría!');
+            }
+        }
         // Modales Básicos
         function openModal(id) {
             const m = document.getElementById(id);
