@@ -101,7 +101,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 0: MÓDULO ESTRATÉGICO DIRECTIVO (CONSOLIDADO)     -->
+        <!-- SECCIÓN 0: MÓDULO ESTRATÉGICO DIRECTIVO (KPIS CLICKEABLES)-->
         <!-- ========================================================= -->
         <section class="space-y-6">
             <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white border border-indigo-900/50 shadow-xl">
@@ -120,32 +120,32 @@
                     </div>
                 </div>
 
-                <!-- Tarjetas de Impacto Estratégico (KPIs Clave) -->
+                <!-- Tarjetas de Impacto Estratégico (KPIs Clickeables para Desglose) -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mt-5">
-                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-center">
+                    <div onclick="mostrarDetalleKpi('avance')" class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-center cursor-pointer hover:border-indigo-500 transition shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-indigo-400 block">Avance Global</span>
                         <span id="kpiAvanceGlobalTop" class="text-2xl sm:text-3xl font-black text-white">75%</span>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">Fase de Cierre Físico</span>
+                        <span class="text-[10px] text-slate-400 block mt-0.5"><i class="fa-solid fa-circle-info me-1"></i>Ver desglose</span>
                     </div>
-                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-rose-900/50 bg-rose-950/20 text-center">
+                    <div onclick="mostrarDetalleKpi('bienes')" class="bg-slate-900/90 p-4 rounded-2xl border border-rose-900/50 bg-rose-950/20 text-center cursor-pointer hover:border-rose-500 transition shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-rose-400 block">Bienes sin Ubicar</span>
                         <span class="text-2xl sm:text-3xl font-black text-rose-300">2,570</span>
-                        <span class="text-[10px] text-rose-400 block mt-0.5">De 20,658 (PAICE/Orq.)</span>
+                        <span class="text-[10px] text-rose-400 block mt-0.5"><i class="fa-solid fa-circle-info me-1"></i>De 20,658 (PAICE)</span>
                     </div>
-                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-emerald-900/50 bg-emerald-950/20 text-center">
+                    <div onclick="mostrarDetalleKpi('reintegros')" class="bg-slate-900/90 p-4 rounded-2xl border border-emerald-900/50 bg-emerald-950/20 text-center cursor-pointer hover:border-emerald-500 transition shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-emerald-400 block">Reintegros SF</span>
                         <span class="text-2xl sm:text-3xl font-black text-emerald-300">$43.41M</span>
-                        <span class="text-[10px] text-emerald-400 block mt-0.5">FIC + Rec. Propios</span>
+                        <span class="text-[10px] text-emerald-400 block mt-0.5"><i class="fa-solid fa-circle-info me-1"></i>FIC + Propios</span>
                     </div>
-                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-blue-900/50 bg-blue-950/20 text-center">
+                    <div onclick="mostrarDetalleKpi('vehiculos')" class="bg-slate-900/90 p-4 rounded-2xl border border-blue-900/50 bg-blue-950/20 text-center cursor-pointer hover:border-blue-500 transition shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-blue-400 block">Vehículos / Remolques</span>
                         <span class="text-2xl sm:text-3xl font-black text-blue-300">100%</span>
-                        <span class="text-[10px] text-blue-400 block mt-0.5">14 autos + 14 remolques</span>
+                        <span class="text-[10px] text-blue-400 block mt-0.5"><i class="fa-solid fa-circle-info me-1"></i>14 autos + 14 rem.</span>
                     </div>
-                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-amber-900/50 bg-amber-950/20 text-center col-span-2 sm:col-span-1">
+                    <div onclick="mostrarDetalleKpi('sat')" class="bg-slate-900/90 p-4 rounded-2xl border border-amber-900/50 bg-amber-950/20 text-center col-span-2 sm:col-span-1 cursor-pointer hover:border-amber-500 transition shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-amber-400 block">Baja SAT / RFC</span>
                         <span class="text-2xl sm:text-3xl font-black text-amber-300">e.Firma OK</span>
-                        <span class="text-[10px] text-amber-400 block mt-0.5">Cita Celaya Agendada</span>
+                        <span class="text-[10px] text-amber-400 block mt-0.5"><i class="fa-solid fa-circle-info me-1"></i>Cita Celaya</span>
                     </div>
                 </div>
             </div>
@@ -281,19 +281,21 @@
         </section>
 
         <!-- ========================================================= -->
-        <!-- SECCIÓN 1: VISTA DE ADMINISTRADOR Y AUDITORÍA (Condicional)-->
+        <!-- SECCIÓN 1: VISTA DE ADMINISTRADOR & GESTOR CRUD DE HITOS  -->
         <!-- ========================================================= -->
         <section id="viewAdminSection" class="space-y-6 hidden">
             <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white border border-indigo-900/50 shadow-xl">
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800 pb-4">
                     <div>
                         <span class="text-xs font-bold text-amber-400 uppercase tracking-wider"><i class="fa-solid fa-shield-halved me-1"></i>Panel de Control Directivo</span>
-                        <h2 class="text-xl font-extrabold mt-0.5">Administración, Solicitudes y Trazabilidad de Auditoría</h2>
+                        <h2 class="text-xl font-extrabold mt-0.5">Administración, Gestor de Hitos y Trazabilidad</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Control institucional estricto conforme a la tabla de accesos y acuerdos del Comité.</p>
                     </div>
-                    <span id="adminLoggedBadge" class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-bold self-start sm:self-auto">
-                        Sesión Activa con Privilegios
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="abrirModalNuevoHitoAdmin()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Crear Nuevo Hito
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
@@ -306,8 +308,8 @@
                         <h3 id="adminCountLogs" class="text-2xl font-bold text-indigo-400 mt-1">0</h3>
                     </div>
                     <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                        <span class="text-[11px] text-slate-400">Notificaciones Programadas</span>
-                        <h3 class="text-2xl font-bold text-emerald-400 mt-1">Activas</h3>
+                        <span class="text-[11px] text-slate-400">Total Hitos en Matriz</span>
+                        <h3 id="adminCountTotalHitos" class="text-2xl font-bold text-emerald-400 mt-1">48</h3>
                     </div>
                 </div>
             </div>
@@ -364,38 +366,6 @@
                         </thead>
                         <tbody id="tablaAuditoriaLogs" class="divide-y divide-slate-100"></tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- Centro de Utilidades y Notificaciones de Correo -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 pb-3">
-                    <div>
-                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-envelopes-bulk text-indigo-600"></i> Centro de Utilidades y Notificaciones por Correo
-                        </h3>
-                        <p class="text-xs text-slate-500">Configuración y envío de avisos preventivos a enlaces de dependencias</p>
-                    </div>
-                    <button onclick="enviarAlertaVencimientos()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5 self-start sm:self-auto">
-                        <i class="fa-solid fa-paper-plane"></i> Emitir Alerta de Hitos por Vencer
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                        <strong class="text-slate-900 block font-bold mb-1">Alerta Preventiva 30 Días</strong>
-                        <p class="text-slate-500 text-[11px]">Notificación anticipada para preparación de anexos y carpetas de expedientes.</p>
-                        <span class="inline-block mt-2 text-emerald-700 font-bold text-[10px] bg-emerald-100 px-2 py-0.5 rounded">Programada</span>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                        <strong class="text-slate-900 block font-bold mb-1">Alerta Crítica 15 Días</strong>
-                        <p class="text-slate-500 text-[11px]">Recordatorio urgente a titulares de áreas y enlaces sobre plazos perentorios.</p>
-                        <span class="inline-block mt-2 text-amber-700 font-bold text-[10px] bg-amber-100 px-2 py-0.5 rounded">Programada</span>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                        <strong class="text-slate-900 block font-bold mb-1">Aviso Final 5 Días</strong>
-                        <p class="text-slate-500 text-[11px]">Alerta roja con copia a Secretaría de la Honestidad y Liquidador.</p>
-                        <span class="inline-block mt-2 text-rose-700 font-bold text-[10px] bg-rose-100 px-2 py-0.5 rounded">Programada</span>
-                    </div>
                 </div>
             </div>
         </section>
@@ -526,7 +496,7 @@
                 <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex items-center justify-between">
                     <div>
                         <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">V2 - Auditoría ASEG</span>
-                        <span class="text-2xl font-extrabold text-amber-900">22 Acciones </span>
+                        <span class="text-2xl font-extrabold text-amber-900">22 Acciones</span>
                         <span class="text-[11px] text-amber-600 block mt-0.5">Cuenta Pública 2025</span>
                     </div>
                     <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-lg">
@@ -979,7 +949,7 @@
 
 
     <!-- ========================================================= -->
-    <!-- MODAL: GESTIÓN DIRECTA DEL ÁREA RESPONSABLE (PUNTO 4)    -->
+    <!-- MODAL: GESTIÓN DIRECTA DEL ÁREA RESPONSABLE               -->
     <!-- ========================================================= -->
     <div id="modal-hito-fiscalizacion" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
@@ -1067,7 +1037,7 @@
 
 
     <!-- ========================================================= -->
-    <!-- MODAL: MANUAL DE USUARIO Y FLUJOGRAMA (PUNTO 5)           -->
+    <!-- MODAL: MANUAL DE USUARIO Y FLUJOGRAMA                     -->
     <!-- ========================================================= -->
     <div id="modal-manual-usuario" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
@@ -1092,32 +1062,32 @@
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">1</span>
                             <strong class="block text-[11px] text-slate-800">Ingreso</strong>
-                            <span class="text-[10px] text-slate-500">Credenciales de Área</span>
+                            <span class="text-[10px] text-slate-500">Credenciales</span>
                         </div>
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">2</span>
                             <strong class="block text-[11px] text-slate-800">Filtrado</strong>
-                            <span class="text-[10px] text-slate-500">Por Área y Vertiente</span>
+                            <span class="text-[10px] text-slate-500">Por Área</span>
                         </div>
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">3</span>
                             <strong class="block text-[11px] text-slate-800">Gestión</strong>
-                            <span class="text-[10px] text-slate-500">Ver / Subir Docs</span>
+                            <span class="text-[10px] text-slate-500">Subir Docs</span>
                         </div>
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">4</span>
                             <strong class="block text-[11px] text-slate-800">Avance</strong>
-                            <span class="text-[10px] text-slate-500">Slider y Prioridad</span>
+                            <span class="text-[10px] text-slate-500">Slider y Prio</span>
                         </div>
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">5</span>
                             <strong class="block text-[11px] text-slate-800">URL Drive</strong>
-                            <span class="text-[10px] text-slate-500">Pegar Enlace Oficial</span>
+                            <span class="text-[10px] text-slate-500">Enlace Oficial</span>
                         </div>
                         <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
                             <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold inline-flex items-center justify-center mb-1 text-[11px]">6</span>
                             <strong class="block text-[11px] text-emerald-800">Firma</strong>
-                            <span class="text-[10px] text-emerald-600">Huella Inmutable</span>
+                            <span class="text-[10px] text-emerald-600">Huella Digital</span>
                         </div>
                     </div>
                 </div>
@@ -1126,7 +1096,7 @@
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
                     <h4 class="font-bold text-slate-900 text-xs">Perfiles y Niveles de Acceso:</h4>
                     <ul class="space-y-1.5 text-[11px] text-slate-600">
-                        <li><strong>• Administrador:</strong> Validación de solicitudes, emisión de alertas y gestión de usuarios.</li>
+                        <li><strong>• Administrador:</strong> Creación, edición, eliminación de hitos, validación de solicitudes y alertas.</li>
                         <li><strong>• Enlace de Área:</strong> Actualización de avance, prioridad y vinculación de archivos Drive de su adscripción.</li>
                         <li><strong>• Modo Consulta / Auditor:</strong> Acceso a indicadores ejecutivos y descarga de soportes oficiales.</li>
                     </ul>
@@ -1136,6 +1106,88 @@
             <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
                 <button onclick="closeModal('modal-manual-usuario')" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Entendido / Cerrar</button>
             </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MODAL: CREACIÓN / EDICIÓN DE HITO POR ADMIN (CRUD)        -->
+    <!-- ========================================================= -->
+    <div id="modal-admin-hito-crud" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
+            <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
+                <h3 id="modalAdminCrudTitle" class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Gestor Maestro de Hitos (Admin)
+                </h3>
+                <button onclick="closeModal('modal-admin-hito-crud')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form onsubmit="guardarHitoAdminCrud(event)" class="p-5 space-y-4 text-xs overflow-y-auto">
+                <input type="hidden" id="crudHitoModo" value="crear">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">ID Folio:</label>
+                        <input type="text" id="crudHitoId" class="w-full p-2 border rounded-xl font-mono text-xs uppercase" placeholder="Ej. V1-11 o INF-E01" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Vertiente:</label>
+                        <select id="crudHitoVertiente" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
+                            <option value="INF">INF - Informes Mensuales</option>
+                            <option value="V1">V1 - Liquidación IEC</option>
+                            <option value="V2">V2 - Auditoría ASEG</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Numeral / Orden:</label>
+                        <input type="text" id="crudHitoNumeral" class="w-full p-2 border rounded-xl text-xs" placeholder="Ej. 11 o A5" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento:</label>
+                    <input type="text" id="crudHitoTitulo" class="w-full p-2 border rounded-xl text-xs" placeholder="Título formal del entregable u obligación..." required>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Área Responsable (SCUL):</label>
+                        <input type="text" id="crudHitoArea" class="w-full p-2 border rounded-xl text-xs" placeholder="Ej. Dirección General de Administración" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Fundamento Normativo / Oficio:</label>
+                        <input type="text" id="crudHitoNorma" class="w-full p-2 border rounded-xl text-xs" placeholder="Ej. Lineamientos Art. 10 / Decreto 345" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nivel Prioridad:</label>
+                        <select id="crudHitoPrioridad" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
+                            <option value="Urgente">Urgente</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Media" selected>Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus:</label>
+                        <select id="crudHitoEstatus" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Validación">Validación</option>
+                            <option value="Concluido">Concluido</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Avance (%):</label>
+                        <input type="number" id="crudHitoAvance" min="0" max="100" value="0" class="w-full p-2 border rounded-xl text-xs font-bold text-indigo-700">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="closeModal('modal-admin-hito-crud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Guardar Hito en Matriz</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2201,6 +2253,86 @@
             { fecha: new Date().toLocaleString(), usuario: 'Sistema', accion: 'Inicialización', detalle: 'Tablero consolidado IEC cargado con éxito' }
         ];
 
+        // EXPLICACIÓN DINÁMICA DE LOS 5 KPIS AL HACER CLIC
+        function mostrarDetalleKpi(tipo) {
+            const contenedor = document.getElementById('dashDetailContainer');
+            const titulo = document.getElementById('dashDetailTitle');
+            const subtitulo = document.getElementById('dashDetailSubtitle');
+            contenedor.innerHTML = '';
+
+            const fuentes = {
+                'bienes': {
+                    t: 'Origen de Datos: 2,570 Bienes sin Ubicar',
+                    st: 'Fuente Oficial: Oficio L-IEC 099-2025 y Acta de Sesión del Comité (10/Dic/2025)',
+                    detalles: [
+                        { concepto: 'Universo Total de Bienes Muebles', valor: '20,658 activos', nota: 'Padrón registrado en SAP S/4 HANA del Instituto Estatal de la Cultura.' },
+                        { concepto: 'Bienes en Reasignación (Fase 1 Capitalizada)', valor: '1,682 activos', nota: 'Formalizados en noviembre de 2025 con actas de entrega para la SCUL.' },
+                        { concepto: 'Bienes Pendientes de Localización Física', valor: '2,570 activos', nota: 'Concentrados en Programa PAICE, Programa de Orquestas y Escuela Huatzindeo (Salvatierra).' },
+                        { concepto: 'Acción Requerida', valor: 'Brigadas de Campo y Archivo', nota: 'Búsqueda de facturas anteriores en AGEG y deslinde de responsabilidades.' }
+                    ]
+                },
+                'reintegros': {
+                    t: 'Origen de Datos: $43.41 MDP Reintegrados a Finanzas',
+                    st: 'Fuente Oficial: Informes de Gestión (Ago, Oct, Nov 2025) y Recibos Oficiales SF',
+                    detalles: [
+                        { concepto: 'Reintegro Remanentes Taquilla FIC', valor: '$16,354,747.21 MXN', nota: 'Enterado a Finanzas en agosto de 2025.' },
+                        { concepto: 'Reintegro Recursos Propios (2021-2024)', valor: '$27,000,000.00 MXN', nota: 'Enterado a Finanzas en octubre de 2025.' },
+                        { concepto: 'Intereses Bancarios Taquilla FIC', valor: '$55,111.05 MXN', nota: 'Generados en ago-oct y devueltos en noviembre de 2025.' },
+                        { concepto: 'Total Devuelto al Gobierno del Estado', valor: '$43,409,858.26 MXN', nota: '100% respaldado con recibo de caja de la Secretaría de Finanzas.' }
+                    ]
+                },
+                'vehiculos': {
+                    t: 'Origen de Datos: Flotilla Vehicular y Remolques (100%)',
+                    st: 'Fuente Oficial: Informes de Gestión (Mayo, Julio y Septiembre 2025)',
+                    detalles: [
+                        { concepto: 'Vehículos Operativos Endosados', valor: '14 Unidades', nota: '13 transferidos en mayo 2025 y el último vehículo en septiembre 2025.' },
+                        { concepto: 'Remolques Transferidos', valor: '14 Unidades', nota: 'Facturas endosadas y entregadas en julio de 2025.' },
+                        { concepto: 'Validación Jurídica', valor: '100% Concluido', nota: 'Baja formal en Control Patrimonial y alta en inventario SCUL.' }
+                    ]
+                },
+                'sat': {
+                    t: 'Origen de Datos: Estatus Fiscal e.Firma y RFC ante el SAT',
+                    st: 'Fuente Oficial: Informes de Julio, Septiembre y Noviembre 2025',
+                    detalles: [
+                        { concepto: 'Representación Legal del Liquidador', valor: 'Acreditada', nota: 'Reconocida por el SAT en Irapuato tras dictamen de facultades.' },
+                        { concepto: 'e.Firma Institucional', valor: 'Activa y Vigente', nota: 'Certificado digital renovado exitosamente en septiembre de 2025.' },
+                        { concepto: 'Cita para Cancelación de RFC', valor: 'SAT Celaya (09/Dic/2025)', nota: 'Inicio de trámite de baja fiscal condicionado a cierre de impuestos de nómina.' }
+                    ]
+                },
+                'avance': {
+                    t: 'Origen de Datos: Avance Global Ponderado',
+                    st: 'Fuente Oficial: Matriz Maestra Consolidada (48 Registros)',
+                    detalles: [
+                        { concepto: 'Informes Mensuales de Gestión (INF)', valor: '16 Acciones (Avance prom. 86%)', nota: 'Entregables derivados de los 14 informes mensuales.' },
+                        { concepto: 'Hitos Clave Liquidación IEC (V1)', valor: '10 Hitos (Avance prom. 76%)', nota: 'Obligaciones marcadas en Lineamientos de Extinción.' },
+                        { concepto: 'Requerimientos Auditoría ASEG (V2)', valor: '22 Acciones (Avance prom. 80%)', nota: 'Oficios de revisión de Cuenta Pública.' }
+                    ]
+                }
+            };
+
+            const info = fuentes[tipo];
+            if (!info) return;
+
+            titulo.innerText = info.t;
+            subtitulo.innerText = info.st;
+
+            info.detalles.forEach(d => {
+                contenedor.innerHTML += `
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <strong class="text-slate-900 block text-xs">${d.concepto}</strong>
+                            <span class="text-slate-500 text-[11px] block mt-0.5">${d.nota}</span>
+                        </div>
+                        <span class="px-3 py-1 bg-white border border-slate-200 font-extrabold text-xs text-indigo-700 rounded-lg shrink-0 shadow-sm">
+                            ${d.valor}
+                        </span>
+                    </div>
+                `;
+            });
+
+            openModal('modal-dashboard-detail');
+        }
+
         // RENDERIZADO Y CONTROL DE FISCALIZACIÓN
         function renderTablaFiscalizacion() {
             const tbody = document.getElementById('tablaHitosFiscalizacion');
@@ -2284,6 +2416,9 @@
             const kpiDocs = document.getElementById('kpiDocsAcreditados');
             if(kpiDocs) kpiDocs.innerText = `${docsSubidos} / ${docsTotales}`;
             
+            const adminCountTotal = document.getElementById('adminCountTotalHitos');
+            if(adminCountTotal) adminCountTotal.innerText = hitosFiscalizacionData.length;
+
             renderCharts(hitosFiscalizacionData);
         }
 
@@ -2405,6 +2540,83 @@
                 alert(`¡Hito ${hitoId} actualizado exitosamente por el Área Responsable!`);
                 renderTablaFiscalizacion();
                 closeModal('modal-hito-fiscalizacion');
+            }
+        }
+
+        // =========================================================================
+        // FUNCIONES CRUD PARA EL ADMINISTRADOR (CREAR, EDITAR, ELIMINAR HITOS)
+        // =========================================================================
+        function abrirModalNuevoHitoAdmin() {
+            document.getElementById('modalAdminCrudTitle').innerHTML = '<i class="fa-solid fa-plus text-amber-400"></i> Crear Nuevo Hito en Matriz';
+            document.getElementById('crudHitoModo').value = 'crear';
+            document.getElementById('crudHitoId').value = '';
+            document.getElementById('crudHitoId').readOnly = false;
+            document.getElementById('crudHitoNumeral').value = '';
+            document.getElementById('crudHitoTitulo').value = '';
+            document.getElementById('crudHitoArea').value = '';
+            document.getElementById('crudHitoNorma').value = '';
+            document.getElementById('crudHitoAvance').value = 0;
+            openModal('modal-admin-hito-crud');
+        }
+
+        function guardarHitoAdminCrud(e) {
+            e.preventDefault();
+            const modo = document.getElementById('crudHitoModo').value;
+            const id = document.getElementById('crudHitoId').value.trim().toUpperCase();
+            const vertiente = document.getElementById('crudHitoVertiente').value;
+            const numeral = document.getElementById('crudHitoNumeral').value.trim();
+            const titulo = document.getElementById('crudHitoTitulo').value.trim();
+            const area = document.getElementById('crudHitoArea').value.trim();
+            const norma = document.getElementById('crudHitoNorma').value.trim();
+            const prioridad = document.getElementById('crudHitoPrioridad').value;
+            const estatus = document.getElementById('crudHitoEstatus').value;
+            const avance = parseInt(document.getElementById('crudHitoAvance').value) || 0;
+
+            let vertNombre = "V1 - LIQUIDACIÓN IEC";
+            if(vertiente === "V2") vertNombre = "V2 - FISCALIZACIÓN ASEG";
+            if(vertiente === "INF") vertNombre = "Informes Mensuales IEC";
+
+            if (modo === 'crear') {
+                const existe = hitosFiscalizacionData.find(h => h.id === id);
+                if (existe) {
+                    alert(`El folio ${id} ya existe en la matriz.`);
+                    return;
+                }
+                const nuevoHito = {
+                    id: id,
+                    vertiente: vertiente,
+                    vertienteNombre: vertNombre,
+                    numeral: numeral,
+                    titulo: titulo,
+                    normativa: norma,
+                    area: area,
+                    riesgo: prioridad === "Urgente" ? "Crítico" : prioridad,
+                    prioridadArea: prioridad,
+                    estatus: estatus,
+                    avancePorcentaje: avance,
+                    documentos: [{ id_doc: `DOC-${id}-A`, nombre: `Expediente Soporte ${id}`, subido: false, url: null }]
+                };
+                hitosFiscalizacionData.unshift(nuevoHito);
+                registrarAuditoria('Creación de Hito por Admin', nuevoHito);
+            }
+
+            localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+            alert('¡Hito guardado y sincronizado exitosamente en la matriz maestra!');
+            renderTablaFiscalizacion();
+            closeModal('modal-admin-hito-crud');
+        }
+
+        function eliminarHitoAdmin(idFolio) {
+            if (!currentUser || !currentUser.esAdmin) {
+                alert('Solo el Administrador del Comité puede eliminar hitos.');
+                return;
+            }
+            if (confirm(`¿Confirma que desea eliminar el hito ${idFolio}? Esta acción quedará registrada en la bitácora de auditoría.`)) {
+                hitosFiscalizacionData = hitosFiscalizacionData.filter(h => h.id !== idFolio);
+                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+                registrarAuditoria('Eliminación de Hito', { id_eliminado: idFolio, admin: currentUser.usuario });
+                alert(`Hito ${idFolio} eliminado correctamente.`);
+                renderTablaFiscalizacion();
             }
         }
 
