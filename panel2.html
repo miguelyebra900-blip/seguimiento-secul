@@ -1704,6 +1704,161 @@
             </div>
         </div>
 
+    // =========================================================================
+        // CONTROL DEL ZOOM Y EXPORTACIÓN DE GRÁFICAS (Analítica con Desglose)
+        // =========================================================================
+        let chartEnlargedInstance = null;
+
+        const chartMetadata = {
+            'global': {
+                title: 'Análisis Ampliado: Avance Ponderado Global (48 Hitos)',
+                desc: 'Muestra el listado completo de los 48 hitos y requerimientos que conforman la matriz maestra (Informes Mensuales, Liquidación IEC y Fiscalización ASEG).',
+                type: 'doughnut',
+                labels: ['Completado', 'Pendiente'],
+                dataFn: () => {
+                    const total = hitosFiscalizacionData.length;
+                    const suma = hitosFiscalizacionData.reduce((acc, curr) => acc + (curr.avancePorcentaje || 0), 0);
+                    const avg = total > 0 ? Math.round(suma / total) : 0;
+                    return [avg, 100 - avg];
+                },
+                colors: ['#2563EB', '#E2E8F0'],
+                getItems: () => hitosFiscalizacionData
+            },
+            'prioridades': {
+                title: 'Análisis Ampliado: Distribución por Nivel de Prioridad',
+                desc: 'Clasificación detallada de los hitos según su nivel de criticidad y atención requerida (Urgente, Alta, Media, Baja).',
+                type: 'pie',
+                labels: ['Urgente', 'Alta', 'Media', 'Baja'],
+                dataFn: () => {
+                    const u = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Urgente' || d.riesgo === 'Crítico').length;
+                    const a = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Alta' || d.riesgo === 'Alto').length;
+                    const m = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Media' || d.riesgo === 'Medio').length;
+                    const b = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Baja' || d.riesgo === 'Bajo').length;
+                    return [u, a, m, b];
+                },
+                colors: ['#DC2626', '#D97706', '#2563EB', '#94A3B8'],
+                getItems: () => hitosFiscalizacionData.sort((x, y) => {
+                    const orden = {'Urgente': 1, 'Crítico': 1, 'Alta': 2, 'Alto': 2, 'Media': 3, 'Medio': 3, 'Baja': 4, 'Bajo': 4};
+                    return (orden[x.prioridadArea || x.riesgo] || 5) - (orden[y.prioridadArea || y.riesgo] || 5);
+                })
+            },
+            'estatus': {
+                title: 'Análisis Ampliado: Estatus de Compromisos',
+                desc: 'Desglose operativo de los compromisos condicionados en Concluido, En Proceso y Validación.',
+                type: 'doughnut',
+                labels: ['Concluido', 'En Proceso', 'Validación'],
+                dataFn: () => {
+                    const c = hitosFiscalizacionData.filter(d => d.estatus === 'Concluido').length;
+                    const p = hitosFiscalizacionData.filter(d => d.estatus === 'En Proceso').length;
+                    const v = hitosFiscalizacionData.filter(d => d.estatus === 'Validación').length;
+                    return [c, p, v];
+                },
+                colors: ['#16A34A', '#2563EB', '#D97706'],
+                getItems: () => hitosFiscalizacionData.sort((x, y) => (x.estatus || '').localeCompare(y.estatus || ''))
+            },
+            'areas': {
+                title: 'Análisis Ampliado: Rendimiento por Área (SCUL)',
+                desc: 'Agrupación de compromisos y acciones asignadas a cada área institucional (Patrimonio, Jurídico, Obras, Finanzas, Archivo y Auditoría).',
+                type: 'bar',
+                labels: ['Patrimonio', 'Jurídico', 'Obras', 'Finanzas', 'Archivo', 'Auditoría'],
+                dataFn: () => {
+                    const areasKeys = ['Materiales', 'Jurídic', 'Planeación', 'Finanzas', 'Archivo', 'Liquidador'];
+                    return areasKeys.map(key => {
+                        const items = hitosFiscalizacionData.filter(d => (d.area || '').toLowerCase().includes(key.toLowerCase()));
+                        if (items.length === 0) return 0;
+                        const sum = items.reduce((acc, c) => acc + (c.avancePorcentaje || 0), 0);
+                        return Math.round(sum / items.length);
+                    });
+                },
+                colors: '#1E3A8A',
+                getItems: () => hitosFiscalizacionData
+            }
+        };
+
+        function openChartZoom(chartKey) {
+            const meta = chartMetadata[chartKey];
+            if(!meta) return;
+
+            document.getElementById('modalChartTitle').innerText = meta.title;
+            document.getElementById('modalChartDescription').innerText = meta.desc;
+
+            const listContainer = document.getElementById('modalChartItemsList');
+            if(listContainer) {
+                listContainer.innerHTML = '';
+                const items = meta.getItems();
+
+                items.forEach(h => {
+                    const prio = h.prioridadArea || h.riesgo || 'Media';
+                    const est = h.estatus || 'En Proceso';
+                    
+                    listContainer.innerHTML += `
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-100 transition">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-700 text-[11px]">${h.id}</span>
+                                    <span class="px-2 py-0.5 bg-slate-200 text-slate-800 rounded text-[9px] font-bold">${est}</span>
+                                    <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-bold">${prio}</span>
+                                </div>
+                                <strong class="text-slate-900 block text-xs mt-1">${h.titulo}</strong>
+                                <span class="text-slate-500 text-[10px] block"><i class="fa-solid fa-user-shield me-1"></i>${h.area}</span>
+                            </div>
+                            <button onclick="closeModal('modal-chart-detail'); abrirModalGestionFiscalizacion('${h.id}');" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shrink-0 flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-eye"></i> Ver
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            openModal('modal-chart-detail');
+
+            setTimeout(() => {
+                const canvasEl = document.getElementById('chartModalEnlarged');
+                if(!canvasEl) return;
+                const ctx = canvasEl.getContext('2d');
+                if (chartEnlargedInstance) chartEnlargedInstance.destroy();
+
+                chartEnlargedInstance = new Chart(ctx, {
+                    type: meta.type,
+                    data: {
+                        labels: meta.labels,
+                        datasets: [{
+                            data: meta.dataFn(),
+                            backgroundColor: meta.colors,
+                            borderWidth: meta.type === 'bar' ? 0 : 2,
+                            borderRadius: meta.type === 'bar' ? 6 : 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: meta.type === 'bar' ? 'top' : 'bottom',
+                                labels: { boxWidth: 12, font: { size: 11 } }
+                            }
+                        },
+                        scales: meta.type === 'bar' ? {
+                            y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
+                            x: { ticks: { font: { size: 10 } } }
+                        } : {}
+                    }
+                });
+            }, 100);
+        }
+
+        function exportChartAsImage() {
+            const canvas = document.getElementById('chartModalEnlarged');
+            if(!canvas) return;
+            const imageURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imageURL;
+            link.download = 'grafica-transicion-secul.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    
     <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA -->
         <script>
         // Configuración de Supabase
