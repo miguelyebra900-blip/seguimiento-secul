@@ -2774,6 +2774,52 @@
             }
         }
 
+        // FUNCIÓN NUEVA: Agregar expediente/documental requerido dinámicamente al hito actual
+        function agregarDocumentoAResponsable() {
+            if(!currentUser) {
+                alert('Debe identificarse con su cuenta institucional para agregar nuevos expedientes requeridos.');
+                openModal('modal-auth');
+                return;
+            }
+
+            const hitoId = document.getElementById('uploadHitoId').value;
+            const inputNombre = document.getElementById('nuevoDocNombreInput');
+            const nombreDoc = inputNombre.value.trim();
+
+            if(!nombreDoc) {
+                alert('Por favor ingrese el nombre del expediente o documento requerido.');
+                inputNombre.focus();
+                return;
+            }
+
+            const hito = hitosFiscalizacionData.find(h => h.id === hitoId);
+            if(hito) {
+                const nuevoIdDoc = `DOC-${hito.id}-${Date.now().toString().slice(-4)}`;
+                
+                hito.documentos.push({
+                    id_doc: nuevoIdDoc,
+                    nombre: nombreDoc,
+                    subido: false,
+                    url: null
+                });
+
+                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+
+                registrarAuditoria('Adición de Expediente Requerido', {
+                    hito_id: hito.id,
+                    documento_requerido: nombreDoc,
+                    id_doc: nuevoIdDoc,
+                    usuario: currentUser.usuario
+                });
+
+                inputNombre.value = '';
+                abrirModalGestionFiscalizacion(hito.id);
+                renderTablaFiscalizacion();
+
+                alert(`¡Expediente "${nombreDoc}" agregado correctamente al hito ${hito.id}!`);
+            }
+        }
+
         // =========================================================================
         // FUNCIONES CRUD PARA EL ADMINISTRADOR (CREAR, EDITAR, ELIMINAR HITOS)
         // =========================================================================
@@ -3018,7 +3064,318 @@
             });
             renderActionsTable(filtered);
         }
-// Edición de Acción Individual de la Matriz (Matriz Consolidada)
+
+        // Modal Detallado de Hitos A - F
+        function openHitoDetailedModal(areaKey) {
+            const data = hitosDetailedData[areaKey];
+            if(!data) return;
+
+            document.getElementById('hitoDetailBadge').innerText = data.id;
+            document.getElementById('hitoDetailTitle').innerText = `Hito ${data.id}: ${data.nombre}`;
+
+            const listContainer = document.getElementById('hitoDetailItemsList');
+            listContainer.innerHTML = '';
+
+            data.items.forEach(item => {
+                listContainer.innerHTML += `
+                    <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+                        <strong class="text-slate-900 block text-xs mb-0.5">• ${item.titulo}: ${item.detalle}</strong>
+                        <span class="text-slate-500 block text-[11px] mb-2 leading-relaxed"><strong>Acción a realizar:</strong> ${item.accion}</span>
+                        <button onclick="openDocModal('Hito ${data.id} - ${item.titulo}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 font-bold transition flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-brands fa-google-drive text-amber-500"></i> Subir Documentos Drive
+                        </button>
+                    </li>
+                `;
+            });
+
+            openModal('modal-hito-detailed');
+        }
+
+        // DATOS Y CONTROL DE HITOS CRÍTICOS Y DE TRANSICIÓN LEGAL
+        const criticalData = {
+            'critical-1': {
+                title: '01. Entrega-Recepción de Expedientes Laborales',
+                subtitle: 'Plazo Formal: Mayo 2025',
+                headerBg: 'bg-gradient-to-r from-rose-700 to-rose-900',
+                description: 'Realización del acto formal de entrega-recepción física y digital de carpetas del personal del IEC y Fórum a la Secretaría de Cultura (303 plazas).',
+                risk: 'Vulnerabilidad jurídica en derechos adquiridos y antigüedad de los trabajadores.',
+                ref: 'Decreto 345 / Lineamientos de Extinción IEC',
+                entities: [
+                    { name: 'IEC / Liquidador', action: 'Inventariar y entregar expedientes laborales físicos y digitales.' },
+                    { name: 'DGRH (Finanzas)', action: 'Recibir formalmente y asegurar dispersión continua de nómina.' },
+                    { name: 'Secretaría de Cultura (SC)', action: 'Supervisar correcta asunción de plantilla transferida.' }
+                ]
+            },
+            'critical-2': {
+                title: '02. Reporte Definitivo de Recursos Federales (SRFT - SHCP)',
+                subtitle: 'Plazo Límite: Julio de 2025',
+                headerBg: 'bg-gradient-to-r from-amber-600 to-amber-800',
+                description: 'Captura y cierre formal del ejercicio y destino de recursos federales transferidos en la plataforma de la SHCP.',
+                risk: 'Observaciones de la Auditoría Superior de la Federación (ASF) y reintegros económicos forzosos.',
+                ref: 'Artículo 29 de los Lineamientos de Liquidación IEC',
+                entities: [
+                    { name: 'Liquidador IEC', action: 'Conciliar los recursos y emitir informe de cierre.' },
+                    { name: 'Secretaría de Finanzas', action: 'Validar y cerrar usuarios en la plataforma federal.' }
+                ]
+            },
+            'critical-3': {
+                title: '03. Término Legal de Liquidación y Prórroga de Comité',
+                subtitle: 'Plazo Ampliado: 2025 – 2026',
+                headerBg: 'bg-gradient-to-r from-rose-800 to-slate-900',
+                description: 'Concesión de prórroga formal en el Comité de Extinción para concluir la búsqueda de 2,570 bienes muebles faltantes y culminar la regularización con Control Patrimonial.',
+                risk: 'Riesgo de pliego de observaciones si no se formaliza el acta definitiva con firmas autógrafas.',
+                ref: 'Acta de Sesión de Comité de Extinción (10/Dic/2025)',
+                entities: [
+                    { name: 'Comité de Extinción', action: 'Aprobar prórroga y validar cronograma con Control Patrimonial.' },
+                    { name: 'Liquidador IEC', action: 'Depuración total de 20,658 bienes muebles y cierre contable.' }
+                ]
+            },
+            'critical-4': {
+                title: '04. Baja de RFC del IEC y Entrega Extraordinaria',
+                subtitle: 'Cierre Fiscal Definitivo',
+                headerBg: 'bg-gradient-to-r from-slate-800 to-slate-950',
+                description: 'Cancelación del RFC ante el SAT (cita oficinas Celaya), liquidación de impuestos de nómina y entrega de plaza nivel 8 con 131 bienes resguardados.',
+                risk: 'Mantener personalidad fiscal genera responsabilidades tributarias extemporáneas.',
+                ref: 'Artículo 37 de los Lineamientos de Liquidación / Código Fiscal',
+                entities: [
+                    { name: 'Liquidador IEC', action: 'Concluir trámite de baja fiscal ante el SAT con e.Firma vigente.' },
+                    { name: 'Secretaría de la Honestidad', action: 'Supervisar el acta extraordinaria de entrega final.' }
+                ]
+            }
+        };
+
+        function openCriticalModal(key) {
+            const data = criticalData[key];
+            if(!data) return;
+
+            document.getElementById('critical-title').innerText = data.title;
+            document.getElementById('critical-subtitle').innerText = data.subtitle;
+            document.getElementById('critical-description').innerText = data.description;
+            document.getElementById('critical-risk').innerText = data.risk;
+            document.getElementById('critical-ref').innerText = data.ref;
+
+            const header = document.getElementById('critical-modal-header');
+            header.className = `p-5 text-white flex justify-between items-center ${data.headerBg}`;
+
+            const container = document.getElementById('critical-entities-rows');
+            container.innerHTML = '';
+            data.entities.forEach(entity => {
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <span class="font-bold text-slate-900 block"><i class="fa-solid fa-building-columns text-indigo-600 me-1"></i> ${entity.name}</span>
+                            <span class="text-slate-600 text-[11px] block mt-0.5"><strong>Acción:</strong> ${entity.action}</span>
+                        </div>
+                        <button onclick="openDocModal('${data.title} - ${entity.name}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200 transition shrink-0">
+                            <i class="fa-brands fa-google-drive me-1"></i>Subir Drive
+                        </button>
+                    </div>
+                `;
+            });
+            openModal('modal-critical');
+        }
+
+        // Control de Modales del Dashboard Ejecutivo
+        function openDashboardDetailModal(categoria) {
+            const container = document.getElementById('dashDetailContainer');
+            const title = document.getElementById('dashDetailTitle');
+            const subtitle = document.getElementById('dashDetailSubtitle');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const mapas = {
+                'criticos_vencer': {
+                    t: 'Hitos Críticos: Patrimonio por Localizar',
+                    st: '2,570 bienes muebles bajo investigación y búsqueda documental',
+                    items: [
+                        { hito: 'Depuración Patrimonial Faltante', fecha: 'URGENTE', resp: 'IEC / Control Patrimonial', desc: 'Localización de 2,570 bienes en Salvatierra, PAICE y Orquestas.', estatus: 'En Búsqueda' }
+                    ]
+                },
+                'criticos_proceso': {
+                    t: 'Hitos Críticos: En Proceso Activo',
+                    st: 'Compromisos con seguimiento fiduciario y patrimonial',
+                    items: [
+                        { hito: '2do Convenio Modificatorio FIARCA', fecha: 'EN CURSO', resp: 'Fiduciaria Banorte / SCUL', desc: 'Transferencia de derechos y cese de erogaciones del IEC.', estatus: 'Validación' },
+                        { hito: 'Capitalización Fase 1 (1,682 Activos)', fecha: 'NOV 2025', resp: 'Contabilidad Gubernamental', desc: 'Registro contable de bienes transferidos a la Secretaría.', estatus: 'En Proceso' }
+                    ]
+                },
+                'criticos_post': {
+                    t: 'Hitos Críticos: Post-Liquidación y Cierre SAT',
+                    st: 'Actos de extinción tributaria y cancelación de RFC',
+                    items: [
+                        { hito: 'Baja de RFC ante el SAT', fecha: 'CELAYA', resp: 'Liquidador / SAT', desc: 'Cancelación formal tras obtención de e.Firma y saldado de cuentas.', estatus: 'Agendado' }
+                    ]
+                },
+                'operativos_desarrollo': {
+                    t: 'Hitos Operativos: En Desarrollo',
+                    st: 'Áreas estratégicas con inventarios y archivos en proceso',
+                    items: [
+                        { hito: 'Área A - Control Patrimonial', fecha: 'Avance 75%', resp: 'Materiales / IEC', desc: '20,658 bienes muebles: 100% vehículos endosados y capitalización.', estatus: 'En Desarrollo' },
+                        { hito: 'Área E - Archivo y Memoria', fecha: 'Avance 70%', resp: 'IEC / AGEG / SCUL', desc: 'Transferencia de expedientes históricos y administrativos.', estatus: 'En Desarrollo' }
+                    ]
+                },
+                'operativos_validacion': {
+                    t: 'Hitos Operativos: En Validación Normativa',
+                    st: 'Áreas con proyectos de decreto o conciliaciones fiscales',
+                    items: [
+                        { hito: 'Área B - Jurídico y FIARCA', fecha: 'Avance 65%', resp: 'Procuraduría Fiscal / Banorte', desc: 'Dictamen de FIARCA y acuerdos de destino inmobiliarios.', estatus: 'En Validación' },
+                        { hito: 'Área D - Cierre Financiero', fecha: 'Avance 85%', resp: 'Finanzas / SAT / IEC', desc: '$43.41 MDP reintegrados y cancelación de cuentas BBVA/Salamanca.', estatus: 'En Validación' }
+                    ]
+                },
+                'operativos_ejecucion': {
+                    t: 'Hitos Operativos: En Ejecución Activa',
+                    st: 'Obras públicas, proyectos de infraestructura y reportes periódicos',
+                    items: [
+                        { hito: 'Área C - Infraestructura', fecha: 'Avance 90%', resp: 'SICOM / SC', desc: 'Finiquito Teatro Juárez y Biblioteca Central León.', estatus: 'En Ejecución' },
+                        { hito: 'Área F - Informes y Gobernanza', fecha: 'Avance 85%', resp: 'Comité de Extinción', desc: '14 Informes mensuales rendidos y paquete fiscal 2026 integrado.', estatus: 'En Ejecución' }
+                    ]
+                }
+            };
+
+            const data = mapas[categoria];
+            if(!data) return;
+
+            title.innerText = data.t;
+            subtitle.innerText = data.st;
+
+            data.items.forEach(item => {
+                container.innerHTML += `
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-900 text-xs">${item.hito}</span>
+                                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded-full">${item.fecha}</span>
+                            </div>
+                            <span class="text-slate-600 block text-[11px] mt-0.5">${item.desc}</span>
+                            <span class="text-slate-400 block text-[10px]"><strong>Responsable:</strong> ${item.resp}</span>
+                        </div>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm shrink-0">
+                            ${item.estatus}
+                        </span>
+                    </div>
+                `;
+            });
+
+            openModal('modal-dashboard-detail');
+        }
+
+        // Declaración única de la instancia ampliada de gráficas
+        let chartEnlargedInstance = null;
+
+        const chartMetadata = {
+            'global': {
+                title: 'Análisis Ampliado: Avance Ponderado Global',
+                desc: 'Representa el porcentaje de cumplimiento consolidado del proceso de transición y extinción del IEC hacia la Secretaría de Cultura. Pondera los 48 registros de la matriz maestra.',
+                type: 'doughnut',
+                labels: ['Completado', 'Pendiente'],
+                dataFn: () => {
+                    const total = hitosFiscalizacionData.length;
+                    const suma = hitosFiscalizacionData.reduce((acc, curr) => acc + (curr.avancePorcentaje || 0), 0);
+                    const avg = total > 0 ? Math.round(suma / total) : 0;
+                    return [avg, 100 - avg];
+                },
+                colors: ['#2563EB', '#E2E8F0']
+            },
+            'prioridades': {
+                title: 'Análisis Ampliado: Distribución por Prioridad y Riesgo',
+                desc: 'Clasificación estratégica del total de obligaciones según su nivel de atención (Urgente/Crítico, Alta, Media y Baja).',
+                type: 'pie',
+                labels: ['Urgente / Crítico', 'Alta', 'Media', 'Baja'],
+                dataFn: () => {
+                    const u = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Urgente' || d.riesgo === 'Crítico').length;
+                    const a = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Alta' || d.riesgo === 'Alto').length;
+                    const m = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Media' || d.riesgo === 'Medio').length;
+                    const b = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Baja' || d.riesgo === 'Bajo').length;
+                    return [u, a, m, b];
+                },
+                colors: ['#DC2626', '#D97706', '#2563EB', '#94A3B8']
+            },
+            'estatus': {
+                title: 'Análisis Ampliado: Estatus Operativo de Compromisos',
+                desc: 'Mide la condición de trámite de los 48 hitos: Concluidos, En Proceso y En Validación.',
+                type: 'doughnut',
+                labels: ['Concluido', 'En Proceso', 'Validación'],
+                dataFn: () => {
+                    const c = hitosFiscalizacionData.filter(d => d.estatus === 'Concluido').length;
+                    const p = hitosFiscalizacionData.filter(d => d.estatus === 'En Proceso').length;
+                    const v = hitosFiscalizacionData.filter(d => d.estatus === 'Validación').length;
+                    return [c, p, v];
+                },
+                colors: ['#16A34A', '#2563EB', '#D97706']
+            },
+            'areas': {
+                title: 'Análisis Ampliado: Avance por Área Responsable (SCUL)',
+                desc: 'Porcentaje de rendimiento de cada dirección y coordinación responsable.',
+                type: 'bar',
+                labels: ['Patrimonio', 'Jurídico', 'Obras', 'Finanzas', 'Archivo', 'Auditoría'],
+                dataFn: () => {
+                    const areasKeys = ['Materiales', 'Jurídic', 'Planeación', 'Finanzas', 'Archivo', 'Liquidador'];
+                    return areasKeys.map(key => {
+                        const items = hitosFiscalizacionData.filter(d => (d.area || '').toLowerCase().includes(key.toLowerCase()));
+                        if (items.length === 0) return 0;
+                        const sum = items.reduce((acc, c) => acc + (c.avancePorcentaje || 0), 0);
+                        return Math.round(sum / items.length);
+                    });
+                },
+                colors: '#1E3A8A'
+            }
+        };
+
+        function openChartZoom(chartKey) {
+            const meta = chartMetadata[chartKey];
+            if(!meta) return;
+
+            document.getElementById('modalChartTitle').innerText = meta.title;
+            document.getElementById('modalChartDescription').innerText = meta.desc;
+
+            openModal('modal-chart-detail');
+
+            setTimeout(() => {
+                const ctx = document.getElementById('chartModalEnlarged').getContext('2d');
+                if (chartEnlargedInstance) chartEnlargedInstance.destroy();
+
+                chartEnlargedInstance = new Chart(ctx, {
+                    type: meta.type,
+                    data: {
+                        labels: meta.labels,
+                        datasets: [{
+                            data: meta.dataFn(),
+                            backgroundColor: meta.colors,
+                            borderWidth: meta.type === 'bar' ? 0 : 2,
+                            borderRadius: meta.type === 'bar' ? 6 : 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: meta.type === 'bar' ? 'top' : 'bottom',
+                                labels: { boxWidth: 12, font: { size: 11 } }
+                            }
+                        },
+                        scales: meta.type === 'bar' ? {
+                            y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
+                            x: { ticks: { font: { size: 10 } } }
+                        } : {}
+                    }
+                });
+            }, 100);
+        }
+
+        function exportChartAsImage() {
+            const canvas = document.getElementById('chartModalEnlarged');
+            if(!canvas) return;
+            const imageURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imageURL;
+            link.download = 'grafica-transicion-secul.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Edición de Acción Individual de la Matriz
         function abrirModalEdicionAccion(id) {
             if(!currentUser) {
                 alert('Debe iniciar sesión para ver y editar compromisos institucionales.');
@@ -3066,6 +3423,7 @@
                 alert('¡Compromiso actualizado con éxito y registrado en la bitácora de auditoría!');
             }
         }
+
         // Modales Básicos
         function openModal(id) {
             const m = document.getElementById(id);
@@ -3104,37 +3462,6 @@
             document.getElementById('doc-drive-url').value = '';
             document.getElementById('doc-description').value = '';
             closeModal('modal-doc-upload');
-        }
-
-        function openCriticalModal(key) {
-            const data = criticalData[key];
-            if(!data) return;
-
-            document.getElementById('critical-title').innerText = data.title;
-            document.getElementById('critical-subtitle').innerText = data.subtitle;
-            document.getElementById('critical-description').innerText = data.description;
-            document.getElementById('critical-risk').innerText = data.risk;
-            document.getElementById('critical-ref').innerText = data.ref;
-
-            const header = document.getElementById('critical-modal-header');
-            header.className = `p-5 text-white flex justify-between items-center ${data.headerBg}`;
-
-            const container = document.getElementById('critical-entities-rows');
-            container.innerHTML = '';
-            data.entities.forEach(entity => {
-                container.innerHTML += `
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div>
-                            <span class="font-bold text-slate-900 block"><i class="fa-solid fa-building-columns text-indigo-600 me-1"></i> ${entity.name}</span>
-                            <span class="text-slate-600 text-[11px] block mt-0.5"><strong>Acción:</strong> ${entity.action}</span>
-                        </div>
-                        <button onclick="openDocModal('${data.title} - ${entity.name}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200 transition shrink-0">
-                            <i class="fa-brands fa-google-drive me-1"></i>Subir Drive
-                        </button>
-                    </div>
-                `;
-            });
-            openModal('modal-critical');
         }
 
         // Solicitudes Modal
@@ -3396,570 +3723,12 @@
                 btnSubmit.disabled = false;
             }
         }
-// MODAL DETALLADO DE HITOS A - F (Áreas Estratégicas)
-        function openHitoDetailedModal(areaKey) {
-            const data = hitosDetailedData[areaKey];
-            if(!data) return;
 
-            document.getElementById('hitoDetailBadge').innerText = data.id;
-            document.getElementById('hitoDetailTitle').innerText = `Hito ${data.id}: ${data.nombre}`;
-
-            const listContainer = document.getElementById('hitoDetailItemsList');
-            listContainer.innerHTML = '';
-
-            data.items.forEach(item => {
-                listContainer.innerHTML += `
-                    <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
-                        <strong class="text-slate-900 block text-xs mb-0.5">• ${item.titulo}: ${item.detalle}</strong>
-                        <span class="text-slate-500 block text-[11px] mb-2 leading-relaxed"><strong>Acción a realizar:</strong> ${item.accion}</span>
-                        <button onclick="openDocModal('Hito ${data.id} - ${item.titulo}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 font-bold transition flex items-center gap-1.5 text-[11px]">
-                            <i class="fa-brands fa-google-drive text-amber-500"></i> Subir Documentos Drive
-                        </button>
-                    </li>
-                `;
-            });
-
-            openModal('modal-hito-detailed');
-        }
-
-        // DATOS Y CONTROL DE HITOS CRÍTICOS Y DE TRANSICIÓN LEGAL
-        const criticalData = {
-            'critical-1': {
-                title: '01. Entrega-Recepción de Expedientes Laborales',
-                subtitle: 'Plazo Formal: Mayo 2025',
-                headerBg: 'bg-gradient-to-r from-rose-700 to-rose-900',
-                description: 'Realización del acto formal de entrega-recepción física y digital de carpetas del personal del IEC y Fórum a la Secretaría de Cultura (303 plazas).',
-                risk: 'Vulnerabilidad jurídica en derechos adquiridos y antigüedad de los trabajadores.',
-                ref: 'Decreto 345 / Lineamientos de Extinción IEC',
-                entities: [
-                    { name: 'IEC / Liquidador', action: 'Inventariar y entregar expedientes laborales físicos y digitales.' },
-                    { name: 'DGRH (Finanzas)', action: 'Recibir formalmente y asegurar dispersión continua de nómina.' },
-                    { name: 'Secretaría de Cultura (SC)', action: 'Supervisar correcta asunción de plantilla transferida.' }
-                ]
-            },
-            'critical-2': {
-                title: '02. Reporte Definitivo de Recursos Federales (SRFT - SHCP)',
-                subtitle: 'Plazo Límite: Julio de 2025',
-                headerBg: 'bg-gradient-to-r from-amber-600 to-amber-800',
-                description: 'Captura y cierre formal del ejercicio y destino de recursos federales transferidos en la plataforma de la SHCP.',
-                risk: 'Observaciones de la Auditoría Superior de la Federación (ASF) y reintegros económicos forzosos.',
-                ref: 'Artículo 29 de los Lineamientos de Liquidación IEC',
-                entities: [
-                    { name: 'Liquidador IEC', action: 'Conciliar los recursos y emitir informe de cierre.' },
-                    { name: 'Secretaría de Finanzas', action: 'Validar y cerrar usuarios en la plataforma federal.' }
-                ]
-            },
-            'critical-3': {
-                title: '03. Término Legal de Liquidación y Prórroga de Comité',
-                subtitle: 'Plazo Ampliado: 2025 – 2026',
-                headerBg: 'bg-gradient-to-r from-rose-800 to-slate-900',
-                description: 'Concesión de prórroga formal en el Comité de Extinción para concluir la búsqueda de 2,570 bienes muebles faltantes y culminar la regularización con Control Patrimonial.',
-                risk: 'Riesgo de pliego de observaciones si no se formaliza el acta definitiva con firmas autógrafas.',
-                ref: 'Acta de Sesión de Comité de Extinción (10/Dic/2025)',
-                entities: [
-                    { name: 'Comité de Extinción', action: 'Aprobar prórroga y validar cronograma con Control Patrimonial.' },
-                    { name: 'Liquidador IEC', action: 'Depuración total de 20,658 bienes muebles y cierre contable.' }
-                ]
-            },
-            'critical-4': {
-                title: '04. Baja de RFC del IEC y Entrega Extraordinaria',
-                subtitle: 'Cierre Fiscal Definitivo',
-                headerBg: 'bg-gradient-to-r from-slate-800 to-slate-950',
-                description: 'Cancelación del RFC ante el SAT (cita oficinas Celaya), liquidación de impuestos de nómina y entrega de plaza nivel 8 con 131 bienes resguardados.',
-                risk: 'Mantener personalidad fiscal genera responsabilidades tributarias extemporáneas.',
-                ref: 'Artículo 37 de los Lineamientos de Liquidación / Código Fiscal',
-                entities: [
-                    { name: 'Liquidador IEC', action: 'Concluir trámite de baja fiscal ante el SAT con e.Firma vigente.' },
-                    { name: 'Secretaría de la Honestidad', action: 'Supervisar el acta extraordinaria de entrega final.' }
-                ]
-            }
-        };
-
-        function openCriticalModal(key) {
-            const data = criticalData[key];
-            if(!data) return;
-
-            document.getElementById('critical-title').innerText = data.title;
-            document.getElementById('critical-subtitle').innerText = data.subtitle;
-            document.getElementById('critical-description').innerText = data.description;
-            document.getElementById('critical-risk').innerText = data.risk;
-            document.getElementById('critical-ref').innerText = data.ref;
-
-            const header = document.getElementById('critical-modal-header');
-            header.className = `p-5 text-white flex justify-between items-center ${data.headerBg}`;
-
-            const container = document.getElementById('critical-entities-rows');
-            container.innerHTML = '';
-            data.entities.forEach(entity => {
-                container.innerHTML += `
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div>
-                            <span class="font-bold text-slate-900 block"><i class="fa-solid fa-building-columns text-indigo-600 me-1"></i> ${entity.name}</span>
-                            <span class="text-slate-600 text-[11px] block mt-0.5"><strong>Acción:</strong> ${entity.action}</span>
-                        </div>
-                        <button onclick="openDocModal('${data.title} - ${entity.name}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200 transition shrink-0">
-                            <i class="fa-brands fa-google-drive me-1"></i>Subir Drive
-                        </button>
-                    </div>
-                `;
-            });
-            openModal('modal-critical');
-        }
         // Inicialización integral
         renderActionsTable(accionesMatriz);
         renderTablaFiscalizacion();
         updateAuthUI();
-        actualizarLogsAuditoria(); // o actualizarLogsAuditoria
-    // Función para agregar expediente/documental requerido dinámicamente
-        function agregarDocumentoAResponsable() {
-            if(!currentUser) {
-                alert('Debe identificarse con su cuenta institucional para agregar nuevos expedientes requeridos.');
-                openModal('modal-auth');
-                return;
-            }
-
-            const hitoId = document.getElementById('uploadHitoId').value;
-            const inputNombre = document.getElementById('nuevoDocNombreInput');
-            const nombreDoc = inputNombre.value.trim();
-
-            if(!nombreDoc) {
-                alert('Por favor ingrese el nombre del expediente o documento requerido.');
-                inputNombre.focus();
-                return;
-            }
-
-            const hito = hitosFiscalizacionData.find(h => h.id === hitoId);
-            if(hito) {
-                const nuevoIdDoc = `DOC-${hito.id}-${Date.now().toString().slice(-4)}`;
-                
-                hito.documentos.push({
-                    id_doc: nuevoIdDoc,
-                    nombre: nombreDoc,
-                    subido: false,
-                    url: null
-                });
-
-                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
-
-                registrarAuditoria('Adición de Expediente Requerido', {
-                    hito_id: hito.id,
-                    documento_requerido: nombreDoc,
-                    id_doc: nuevoIdDoc,
-                    usuario: currentUser.usuario
-                });
-
-                inputNombre.value = '';
-                abrirModalGestionFiscalizacion(hito.id);
-                renderTablaFiscalizacion();
-
-                alert(`¡Expediente "${nombreDoc}" agregado correctamente al hito ${hito.id}!`);
-            }
-        }
-    // =========================================================================
-        // LÓGICA PARA EL ZOOM Y DESCRIPCIÓN DE GRÁFICAS EN MODAL
-        // =========================================================================
-        let chartEnlargedInstance = null;
-
-        const chartMetadata = {
-            'global': {
-                title: 'Análisis Ampliado: Avance Ponderado Global',
-                desc: 'Este indicador representa el porcentaje de cumplimiento consolidado del proceso de transición y extinción del Instituto Estatal de la Cultura (IEC) hacia la Secretaría de Cultura (SCUL). Se calcula ponderando de manera estricta los 48 registros de la matriz maestra, agrupados en Informes Mensuales (INF), Hitos de Liquidación (V1) y Requerimientos de Auditoría Superior del Estado de Guanajuato (V2).',
-                type: 'doughnut',
-                labels: ['Completado', 'Pendiente'],
-                dataFn: () => {
-                    const total = hitosFiscalizacionData.length;
-                    const suma = hitosFiscalizacionData.reduce((acc, curr) => acc + (curr.avancePorcentaje || 0), 0);
-                    const avg = total > 0 ? Math.round(suma / total) : 0;
-                    return [avg, 100 - avg];
-                },
-                colors: ['#2563EB', '#E2E8F0']
-            },
-            'prioridades': {
-                title: 'Análisis Ampliado: Distribución por Nivel de Prioridad y Riesgo',
-                desc: 'Clasificación estratégica del total de obligaciones institucionales según su grado crítico de atención directiva y legal. Los niveles se dividen en Urgente/Crítico (riesgo financiero o legal inminente ante ASF/ASEG), Alta, Media y Baja. Permite al Comité de Extinción focalizar recursos operativos en los puntos más sensibles.',
-                type: 'pie',
-                labels: ['Urgente / Crítico', 'Alta', 'Media', 'Baja'],
-                dataFn: () => {
-                    const u = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Urgente' || d.riesgo === 'Crítico').length;
-                    const a = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Alta' || d.riesgo === 'Alto').length;
-                    const m = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Media' || d.riesgo === 'Medio').length;
-                    const b = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Baja' || d.riesgo === 'Bajo').length;
-                    return [u, a, m, b];
-                },
-                colors: ['#DC2626', '#D97706', '#2563EB', '#94A3B8']
-            },
-            'estatus': {
-                title: 'Análisis Ampliado: Estatus Operativo de los Compromisos',
-                desc: 'Mide el estado actual de tramitación en el que se encuentran los 48 hitos del tablero. Se divide en tres categorías formales: "Concluido" (con expedientes acreditados y validados), "En Proceso" (actividades de campo y búsqueda en curso) y "Validación" (pendientes de firma institucional, convenios con notarías o fiduciarias).',
-                type: 'doughnut',
-                labels: ['Concluido', 'En Proceso', 'Validación'],
-                dataFn: () => {
-                    const c = hitosFiscalizacionData.filter(d => d.estatus === 'Concluido').length;
-                    const p = hitosFiscalizacionData.filter(d => d.estatus === 'En Proceso').length;
-                    const v = hitosFiscalizacionData.filter(d => d.estatus === 'Validación').length;
-                    return [c, p, v];
-                },
-                colors: ['#16A34A', '#2563EB', '#D97706']
-            },
-            'areas': {
-                title: 'Análisis Ampliado: Rendimiento y Avance Promedio por Área (SCUL)',
-                desc: 'Desglose del porcentaje de avance institucional por cada una de las direcciones y unidades administrativas responsables dentro de la Secretaría de Cultura (Patrimonio, Jurídico, Obras, Finanzas, Archivo y Auditoría). Refleja qué áreas han concluido sus entregas normativas y cuáles mantienen pendientes en la prórroga.',
-                type: 'bar',
-                labels: ['Patrimonio', 'Jurídico', 'Obras', 'Finanzas', 'Archivo', 'Auditoría'],
-                dataFn: () => {
-                    const areasKeys = ['Materiales', 'Jurídic', 'Planeación', 'Finanzas', 'Archivo', 'Liquidador'];
-                    return areasKeys.map(key => {
-                        const items = hitosFiscalizacionData.filter(d => (d.area || '').toLowerCase().includes(key.toLowerCase()));
-                        if (items.length === 0) return 0;
-                        const sum = items.reduce((acc, c) => acc + (c.avancePorcentaje || 0), 0);
-                        return Math.round(sum / items.length);
-                    });
-                },
-                colors: '#1E3A8A'
-            }
-        };
-
-        function openChartZoom(chartKey) {
-            const meta = chartMetadata[chartKey];
-            if(!meta) return;
-
-            document.getElementById('modalChartTitle').innerText = meta.title;
-            document.getElementById('modalChartDescription').innerText = meta.desc;
-
-            openModal('modal-chart-detail');
-
-            // Renderizar la gráfica ampliada en el canvas del modal
-            setTimeout(() => {
-                const ctx = document.getElementById('chartModalEnlarged').getContext('2d');
-                if (chartEnlargedInstance) chartEnlargedInstance.destroy();
-
-                chartEnlargedInstance = new Chart(ctx, {
-                    type: meta.type,
-                    data: {
-                        labels: meta.labels,
-                        datasets: [{
-                            data: meta.dataFn(),
-                            backgroundColor: meta.colors,
-                            borderWidth: meta.type === 'bar' ? 0 : 2,
-                            borderRadius: meta.type === 'bar' ? 6 : 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: meta.type === 'bar' ? 'top' : 'bottom',
-                                labels: { boxWidth: 12, font: { size: 11, family: 'Inter' } }
-                            }
-                        },
-                        scales: meta.type === 'bar' ? {
-                            y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
-                            x: { ticks: { font: { size: 10 } } }
-                        } : {}
-                    }
-                });
-            }, 100);
-        }
-
-        function exportChartAsImage() {
-            const canvas = document.getElementById('chartModalEnlarged');
-            if(!canvas) return;
-            const imageURL = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = imageURL;
-            link.download = 'metrica-transicion-secul.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    // =========================================================================
-        // 1. CONTROL DE MODALES DEL DASHBOARD EJECUTIVO (Hitos Críticos y Operativos)
-        // =========================================================================
-        function openDashboardDetailModal(categoria) {
-            const container = document.getElementById('dashDetailContainer');
-            const title = document.getElementById('dashDetailTitle');
-            const subtitle = document.getElementById('dashDetailSubtitle');
-            if(!container) return;
-            container.innerHTML = '';
-
-            const mapas = {
-                'criticos_vencer': {
-                    t: 'Hitos Críticos: Patrimonio por Localizar',
-                    st: '2,570 bienes muebles bajo investigación y búsqueda documental',
-                    items: [
-                        { hito: 'Depuración Patrimonial Faltante', fecha: 'URGENTE', resp: 'IEC / Control Patrimonial', desc: 'Localización de 2,570 bienes en Salvatierra, PAICE y Orquestas.', estatus: 'En Búsqueda' }
-                    ]
-                },
-                'criticos_proceso': {
-                    t: 'Hitos Críticos: En Proceso Activo',
-                    st: 'Compromisos con seguimiento fiduciario y patrimonial',
-                    items: [
-                        { hito: '2do Convenio Modificatorio FIARCA', fecha: 'EN CURSO', resp: 'Fiduciaria Banorte / SCUL', desc: 'Transferencia de derechos y cese de erogaciones del IEC.', estatus: 'Validación' },
-                        { hito: 'Capitalización Fase 1 (1,682 Activos)', fecha: 'NOV 2025', resp: 'Contabilidad Gubernamental', desc: 'Registro contable de bienes transferidos a la Secretaría.', estatus: 'En Proceso' }
-                    ]
-                },
-                'criticos_post': {
-                    t: 'Hitos Críticos: Post-Liquidación y Cierre SAT',
-                    st: 'Actos de extinción tributaria y cancelación de RFC',
-                    items: [
-                        { hito: 'Baja de RFC ante el SAT', fecha: 'CELAYA', resp: 'Liquidador / SAT', desc: 'Cancelación formal tras obtención de e.Firma y saldado de cuentas.', estatus: 'Agendado' }
-                    ]
-                },
-                'operativos_desarrollo': {
-                    t: 'Hitos Operativos: En Desarrollo',
-                    st: 'Áreas estratégicas con inventarios y archivos en proceso',
-                    items: [
-                        { hito: 'Área A - Control Patrimonial', fecha: 'Avance 75%', resp: 'Materiales / IEC', desc: '20,658 bienes muebles: 100% vehículos endosados y capitalización.', estatus: 'En Desarrollo' },
-                        { hito: 'Área E - Archivo y Memoria', fecha: 'Avance 70%', resp: 'IEC / AGEG / SCUL', desc: 'Transferencia de expedientes históricos y administrativos.', estatus: 'En Desarrollo' }
-                    ]
-                },
-                'operativos_validacion': {
-                    t: 'Hitos Operativos: En Validación Normativa',
-                    st: 'Áreas con proyectos de decreto o conciliaciones fiscales',
-                    items: [
-                        { hito: 'Área B - Jurídico y FIARCA', fecha: 'Avance 65%', resp: 'Procuraduría Fiscal / Banorte', desc: 'Dictamen de FIARCA y acuerdos de destino inmobiliarios.', estatus: 'En Validación' },
-                        { hito: 'Área D - Cierre Financiero', fecha: 'Avance 85%', resp: 'Finanzas / SAT / IEC', desc: '$43.41 MDP reintegrados y cancelación de cuentas BBVA/Salamanca.', estatus: 'En Validación' }
-                    ]
-                },
-                'operativos_ejecucion': {
-                    t: 'Hitos Operativos: En Ejecución Activa',
-                    st: 'Obras públicas, proyectos de infraestructura y reportes periódicos',
-                    items: [
-                        { hito: 'Área C - Infraestructura', fecha: 'Avance 90%', resp: 'SICOM / SC', desc: 'Finiquito Teatro Juárez y Biblioteca Central León.', estatus: 'En Ejecución' },
-                        { hito: 'Área F - Informes y Gobernanza', fecha: 'Avance 85%', resp: 'Comité de Extinción', desc: '14 Informes mensuales rendidos y paquete fiscal 2026 integrado.', estatus: 'En Ejecución' }
-                    ]
-                }
-            };
-
-            const data = mapas[categoria];
-            if(!data) return;
-
-            title.innerText = data.t;
-            subtitle.innerText = data.st;
-
-            data.items.forEach(item => {
-                container.innerHTML += `
-                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-900 text-xs">${item.hito}</span>
-                                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded-full">${item.fecha}</span>
-                            </div>
-                            <span class="text-slate-600 block text-[11px] mt-0.5">${item.desc}</span>
-                            <span class="text-slate-400 block text-[10px]"><strong>Responsable:</strong> ${item.resp}</span>
-                        </div>
-                        <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm shrink-0">
-                            ${item.estatus}
-                        </span>
-                    </div>
-                `;
-            });
-
-            openModal('modal-dashboard-detail');
-        }
-
-        // =========================================================================
-        // CONTROL DE MODALES DEL DASHBOARD EJECUTIVO Y ZOOM DE GRÁFICAS
-        // =========================================================================
-        function openDashboardDetailModal(categoria) {
-            const container = document.getElementById('dashDetailContainer');
-            const title = document.getElementById('dashDetailTitle');
-            const subtitle = document.getElementById('dashDetailSubtitle');
-            if(!container) return;
-            container.innerHTML = '';
-
-            const mapas = {
-                'criticos_vencer': {
-                    t: 'Hitos Críticos: Patrimonio por Localizar',
-                    st: '2,570 bienes muebles bajo investigación y búsqueda documental',
-                    items: [
-                        { hito: 'Depuración Patrimonial Faltante', fecha: 'URGENTE', resp: 'IEC / Control Patrimonial', desc: 'Localización de 2,570 bienes en Salvatierra, PAICE y Orquestas.', estatus: 'En Búsqueda' }
-                    ]
-                },
-                'criticos_proceso': {
-                    t: 'Hitos Críticos: En Proceso Activo',
-                    st: 'Compromisos con seguimiento fiduciario y patrimonial',
-                    items: [
-                        { hito: '2do Convenio Modificatorio FIARCA', fecha: 'EN CURSO', resp: 'Fiduciaria Banorte / SCUL', desc: 'Transferencia de derechos y cese de erogaciones del IEC.', estatus: 'Validación' },
-                        { hito: 'Capitalización Fase 1 (1,682 Activos)', fecha: 'NOV 2025', resp: 'Contabilidad Gubernamental', desc: 'Registro contable de bienes transferidos a la Secretaría.', estatus: 'En Proceso' }
-                    ]
-                },
-                'criticos_post': {
-                    t: 'Hitos Críticos: Post-Liquidación y Cierre SAT',
-                    st: 'Actos de extinción tributaria y cancelación de RFC',
-                    items: [
-                        { hito: 'Baja de RFC ante el SAT', fecha: 'CELAYA', resp: 'Liquidador / SAT', desc: 'Cancelación formal tras obtención de e.Firma y saldado de cuentas.', estatus: 'Agendado' }
-                    ]
-                },
-                'operativos_desarrollo': {
-                    t: 'Hitos Operativos: En Desarrollo',
-                    st: 'Áreas estratégicas con inventarios y archivos en proceso',
-                    items: [
-                        { hito: 'Área A - Control Patrimonial', fecha: 'Avance 75%', resp: 'Materiales / IEC', desc: '20,658 bienes muebles: 100% vehículos endosados y capitalización.', estatus: 'En Desarrollo' },
-                        { hito: 'Área E - Archivo y Memoria', fecha: 'Avance 70%', resp: 'IEC / AGEG / SCUL', desc: 'Transferencia de expedientes históricos y administrativos.', estatus: 'En Desarrollo' }
-                    ]
-                },
-                'operativos_validacion': {
-                    t: 'Hitos Operativos: En Validación Normativa',
-                    st: 'Áreas con proyectos de decreto o conciliaciones fiscales',
-                    items: [
-                        { hito: 'Área B - Jurídico y FIARCA', fecha: 'Avance 65%', resp: 'Procuraduría Fiscal / Banorte', desc: 'Dictamen de FIARCA y acuerdos de destino inmobiliarios.', estatus: 'En Validación' },
-                        { hito: 'Área D - Cierre Financiero', fecha: 'Avance 85%', resp: 'Finanzas / SAT / IEC', desc: '$43.41 MDP reintegrados y cancelación de cuentas BBVA/Salamanca.', estatus: 'En Validación' }
-                    ]
-                },
-                'operativos_ejecucion': {
-                    t: 'Hitos Operativos: En Ejecución Activa',
-                    st: 'Obras públicas, proyectos de infraestructura y reportes periódicos',
-                    items: [
-                        { hito: 'Área C - Infraestructura', fecha: 'Avance 90%', resp: 'SICOM / SC', desc: 'Finiquito Teatro Juárez y Biblioteca Central León.', estatus: 'En Ejecución' },
-                        { hito: 'Área F - Informes y Gobernanza', fecha: 'Avance 85%', resp: 'Comité de Extinción', desc: '14 Informes mensuales rendidos y paquete fiscal 2026 integrado.', estatus: 'En Ejecución' }
-                    ]
-                }
-            };
-
-            const data = mapas[categoria];
-            if(!data) return;
-
-            title.innerText = data.t;
-            subtitle.innerText = data.st;
-
-            data.items.forEach(item => {
-                container.innerHTML += `
-                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-900 text-xs">${item.hito}</span>
-                                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded-full">${item.fecha}</span>
-                            </div>
-                            <span class="text-slate-600 block text-[11px] mt-0.5">${item.desc}</span>
-                            <span class="text-slate-400 block text-[10px]"><strong>Responsable:</strong> ${item.resp}</span>
-                        </div>
-                        <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm shrink-0">
-                            ${item.estatus}
-                        </span>
-                    </div>
-                `;
-            });
-
-            openModal('modal-dashboard-detail');
-        }
-
-        // Declaración única de la instancia ampliada de gráficas
-        let chartEnlargedInstance = null;
-
-        const chartMetadata = {
-            'global': {
-                title: 'Análisis Ampliado: Avance Ponderado Global',
-                desc: 'Representa el porcentaje de cumplimiento consolidado del proceso de transición y extinción del IEC hacia la Secretaría de Cultura. Pondera los 48 registros de la matriz maestra.',
-                type: 'doughnut',
-                labels: ['Completado', 'Pendiente'],
-                dataFn: () => {
-                    const total = hitosFiscalizacionData.length;
-                    const suma = hitosFiscalizacionData.reduce((acc, curr) => acc + (curr.avancePorcentaje || 0), 0);
-                    const avg = total > 0 ? Math.round(suma / total) : 0;
-                    return [avg, 100 - avg];
-                },
-                colors: ['#2563EB', '#E2E8F0']
-            },
-            'prioridades': {
-                title: 'Análisis Ampliado: Distribución por Prioridad y Riesgo',
-                desc: 'Clasificación estratégica del total de obligaciones según su nivel de atención (Urgente/Crítico, Alta, Media y Baja).',
-                type: 'pie',
-                labels: ['Urgente / Crítico', 'Alta', 'Media', 'Baja'],
-                dataFn: () => {
-                    const u = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Urgente' || d.riesgo === 'Crítico').length;
-                    const a = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Alta' || d.riesgo === 'Alto').length;
-                    const m = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Media' || d.riesgo === 'Medio').length;
-                    const b = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Baja' || d.riesgo === 'Bajo').length;
-                    return [u, a, m, b];
-                },
-                colors: ['#DC2626', '#D97706', '#2563EB', '#94A3B8']
-            },
-            'estatus': {
-                title: 'Análisis Ampliado: Estatus Operativo de Compromisos',
-                desc: 'Mide la condición de trámite de los 48 hitos: Concluidos, En Proceso y En Validación.',
-                type: 'doughnut',
-                labels: ['Concluido', 'En Proceso', 'Validación'],
-                dataFn: () => {
-                    const c = hitosFiscalizacionData.filter(d => d.estatus === 'Concluido').length;
-                    const p = hitosFiscalizacionData.filter(d => d.estatus === 'En Proceso').length;
-                    const v = hitosFiscalizacionData.filter(d => d.estatus === 'Validación').length;
-                    return [c, p, v];
-                },
-                colors: ['#16A34A', '#2563EB', '#D97706']
-            },
-            'areas': {
-                title: 'Análisis Ampliado: Avance por Área Responsable (SCUL)',
-                desc: 'Porcentaje de rendimiento de cada dirección y coordinación responsable.',
-                type: 'bar',
-                labels: ['Patrimonio', 'Jurídico', 'Obras', 'Finanzas', 'Archivo', 'Auditoría'],
-                dataFn: () => {
-                    const areasKeys = ['Materiales', 'Jurídic', 'Planeación', 'Finanzas', 'Archivo', 'Liquidador'];
-                    return areasKeys.map(key => {
-                        const items = hitosFiscalizacionData.filter(d => (d.area || '').toLowerCase().includes(key.toLowerCase()));
-                        if (items.length === 0) return 0;
-                        const sum = items.reduce((acc, c) => acc + (c.avancePorcentaje || 0), 0);
-                        return Math.round(sum / items.length);
-                    });
-                },
-                colors: '#1E3A8A'
-            }
-        };
-
-        function openChartZoom(chartKey) {
-            const meta = chartMetadata[chartKey];
-            if(!meta) return;
-
-            document.getElementById('modalChartTitle').innerText = meta.title;
-            document.getElementById('modalChartDescription').innerText = meta.desc;
-
-            openModal('modal-chart-detail');
-
-            setTimeout(() => {
-                const ctx = document.getElementById('chartModalEnlarged').getContext('2d');
-                if (chartEnlargedInstance) chartEnlargedInstance.destroy();
-
-                chartEnlargedInstance = new Chart(ctx, {
-                    type: meta.type,
-                    data: {
-                        labels: meta.labels,
-                        datasets: [{
-                            data: meta.dataFn(),
-                            backgroundColor: meta.colors,
-                            borderWidth: meta.type === 'bar' ? 0 : 2,
-                            borderRadius: meta.type === 'bar' ? 6 : 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: meta.type === 'bar' ? 'top' : 'bottom',
-                                labels: { boxWidth: 12, font: { size: 11 } }
-                            }
-                        },
-                        scales: meta.type === 'bar' ? {
-                            y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
-                            x: { ticks: { font: { size: 10 } } }
-                        } : {}
-                    }
-                });
-            }, 100);
-        }
-
-        function exportChartAsImage() {
-            const canvas = document.getElementById('chartModalEnlarged');
-            if(!canvas) return;
-            const imageURL = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = imageURL;
-            link.download = 'grafica-transicion-secul.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        actualizarLogsAuditoria();
     </script>
 </body>
 </html>
