@@ -3673,6 +3673,209 @@
             link.click();
             document.body.removeChild(link);
         }
+    // =========================================================================
+        // 1. CONTROL DE MODALES DEL DASHBOARD EJECUTIVO (Hitos Críticos y Operativos)
+        // =========================================================================
+        function openDashboardDetailModal(categoria) {
+            const container = document.getElementById('dashDetailContainer');
+            const title = document.getElementById('dashDetailTitle');
+            const subtitle = document.getElementById('dashDetailSubtitle');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const mapas = {
+                'criticos_vencer': {
+                    t: 'Hitos Críticos: Patrimonio por Localizar',
+                    st: '2,570 bienes muebles bajo investigación y búsqueda documental',
+                    items: [
+                        { hito: 'Depuración Patrimonial Faltante', fecha: 'URGENTE', resp: 'IEC / Control Patrimonial', desc: 'Localización de 2,570 bienes en Salvatierra, PAICE y Orquestas.', estatus: 'En Búsqueda' }
+                    ]
+                },
+                'criticos_proceso': {
+                    t: 'Hitos Críticos: En Proceso Activo',
+                    st: 'Compromisos con seguimiento fiduciario y patrimonial',
+                    items: [
+                        { hito: '2do Convenio Modificatorio FIARCA', fecha: 'EN CURSO', resp: 'Fiduciaria Banorte / SCUL', desc: 'Transferencia de derechos y cese de erogaciones del IEC.', estatus: 'Validación' },
+                        { hito: 'Capitalización Fase 1 (1,682 Activos)', fecha: 'NOV 2025', resp: 'Contabilidad Gubernamental', desc: 'Registro contable de bienes transferidos a la Secretaría.', estatus: 'En Proceso' }
+                    ]
+                },
+                'criticos_post': {
+                    t: 'Hitos Críticos: Post-Liquidación y Cierre SAT',
+                    st: 'Actos de extinción tributaria y cancelación de RFC',
+                    items: [
+                        { hito: 'Baja de RFC ante el SAT', fecha: 'CELAYA', resp: 'Liquidador / SAT', desc: 'Cancelación formal tras obtención de e.Firma y saldado de cuentas.', estatus: 'Agendado' }
+                    ]
+                },
+                'operativos_desarrollo': {
+                    t: 'Hitos Operativos: En Desarrollo',
+                    st: 'Áreas estratégicas con inventarios y archivos en proceso',
+                    items: [
+                        { hito: 'Área A - Control Patrimonial', fecha: 'Avance 75%', resp: 'Materiales / IEC', desc: '20,658 bienes muebles: 100% vehículos endosados y capitalización.', estatus: 'En Desarrollo' },
+                        { hito: 'Área E - Archivo y Memoria', fecha: 'Avance 70%', resp: 'IEC / AGEG / SCUL', desc: 'Transferencia de expedientes históricos y administrativos.', estatus: 'En Desarrollo' }
+                    ]
+                },
+                'operativos_validacion': {
+                    t: 'Hitos Operativos: En Validación Normativa',
+                    st: 'Áreas con proyectos de decreto o conciliaciones fiscales',
+                    items: [
+                        { hito: 'Área B - Jurídico y FIARCA', fecha: 'Avance 65%', resp: 'Procuraduría Fiscal / Banorte', desc: 'Dictamen de FIARCA y acuerdos de destino inmobiliarios.', estatus: 'En Validación' },
+                        { hito: 'Área D - Cierre Financiero', fecha: 'Avance 85%', resp: 'Finanzas / SAT / IEC', desc: '$43.41 MDP reintegrados y cancelación de cuentas BBVA/Salamanca.', estatus: 'En Validación' }
+                    ]
+                },
+                'operativos_ejecucion': {
+                    t: 'Hitos Operativos: En Ejecución Activa',
+                    st: 'Obras públicas, proyectos de infraestructura y reportes periódicos',
+                    items: [
+                        { hito: 'Área C - Infraestructura', fecha: 'Avance 90%', resp: 'SICOM / SC', desc: 'Finiquito Teatro Juárez y Biblioteca Central León.', estatus: 'En Ejecución' },
+                        { hito: 'Área F - Informes y Gobernanza', fecha: 'Avance 85%', resp: 'Comité de Extinción', desc: '14 Informes mensuales rendidos y paquete fiscal 2026 integrado.', estatus: 'En Ejecución' }
+                    ]
+                }
+            };
+
+            const data = mapas[categoria];
+            if(!data) return;
+
+            title.innerText = data.t;
+            subtitle.innerText = data.st;
+
+            data.items.forEach(item => {
+                container.innerHTML += `
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-900 text-xs">${item.hito}</span>
+                                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded-full">${item.fecha}</span>
+                            </div>
+                            <span class="text-slate-600 block text-[11px] mt-0.5">${item.desc}</span>
+                            <span class="text-slate-400 block text-[10px]"><strong>Responsable:</strong> ${item.resp}</span>
+                        </div>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm shrink-0">
+                            ${item.estatus}
+                        </span>
+                    </div>
+                `;
+            });
+
+            openModal('modal-dashboard-detail');
+        }
+
+        // =========================================================================
+        // 2. CONTROL DEL ZOOM Y EXPORTACIÓN DE GRÁFICAS (Analítica)
+        // =========================================================================
+        let chartEnlargedInstance = null;
+
+        const chartMetadata = {
+            'global': {
+                title: 'Análisis Ampliado: Avance Ponderado Global',
+                desc: 'Representa el porcentaje de cumplimiento consolidado del proceso de transición y extinción del IEC hacia la Secretaría de Cultura. Pondera los 48 registros de la matriz maestra (Informes INF, Liquidación V1 y Auditoría ASEG V2).',
+                type: 'doughnut',
+                labels: ['Completado', 'Pendiente'],
+                dataFn: () => {
+                    const total = hitosFiscalizacionData.length;
+                    const suma = hitosFiscalizacionData.reduce((acc, curr) => acc + (curr.avancePorcentaje || 0), 0);
+                    const avg = total > 0 ? Math.round(suma / total) : 0;
+                    return [avg, 100 - avg];
+                },
+                colors: ['#2563EB', '#E2E8F0']
+            },
+            'prioridades': {
+                title: 'Análisis Ampliado: Distribución por Prioridad y Riesgo',
+                desc: 'Clasificación estratégica del total de obligaciones según su nivel de atención (Urgente/Crítico, Alta, Media y Baja). Permite focalizar recursos en contingencias de la ASF y ASEG.',
+                type: 'pie',
+                labels: ['Urgente / Crítico', 'Alta', 'Media', 'Baja'],
+                dataFn: () => {
+                    const u = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Urgente' || d.riesgo === 'Crítico').length;
+                    const a = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Alta' || d.riesgo === 'Alto').length;
+                    const m = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Media' || d.riesgo === 'Medio').length;
+                    const b = hitosFiscalizacionData.filter(d => d.prioridadArea === 'Baja' || d.riesgo === 'Bajo').length;
+                    return [u, a, m, b];
+                },
+                colors: ['#DC2626', '#D97706', '#2563EB', '#94A3B8']
+            },
+            'estatus': {
+                title: 'Análisis Ampliado: Estatus Operativo de Compromisos',
+                desc: 'Mide la condición de trámite de los 48 hitos: Concluidos (con expedientes acreditados), En Proceso (búsqueda y cotejo) y En Validación (revisiones jurídicas y fiduciarias).',
+                type: 'doughnut',
+                labels: ['Concluido', 'En Proceso', 'Validación'],
+                dataFn: () => {
+                    const c = hitosFiscalizacionData.filter(d => d.estatus === 'Concluido').length;
+                    const p = hitosFiscalizacionData.filter(d => d.estatus === 'En Proceso').length;
+                    const v = hitosFiscalizacionData.filter(d => d.estatus === 'Validación').length;
+                    return [c, p, v];
+                },
+                colors: ['#16A34A', '#2563EB', '#D97706']
+            },
+            'areas': {
+                title: 'Análisis Ampliado: Avance por Área Responsable (SCUL)',
+                desc: 'Porcentaje de rendimiento de cada dirección y coordinación responsable (Patrimonio, Jurídico, Obras, Finanzas, Archivo y Auditoría).',
+                type: 'bar',
+                labels: ['Patrimonio', 'Jurídico', 'Obras', 'Finanzas', 'Archivo', 'Auditoría'],
+                dataFn: () => {
+                    const areasKeys = ['Materiales', 'Jurídic', 'Planeación', 'Finanzas', 'Archivo', 'Liquidador'];
+                    return areasKeys.map(key => {
+                        const items = hitosFiscalizacionData.filter(d => (d.area || '').toLowerCase().includes(key.toLowerCase()));
+                        if (items.length === 0) return 0;
+                        const sum = items.reduce((acc, c) => acc + (c.avancePorcentaje || 0), 0);
+                        return Math.round(sum / items.length);
+                    });
+                },
+                colors: '#1E3A8A'
+            }
+        };
+
+        function openChartZoom(chartKey) {
+            const meta = chartMetadata[chartKey];
+            if(!meta) return;
+
+            document.getElementById('modalChartTitle').innerText = meta.title;
+            document.getElementById('modalChartDescription').innerText = meta.desc;
+
+            openModal('modal-chart-detail');
+
+            setTimeout(() => {
+                const ctx = document.getElementById('chartModalEnlarged').getContext('2d');
+                if (chartEnlargedInstance) chartEnlargedInstance.destroy();
+
+                chartEnlargedInstance = new Chart(ctx, {
+                    type: meta.type,
+                    data: {
+                        labels: meta.labels,
+                        datasets: [{
+                            data: meta.dataFn(),
+                            backgroundColor: meta.colors,
+                            borderWidth: meta.type === 'bar' ? 0 : 2,
+                            borderRadius: meta.type === 'bar' ? 6 : 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: meta.type === 'bar' ? 'top' : 'bottom',
+                                labels: { boxWidth: 12, font: { size: 11 } }
+                            }
+                        },
+                        scales: meta.type === 'bar' ? {
+                            y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
+                            x: { ticks: { font: { size: 10 } } }
+                        } : {}
+                    }
+                });
+            }, 100);
+        }
+
+        function exportChartAsImage() {
+            const canvas = document.getElementById('chartModalEnlarged');
+            if(!canvas) return;
+            const imageURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imageURL;
+            link.download = 'grafica-transicion-secul.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
