@@ -3443,15 +3443,21 @@
             }
         }
 
-      // Modales Básicos
+     // Modales Básicos (Blindados contra conflictos CSS)
         function openModal(id) {
             const m = document.getElementById(id);
-            if(m) m.classList.remove('hidden');
+            if(m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex'; // Fuerza el despliegue absoluto
+            }
         }
 
         function closeModal(id) {
             const m = document.getElementById(id);
-            if(m) m.classList.add('hidden');
+            if(m) {
+                m.classList.add('hidden');
+                m.style.display = 'none'; // Fuerza el ocultamiento absoluto
+            }
         }
 
         function handleSolicitarClick() {
