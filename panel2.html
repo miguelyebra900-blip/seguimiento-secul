@@ -1580,66 +1580,7 @@
                         <p id="critical-subtitle" class="text-xs text-white/80">Análisis ampliado de impacto y dependencias</p>
                     </div>
                 </div>
-                <!-- ========================================================= -->
-    <!-- MODAL AMPLIADO DE GRÁFICAS Y ANALÍTICA (ZOOM EJECUTIVO)   -->
-    <!-- ========================================================= -->
-    <div id="modal-chart-detail" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-white/10 rounded-xl text-lg"><i class="fa-solid fa-chart-pie text-amber-400"></i></div>
-                    <div>
-                        <h3 id="modalChartTitle" class="font-bold text-base">Análisis Ampliado de Gráfica</h3>
-                        <p class="text-xs text-slate-300">Visualización ejecutiva de alto detalle y origen de datos</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-chart-detail')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
-                <!-- Contenedor Grande del Gráfico -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative h-72 w-full flex items-center justify-center">
-                    <canvas id="chartModalEnlarged"></canvas>
-                </div>
-
-                <!-- Caja de Descripción y Origen de Datos -->
-                <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100 space-y-2">
-                    <h4 class="font-bold text-indigo-900 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-indigo-600"></i> Composición, Parámetros y Origen de los Datos
-                    </h4>
-                    <p id="modalChartDescription" class="text-slate-700 leading-relaxed text-xs">--</p>
-                </div>
-            </div>
-
-    </div>
-                <button onclick="closeModal('modal-critical')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Descripción y Contexto Técnico:</h4>
-                    <p id="critical-description" class="leading-relaxed text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200">--</p>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Por qué es Crítico / Riesgo Operativo:</h4>
-                    <p id="critical-risk" class="leading-relaxed text-rose-900 bg-rose-50 p-3.5 rounded-xl border border-rose-200">--</p>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-2">Instancias Involucradas y Acciones Específicas:</h4>
-                    <div id="critical-entities-rows" class="space-y-2"></div>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-900 text-sm mb-1">Fundamento / Referencia:</h4>
-                    <p id="critical-ref" class="font-semibold text-slate-800 bg-slate-100 p-2.5 rounded-xl border border-slate-200">--</p>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
-                <button onclick="closeModal('modal-critical')" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Entendido / Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-<!-- ========================================================= -->
-<!-- ========================================================= -->
+     <!-- ========================================================= -->
     <!-- MODAL AMPLIADO DE GRÁFICAS Y ANALÍTICA (ZOOM EJECUTIVO)   -->
     <!-- ========================================================= -->
     <div id="modal-chart-detail" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
@@ -1669,7 +1610,7 @@
                     <p id="modalChartDescription" class="text-slate-700 leading-relaxed text-xs">--</p>
                 </div>
 
-                <!-- Lista detallada de Hitos / Acciones con botón Ver -->
+                <!-- Lista detallada de Hitos / Acciones con botón Ver (Única y sin duplicados) -->
                 <div class="space-y-2">
                     <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 border-b pb-2">
                         <i class="fa-solid fa-list-check text-indigo-600"></i> Desglose de Hitos y Requerimientos Asociados
@@ -1680,33 +1621,23 @@
                 </div>
             </div>
 
-<!-- Lista detallada de Hitos / Acciones con botón Ver -->
-                    <div class="space-y-2">
-                        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 border-b pb-2">
-                            <i class="fa-solid fa-list-check text-indigo-600"></i> Desglose de Hitos y Requerimientos Asociados
-                        </h4>
-                        <div id="modalChartItemsList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
-                            <!-- Se llena dinámicamente -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ÚNICA BARRA INFERIOR DE CIERRE (Asegúrate de que solo aparezca una vez) -->
-                <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
-                    <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> IEC ➔ Secretaría de Cultura</span>
-                    <div class="flex gap-2">
-                        <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
-                            <i class="fa-solid fa-download"></i> Descargar PNG
-                        </button>
-                        <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
-                    </div>
+            <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
+                <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> IEC ➔ Secretaría de Cultura</span>
+                <div class="flex gap-2">
+                    <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Descargar PNG
+                    </button>
+                    <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
                 </div>
             </div>
         </div>
+    </div>
 
-    // =========================================================================
-        // CONTROL DEL ZOOM Y EXPORTACIÓN DE GRÁFICAS (Analítica con Desglose)
-        // =========================================================================
+    <!-- ========================================================= -->
+    <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA                 -->
+    <!-- ========================================================= -->
+    <script>
+        // Declaración única de la instancia ampliada de gráficas
         let chartEnlargedInstance = null;
 
         const chartMetadata = {
@@ -1858,7 +1789,10 @@
             link.click();
             document.body.removeChild(link);
         }
-    
+
+        // Configuración de Supabase
+        const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
+    </script>
     <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA -->
         <script>
         // Configuración de Supabase
