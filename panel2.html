@@ -304,6 +304,21 @@
                     <span class="text-[11px] text-slate-500 font-medium">48 Hitos y Requerimientos</span>
                 </div>
 
+             <!-- Grid 2x2 de Gráficas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Gráfica 1: Dona de Avance Global -->
+                <div onclick="openChartZoom('global')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between items-center text-center cursor-pointer hover:border-indigo-500 hover:shadow-lg transition-all">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Avance Ponderado Global <i class="fa-solid fa-expand text-[10px] text-indigo-600 ms-1"></i></span>
+                    <div class="relative w-40 h-40 my-2 flex items-center justify-center pointer-events-none">
+                        <canvas id="chartAvanceGlobal"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span id="labelChartAvanceGlobal" class="text-2xl font-black text-slate-900">75%</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Cumplimiento</span>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-slate-500 font-medium">48 Hitos y Requerimientos</span>
+                </div>
+
                 <!-- Gráfica 2: Semáforo de Prioridades -->
                 <div onclick="openChartZoom('prioridades')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between cursor-pointer hover:border-indigo-500 hover:shadow-lg transition-all">
                     <span class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 text-center">Distribución por Prioridad <i class="fa-solid fa-expand text-[10px] text-indigo-600 ms-1"></i></span>
@@ -1611,19 +1626,7 @@
                     <p id="modalChartDescription" class="text-slate-700 leading-relaxed text-xs">--</p>
                 </div>
             </div>
-<!-- ========================================================= -->
-    <!-- MODAL AMPLIADO DE GRÁFICAS Y ANALÍTICA (ZOOM EJECUTIVO)   -->
-    <!-- ========================================================= -->
-            <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
-                <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> Tablero Consolidado de Transición Institucional IEC ➔ SCUL</span>
-                <div class="flex gap-2">
-                    <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-download"></i> Descargar Imagen
-                    </button>
-                    <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
-                </div>
-            </div>
-        </div>
+
     </div>
                 <button onclick="closeModal('modal-critical')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -1651,7 +1654,45 @@
         </div>
     </div>
 
+<!-- ========================================================= -->
+    <!-- MODAL AMPLIADO DE GRÁFICAS Y ANALÍTICA (ZOOM EJECUTIVO)   -->
+    <!-- ========================================================= -->
+    <div id="modal-chart-detail" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-white/10 rounded-xl text-lg"><i class="fa-solid fa-chart-pie text-amber-400"></i></div>
+                    <div>
+                        <h3 id="modalChartTitle" class="font-bold text-base">Análisis Ampliado de Gráfica</h3>
+                        <p class="text-xs text-slate-300">Visualización ejecutiva de alto detalle y origen de datos</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-chart-detail')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative h-72 w-full flex items-center justify-center">
+                    <canvas id="chartModalEnlarged"></canvas>
+                </div>
+                <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100 space-y-2">
+                    <h4 class="font-bold text-indigo-900 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-indigo-600"></i> Composición, Parámetros y Origen de los Datos
+                    </h4>
+                    <p id="modalChartDescription" class="text-slate-700 leading-relaxed text-xs">--</p>
+                </div>
+            </div>
 
+            <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
+                <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> IEC ➔ Secretaría de Cultura</span>
+                <div class="flex gap-2">
+                    <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Descargar PNG
+                    </button>
+                    <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- ========================================================= -->
     <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA                 -->
     <!-- ========================================================= -->
