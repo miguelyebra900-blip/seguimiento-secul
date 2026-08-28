@@ -1664,7 +1664,7 @@
         // Declaración única de la instancia ampliada de gráficas
         let chartEnlargedInstance = null;
 
-        const chartMetadata = {
+       const chartMetadata = {
             'global': {
                 title: 'Análisis Ampliado: Avance Ponderado Global (48 Hitos)',
                 desc: 'Muestra el listado completo de los 48 hitos y requerimientos que conforman la matriz maestra (Informes Mensuales, Liquidación IEC y Fiscalización ASEG).',
@@ -1727,9 +1727,80 @@
                 },
                 colors: '#1E3A8A',
                 getItems: () => hitosFiscalizacionData
+            },
+            'v1': {
+                title: 'Desglose Ejecutivo: V1 - Liquidación IEC (10 Hitos)',
+                desc: 'Monitoreo estricto de los 10 hitos normativos y legales correspondientes a la liquidación formal del Instituto Estatal de la Cultura.',
+                type: 'doughnut',
+                labels: ['Concluido', 'En Proceso / Validación'],
+                dataFn: () => {
+                    const v1Items = hitosFiscalizacionData.filter(d => d.vertiente === 'V1');
+                    const c = v1Items.filter(d => d.estatus === 'Concluido').length;
+                    return [c, v1Items.length - c];
+                },
+                colors: ['#2563EB', '#93C5FD'],
+                getItems: () => hitosFiscalizacionData.filter(d => d.vertiente === 'V1')
+            },
+            'v2': {
+                title: 'Desglose Ejecutivo: V2 - Auditoría ASEG (22 Acciones)',
+                desc: 'Requerimientos y acciones de fiscalización superior correspondientes a la revisión de la Cuenta Pública 2025.',
+                type: 'doughnut',
+                labels: ['Concluido', 'En Proceso / Validación'],
+                dataFn: () => {
+                    const v2Items = hitosFiscalizacionData.filter(d => d.vertiente === 'V2');
+                    const c = v2Items.filter(d => d.estatus === 'Concluido').length;
+                    return [c, v2Items.length - c];
+                },
+                colors: ['#D97706', '#FCD34D'],
+                getItems: () => hitosFiscalizacionData.filter(d => d.vertiente === 'V2')
+            },
+            'riesgos': {
+                title: 'Desglose Ejecutivo: Matriz de Riesgos Críticos (5 Puntos)',
+                desc: 'Puntos directivos de atención inmediata detectados en las mesas de trabajo con Finanzas, Honestidad y Control Patrimonial.',
+                type: 'pie',
+                labels: ['Crítico / Urgente', 'Alto / Medio'],
+                dataFn: () => [5, 0],
+                colors: ['#DC2626', '#F87171'],
+                getItems: () => [
+                    { id: 'R-01', estatus: 'En Proceso', prioridadArea: 'Urgente', titulo: '2,570 bienes muebles no localizados (PAICE / Orquestas)', area: 'Control Patrimonial' },
+                    { id: 'R-02', estatus: 'En Proceso', prioridadArea: 'Media', titulo: 'Cancelación de RFC ante SAT por cuentas residuales', area: 'Fiscal / SAT' },
+                    { id: 'R-03', estatus: 'Validación', prioridadArea: 'Media', titulo: '2do Convenio Modificatorio FIARCA (Decreto Gub. 19)', area: 'Jurídica / FIARCA' },
+                    { id: 'R-04', estatus: 'En Proceso', prioridadArea: 'Media', titulo: 'Acuerdos de destino en recintos históricos y predios', area: 'Patrimonio Inmueble' },
+                    { id: 'R-05', estatus: 'Validación', prioridadArea: 'Media', titulo: 'Firma protocolizada del acta del 10/Dic/2025', area: 'Gobierno / Control' }
+                ]
+            },
+            'documentos': {
+                title: 'Desglose Ejecutivo: Estatus de Soportes y Evidencias Drive',
+                desc: 'Relación de expedientes documentales vinculados con enlaces oficiales de Google Drive en la matriz maestra.',
+                type: 'doughnut',
+                labels: ['Soportes Subidos', 'Pendientes de Enlace'],
+                dataFn: () => {
+                    let totalDocs = 0, subidosDocs = 0;
+                    hitosFiscalizacionData.forEach(h => {
+                        totalDocs += h.documentos.length;
+                        subidosDocs += h.documentos.filter(d => d.subido).length;
+                    });
+                    return [subidosDocs, Math.max(0, totalDocs - subidosDocs)];
+                },
+                colors: ['#16A34A', '#E2E8F0'],
+                getItems: () => {
+                    let list = [];
+                    hitosFiscalizacionData.forEach(h => {
+                        h.documentos.forEach(doc => {
+                            list.push({
+                                id: h.id,
+                                estatus: doc.subido ? 'Concluido' : 'En Proceso',
+                                prioridadArea: doc.subido ? 'Baja' : 'Alta',
+                                titulo: doc.nombre,
+                                area: h.area
+                            });
+                        });
+                    });
+                    return list;
+                }
             }
         };
-
+        
        function openChartZoom(chartKey) {
             const meta = chartMetadata[chartKey];
             if(!meta) return;
