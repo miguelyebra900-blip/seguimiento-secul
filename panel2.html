@@ -1680,29 +1680,32 @@
                 </div>
             </div>
 
-            <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
-                <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> IEC ➔ Secretaría de Cultura</span>
-                <div class="flex gap-2">
-                    <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-download"></i> Descargar PNG
-                    </button>
-                    <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
+<!-- Lista detallada de Hitos / Acciones con botón Ver -->
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 border-b pb-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i> Desglose de Hitos y Requerimientos Asociados
+                        </h4>
+                        <div id="modalChartItemsList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-        <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
-                <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> IEC ➔ Secretaría de Cultura</span>
-                <div class="flex gap-2">
-                    <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-download"></i> Descargar PNG
-                    </button>
-                    <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
+                <!-- ÚNICA BARRA INFERIOR DE CIERRE (Asegúrate de que solo aparezca una vez) -->
+                <div class="bg-slate-100 p-4 flex justify-between items-center border-t border-slate-200">
+                    <span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-shield-halved me-1 text-indigo-600"></i> IEC ➔ Secretaría de Cultura</span>
+                    <div class="flex gap-2">
+                        <button onclick="exportChartAsImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow flex items-center gap-1.5">
+                            <i class="fa-solid fa-download"></i> Descargar PNG
+                        </button>
+                        <button onclick="closeModal('modal-chart-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+    <!-- SCRIPT DE LÓGICA -->
+    <script>
     <!-- ========================================================= -->
     <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA                 -->
     <!-- ========================================================= -->
