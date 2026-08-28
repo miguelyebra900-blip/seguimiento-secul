@@ -1057,7 +1057,20 @@
                 </div>
 
                 <div>
-                    <h4 class="font-bold text-slate-900 text-xs mb-2">Expedientes y Documentales Requeridas:</h4>
+                   <div>
+            <h4 class="font-bold text-slate-900 text-xs mb-2">Expedientes y Documentales Requeridas:</h4>
+            
+            <!-- Contenedor donde se cargan los documentos -->
+            <div id="modalFiscalDocsList" class="space-y-2 mb-3"></div>
+
+            <!-- Campo para agregar un nuevo expediente al vuelo -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex gap-2 items-center">
+                <input type="text" id="nuevoDocNombreInput" placeholder="Nombre del nuevo expediente o documento requerido..." class="w-full p-2 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-indigo-500">
+                <button type="button" onclick="agregarDocumentoAResponsable()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition shrink-0 flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> Agregar
+                </button>
+            </div>
+        </div>
                     <div id="modalFiscalDocsList" class="space-y-2"></div>
                 </div>
 
@@ -3451,6 +3464,51 @@
         renderTablaFiscalizacion();
         updateAuthUI();
         actualizarLogsAuditoria(); // o actualizarLogsAuditoria
+    // Función para agregar expediente/documental requerido dinámicamente
+        function agregarDocumentoAResponsable() {
+            if(!currentUser) {
+                alert('Debe identificarse con su cuenta institucional para agregar nuevos expedientes requeridos.');
+                openModal('modal-auth');
+                return;
+            }
+
+            const hitoId = document.getElementById('uploadHitoId').value;
+            const inputNombre = document.getElementById('nuevoDocNombreInput');
+            const nombreDoc = inputNombre.value.trim();
+
+            if(!nombreDoc) {
+                alert('Por favor ingrese el nombre del expediente o documento requerido.');
+                inputNombre.focus();
+                return;
+            }
+
+            const hito = hitosFiscalizacionData.find(h => h.id === hitoId);
+            if(hito) {
+                const nuevoIdDoc = `DOC-${hito.id}-${Date.now().toString().slice(-4)}`;
+                
+                hito.documentos.push({
+                    id_doc: nuevoIdDoc,
+                    nombre: nombreDoc,
+                    subido: false,
+                    url: null
+                });
+
+                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+
+                registrarAuditoria('Adición de Expediente Requerido', {
+                    hito_id: hito.id,
+                    documento_requerido: nombreDoc,
+                    id_doc: nuevoIdDoc,
+                    usuario: currentUser.usuario
+                });
+
+                inputNombre.value = '';
+                abrirModalGestionFiscalizacion(hito.id);
+                renderTablaFiscalizacion();
+
+                alert(`¡Expediente "${nombreDoc}" agregado correctamente al hito ${hito.id}!`);
+            }
+        }
     </script>
 </body>
 </html>
