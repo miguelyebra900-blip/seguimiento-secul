@@ -18,6 +18,8 @@
         --warning-bg: #fffaf0;
         --warning-border: #fbd38d;
         --warning-text: #9c4221;
+        --highlight-red: #fff5f5;
+        --border-red: #e53e3e;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,7 +35,7 @@
 
     /* Sidebar de Control y Módulos */
     aside {
-        width: 350px;
+        width: 380px;
         background-color: var(--card-bg);
         border-right: 1px solid var(--border-color);
         display: flex;
@@ -108,6 +110,51 @@
         background-color: #ebf8ff;
     }
 
+    /* Sección de Consulta de Documentos Generados */
+    .history-section {
+        margin-top: 20px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 15px;
+    }
+
+    .history-section h3 {
+        font-size: 0.9rem;
+        color: var(--primary);
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .history-list {
+        list-style: none;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: #fdfdfd;
+        padding: 5px;
+    }
+
+    .history-list li {
+        font-size: 0.75rem;
+        padding: 6px 8px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .history-list li:last-child { border-bottom: none; }
+    
+    .history-list button {
+        background: var(--primary-light);
+        color: white;
+        border: none;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
     /* Área Principal de Trabajo */
     main {
         flex: 1;
@@ -143,7 +190,6 @@
         border: 1px solid #90cdf4;
     }
 
-    /* Lienzo de Edición de Acta con Cajas Margínales */
     .document-preview {
         background: white;
         padding: 40px;
@@ -189,7 +235,15 @@
         font-size: 0.9rem;
         line-height: 1.6;
         text-align: justify;
-        color: #000000; /* Texto íntegro oficial en negro */
+        color: #000000;
+    }
+
+    /* Texto original resaltado en rojo para indicar modificación sugerida */
+    .highlight-red-text {
+        background-color: var(--highlight-red);
+        border-left: 3px solid var(--border-red);
+        padding: 2px 4px;
+        display: inline-block;
     }
 
     .margin-column {
@@ -199,28 +253,7 @@
         gap: 10px;
     }
 
-    /* Propuesta modificatoria en letras azules */
-    .proposal-blue {
-        color: var(--primary-light);
-        font-weight: 600;
-        outline: none;
-        border: 1px dashed transparent;
-        padding: 2px 4px;
-        border-radius: 3px;
-        display: inline-block;
-    }
-
-    .proposal-blue:hover {
-        border-color: #90cdf4;
-        background-color: #f7fafc;
-    }
-
-    .proposal-blue:focus {
-        border-color: var(--primary-light);
-        background-color: #fff;
-    }
-
-    /* Cajas dinámicas de riesgo con controles de edición */
+    /* Cajas dinámicas de riesgo / propuesta en azul */
     .risk-box {
         padding: 12px;
         border-radius: 6px;
@@ -240,6 +273,13 @@
         border-left: 4px solid #dd6b20;
     }
 
+    /* Esquema de etiqueta en azul para propuestas de modificación */
+    .risk-box.proposal-tag {
+        background-color: #ebf8ff;
+        border: 1px solid #90cdf4;
+        border-left: 4px solid var(--primary-light);
+    }
+
     .risk-box-title {
         font-weight: bold;
         text-transform: uppercase;
@@ -250,11 +290,18 @@
 
     .critical .risk-box-title { color: var(--danger-text); }
     .warning .risk-box-title { color: var(--warning-text); }
+    .proposal-tag .risk-box-title { color: var(--primary); }
 
     .risk-field {
         margin-bottom: 4px;
+        color: #2d3748;
     }
     
+    .proposal-tag .risk-field {
+        color: var(--primary-light);
+        font-weight: 500;
+    }
+
     .risk-actions {
         margin-top: 8px;
         display: flex;
@@ -274,9 +321,9 @@
 
     .critical .risk-actions button { color: var(--danger-text); border-color: var(--danger-border); }
     .warning .risk-actions button { color: var(--warning-text); border-color: var(--warning-border); }
+    .proposal-tag .risk-actions button { color: var(--primary); border-color: #90cdf4; }
     .risk-actions button:hover { background: rgba(0,0,0,0.05); }
 
-    /* Dropzone real para documentos */
     .dropzone {
         border: 2px dashed #cbd5e0;
         padding: 15px;
@@ -307,7 +354,7 @@
         <div class="control-group">
             <label>Carga de Documento Real (Word / PDF)</label>
             <div class="dropzone" id="dropzoneReal" onclick="triggerFileUpload()">
-                📁 <span id="dropzoneText">Haga clic para cargar documento base o arrastre el PDF/Word</span>
+                📁 <span id="dropzoneText">Cargar acta o matriz para análisis IA</span>
             </div>
             <input type="file" id="fileInput" style="display: none;" onchange="handleFileLoaded(event)">
         </div>
@@ -325,30 +372,39 @@
         </div>
 
         <div class="control-group">
-            <label>Tipo de Etiqueta Marginal</label>
+            <label>Tipo de Etiqueta</label>
             <select id="tagTypeSelector">
+                <option value="proposal-tag">Propuesta de Modificación (Azul)</option>
                 <option value="critical">Riesgo Crítico (Rojo)</option>
-                <option value="warning">Control Operativo / Advertencia (Ámbar)</option>
+                <option value="warning">Control Operativo (Ámbar)</option>
             </select>
         </div>
 
         <div class="control-group">
             <label>Título de la Etiqueta</label>
-            <input type="text" id="newTagTitle" placeholder="Ej. Riesgo / Validación Fiscal">
+            <input type="text" id="newTagTitle" placeholder="Ej. Propuesta / Validación Fiscal">
         </div>
 
         <div class="control-group">
-            <label>Detalle del Riesgo, Mejora y Entregable</label>
-            <textarea id="newTagContent" rows="3" placeholder="Describa el riesgo, acción de mejora y entregable..."></textarea>
+            <label>Detalle de la Propuesta / Riesgo / Entregable</label>
+            <textarea id="newTagContent" rows="3" placeholder="Escriba la propuesta en azul o el riesgo..."></textarea>
         </div>
 
-        <button class="btn" onclick="addNewRiskBox()">+ Insertar Caja Marginal</button>
-        <button class="btn btn-outline" onclick="runAiAnalysis()">🤖 Simular Análisis IA (Sugerir en Azul)</button>
+        <button class="btn" onclick="addNewRiskBox()">+ Insertar Etiqueta Marginal</button>
+        <button class="btn btn-outline" onclick="saveNewDocumentVersion()">💾 Guardar Versión Actual en Historial</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Exportar Acta y Matriz a PDF</button>
-        <button class="btn btn-outline" onclick="alert('Cambios y metadatos sincronizados correctamente en el servidor Secul.')">💾 Guardar Cambios</button>
+
+        <!-- Sección de Consulta de Documentos Generados -->
+        <div class="history-section">
+            <h3>📂 Consulta de Documentos Generados</h3>
+            <ul class="history-list" id="documentHistoryList">
+                <li><span>Acta_IEC_Original_10Dic2025.pdf</span> <button onclick="alert('Visualizando versión original precargada.')">Ver</button></li>
+                <li><span>Matriz_Riesgos_V1_Sept2026.pdf</span> <button onclick="alert('Visualizando versión V1.')">Ver</button></li>
+            </ul>
+        </div>
     </aside>
 
-    <!-- ÁREA PRINCIPAL DE TRABAJO CON TEXTO INTEGRO OFICIAL -->
+    <!-- ÁREA PRINCIPAL DE TRABAJO -->
     <main>
         <div class="workspace-header">
             <h2>Editor Integral del Acta de Extinción IEC (Texto Íntegro y Matriz)</h2>
@@ -359,21 +415,20 @@
             <div class="doc-title">ACTA DE LA SESIÓN DEL COMITÉ DE EXTINCIÓN DEL INSTITUTO ESTATAL DE CULTURA</div>
             
             <div class="doc-banner">
-                <b>Instrucción Operativa:</b> El texto en color negro corresponde al contenido íntegro del acta original de fecha 10 de diciembre de 2025[cite: 12]. Las modificaciones propuestas por el usuario o la IA se muestran en <span style="color:var(--primary-light); font-weight:bold;">letras azules editables</span>, y las etiquetas laterales permiten su gestión completa (editar, cambiar color, eliminar).
+                <b>Guía Visual:</b> El texto original que requiere revisión se encuentra <span style="background:var(--highlight-red); border-left:3px solid var(--border-red); padding:1px 3px;">resaltado en rojo</span>. Las propuestas de modificación y alternativas de redacción se presentan en <span style="color:var(--primary-light); font-weight:bold;">etiquetas marginales azules</span>.
             </div>
 
             <!-- Preámbulo -->
             <div class="row-item" id="section-preambulo">
                 <div class="text-column">
-                    En la ciudad de León, Guanajuato, siendo las 16:30 horas, del día miércoles 10 de diciembre del 2025, con fundamento en lo dispuesto por el artículo 4 de los Lineamientos de los Comités de Extinción de las Entidades en proceso de liquidación del Poder Ejecutivo del Estado; se reunieron a través de plataforma digital, sesionando de manera virtual, las personas servidoras públicas: Mtra. Lizeth Galván Cortés, Secretaria de Cultura y Presidenta del Comité; C.P. Dora Flores Lara, representante suplente de la Secretaría de Finanzas; C.P. Eulalia Álvarez Rodríguez, representante suplente de la Secretaría de la Honestidad; Lic. José Federico Ruiz Chávez, representante suplente de la Consejería Jurídica del Ejecutivo; Lic. Martha Alejandra Rivera Cortés, representante de la Secretaría Particular de la C. Gobernadora del Estado; Lic. Celia Elizabeth Nila García, representante del Archivo General del Estado; Mtro. Plinio Manuel Eustorgio Martínez Tafolla, representante suplente de la Coordinación de Análisis y Seguimiento Estratégico de Gobierno, y el C.P. Andrés Contreras Gasca, Liquidador Instituto Estatal de Cultura[cite: 12, 28]. 
-                    <br><br>PROPUESTA DE MODIFICACIÓN: <span class="proposal-blue" contenteditable="true">Validación nominal estricta del quórum legal respaldada con bitácora digital de firmas con fecha 1 de septiembre de 2026.</span>
+                    En la ciudad de León, Guanajuato, siendo las 16:30 horas, del día miércoles 10 de diciembre del 2025, con fundamento en lo dispuesto por el artículo 4 de los Lineamientos de los Comités de Extinción... se reunieron de manera virtual, las personas servidoras públicas: Mtra. Lizeth Galván Cortés, C.P. Dora Flores Lara, C.P. Eulalia Álvarez Rodríguez, Lic. José Federico Ruiz Chávez, Lic. Martha Alejandra Rivera Cortés, Lic. Celia Elizabeth Nila García, Mtro. Plinio Manuel Eustorgio Martínez Tafolla y el C.P. Andrés Contreras Gasca[cite: 12, 28]. 
+                    <br><br>
+                    <span class="highlight-red-text">Punto crítico original sujeto a validación de asistencia remota y formalización temporal.</span>
                 </div>
                 <div class="margin-column" data-container="section-preambulo">
-                    <div class="risk-box warning">
-                        <span class="risk-box-title">Riesgo / Control Operativo e Interno</span>
-                        <div class="risk-field"><strong>Riesgo:</strong> Omisión de formalidades legales y validación de quórum remoto[cite: 28].</div>
-                        <div class="risk-field"><strong>Mejora:</strong> Consolidar bitácoras de asistencia digital[cite: 28].</div>
-                        <div class="risk-field"><strong>Entregable:</strong> Registro de asistencia digital firmado[cite: 28].</div>
+                    <div class="risk-box proposal-tag">
+                        <span class="risk-box-title">Propuesta de Modificación</span>
+                        <div class="risk-field"><strong>Propuesta:</strong> Validar quórum legal mediante bitácora digital con fecha de formalización al 1 de septiembre de 2026.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -387,16 +442,15 @@
             <div class="row-item" id="section-p1">
                 <div class="text-column">
                     <b>ORDEN DEL DÍA Y PUNTOS 1 Y 2.</b> 
-                    1. Bienvenida, pase de lista de personas presentes y verificación del quórum legal. La Mtra. Lizeth Galván Cortés, Secretaría de Cultura, en su carácter de Presidenta del Comité da la bienvenida a las personas integrantes del mismo. Al estar presente la mayoría de las personas integrantes del Comité, se declara el quórum legal de asistencia y se da por iniciada la presente sesión[cite: 12]. 
-                    2. Lectura y aprobación del orden del día. La Mtra. Lizeth Galván Cortés procede a dar lectura al orden del día y somete a votación de las personas integrantes la aprobación de este, aprobándose por unanimidad[cite: 12].
-                    <br><br>MODIFICACIÓN PROPUESTA: <span class="proposal-blue" contenteditable="true">Incorporar anexos de convocatoria digital con acuse de recepción institucional.</span>
+                    1. Bienvenida, pase de lista de personas presentes y verificación del quórum legal[cite: 12]. 
+                    2. Lectura y aprobación del orden del día[cite: 12]. 
+                    <br><br>
+                    <span class="highlight-red-text">Ausencia de registro formal de acuse de convocatoria digital previa en los archivos institucionales.</span>
                 </div>
                 <div class="margin-column" data-container="section-p1">
-                    <div class="risk-box warning">
-                        <span class="risk-box-title">Control Operativo / Protocolo</span>
-                        <div class="risk-field"><strong>Riesgo:</strong> Inconsistencia temporal entre formalización y fecha externa[cite: 12].</div>
-                        <div class="risk-field"><strong>Mejora:</strong> Memorándum técnico interno de justificación.</div>
-                        <div class="risk-field"><strong>Entregable:</strong> Bitácora digital y oficio justificativo.</div>
+                    <div class="risk-box proposal-tag">
+                        <span class="risk-box-title">Propuesta de Modificación</span>
+                        <div class="risk-field"><strong>Propuesta:</strong> Adjuntar acuse de recepción digital de la convocatoria firmado por los representantes.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -410,15 +464,14 @@
             <div class="row-item" id="section-p31">
                 <div class="text-column">
                     <b>PUNTO 3.1. EXPOSICIÓN DEL ESTATUS - ENTREGA RECEPCIÓN.</b> 
-                    Andrés Contreras Gasca señala que ha enviado previamente los informes referentes a su proceso de liquidación, compartiendo el estatus actual. Comenta además que en el mes de marzo realizó su proceso de entrega – recepción a través de la Secretaría de la Honestidad; ha señalado además los reportes presupuestales para dotar del recurso a la Secretaría de Cultura, lo cual se hizo a través de la Dirección de Presupuesto[cite: 12, 28].
-                    <br><br>MODIFICACIÓN PROPUESTA: <span class="proposal-blue" contenteditable="true">Sujeto a dictamen de validación de entrega-recepción y anexo de regularización de vigencia retroactiva emitido por la Secretaría de la Honestidad.</span>
+                    Andrés Contreras Gasca señala que ha enviado previamente los informes referentes a su proceso de liquidación... En el mes de marzo realizó su proceso de entrega – recepción a través de la Secretaría de la Honestidad; reportes presupuestales para dotar del recurso a la Secretaría de Cultura[cite: 12, 28].
+                    <br><br>
+                    <span class="highlight-red-text">Desfase temporal entre la fecha de entrega en marzo y la validación formal de los reportes presupuestales.</span>
                 </div>
                 <div class="margin-column" data-container="section-p31">
-                    <div class="risk-box critical">
-                        <span class="risk-box-title">Riesgo Crítico / Entrega-Recepción</span>
-                        <div class="risk-field"><strong>Riesgo:</strong> Observaciones de auditoría por desfase documental y actas[cite: 28].</div>
-                        <div class="risk-field"><strong>Mejora:</strong> Auditoría cruzada con Secretaría de la Honestidad[cite: 28].</div>
-                        <div class="risk-field"><strong>Entregable:</strong> Dictamen de validación y oficio de salvaguarda[cite: 28].</div>
+                    <div class="risk-box proposal-tag">
+                        <span class="risk-box-title">Propuesta de Modificación</span>
+                        <div class="risk-field"><strong>Propuesta:</strong> Condicionar la aprobación al dictamen de validación de entrega-recepción con vigencia retroactiva.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -432,15 +485,14 @@
             <div class="row-item" id="section-p32">
                 <div class="text-column">
                     <b>PUNTO 3.2. RECURSOS FINANCIEROS Y FISCALES.</b> 
-                    Respecto a los recursos financieros ha estado trabajando en las conciliaciones presupuestales y a razón de ello realizó el pago de reintegros en el mes de agosto que corresponden a la taquilla del FIC, $16,354,747.21. Además, en el mes de octubre se realizó un reintegro de $27,000,000.00 correspondiente al remanente de recursos propios del 2021 al 2024; así como se realizaron las gestiones necesarias en el SAT para iniciar el proceso de la liquidación, siendo necesario realizar un cambio de firma electrónica del Instituto[cite: 12, 28]. Se encuentra en proceso de baja de 20,000 bienes muebles[cite: 12, 28].
-                    <br><br>MODIFICACIÓN PROPUESTA: <span class="proposal-blue" contenteditable="true">Respaldado con estados de cuenta conciliados, comprobantes de reintegro y acuse de actualización de e.firma amparados al cierre oficial.</span>
+                    Reintegro de taquilla FIC ($16,354,747.21) en agosto y remanente 2021-2024 ($27,000,000.00) en octubre; gestiones en el SAT para cambio de e.firma y baja de 20,000 bienes muebles[cite: 12, 28].
+                    <br><br>
+                    <span class="highlight-red-text">Riesgo de discrepancias fiscales y cuellos de botella por la actualización tardía de la e.firma ante el SAT.</span>
                 </div>
                 <div class="margin-column" data-container="section-p32">
-                    <div class="risk-box critical">
-                        <span class="risk-box-title">Riesgo Crítico / Control Financiero</span>
-                        <div class="risk-field"><strong>Riesgo:</strong> Discrepancias fiscales ante el SAT por validación posterior[cite: 28].</div>
-                        <div class="risk-field"><strong>Mejora:</strong> Mesa de trabajo permanente con Finanzas y SAT[cite: 28].</div>
-                        <div class="risk-field"><strong>Entregable:</strong> Estados conciliados y acuse de e.firma[cite: 28].</div>
+                    <div class="risk-box proposal-tag">
+                        <span class="risk-box-title">Propuesta de Modificación</span>
+                        <div class="risk-field"><strong>Propuesta:</strong> Integrar estados de cuenta conciliados y acuse de actualización de e.firma amparados al cierre oficial.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -454,16 +506,14 @@
             <div class="row-item" id="section-p4">
                 <div class="text-column">
                     <b>PUNTO 4. DETERMINACIÓN DE ACUERDO Y CRONOGRAMA.</b> 
-                    Andrés Contreras Gasca solicita ampliación a razón de que los tiempos para cerrar temas relacionados con el Fideicomiso FIARCA están en proceso de regularización con la Fiduciaria para que transite a Secretaría de Cultura; así como la contabilización de bienes con el área de contabilidad gubernamental, considerando que una prórroga de seis meses resulta suficiente. Se registra la participación de la C.P. Dora Flores Lara quien considera que la temporalidad resulta insuficiente ante el volumen de bienes[cite: 12, 28]. 
-                    <br><br>ACUERDOS: Primero: Realizar diagnóstico de asuntos pendientes. Segundo: El Comité concede la prórroga considerando la modificación de lineamientos basada en mesas de trabajo con Control Patrimonial[cite: 12, 28].
-                    <br><br>MODIFICACIÓN PROPUESTA: <span class="proposal-blue" contenteditable="true">Sujeto a dictamen técnico de suficiencia de plazos e hitos auditables con supervisión estricta de Finanzas.</span>
+                    Solicitud de prórroga de 6 meses por el liquidador para regularizar el Fideicomiso FIARCA y contabilización de bienes. Observación de la C.P. Dora Flores Lara sobre la insuficiencia del plazo[cite: 12, 28]. 
+                    <br><br>
+                    <span class="highlight-red-text">Plazo de 6 meses subestimado frente al volumen masivo de bienes muebles (20,000 partidas).</span>
                 </div>
                 <div class="margin-column" data-container="section-p4">
-                    <div class="risk-box critical">
-                        <span class="risk-box-title">Riesgo Crítico / Fideicomiso y Plazos</span>
-                        <div class="risk-field"><strong>Riesgo:</strong> Imposibilidad jurídica de operar pagos y subestimación de plazos[cite: 28].</div>
-                        <div class="risk-field"><strong>Mejora:</strong> Aceleración de mesas jurídicas y ajuste de hitos trimestrales[cite: 28].</div>
-                        <div class="risk-field"><strong>Entregable:</strong> Convenio modificatorio y cronograma de hitos[cite: 28].</div>
+                    <div class="risk-box proposal-tag">
+                        <span class="risk-box-title">Propuesta de Modificación</span>
+                        <div class="risk-field"><strong>Propuesta:</strong> Sujetar la prórroga a un dictamen técnico de suficiencia de plazos e hitos trimestrales auditables.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -477,15 +527,14 @@
             <div class="row-item" id="section-p5">
                 <div class="text-column">
                     <b>PUNTO 5. ASUNTOS GENERALES Y CLAUSURA.</b> 
-                    La Mtra. Lizeth Galván Cortés invita a los integrantes a manifestar si existe algún asunto general, sin que sea solicitado el uso de la voz. Al no haber más asuntos a tratar, se da por terminada la sesión siendo las 17:05 horas del día de su inicio, firmando al margen y calce quienes en ella intervinieron[cite: 12, 28].
-                    <br><br>MODIFICACIÓN PROPUESTA: <span class="proposal-blue" contenteditable="true">Protocolo de recolección digital de firmas institucionales dentro de las 48 horas posteriores para garantizar plena validez legal.</span>
+                    Clausura de la sesión siendo las 17:05 horas del día de su inicio, firmando quienes en ella intervinieron[cite: 12, 28].
+                    <br><br>
+                    <span class="highlight-red-text">Ausencia de protocolo estructurado para la recolección de firmas autógrafas o electrónicas post-sesión.</span>
                 </div>
                 <div class="margin-column" data-container="section-p5">
-                    <div class="risk-box warning">
-                        <span class="risk-box-title">Control / Cierre y Firmas</span>
-                        <div class="risk-field"><strong>Riesgo:</strong> Falta de integración oportuna de firmas de representantes[cite: 28].</div>
-                        <div class="risk-field"><strong>Mejora:</strong> Protocolo digital de recolección en 48 horas[cite: 28].</div>
-                        <div class="risk-field"><strong>Entregable:</strong> Acta firmada y testificada en su totalidad[cite: 28].</div>
+                    <div class="risk-box proposal-tag">
+                        <span class="risk-box-title">Propuesta de Modificación</span>
+                        <div class="risk-field"><strong>Propuesta:</strong> Establecer protocolo obligatorio de recolección digital de firmas dentro de las 48 horas posteriores.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -506,16 +555,16 @@
         function handleFileLoaded(event) {
             const file = event.target.files[0];
             if (file) {
-                document.getElementById('dropzoneText').innerText = `Archivo cargado: ${file.name}`;
-                alert(`Documento "${file.name}" cargado con éxito. El sistema ha indexado el contenido para análisis de IA.`);
+                document.getElementById('dropzoneText').innerText = `Cargado: ${file.name}`;
+                alert(`Documento "${file.name}" cargado con éxito. La IA ha detectado puntos clave y generado sugerencias en etiquetas azules.`);
             }
         }
 
         function addNewRiskBox() {
             const sectionId = document.getElementById('targetSection').value;
             const type = document.getElementById('tagTypeSelector').value;
-            const title = document.getElementById('newTagTitle').value || 'Nuevo Riesgo / Control';
-            const content = document.getElementById('newTagContent').value || 'Descripción del riesgo y entregable asociado.';
+            const title = document.getElementById('newTagTitle').value || 'Nueva Propuesta / Riesgo';
+            const content = document.getElementById('newTagContent').value || 'Detalle de la modificación sugerida.';
 
             const targetContainer = document.querySelector(`[data-container="${sectionId}"]`);
             if (!targetContainer) return;
@@ -534,28 +583,31 @@
 
             targetContainer.appendChild(box);
 
-            // Limpiar inputs
             document.getElementById('newTagTitle').value = '';
             document.getElementById('newTagContent').value = '';
         }
 
         function deleteBox(button) {
             const box = button.closest('.risk-box');
-            if (box && confirm('¿Desea eliminar esta etiqueta marginal?')) {
+            if (box && confirm('¿Desea eliminar esta etiqueta?')) {
                 box.remove();
             }
         }
 
         function toggleBoxColor(button) {
             const box = button.closest('.risk-box');
-            if (box.classList.contains('critical')) {
-                box.classList.remove('critical');
-                box.classList.add('warning');
-                box.querySelector('.risk-box-title').innerText = 'Control Operativo / Advertencia';
-            } else {
-                box.classList.remove('warning');
+            if (box.classList.contains('proposal-tag')) {
+                box.classList.remove('proposal-tag');
                 box.classList.add('critical');
                 box.querySelector('.risk-box-title').innerText = 'Riesgo Crítico';
+            } else if (box.classList.contains('critical')) {
+                box.classList.remove('critical');
+                box.classList.add('warning');
+                box.querySelector('.risk-box-title').innerText = 'Control Operativo';
+            } else {
+                box.classList.remove('warning');
+                box.classList.add('proposal-tag');
+                box.querySelector('.risk-box-title').innerText = 'Propuesta de Modificación';
             }
         }
 
@@ -567,12 +619,20 @@
             const newTitle = prompt('Editar título de la etiqueta:', titleEl.innerText);
             if (newTitle !== null) titleEl.innerText = newTitle;
 
-            const newDetail = prompt('Editar detalle del riesgo/entregable:', detailEl.innerText);
+            const newDetail = prompt('Editar detalle de la propuesta:', detailEl.innerText);
             if (newDetail !== null) detailEl.innerHTML = `<strong>Detalle:</strong> ${newDetail}`;
         }
 
-        function runAiAnalysis() {
-            alert('IA analizando documento adjunto... Sugerencias de riesgos generadas e integradas automáticamente en las secciones correspondientes en color azul.');
+        function saveNewDocumentVersion() {
+            const timestamp = new Date().toLocaleTimeString();
+            const docName = `Acta_IEC_Modificada_${timestamp.replace(/:/g, '-')}.pdf`;
+            
+            const historyList = document.getElementById('documentHistoryList');
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${docName}</span> <button onclick="alert('Abriendo documento guardado: ${docName}')">Ver</button>`;
+            historyList.prepend(li);
+
+            alert(`Versión actual guardada exitosamente con el nombre: ${docName}. Ya se encuentra disponible en la sección de consulta.`);
         }
     </script>
 </body>
