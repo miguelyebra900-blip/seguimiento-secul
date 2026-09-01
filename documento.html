@@ -196,7 +196,7 @@
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         border: 1px solid var(--border-color);
-        max-width: 1000px;
+        max-width: 1050px;
         margin: 0 auto;
         width: 100%;
     }
@@ -225,7 +225,7 @@
     .row-item {
         display: flex;
         gap: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         border-bottom: 1px dashed var(--border-color);
         padding-bottom: 20px;
     }
@@ -238,7 +238,6 @@
         color: #000000;
     }
 
-    /* Texto original resaltado en rojo para indicar modificación sugerida */
     .highlight-red-text {
         background-color: var(--highlight-red);
         border-left: 3px solid var(--border-red);
@@ -253,11 +252,11 @@
         gap: 10px;
     }
 
-    /* Cajas dinámicas de riesgo / propuesta en azul */
+    /* Cajas dinámicas */
     .risk-box {
-        padding: 12px;
+        padding: 10px;
         border-radius: 6px;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         position: relative;
     }
 
@@ -273,7 +272,6 @@
         border-left: 4px solid #dd6b20;
     }
 
-    /* Esquema de etiqueta en azul para propuestas de modificación */
     .risk-box.proposal-tag {
         background-color: #ebf8ff;
         border: 1px solid #90cdf4;
@@ -283,8 +281,8 @@
     .risk-box-title {
         font-weight: bold;
         text-transform: uppercase;
-        font-size: 0.75rem;
-        margin-bottom: 4px;
+        font-size: 0.72rem;
+        margin-bottom: 3px;
         display: block;
     }
 
@@ -293,28 +291,24 @@
     .proposal-tag .risk-box-title { color: var(--primary); }
 
     .risk-field {
-        margin-bottom: 4px;
-        color: #2d3748;
+        margin-bottom: 3px;
     }
     
-    .proposal-tag .risk-field {
-        color: var(--primary-light);
-        font-weight: 500;
-    }
+    .proposal-tag .risk-field { color: var(--primary-light); font-weight: 500; }
 
     .risk-actions {
-        margin-top: 8px;
+        margin-top: 6px;
         display: flex;
         gap: 5px;
         border-top: 1px solid rgba(0,0,0,0.05);
-        padding-top: 6px;
+        padding-top: 5px;
     }
 
     .risk-actions button {
         background: transparent;
         border: 1px solid currentColor;
-        font-size: 0.7rem;
-        padding: 2px 6px;
+        font-size: 0.68rem;
+        padding: 2px 5px;
         border-radius: 3px;
         cursor: pointer;
     }
@@ -382,12 +376,12 @@
 
         <div class="control-group">
             <label>Título de la Etiqueta</label>
-            <input type="text" id="newTagTitle" placeholder="Ej. Propuesta / Validación Fiscal">
+            <input type="text" id="newTagTitle" placeholder="Ej. Riesgo / Propuesta / Control">
         </div>
 
         <div class="control-group">
-            <label>Detalle de la Propuesta / Riesgo / Entregable</label>
-            <textarea id="newTagContent" rows="3" placeholder="Escriba la propuesta en azul o el riesgo..."></textarea>
+            <label>Detalle de la Etiqueta</label>
+            <textarea id="newTagContent" rows="3" placeholder="Escriba el detalle de la etiqueta..."></textarea>
         </div>
 
         <button class="btn" onclick="addNewRiskBox()">+ Insertar Etiqueta Marginal</button>
@@ -415,7 +409,7 @@
             <div class="doc-title">ACTA DE LA SESIÓN DEL COMITÉ DE EXTINCIÓN DEL INSTITUTO ESTATAL DE CULTURA</div>
             
             <div class="doc-banner">
-                <b>Guía Visual:</b> El texto original que requiere revisión se encuentra <span style="background:var(--highlight-red); border-left:3px solid var(--border-red); padding:1px 3px;">resaltado en rojo</span>. Las propuestas de modificación y alternativas de redacción se presentan en <span style="color:var(--primary-light); font-weight:bold;">etiquetas marginales azules</span>.
+                <b>Guía Visual:</b> El texto original que requiere revisión se encuentra <span style="background:var(--highlight-red); border-left:3px solid var(--border-red); padding:1px 3px;">resaltado en rojo</span>. Las propuestas de modificación se gestionan en <span style="color:var(--primary-light); font-weight:bold;">etiquetas azules</span>, acompañadas de las etiquetas de <span style="color:#e53e3e; font-weight:bold;">riesgo crítico (rojo)</span> y <span style="color:#dd6b20; font-weight:bold;">control operativo (ámbar)</span>.
             </div>
 
             <!-- Preámbulo -->
@@ -428,7 +422,17 @@
                 <div class="margin-column" data-container="section-preambulo">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field"><strong>Propuesta:</strong> Validar quórum legal mediante bitácora digital con fecha de formalización al 1 de septiembre de 2026.</div>
+                        <div class="risk-field">Validar quórum legal mediante bitácora digital con fecha de formalización al 1 de septiembre de 2026.</div>
+                        <div class="risk-actions">
+                            <button onclick="editBox(this)">Editar</button>
+                            <button onclick="toggleBoxColor(this)">Cambiar Color</button>
+                            <button onclick="deleteBox(this)">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="risk-box warning">
+                        <span class="risk-box-title">Control Operativo / Interno</span>
+                        <div class="risk-field"><strong>Riesgo:</strong> Omisión de formalidades legales remotas[cite: 28].</div>
+                        <div class="risk-field"><strong>Entregable:</strong> Registro de asistencia digital firmado[cite: 28].</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -450,7 +454,17 @@
                 <div class="margin-column" data-container="section-p1">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field"><strong>Propuesta:</strong> Adjuntar acuse de recepción digital de la convocatoria firmado por los representantes.</div>
+                        <div class="risk-field">Adjuntar acuse de recepción digital de la convocatoria firmado por los representantes.</div>
+                        <div class="risk-actions">
+                            <button onclick="editBox(this)">Editar</button>
+                            <button onclick="toggleBoxColor(this)">Cambiar Color</button>
+                            <button onclick="deleteBox(this)">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="risk-box warning">
+                        <span class="risk-box-title">Control Operativo / Protocolo</span>
+                        <div class="risk-field"><strong>Riesgo:</strong> Inconsistencia temporal entre formalización y fecha externa[cite: 12].</div>
+                        <div class="risk-field"><strong>Entregable:</strong> Oficio justificativo de convocatoria.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -471,7 +485,17 @@
                 <div class="margin-column" data-container="section-p31">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field"><strong>Propuesta:</strong> Condicionar la aprobación al dictamen de validación de entrega-recepción con vigencia retroactiva.</div>
+                        <div class="risk-field">Condicionar la aprobación al dictamen de validación de entrega-recepción con vigencia retroactiva.</div>
+                        <div class="risk-actions">
+                            <button onclick="editBox(this)">Editar</button>
+                            <button onclick="toggleBoxColor(this)">Cambiar Color</button>
+                            <button onclick="deleteBox(this)">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="risk-box critical">
+                        <span class="risk-box-title">Riesgo Crítico / Auditoría</span>
+                        <div class="risk-field"><strong>Riesgo:</strong> Observaciones por desfase en actas y reportes[cite: 28].</div>
+                        <div class="risk-field"><strong>Entregable:</strong> Dictamen de validación y oficio de salvaguarda[cite: 28].</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -492,7 +516,17 @@
                 <div class="margin-column" data-container="section-p32">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field"><strong>Propuesta:</strong> Integrar estados de cuenta conciliados y acuse de actualización de e.firma amparados al cierre oficial.</div>
+                        <div class="risk-field">Integrar estados de cuenta conciliados y acuse de actualización de e.firma amparados al cierre oficial.</div>
+                        <div class="risk-actions">
+                            <button onclick="editBox(this)">Editar</button>
+                            <button onclick="toggleBoxColor(this)">Cambiar Color</button>
+                            <button onclick="deleteBox(this)">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="risk-box critical">
+                        <span class="risk-box-title">Riesgo Crítico / Fiscal</span>
+                        <div class="risk-field"><strong>Riesgo:</strong> Discrepancias fiscales ante el SAT por validación posterior[cite: 28].</div>
+                        <div class="risk-field"><strong>Entregable:</strong> Acuse de actualización de e.firma y conciliaciones[cite: 28].</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -513,7 +547,17 @@
                 <div class="margin-column" data-container="section-p4">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field"><strong>Propuesta:</strong> Sujetar la prórroga a un dictamen técnico de suficiencia de plazos e hitos trimestrales auditables.</div>
+                        <div class="risk-field">Sujetar la prórroga a un dictamen técnico de suficiencia de plazos e hitos trimestrales auditables.</div>
+                        <div class="risk-actions">
+                            <button onclick="editBox(this)">Editar</button>
+                            <button onclick="toggleBoxColor(this)">Cambiar Color</button>
+                            <button onclick="deleteBox(this)">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="risk-box critical">
+                        <span class="risk-box-title">Riesgo Crítico / Fideicomiso</span>
+                        <div class="risk-field"><strong>Riesgo:</strong> Imposibilidad jurídica de operar pagos y subestimación de plazos[cite: 28].</div>
+                        <div class="risk-field"><strong>Entregable:</strong> Convenio modificatorio y cronograma de hitos[cite: 28].</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -534,7 +578,17 @@
                 <div class="margin-column" data-container="section-p5">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field"><strong>Propuesta:</strong> Establecer protocolo obligatorio de recolección digital de firmas dentro de las 48 horas posteriores.</div>
+                        <div class="risk-field">Establecer protocolo obligatorio de recolección digital de firmas dentro de las 48 horas posteriores.</div>
+                        <div class="risk-actions">
+                            <button onclick="editBox(this)">Editar</button>
+                            <button onclick="toggleBoxColor(this)">Cambiar Color</button>
+                            <button onclick="deleteBox(this)">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="risk-box warning">
+                        <span class="risk-box-title">Control Operativo / Cierre</span>
+                        <div class="risk-field"><strong>Riesgo:</strong> Falta de integración oportuna de firmas de representantes[cite: 28].</div>
+                        <div class="risk-field"><strong>Entregable:</strong> Acta firmada y testificada en su totalidad[cite: 28].</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -556,15 +610,15 @@
             const file = event.target.files[0];
             if (file) {
                 document.getElementById('dropzoneText').innerText = `Cargado: ${file.name}`;
-                alert(`Documento "${file.name}" cargado con éxito. La IA ha detectado puntos clave y generado sugerencias en etiquetas azules.`);
+                alert(`Documento "${file.name}" cargado con éxito. La IA ha detectado puntos clave y actualizado las etiquetas marginales.`);
             }
         }
 
         function addNewRiskBox() {
             const sectionId = document.getElementById('targetSection').value;
             const type = document.getElementById('tagTypeSelector').value;
-            const title = document.getElementById('newTagTitle').value || 'Nueva Propuesta / Riesgo';
-            const content = document.getElementById('newTagContent').value || 'Detalle de la modificación sugerida.';
+            const title = document.getElementById('newTagTitle').value || 'Nueva Etiqueta';
+            const content = document.getElementById('newTagContent').value || 'Detalle de la etiqueta insertada.';
 
             const targetContainer = document.querySelector(`[data-container="${sectionId}"]`);
             if (!targetContainer) return;
@@ -573,7 +627,7 @@
             box.className = `risk-box ${type}`;
             box.innerHTML = `
                 <span class="risk-box-title">${title}</span>
-                <div class="risk-field"><strong>Detalle:</strong> ${content}</div>
+                <div class="risk-field">${content}</div>
                 <div class="risk-actions">
                     <button onclick="editBox(this)">Editar</button>
                     <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -619,20 +673,20 @@
             const newTitle = prompt('Editar título de la etiqueta:', titleEl.innerText);
             if (newTitle !== null) titleEl.innerText = newTitle;
 
-            const newDetail = prompt('Editar detalle de la propuesta:', detailEl.innerText);
-            if (newDetail !== null) detailEl.innerHTML = `<strong>Detalle:</strong> ${newDetail}`;
+            const newDetail = prompt('Editar detalle de la etiqueta:', detailEl.innerText);
+            if (newDetail !== null) detailEl.innerText = newDetail;
         }
 
         function saveNewDocumentVersion() {
             const timestamp = new Date().toLocaleTimeString();
-            const docName = `Acta_IEC_Modificada_${timestamp.replace(/:/g, '-')}.pdf`;
+            const docName = `Acta_IEC_Matriz_Completa_${timestamp.replace(/:/g, '-')}.pdf`;
             
             const historyList = document.getElementById('documentHistoryList');
             const li = document.createElement('li');
             li.innerHTML = `<span>${docName}</span> <button onclick="alert('Abriendo documento guardado: ${docName}')">Ver</button>`;
             historyList.prepend(li);
 
-            alert(`Versión actual guardada exitosamente con el nombre: ${docName}. Ya se encuentra disponible en la sección de consulta.`);
+            alert(`Versión completa guardada exitosamente: ${docName}. Disponible en la sección de consulta.`);
         }
     </script>
 </body>
