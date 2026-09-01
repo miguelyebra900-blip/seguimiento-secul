@@ -20,6 +20,7 @@
         --warning-text: #9c4221;
         --highlight-red: #fff5f5;
         --border-red: #e53e3e;
+        --text-red: #c53030;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -95,9 +96,7 @@
         transition: background 0.2s;
     }
 
-    .btn:hover {
-        background-color: #2c5282;
-    }
+    .btn:hover { background-color: #2c5282; }
 
     .btn-outline {
         background-color: transparent;
@@ -105,17 +104,10 @@
         color: var(--primary-light);
         margin-top: 5px;
     }
+    .btn-outline:hover { background-color: #ebf8ff; }
 
-    .btn-outline:hover {
-        background-color: #ebf8ff;
-    }
-
-    .btn-success {
-        background-color: #2f855a;
-    }
-    .btn-success:hover {
-        background-color: #276749;
-    }
+    .btn-success { background-color: #2f855a; }
+    .btn-success:hover { background-color: #276749; }
 
     /* Sección de Consulta de Documentos Generados */
     .history-section {
@@ -245,11 +237,13 @@
         color: #000000;
     }
 
-    .highlight-red-text {
+    /* Texto exacto en rojo dentro del párrafo para detección visual inmediata */
+    .inline-target-red {
+        color: var(--text-red);
+        font-weight: 600;
         background-color: var(--highlight-red);
-        border-left: 3px solid var(--border-red);
-        padding: 2px 4px;
-        display: inline-block;
+        border-bottom: 1.5px dotted var(--border-red);
+        padding: 1px 3px;
     }
 
     .margin-column {
@@ -416,7 +410,7 @@
             <div class="doc-title">ACTA DE LA SESIÓN DEL COMITÉ DE EXTINCIÓN DEL INSTITUTO ESTATAL DE CULTURA</div>
             
             <div class="doc-banner">
-                <b>Guía Visual:</b> El texto original con observaciones se encuentra <span style="background:var(--highlight-red); border-left:3px solid var(--border-red); padding:1px 3px;">resaltado en rojo</span>. Las propuestas de modificación se integran en <span style="color:var(--primary-light); font-weight:bold;">etiquetas azules</span>, junto con las etiquetas de <span style="color:#e53e3e; font-weight:bold;">riesgo crítico (rojo)</span> y <span style="color:#dd6b20; font-weight:bold;">control operativo (ámbar)</span>.
+                <b>Guía Visual:</b> El texto original con observaciones se encuentra integrado <span style="color:var(--text-red); font-weight:bold; background:var(--highlight-red); padding:1px 3px;">en letras rojas dentro del párrafo</span>. Las propuestas de modificación se integran en <span style="color:var(--primary-light); font-weight:bold;">etiquetas azules</span> vinculadas directamente a la documental y riesgo correspondiente.
             </div>
 
             <!-- Preámbulo -->
@@ -424,12 +418,12 @@
                 <div class="text-column">
                     En la ciudad de León, Guanajuato, siendo las 16:30 horas, del día miércoles 10 de diciembre del 2025, con fundamento en lo dispuesto por el artículo 4 de los Lineamientos de los Comités de Extinción... se reunieron de manera presencial, las personas servidoras públicas: Mtra. Lizeth Galván Cortés, C.P. Dora Flores Lara, C.P. Eulalia Álvarez Rodríguez, Lic. José Federico Ruiz Chávez, Lic. Martha Alejandra Rivera Cortés, Lic. Celia Elizabeth Nila García, Mtro. Plinio Manuel Eustorgio Martínez Tafolla y el C.P. Andrés Contreras Gasca[cite: 12]. 
                     <br><br>
-                    <span class="highlight-red-text">Punto crítico original sujeto a validación de asistencia presencial y formalización temporal diferida.</span>
+                    <span class="inline-target-red">Punto crítico original sujeto a validación de asistencia presencial mediante lista autógrafa y formalización jurídica con fecha al 1 de septiembre de 2026.</span>
                 </div>
                 <div class="margin-column" data-container="section-preambulo">
                     <div class="risk-box proposal-tag">
                         <span class="risk-box-title">Propuesta de Modificación</span>
-                        <div class="risk-field">Validar el quórum legal y la asistencia mediante el listado de asistencia autógrafo original levantado de forma presencial el día de la sesión, integrando la formalización jurídica del acta con fecha del 1 de septiembre de 2026.</div>
+                        <div class="risk-field">Validar quórum legal mediante listado de asistencia autógrafo original con fecha de formalización al 1 de septiembre de 2026.</div>
                         <div class="risk-actions">
                             <button onclick="editBox(this)">Editar</button>
                             <button onclick="toggleBoxColor(this)">Cambiar Color</button>
@@ -456,7 +450,7 @@
                     1. Bienvenida, pase de lista de personas presentes y verificación del quórum legal[cite: 12]. 
                     2. Lectura y aprobación del orden del día[cite: 12]. 
                     <br><br>
-                    <span class="highlight-red-text">Ausencia de registro formal de acuse de convocatoria previa en los archivos institucionales.</span>
+                    <span class="inline-target-red">Ausencia de registro formal de acuse de convocatoria previa en los archivos institucionales.</span>
                 </div>
                 <div class="margin-column" data-container="section-p1">
                     <div class="risk-box proposal-tag">
@@ -487,7 +481,7 @@
                     <b>PUNTO 3.1. EXPOSICIÓN DEL ESTATUS - ENTREGA RECEPCIÓN.</b> 
                     Andrés Contreras Gasca señala que ha enviado previamente los informes referentes a su proceso de liquidación... En el mes de marzo realizó su proceso de entrega – recepción a través de la Secretaría de la Honestidad; reportes presupuestales para dotar del recurso a la Secretaría de Cultura[cite: 12].
                     <br><br>
-                    <span class="highlight-red-text">Desfase temporal entre la fecha de entrega en marzo y la validación formal de los reportes presupuestales.</span>
+                    <span class="inline-target-red">Desfase temporal entre la fecha de entrega en marzo y la validación formal de los reportes presupuestales.</span>
                 </div>
                 <div class="margin-column" data-container="section-p31">
                     <div class="risk-box proposal-tag">
@@ -518,7 +512,7 @@
                     <b>PUNTO 3.2. RECURSOS FINANCIEROS Y FISCALES.</b> 
                     Reintegro de taquilla FIC ($16,354,747.21) en agosto y remanente 2021-2024 ($27,000,000.00) en octubre; gestiones en el SAT para cambio de e.firma y baja de 20,000 bienes muebles[cite: 12].
                     <br><br>
-                    <span class="highlight-red-text">Riesgo de discrepancias fiscales y cuellos de botella por la actualización tardía de la e.firma ante el SAT.</span>
+                    <span class="inline-target-red">Riesgo de discrepancias fiscales y cuellos de botella por la actualización tardía de la e.firma ante el SAT.</span>
                 </div>
                 <div class="margin-column" data-container="section-p32">
                     <div class="risk-box proposal-tag">
@@ -549,7 +543,7 @@
                     <b>PUNTO 4. DETERMINACIÓN DE ACUERDO Y CRONOGRAMA.</b> 
                     Solicitud de prórroga de 6 meses por el liquidador para regularizar el Fideicomiso FIARCA y contabilización de bienes. Observación de la C.P. Dora Flores Lara sobre la insuficiencia del plazo[cite: 12]. 
                     <br><br>
-                    <span class="highlight-red-text">Plazo de 6 meses subestimado frente al volumen masivo de bienes muebles (20,000 partidas).</span>
+                    <span class="inline-target-red">Plazo de 6 meses subestimado frente al volumen masivo de bienes muebles (20,000 partidas).</span>
                 </div>
                 <div class="margin-column" data-container="section-p4">
                     <div class="risk-box proposal-tag">
@@ -580,7 +574,7 @@
                     <b>PUNTO 5. ASUNTOS GENERALES Y CLAUSURA.</b> 
                     Clausura de la sesión siendo las 17:05 horas del día de su inicio, firmando quienes en ella intervinieron[cite: 12].
                     <br><br>
-                    <span class="highlight-red-text">Ausencia de protocolo estructurado para la recolección de firmas autógrafas post-sesión.</span>
+                    <span class="inline-target-red">Ausencia de protocolo estructurado para la recolección de firmas autógrafas post-sesión.</span>
                 </div>
                 <div class="margin-column" data-container="section-p5">
                     <div class="risk-box proposal-tag">
