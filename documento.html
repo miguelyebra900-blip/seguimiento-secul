@@ -110,6 +110,13 @@
         background-color: #ebf8ff;
     }
 
+    .btn-success {
+        background-color: #2f855a;
+    }
+    .btn-success:hover {
+        background-color: #276749;
+    }
+
     /* Sección de Consulta de Documentos Generados */
     .history-section {
         margin-top: 20px;
@@ -252,7 +259,6 @@
         gap: 10px;
     }
 
-    /* Cajas dinámicas */
     .risk-box {
         padding: 10px;
         border-radius: 6px;
@@ -385,7 +391,8 @@
         </div>
 
         <button class="btn" onclick="addNewRiskBox()">+ Insertar Etiqueta Marginal</button>
-        <button class="btn btn-outline" onclick="saveNewDocumentVersion()">💾 Guardar Versión Actual en Historial</button>
+        <button class="btn btn-success" onclick="downloadFinalWordDocument()">📥 Descargar Documento Final (Word .doc)</button>
+        <button class="btn btn-outline" onclick="saveNewDocumentVersion()">💾 Guardar Versión en Historial</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Exportar Acta y Matriz a PDF</button>
 
         <!-- Sección de Consulta de Documentos Generados -->
@@ -409,7 +416,7 @@
             <div class="doc-title">ACTA DE LA SESIÓN DEL COMITÉ DE EXTINCIÓN DEL INSTITUTO ESTATAL DE CULTURA</div>
             
             <div class="doc-banner">
-                <b>Guía Visual:</b> El texto original que requiere revisión se encuentra <span style="background:var(--highlight-red); border-left:3px solid var(--border-red); padding:1px 3px;">resaltado en rojo</span>. Las propuestas de modificación se gestionan en <span style="color:var(--primary-light); font-weight:bold;">etiquetas azules</span>, acompañadas de las etiquetas de <span style="color:#e53e3e; font-weight:bold;">riesgo crítico (rojo)</span> y <span style="color:#dd6b20; font-weight:bold;">control operativo (ámbar)</span>.
+                <b>Guía Visual:</b> El texto original con observaciones se encuentra <span style="background:var(--highlight-red); border-left:3px solid var(--border-red); padding:1px 3px;">resaltado en rojo</span>. Las propuestas de modificación se integran en <span style="color:var(--primary-light); font-weight:bold;">etiquetas azules</span>, junto con las etiquetas de <span style="color:#e53e3e; font-weight:bold;">riesgo crítico (rojo)</span> y <span style="color:#dd6b20; font-weight:bold;">control operativo (ámbar)</span>.
             </div>
 
             <!-- Preámbulo -->
@@ -675,6 +682,46 @@
 
             const newDetail = prompt('Editar detalle de la etiqueta:', detailEl.innerText);
             if (newDetail !== null) detailEl.innerText = newDetail;
+        }
+
+        function downloadFinalWordDocument() {
+            // Recolectar textos y propuestas adoptadas para armar el documento final Word
+            let docContent = "ACTA DE LA SESIÓN DEL COMITÉ DE EXTINCIÓN DEL INSTITUTO ESTATAL DE CULTURA (DOCUMENTO FINAL CON PROPUESTAS ADOPTADAS)\n\n";
+            
+            const rows = document.querySelectorAll('.row-item');
+            rows.forEach((row, index) => {
+                const textCol = row.querySelector('.text-column').innerText;
+                docContent += `--- SECCIÓN ${index + 1} ---\n${textCol}\n`;
+
+                const boxes = row.querySelectorAll('.risk-box');
+                boxes.forEach(box => {
+                    const title = box.querySelector('.risk-box-title').innerText;
+                    const field = box.querySelector('.risk-field').innerText;
+                    docContent += `  [${title}]: ${field}\n`;
+                });
+                docContent += "\n";
+            });
+
+            // Crear archivo descargable formato Word (.doc / .txt compatible con Word)
+            const blob = new Blob([docContent], { type: 'application/msword;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Acta_IEC_Final_Consolidada_${new Date().toISOString().slice(0,10)}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Registrar en la sección de historial de consultas
+            const timestamp = new Date().toLocaleTimeString();
+            const docName = `Acta_IEC_Final_Consolidada_${timestamp.replace(/:/g, '-')}.doc`;
+            const historyList = document.getElementById('documentHistoryList');
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${docName}</span> <button onclick="alert('Abriendo documento guardado: ${docName}')">Ver</button>`;
+            historyList.prepend(li);
+
+            alert('Documento final Word generado y descargado con éxito. Se ha integrado también al historial de consultas de la barra lateral.');
         }
 
         function saveNewDocumentVersion() {
