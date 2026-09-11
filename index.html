@@ -72,7 +72,6 @@
     <div class="w-full max-w-md glass-card rounded-3xl shadow-2xl p-8 z-10 relative">
         
         <div class="text-center mb-8">
-            <!-- Circulo modificado con el texto SeCu -->
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skycustom-100 text-skycustom-600 mb-3 shadow-inner font-extrabold text-2xl tracking-tighter">
                 SeCu
             </div>
@@ -118,11 +117,11 @@
 
         <div class="mt-8 text-center border-t border-skycustom-100 pt-4">
             <p class="text-xs text-gray-500 flex items-center justify-center space-x-3">
-                <span><i class="fa-solid fa-guitar mr-1"></i>◔</span>
+                <span><i class="fa-solid fa-guitar mr-1"></i>Decreto 345</span>
                 <span>&bull;</span>
-                <span><i class="fa-solid fa-theater-masks mr-1"></i>◔/span>
+                <span><i class="fa-solid fa-theater-masks mr-1"></i>IEC & Fórum</span>
                 <span>&bull;</span>
-                <span><i class="fa-solid fa-paintbrush mr-1"></i>◔</span>
+                <span><i class="fa-solid fa-paintbrush mr-1"></i>Secretaría de Cultura</span>
             </p>
         </div>
     </div>
@@ -143,26 +142,22 @@
             const toast = document.getElementById('motivationalToast');
             const textElem = document.getElementById('motivationalText');
             
-            // Ocultar mensaje previo
             toast.classList.add('opacity-0', '-translate-y-2');
             
             setTimeout(() => {
-                // Seleccionar frase aleatoria
                 const frase = frasesMotivacionales[Math.floor(Math.random() * frasesMotivacionales.length)];
                 textElem.innerText = frase;
                 
-                // Mostrar mensaje
                 toast.classList.remove('opacity-0', '-translate-y-2');
                 toast.classList.add('opacity-100', 'translate-y-0');
             }, 500);
         }
 
-        // Iniciar rotación de mensajes cada 6 segundos
         mostrarMensajeAleatorio();
         setInterval(mostrarMensajeAleatorio, 6000);
 
-        // Configuración de Supabase con tu clave pública
-        const SUPABASE_URL = 'https://ubfjuydblmntbkbzutvl.supabase.co'; // URL proyectada de tu clave publishable
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://ubfjuydblmntbkbzutvl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Fpfii6S04VVIuhWw8ycekw_yQqud-us';
 
         const { createClient } = supabase;
@@ -181,7 +176,6 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span> Verificando...</span>';
 
             try {
-                // Consulta a la tabla usuarios_acceso
                 const { data, error } = await _supabase
                     .from('usuarios_acceso')
                     .select('*')
@@ -194,8 +188,47 @@
                     btn.disabled = false;
                     btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
                 } else {
-                    // Credenciales válidas: Redirección a la página del panel
-                    window.location.href = '/panel.html';
+                    // REGLAS DE NEGOCIO Y PERMISOS POR ROL / USUARIO
+                    let rolStr = (data.rol || '').toLowerCase();
+                    let usuarioStr = (data.usuario || '').toLowerCase();
+
+                    let vertientesPermitidas = "IEC"; // Por defecto Vertiente 1
+
+                    // 1. Regla para admin, master_admin, dir_general -> Ambas Vertientes
+                    if (usuarioStr === 'admin' || rolStr === 'master_admin' || usuarioStr === 'dir_general' || rolStr === 'admin') {
+                        vertientesPermitidas = "AMBAS";
+                    } 
+                    // 2. Regla para enlace_forum -> Solo Vertiente 2
+                    else if (usuarioStr.includes('forum') || usuarioStr === 'enlace_forum') {
+                        vertientesPermitidas = "FORUM";
+                    } 
+                    // 3. Regla para enlace_iec (o enlaces generales) -> Solo Vertiente 1
+                    else if (usuarioStr.includes('iec') || usuarioStr === 'enlace_iec' || rolStr === 'enlace') {
+                        vertientesPermitidas = "IEC";
+                    }
+
+                    // Objeto de sesión del usuario
+                    const currentUser = {
+                        id: data.id,
+                        usuario: data.usuario,
+                        nombre: data.nombre,
+                        rol: data.rol,
+                        area: data.area_adscripcion,
+                        vertientesPermitidas: vertientesPermitidas
+                    };
+
+                    // Guardamos la sesión en localStorage para que panel.html la lea
+                    localStorage.setItem('secul_user', JSON.stringify(currentUser));
+
+                    // Control de flujo según los permisos evaluados
+                    if (vertientesPermitidas === "AMBAS") {
+                        // Despliega el submenú selector para elegir IEC, Fórum o Global
+                        mostrarSelectorVertientes(currentUser);
+                    } else {
+                        // Asigna directamente la vertiente permitida y redirige a panel.html
+                        localStorage.setItem('secul_vertiente_activa', vertientesPermitidas);
+                        window.location.href = '/panel.html';
+                    }
                 }
             } catch (err) {
                 console.error("Error al autenticar:", err);
@@ -204,6 +237,59 @@
                 btn.disabled = false;
                 btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
             }
+        }
+
+        // Submenú Selector para roles con acceso a AMBAS vertientes
+        function mostrarSelectorVertientes(user) {
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = false;
+            btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
+
+            const modalHtml = `
+            <div id="modalSelector" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 space-y-5 border border-white">
+                    <div class="text-center space-y-1">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-skycustom-100 text-skycustom-600 uppercase tracking-wider">
+                            Bienvenido/a, ${user.nombre}
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800 mt-2">Seleccione el Módulo de Transición</h3>
+                        <p class="text-xs text-gray-500">Decreto 345: Elija la vertiente o vista global a administrar.</p>
+                    </div>
+                    
+                    <div class="space-y-3 pt-2">
+                        <button onclick="irAVertiente('IEC')" class="w-full p-4 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-2xl text-left transition flex items-center justify-between group">
+                            <div>
+                                <strong class="block text-gray-900 text-xs font-bold">Vertiente 1: Instituto Estatal de la Cultura (IEC)</strong>
+                                <span class="text-[10px] text-gray-500">Liquidación, bienes muebles y ASEG</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-sky-500 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+
+                        <button onclick="irAVertiente('FORUM')" class="w-full p-4 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-2xl text-left transition flex items-center justify-between group">
+                            <div>
+                                <strong class="block text-gray-900 text-xs font-bold">Vertiente 2: Fórum Cultural Guanajuato</strong>
+                                <span class="text-[10px] text-gray-500">Extinción, personal y subrogación</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-indigo-500 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+
+                        <button onclick="irAVertiente('GLOBAL')" class="w-full p-4 bg-slate-900 text-white rounded-2xl text-left transition flex items-center justify-between group shadow-lg">
+                            <div>
+                                <strong class="block text-white text-xs font-bold">Vista Consolidada Global (Ambas)</strong>
+                                <span class="text-[10px] text-slate-300">Tablero maestro unificado</span>
+                            </div>
+                            <i class="fa-solid fa-layer-group text-amber-400"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function irAVertiente(vertiente) {
+            localStorage.setItem('secul_vertiente_activa', vertiente);
+            window.location.href = '/panel.html';
         }
     </script>
 </body>
