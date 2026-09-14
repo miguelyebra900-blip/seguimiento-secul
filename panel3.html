@@ -1379,14 +1379,17 @@
                             <p class="text-slate-600"><strong>Trazabilidad:</strong> El usuario cambia el estatus, pega el enlace Drive y escribe una <strong>Nota de Auditoría obligatoria</strong> (justificación del cambio o número de oficio). Al guardar, se actualiza la tabla y se genera un registro inmutable en la bitácora (<code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-700 font-mono text-[10px]">logsAuditoria</code>).</p>
                         </div>
 
-                        <!-- Punto 6 -->
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-1.5">
-                            <strong class="text-slate-900 block font-bold text-xs text-indigo-950">6. Botón "Solicitar Hito" y Panel de Administrador</strong>
+                        <!-- Punto 6 con Botón Más Detalles -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                            <div class="flex items-center justify-between">
+                                <strong class="text-slate-900 font-bold text-xs text-indigo-950">6. Botón "Solicitar Hito" y Panel de Administrador</strong>
+                                <button type="button" onclick="openSubmodalSolicitarHito()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-[11px] rounded-xl border border-indigo-200 transition shadow-sm flex items-center gap-1.5 shrink-0">
+                                    <i class="fa-solid fa-circle-info text-indigo-600"></i> Más detalles
+                                </button>
+                            </div>
                             <p class="text-slate-600"><strong>Solicitudes:</strong> Cualquier enlace autenticado puede proponer una nueva tarea o alertar un riesgo usando el botón morado superior (<code class="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-700 font-mono text-[10px]">#modal-solicitud</code>).</p>
                             <p class="text-slate-600"><strong>Aprobación:</strong> La solicitud cae en la <em>"Bandeja de Validación de Solicitudes"</em> dentro de la pestaña Admin & Auditoría. El Administrador da clic en Aprobar o Rechazar, lo que impacta el contador de pendientes del panel.</p>
                         </div>
-                    </div>
-                </div>
 
                 <!-- 4. Perfiles y Niveles de Acceso -->
                 <div class="bg-slate-50/80 p-5 rounded-2xl border border-slate-200 space-y-2.5">
@@ -3192,6 +3195,280 @@
         renderActionsTable(accionesMatriz);
         updateAuthUI();
         actualizarLogsAuditoria();
+
+// Control del Submodal Específico "Solicitar Hito"
+        function openSubmodalSolicitarHito() {
+            const sub = document.getElementById('submodal-solicitar-hito');
+            if (sub) {
+                sub.classList.remove('hidden');
+                sub.style.display = 'flex';
+            }
+        }
+
+        function closeSubmodalSolicitarHito() {
+            const sub = document.getElementById('submodal-solicitar-hito');
+            if (sub) {
+                sub.classList.add('hidden');
+                sub.style.display = 'none';
+            }
+        }
+
+        let isSubmodalMaximized = false;
+        function toggleMaximizeSubmodal() {
+            const card = document.getElementById('submodalCardContainer');
+            const icon = document.getElementById('iconMaximizeSubmodal');
+            if (!card || !icon) return;
+
+            isSubmodalMaximized = !isSubmodalMaximized;
+            if (isSubmodalMaximized) {
+                card.classList.remove('max-w-4xl', 'max-h-[92vh]', 'rounded-3xl');
+                card.classList.add('w-full', 'h-full', 'max-w-none', 'max-h-none', 'rounded-none');
+                icon.className = 'fa-solid fa-compress';
+            } else {
+                card.classList.remove('w-full', 'h-full', 'max-w-none', 'max-h-none', 'rounded-none');
+                card.classList.add('max-w-4xl', 'max-h-[92vh]', 'rounded-3xl');
+                icon.className = 'fa-solid fa-expand';
+            }
+        }
+        
     </script>
+<!-- ========================================================= -->
+    <!-- SUBMODAL ESPECÍFICO: DETALLE DE "SOLICITAR HITO" (SOBREPUESTO) -->
+    <!-- ========================================================= -->
+    <div id="submodal-solicitar-hito" class="fixed inset-0 z-[60] hidden modal-backdrop flex items-center justify-center p-3 sm:p-5">
+        <div id="submodalCardContainer" class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col transition-all duration-200">
+            
+            <!-- Header Submodal -->
+            <div class="bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 p-4 sm:p-5 text-white flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30 shadow-inner">
+                        <i class="fa-solid fa-paper-plane text-indigo-300"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-sm sm:text-base tracking-tight flex items-center gap-2">
+                            Flujo Técnico: Botón "Solicitar Hito" & Gobernanza
+                        </h4>
+                        <p class="text-[11px] text-indigo-200">Protocolo de emisión de peticiones, validación directiva e impacto reactivo en cascada</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <!-- Botón Maximizar / Restaurar -->
+                    <button type="button" onclick="toggleMaximizeSubmodal()" id="btnMaximizeSubmodal" class="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition text-sm" title="Maximizar / Restaurar">
+                        <i class="fa-solid fa-expand" id="iconMaximizeSubmodal"></i>
+                    </button>
+                    <!-- Botón Cerrar y Volver -->
+                    <button type="button" onclick="closeSubmodalSolicitarHito()" class="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition text-base" title="Cerrar y volver al manual">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cuerpo del Submodal -->
+            <div class="p-5 sm:p-7 overflow-y-auto space-y-7 text-xs text-slate-700">
+
+                <!-- Bloque 1: Formulario Estructurado y Campos Obligatorios -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-extrabold flex items-center justify-center text-[10px]">1</span>
+                            Estructura de Captura: Formulario del Modal (#modal-solicitud)
+                        </h5>
+                        <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">4 Campos Mandatorios</span>
+                    </div>
+
+                    <p class="text-[11px] text-slate-600 leading-relaxed">
+                        Cuando un usuario autenticado hace clic en el botón morado superior, se despliega un formulario estructurado con cuatro campos obligatorios:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                        <!-- Campo 1 -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-building-user"></i> Área Estratégica
+                            </span>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                Identifica a qué adscripción o frente corresponde la petición (ej. <em>Área Jurídica, Administración y Finanzas, Teatro del Bicentenario, Recursos Materiales</em>).
+                            </p>
+                        </div>
+
+                        <!-- Campo 2 -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                            <span class="text-indigo-700 font-bold text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check"></i> Tipo de Solicitud (Selector Operativo)
+                            </span>
+                            <ul class="text-[10px] text-slate-600 space-y-1 leading-snug pl-1">
+                                <li>• <strong>Crear Nuevo Hito / Tarea:</strong> Si surgió una obligación o entregable no contemplado originalmente.</li>
+                                <li>• <strong>Modificar Acción Existente:</strong> Para solicitar cambios en plazos, redacción o alcance de una acción ya listada.</li>
+                                <li>• <strong>Alerta de Vencimiento / Riesgo:</strong> Para reportar bloqueos interinstitucionales o riesgos inminentes de observación.</li>
+                                <li>• <strong>Subir / Vincular Evidencia Drive:</strong> En caso de requerir la apertura de una nueva carpeta o reemplazo de expedientes oficiales.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Campo 3 -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-nib"></i> Título / Resumen de la Petición
+                            </span>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                Nombre corto y descriptivo (ej. <em>Cierre de inventario escenotécnico sala principal</em>).
+                            </p>
+                        </div>
+
+                        <!-- Campo 4 -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-scale-balanced"></i> Descripción Justificada y Fundamento
+                            </span>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                El sustento técnico o legal (número de oficio, cláusula de lineamiento o causa raíz de la solicitud).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Firma Automática -->
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center gap-2 text-emerald-900 text-[11px]">
+                        <i class="fa-solid fa-signature text-emerald-600 text-sm"></i>
+                        <span><strong>Firma Automática:</strong> El sistema vincula de forma transparente el usuario, rol y fecha de quien emite la petición.</span>
+                    </div>
+                </div>
+
+                <!-- Bloque 2: Flujo y Trazabilidad (Infografía Visual del Diagrama) -->
+                <div class="space-y-3">
+                    <div class="border-b border-slate-200 pb-2">
+                        <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-extrabold flex items-center justify-center text-[10px]">2</span>
+                            Flujo y Trazabilidad del Botón
+                        </h5>
+                    </div>
+
+                    <!-- Infografía de Nodos Conectados -->
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-center">
+                            <div class="p-3 bg-slate-800/90 rounded-xl border border-indigo-500/30 flex flex-col items-center justify-center">
+                                <i class="fa-solid fa-paper-plane text-indigo-400 mb-1"></i>
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold">Paso A</span>
+                                <strong class="text-xs text-white">Clic en Solicitar Hito</strong>
+                                <span class="text-[10px] text-slate-400 mt-0.5">Captura en Modal</span>
+                            </div>
+                            <div class="p-3 bg-slate-800/90 rounded-xl border border-indigo-500/30 flex flex-col items-center justify-center">
+                                <i class="fa-solid fa-fingerprint text-emerald-400 mb-1"></i>
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold">Paso B</span>
+                                <strong class="text-xs text-white">Registro & Bitácora</strong>
+                                <span class="text-[10px] text-slate-400 mt-0.5">secul_forum_solicitudes</span>
+                            </div>
+                            <div class="p-3 bg-slate-800/90 rounded-xl border border-amber-500/30 flex flex-col items-center justify-center">
+                                <i class="fa-solid fa-inbox text-amber-400 mb-1"></i>
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold">Paso C</span>
+                                <strong class="text-xs text-white">Contador en Espera (+1)</strong>
+                                <span class="text-[10px] text-amber-300 mt-0.5">Bandeja de Validación</span>
+                            </div>
+                            <div class="p-3 bg-slate-800/90 rounded-xl border border-blue-500/30 flex flex-col items-center justify-center">
+                                <i class="fa-solid fa-gavel text-blue-400 mb-1"></i>
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold">Paso D</span>
+                                <strong class="text-xs text-white">Resolución Admin</strong>
+                                <span class="text-[10px] text-blue-300 mt-0.5">Aprobar o Rechazar</span>
+                            </div>
+                        </div>
+
+                        <!-- Diagrama ASCII original preservado -->
+                        <div class="bg-black/50 p-3.5 rounded-xl font-mono text-[10px] sm:text-[11px] text-indigo-300 leading-snug overflow-x-auto border border-white/10">
+                            <pre>[Clic en Solicitar Hito]
+           │
+           ▼
+[Captura en Formulario Modal]
+           │
+           ▼
+[Registro en secul_forum_solicitudes + Huella en Bitácora]
+           │
+           ▼
+[Incremento del Contador: Solicitudes en Espera]
+           │
+           ▼
+[Bandeja de Validación (Vista Admin & Auditoría)]
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+ [Rechazar]   [Aprobar]
+     │           │
+     │           └─► Se crea/actualiza el hito en la Matriz
+     │               └─► Impacto en Cascada: Gráficas y Avance Global
+     ▼
+[Registro de Resolución en Auditoría]</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloque 3: Impacto Reactivo en las Demás Secciones -->
+                <div class="space-y-3">
+                    <div class="border-b border-slate-200 pb-2">
+                        <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-extrabold flex items-center justify-center text-[10px]">3</span>
+                            ¿Qué impacto tiene en las demás secciones de la página?
+                        </h5>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            Siguiendo el principio reactivo en cascada, el impacto ocurre en dos momentos:
+                        </p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Fase 1 -->
+                        <div class="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <strong class="text-amber-950 font-extrabold text-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Fase 1: Al enviar la solicitud (Estado: Pendiente)
+                                </strong>
+                                <span class="px-2 py-0.5 rounded-full bg-amber-200/60 text-amber-900 font-bold text-[9px] uppercase tracking-wider">Sin Afectar Métricas</span>
+                            </div>
+                            <ul class="text-[11px] text-slate-700 space-y-1.5 leading-relaxed pl-1">
+                                <li>• <strong>Contador de Administración:</strong> En la sección Admin & Auditoría, el indicador <code class="bg-white px-1.5 py-0.5 rounded text-amber-800 font-mono text-[10px] border">adminCountSolicitudes</code> (<em>"Solicitudes en Espera"</em>) sube automáticamente (+1).</li>
+                                <li>• <strong>Bandeja de Validación de Solicitudes:</strong> La petición aparece de inmediato en la tabla de control directivo con estatus en color ámbar (<em>Pendiente</em>) y dos botones de acción: <strong>Aprobar</strong> y <strong>Rechazar</strong>.</li>
+                                <li>• <strong>Huella Digital (Auditoría):</strong> Se estampa un nuevo evento en <code class="bg-white px-1.5 py-0.5 rounded text-amber-800 font-mono text-[10px] border">logsAuditoria</code> con fecha, hora, usuario solicitante y el detalle íntegro del requerimiento.</li>
+                            </ul>
+                            <div class="p-2.5 bg-white/80 rounded-xl border border-amber-200 text-[10px] text-amber-900 font-semibold">
+                                <i class="fa-solid fa-shield-halved me-1 text-amber-600"></i> <strong>Nota:</strong> En esta fase no altera el avance general ni las gráficas, protegiendo la integridad de los datos oficiales.
+                            </div>
+                        </div>
+
+                        <!-- Fase 2 -->
+                        <div class="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <strong class="text-emerald-950 font-extrabold text-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Fase 2: Al ser resuelta por el Administrador (Aprobación)
+                                </strong>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-200/60 text-emerald-900 font-bold text-[9px] uppercase tracking-wider">Cascada Reactiva Completa</span>
+                            </div>
+                            <p class="text-[11px] text-emerald-900 leading-snug">
+                                Cuando el Administrador hace clic en <strong>Aprobar</strong>, se desencadena el impacto completo en cascada:
+                            </p>
+                            <ul class="text-[11px] text-slate-700 space-y-1.5 leading-relaxed pl-1">
+                                <li>• <strong>Tabla de Doble Vertiente:</strong> Si se solicitó un nuevo hito, se genera su folio y se incorpora a la matriz oficial con su estatus y documentos requeridos.</li>
+                                <li>• <strong>Contadores de Cabecera:</strong> Aumenta el universo total de hitos (de 32 a 33) y el contador de la vertiente correspondiente (V1 o V2).</li>
+                                <li>• <strong>Analítica y Gráficas de Chart.js (<code class="bg-white px-1.5 py-0.5 rounded text-emerald-800 font-mono text-[10px] border">renderCharts()</code>):</strong>
+                                    <div class="pl-3.5 pt-1 space-y-1 text-[10px] text-slate-600">
+                                        <div>─ <strong>Avance Global:</strong> El promedio ponderado se recalcula al dividirse entre el nuevo total de hitos.</div>
+                                        <div>─ <strong>Gráficas de Estatus y Prioridad:</strong> Se actualizan las proporciones de las donas y gráficos de pastel.</div>
+                                        <div>─ <strong>Rendimiento por Área:</strong> El gráfico de barras suma la nueva tarea al promedio del área solicitante.</div>
+                                    </div>
+                                </li>
+                                <li>• <strong>Bitácora de Auditoría:</strong> Queda sellada la resolución formal con el nombre del Administrador que autorizó el cambio.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer del Submodal -->
+            <div class="bg-slate-50 px-6 py-4 flex justify-between items-center border-t border-slate-200 shrink-0">
+                <span class="text-[11px] text-slate-500 font-medium">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Regresar al Manual de Usuario
+                </span>
+                <button type="button" onclick="closeSubmodalSolicitarHito()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i> Entendido / Cerrar Detalle
+                </button>
+            </div>
+        </div>
+    </div>
+            
 </body>
 </html>
