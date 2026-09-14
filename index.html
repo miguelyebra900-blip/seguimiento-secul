@@ -217,17 +217,20 @@
                         vertientesPermitidas: vertientesPermitidas
                     };
 
-                    // Guardamos la sesión en localStorage para que panel.html la lea
+                    // Guardamos la sesión en localStorage
                     localStorage.setItem('secul_user', JSON.stringify(currentUser));
 
                     // Control de flujo según los permisos evaluados
                     if (vertientesPermitidas === "AMBAS") {
-                        // Despliega el submenú selector para elegir IEC, Fórum o Global
                         mostrarSelectorVertientes(currentUser);
                     } else {
-                        // Asigna directamente la vertiente permitida y redirige a panel.html
                         localStorage.setItem('secul_vertiente_activa', vertientesPermitidas);
-                        window.location.href = '/panel2.html';
+                        // Redirige según corresponda a su vertiente fija
+                        if (vertientesPermitidas === "FORUM") {
+                            window.location.href = '/panel3.html';
+                        } else {
+                            window.location.href = '/panel2.html';
+                        }
                     }
                 }
             } catch (err) {
@@ -253,7 +256,7 @@
                             Bienvenido/a, ${user.nombre}
                         </span>
                         <h3 class="text-xl font-bold text-gray-800 mt-2">Seleccione el Módulo de Transición</h3>
-                        <p class="text-xs text-gray-500">Decreto 345: Elija la vertiente o vista global a administrar.</p>
+                        <p class="text-xs text-gray-500">Decreto 345: Elija la vertiente a administrar.</p>
                     </div>
                     
                     <div class="space-y-3 pt-2">
@@ -272,14 +275,6 @@
                             </div>
                             <i class="fa-solid fa-arrow-right text-indigo-500 group-hover:translate-x-1 transition-transform"></i>
                         </button>
-
-                        <button onclick="irAVertiente('GLOBAL')" class="w-full p-4 bg-slate-900 text-white rounded-2xl text-left transition flex items-center justify-between group shadow-lg">
-                            <div>
-                                <strong class="block text-white text-xs font-bold">Vista Consolidada Global (Ambas)</strong>
-                                <span class="text-[10px] text-slate-300">Tablero maestro unificado</span>
-                            </div>
-                            <i class="fa-solid fa-layer-group text-amber-400"></i>
-                        </button>
                     </div>
                 </div>
             </div>`;
@@ -289,7 +284,11 @@
 
         function irAVertiente(vertiente) {
             localStorage.setItem('secul_vertiente_activa', vertiente);
-            window.location.href = '/panel2.html';
+            if (vertiente === 'FORUM') {
+                window.location.href = '/panel3.html';
+            } else {
+                window.location.href = '/panel2.html';
+            }
         }
     </script>
 </body>
