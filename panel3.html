@@ -1168,28 +1168,86 @@
         </div>
     </div>
 
-    <!-- MODAL: MANUAL DE USUARIO -->
+ 
+    <!-- ========================================================= -->
+    <!-- MODAL: MANUAL DE USUARIO Y FLUJOGRAMA (FÓRUM)             -->
+    <!-- ========================================================= -->
     <div id="modal-manual-usuario" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-white/10 rounded-xl text-lg"><i class="fa-solid fa-book-open-reader text-amber-400"></i></div>
+        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
+            <!-- Header Azul/Morado Oscuro -->
+            <div class="bg-[#232565] p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-lg shadow-inner">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
                     <div>
-                        <h3 class="font-bold text-base">Guía Operativa & Manual de Usuario (Fórum)</h3>
-                        <p class="text-xs text-slate-300">Flujograma de captura para enlaces de área del Fórum Cultural Guanajuato</p>
+                        <h3 class="font-extrabold text-base tracking-tight">Guía Operativa & Manual de Usuario</h3>
+                        <p class="text-xs text-indigo-200">Flujograma de operación para enlaces de área y administradores - Fórum Cultural</p>
                     </div>
                 </div>
-                <button onclick="closeModal('modal-manual-usuario')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeModal('modal-manual-usuario')" class="text-slate-300 hover:text-white text-xl transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             
             <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                    <h4 class="font-bold text-slate-900 text-xs">Pautas de Operación:</h4>
-                    <p class="text-slate-600 leading-relaxed">Este tablero centraliza los 10 hitos correspondientes a los reportes del liquidador ante el Comité de Extinción (V1) y los 22 requerimientos de la revisión de cuenta pública formulados por la ASEG (V2). Cada enlace puede seleccionar su hito, vincular la URL de Drive institucional y registrar avances que se firman en la bitácora de auditoría.</p>
+                <!-- Título del Flujograma -->
+                <div>
+                    <h4 class="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-indigo-600 text-base"></i> Flujograma del Proceso de Captura
+                    </h4>
+
+                    <!-- Flujograma Visual 6 Pasos -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center">
+                        <div class="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold inline-flex items-center justify-center mb-1.5 text-xs shadow-sm">1</span>
+                            <strong class="block text-xs font-bold text-slate-800">Ingreso</strong>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Credenciales</span>
+                        </div>
+                        <div class="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold inline-flex items-center justify-center mb-1.5 text-xs shadow-sm">2</span>
+                            <strong class="block text-xs font-bold text-slate-800">Filtrado</strong>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Por Área</span>
+                        </div>
+                        <div class="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold inline-flex items-center justify-center mb-1.5 text-xs shadow-sm">3</span>
+                            <strong class="block text-xs font-bold text-slate-800">Gestión</strong>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Subir Docs</span>
+                        </div>
+                        <div class="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold inline-flex items-center justify-center mb-1.5 text-xs shadow-sm">4</span>
+                            <strong class="block text-xs font-bold text-slate-800">Avance</strong>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Slider y Prio</span>
+                        </div>
+                        <div class="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold inline-flex items-center justify-center mb-1.5 text-xs shadow-sm">5</span>
+                            <strong class="block text-xs font-bold text-slate-800">URL Drive</strong>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Enlace Oficial</span>
+                        </div>
+                        <div class="p-3.5 bg-emerald-50/80 border border-emerald-300 rounded-2xl flex flex-col items-center justify-center shadow-sm">
+                            <span class="w-7 h-7 rounded-full bg-emerald-600 text-white font-extrabold inline-flex items-center justify-center mb-1.5 text-xs shadow-sm">6</span>
+                            <strong class="block text-xs font-bold text-emerald-800">Firma</strong>
+                            <span class="text-[10px] text-emerald-600 font-semibold mt-0.5">Huella Digital</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Perfiles y Niveles de Acceso -->
+                <div class="bg-slate-50/60 p-5 rounded-2xl border border-slate-200 space-y-2.5">
+                    <h4 class="font-bold text-slate-900 text-xs tracking-wide">Perfiles y Niveles de Acceso:</h4>
+                    <ul class="space-y-2 text-[11px] text-slate-600 leading-relaxed">
+                        <li><strong class="text-slate-800">• Administrador:</strong> Creación, edición, eliminación de hitos, validación de solicitudes y alertas.</li>
+                        <li><strong class="text-slate-800">• Enlace de Área:</strong> Actualización de avance, prioridad y vinculación de archivos Drive de su adscripción.</li>
+                        <li><strong class="text-slate-800">• Modo Consulta / Auditor:</strong> Acceso a indicadores ejecutivos y descarga de soportes oficiales.</li>
+                    </ul>
                 </div>
             </div>
-            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
-                <button onclick="closeModal('modal-manual-usuario')" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Entendido</button>
+
+            <!-- Footer con Botón Entendido / Cerrar -->
+            <div class="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-200">
+                <button onclick="closeModal('modal-manual-usuario')" class="px-6 py-2.5 bg-[#1a202c] hover:bg-slate-900 text-white rounded-xl font-bold text-xs shadow-md transition">
+                    Entendido / Cerrar
+                </button>
             </div>
         </div>
     </div>
