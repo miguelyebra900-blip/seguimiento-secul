@@ -3910,7 +3910,7 @@
         }
 
         // Control de Sesión y Autenticación Supabase
-        function updateAuthUI() {
+       function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
             const role = document.getElementById('userRoleDisplay');
@@ -3918,51 +3918,39 @@
             const navSelector = document.getElementById('navViewSelector');
 
             if (currentUser) {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
-                name.innerText = currentUser.nombre;
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+                if (name) name.innerText = currentUser.nombre;
+                if (role) role.innerHTML = `<i class="fa-solid fa-user-shield me-1"></i> ${currentUser.rol || 'Enlace de Área'}`;
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-right-from-bracket me-1"></i>Salir';
 
-                let roleHtml = '👤 Enlace Responsable';
                 let rolStr = (currentUser.rol || '').toLowerCase();
-                let nombreStr = (currentUser.nombre || '').toLowerCase();
-
-                if (currentUser.esAdmin || rolStr.includes('admin') || rolStr.includes('super') || nombreStr.includes('super')) {
-                    roleHtml = '👑 Super Administrador (Control Total)';
-                } else if (rolStr.includes('comite')) {
-                    roleHtml = '🛡️ Administrador del Comité';
-                } else if (rolStr.includes('auditor') || rolStr.includes('aseg')) {
-                    roleHtml = '👁️ Auditor ASEG';
-                } else {
-                    roleHtml = '👤 Enlace Responsable';
+                if (navSelector) {
+                    if (rolStr.includes('admin') || rolStr.includes('super')) {
+                        navSelector.classList.remove('hidden');
+                    } else {
+                        navSelector.classList.add('hidden');
+                    }
                 }
-
-                role.innerHTML = roleHtml;
-                btn.innerHTML = '<i class="fa-solid fa-right-from-bracket me-1"></i>Salir';
-
-                if (currentUser.esAdmin || rolStr.includes('admin') || rolStr.includes('super') || nombreStr.includes('super')) {
-                    navSelector.classList.remove('hidden');
-                } else {
+            } else {
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-slate-400";
+                if (name) name.innerText = "No autenticado";
+                if (role) role.innerHTML = '<i class="fa-solid fa-eye text-[9px] me-1"></i> Modo Consulta';
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar';
+                
+                if (navSelector) {
                     navSelector.classList.add('hidden');
                 }
-            } else {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-slate-400";
-                name.innerText = "No autenticado";
-                role.innerHTML = '<i class="fa-solid fa-eye text-[9px] me-1"></i> Modo Consulta / ASEG';
-                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar';
-                navSelector.classList.add('hidden');
-                switchViewTab('tab-operativo');
             }
         }
+        
 
-        function handleAuthClick() {
-            if(currentUser) {
-                registrarAuditoria('Cierre de Sesión', {});
-                currentUser = null;
-                localStorage.removeItem('secul_user');
-                updateAuthUI();
-                alert('Sesión finalizada.');
-            } else {
+      function handleSolicitarClick() {
+            if (!currentUser) {
+                alert('Debe identificarse para enviar solicitudes.');
                 openModal('modal-auth');
+                return;
             }
+            openModal('modal-solicitud');
         }
 
         async function handleLoginSubmit(e) {
