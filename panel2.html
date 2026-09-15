@@ -1643,15 +1643,23 @@
             
             <form id="formSolicitudModal" onsubmit="enviarSolicitudModal(event)" class="p-5 space-y-4 text-xs overflow-y-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Área Estratégica (A - F)</label>
-                        <select id="modalSolArea" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs focus:ring-2 focus:ring-indigo-500" required>
-                            <option value="A">Área A - Recursos Humanos y Estructura</option>
-                            <option value="B">Área B - Jurídico, Inmuebles y FIARCA</option>
-                            <option value="C">Área C - Infraestructura y Programas Q, G, P</option>
-                            <option value="D">Área D - Cierre Financiero, Fiscal y TI</option>
-                            <option value="E">Área E - Gestión Documental y Archivo</option>
-                            <option value="F">Área F - Informes y Reportes de Liquidación</option>
+                  <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-slate-700">Área Estratégica Especializada</label>
+                            <button type="button" onclick="openModal('modal-guia-areas')" class="text-indigo-600 hover:text-indigo-800 text-[11px] font-bold flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-lg transition border border-indigo-200 shadow-sm" title="Consultar catálogo oficial y alcance normativo de las 8 áreas">
+                                <i class="fa-solid fa-circle-question text-amber-500 animate-bounce"></i>
+                                <span>¿Dudas sobre el Área?</span>
+                            </button>
+                        </div>
+                        <select id="modalSolArea" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs focus:ring-2 focus:ring-indigo-500 font-semibold" required>
+                            <option value="A">Área A - Recursos Humanos & Estructura</option>
+                            <option value="B">Área B - Asuntos Jurídicos & Contencioso</option>
+                            <option value="C">Área C - Patrimonio Inmobiliario & Predios</option>
+                            <option value="D">Área D - Fideicomisos & Fondos Especiales (FIARCA)</option>
+                            <option value="E">Área E - Control Patrimonial & Bienes Muebles</option>
+                            <option value="F">Área F - Financiero, Presupuestal & Fiscal</option>
+                            <option value="G">Área G - Tecnologías de la Información (TI)</option>
+                            <option value="H">Área H - Archivo & Gestión Documental</option>
                         </select>
                     </div>
                     <div>
@@ -2858,6 +2866,22 @@
                 items: [
                     { titulo: '14 Informes Mensuales', detalle: 'Reportes rendidos de Octubre 2024 a Noviembre 2025 ante el Comité de Extinción.', accion: 'Integración y presentación de avances mensuales del liquidador.' },
                     { titulo: 'Paquete Fiscal 2026', detalle: 'Presupuesto integrado exclusivamente en Capítulo 1000 para la figura liquidadora.', accion: 'Asegurar continuidad administrativa durante el periodo de prórroga.' }
+                ]
+            },
+            'G': {
+                id: 'G',
+                nombre: 'Tecnologías de la Información (TI)',
+                desc: 'Bajas y modificaciones en DGTIT, entrega de accesos SAP, servidores y licencias.',
+                items: [
+                    { titulo: 'Accesos y Licenciamiento SAP', detalle: 'Baja y desincorporación formal ante DGTIT.', accion: 'Entrega de servidores, respaldos y credenciales maestras.' }
+                ]
+            },
+            'H': {
+                id: 'H',
+                nombre: 'Archivo & Gestión Documental',
+                desc: 'Transferencia de archivos de trámite y concentración a SC y acervo histórico al AGEG.',
+                items: [
+                    { titulo: 'Transferencia AGEG', detalle: 'Acervo con valor histórico y archivo de concentración.', accion: 'Integración de inventarios conforme a la Ley de Archivos del Estado.' }
                 ]
             }
         };
@@ -4283,6 +4307,103 @@
                 </button>
             </div>
         </div>
-    </div>         
+    </div>      
+<!-- ========================================================= -->
+    <!-- MODAL POPUP: GUÍA EXPLICATIVA DE LAS 8 ÁREAS (DECRETO 345)-->
+    <!-- ========================================================= -->
+    <div id="modal-guia-areas" class="fixed inset-0 z-[70] hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
+            
+            <div class="bg-[#1e1b4b] p-5 text-white flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-lg border border-amber-400/30">
+                        <i class="fa-solid fa-circle-question animate-bounce"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm sm:text-base">Guía Normativa de Recategorización: 8 Áreas Especializadas</h3>
+                        <p class="text-xs text-indigo-200">Alineación estricta al Decreto No. 345 y requerimientos de auditoría ASEG</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-guia-areas')" class="text-slate-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+                <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 text-[11px] text-slate-600 leading-relaxed">
+                    <strong class="text-indigo-950 block text-xs mb-1"><i class="fa-solid fa-circle-info text-indigo-600 me-1"></i> Criterio Técnico de Desacoplamiento:</strong>
+                    Para alinear el sistema con los lineamientos de extinción (Decreto 345) y los requerimientos de cuenta pública, la recategorización óptima debe desacoplarse en <strong>8 áreas especializadas</strong> para evitar mezclar materias incompatibles (como litigar juicios laborales junto con regularizar predios, o cancelar cuentas bancarias junto con licencias de software).
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700 border border-slate-200 rounded-2xl overflow-hidden">
+                        <thead class="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Clave</th>
+                                <th class="p-3">Categoría Propuesta</th>
+                                <th class="p-3">Alcance Operativo & Evidencias</th>
+                                <th class="p-3">Responsable Típico</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-[11px]">
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área A</td>
+                                <td class="p-3 font-bold text-slate-900">Recursos Humanos & Estructura</td>
+                                <td class="p-3 text-slate-600">Expedientes individuales, finiquitos, DGRH, plazas de base y dispersión de nómina residual.</td>
+                                <td class="p-3 font-semibold text-slate-800">Capital Humano / RH</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área B</td>
+                                <td class="p-3 font-bold text-slate-900">Asuntos Jurídicos & Contencioso</td>
+                                <td class="p-3 text-slate-600">Juicios laborales, litigios civiles/mercantiles en trámite y convenios de sustitución procesal con SC.</td>
+                                <td class="p-3 font-semibold text-slate-800">Dirección Jurídica</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área C</td>
+                                <td class="p-3 font-bold text-slate-900">Patrimonio Inmobiliario & Predios</td>
+                                <td class="p-3 text-slate-600">Certeza jurídica de recintos, zonas arqueológicas, escrituración, comodatos y desincorporación.</td>
+                                <td class="p-3 font-semibold text-slate-800">Jurídico / Inmuebles</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área D</td>
+                                <td class="p-3 font-bold text-slate-900">Fideicomisos & Fondos Especiales</td>
+                                <td class="p-3 text-slate-600">Extinción, finiquito contable y convenios modificatorios de instrumentos (ej. FIARCA, Banorte).</td>
+                                <td class="p-3 font-semibold text-slate-800">Finanzas / Fiduciario</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área E</td>
+                                <td class="p-3 font-bold text-slate-900">Control Patrimonial & Bienes Muebles</td>
+                                <td class="p-3 text-slate-600">Inventario físico SAP, maquinaria, bienes por ubicar, bajas y actas de entrega-recepción.</td>
+                                <td class="p-3 font-semibold text-slate-800">Recursos Materiales</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área F</td>
+                                <td class="p-3 font-bold text-slate-900">Financiero, Presupuestal & Fiscal</td>
+                                <td class="p-3 text-slate-600">Cuentas bancarias residuales, reintegros a Finanzas, pasivos, retenciones y baja de RFC ante el SAT.</td>
+                                <td class="p-3 font-semibold text-slate-800">Administración y Finanzas</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área G</td>
+                                <td class="p-3 font-bold text-slate-900">Tecnologías de la Información (TI)</td>
+                                <td class="p-3 text-slate-600">Bajas en DGTIT, entrega de accesos SAP, licenciamiento, servidores, dominios y respaldos de BD.</td>
+                                <td class="p-3 font-semibold text-slate-800">Tecnologías / Sistemas</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-indigo-700 font-mono">Área H</td>
+                                <td class="p-3 font-bold text-slate-900">Archivo & Gestión Documental</td>
+                                <td class="p-3 text-slate-600">Cuadros de clasificación, transferencias al AGEG, inventarios de concentración y trámite.</td>
+                                <td class="p-3 font-semibold text-slate-800">Archivo Institucional</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 flex justify-end border-t border-slate-200 shrink-0">
+                <button type="button" onclick="closeModal('modal-guia-areas')" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition">
+                    Entendido / Volver a Captura
+                </button>
+            </div>
+        </div>
+    </div>
+    
 </body>
 </html>
