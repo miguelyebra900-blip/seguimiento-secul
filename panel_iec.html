@@ -4388,6 +4388,9 @@ function openRiskDetailModal(riskId) {
             if (contenedorAcciones) {
                 contenedorAcciones.innerHTML = '';
             }
+
+const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
+            const accionesHijas = accionesListaActual.filter(a => a.hito_padre_id === hitoId);
             
             const badgeCount = document.getElementById('triCountAcciones');
             if (badgeCount) {
