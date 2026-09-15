@@ -4187,9 +4187,10 @@ function openRiskDetailModal(riskId) {
             ]
         };
 
-        let hitoActualEnModal = null;
+let hitoActualEnModal = null;
+        let cestaAccionesAcumuladas = [];
 
-        // Sobrescribir apertura de Trazabilidad Trilateral para renderizar las sugerencias dinámicas
+        // Sobrescribir apertura de la trazabilidad trilateral para renderizar inputs editables
         const _abrirTrazabilidadOrig = typeof abrirTrazabilidadTrilateral === 'function' ? abrirTrazabilidadTrilateral : null;
         abrirTrazabilidadTrilateral = function(identificador) {
             if (_abrirTrazabilidadOrig) _abrirTrazabilidadOrig(identificador);
@@ -4198,26 +4199,44 @@ function openRiskDetailModal(riskId) {
                 ? (typeof cronogramaRelacionalHitos !== 'undefined' && Object.keys(cronogramaRelacionalHitos).find(h => cronogramaRelacionalHitos[h].riesgo_id === identificador) || 'V1-02')
                 : identificador;
 
+            cestaAccionesAcumuladas = [];
+            actualizarRenderCesta();
             ocultarFormularioVincularAccion();
 
             const contenedor = document.getElementById('contenedorSugerenciasHito');
             if (contenedor) {
                 contenedor.innerHTML = '';
-                const lista = bancoSugerenciasAcciones[hitoActualEnModal] || [
-                    { id_sug: 's1', titulo: `Levantamiento técnico de soportes para ${hitoActualEnModal}`, resp: 'Área Ejecutora', area: 'A' },
-                    { id_sug: 's2', titulo: `Revisión jurídica y dictamen de cumplimiento para ${hitoActualEnModal}`, resp: 'Dirección Jurídica', area: 'B' },
-                    { id_sug: 's3', titulo: `Emisión de acta de solventación ante Órganos de Control`, resp: 'Órgano Interno', area: 'F' }
-                ];
+                const lista = (typeof bancoSugerenciasAcciones !== 'undefined' && bancoSugerenciasAcciones[hitoActualEnModal]) 
+                    ? bancoSugerenciasAcciones[hitoActualEnModal] 
+                    : [
+                        { id_sug: 's1', titulo: `Levantamiento técnico de soportes para ${hitoActualEnModal}`, resp: 'Área Ejecutora', area: 'A' },
+                        { id_sug: 's2', titulo: `Revisión jurídica y dictamen de cumplimiento para ${hitoActualEnModal}`, resp: 'Dirección Jurídica', area: 'B' },
+                        { id_sug: 's3', titulo: `Emisión de acta de solventación ante Órganos de Control`, resp: 'Órgano Interno', area: 'F' }
+                    ];
 
                 lista.forEach((sug, i) => {
                     contenedor.innerHTML += `
-                        <label class="flex items-start gap-2.5 p-2.5 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 cursor-pointer transition">
-                            <input type="checkbox" name="chkSugerenciaAccion" value="${i}" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
-                            <div class="text-xs">
-                                <strong class="text-slate-900 block">• ${sug.titulo}</strong>
-                                <span class="text-[10px] text-slate-500">Área: ${sug.area} | Responsable sugerido: <strong>${sug.resp}</strong></span>
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl hover:border-emerald-400 transition shadow-sm space-y-2">
+                            <div class="flex items-start gap-2.5">
+                                <input type="checkbox" id="chkSug_${i}" name="chkSugerenciaAccion" value="${i}" class="mt-1 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer">
+                                <div class="flex-1 space-y-1.5">
+                                    <div>
+                                        <label class="block text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Descripción del Compromiso (Editable):</label>
+                                        <input type="text" id="txtSugTitulo_${i}" value="${sug.titulo}" class="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:bg-white focus:border-indigo-500 bg-slate-50/70">
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Instancia Responsable (Editable):</label>
+                                            <input type="text" id="txtSugResp_${i}" value="${sug.resp}" class="w-full p-1 border border-slate-200 rounded-lg text-[11px] text-slate-700 bg-slate-50/70">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Área Asignada (A-H):</label>
+                                            <input type="text" id="txtSugArea_${i}" value="${sug.area}" maxlength="1" class="w-16 p-1 text-center font-bold uppercase border border-slate-200 rounded-lg text-[11px] text-indigo-700 bg-slate-50/70">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </label>
+                        </div>
                     `;
                 });
             }
@@ -4233,93 +4252,151 @@ function openRiskDetailModal(riskId) {
             if (p) p.classList.add('hidden');
         }
 
-        function adoptarAccionesSugeridas() {
+        // 1. Agrega las opciones marcadas (con las ediciones aplicadas) a la cesta
+        function agregarOpcionesMarcadasACesta() {
             const checks = document.querySelectorAll('input[name="chkSugerenciaAccion"]:checked');
             if (checks.length === 0) {
-                alert('Por favor seleccione al menos una de las 3 acciones sugeridas.');
+                alert('Por favor marque al menos una casilla de las sugerencias para agregarla a la lista.');
                 return;
             }
 
-            const lista = bancoSugerenciasAcciones[hitoActualEnModal] || [];
-            let adoptadas = 0;
-
             checks.forEach(chk => {
-                const sug = lista[parseInt(chk.value)];
-                if (sug) {
-                    const idNueva = Date.now() + Math.floor(Math.random() * 1000);
-                    
-                    const solicitud = {
-                        id: idNueva,
-                        entidad: 'IEC',
-                        area: `Área ${sug.area}`,
-                        tipo: 'Modificar Acción',
-                        titulo: `Nueva Acción para [${hitoActualEnModal}]: ${sug.titulo}`,
-                        desc: `Mitigación Directa para Hito ${hitoActualEnModal}. Responsable propuesto: ${sug.resp}`,
-                        solicitante: currentUser ? currentUser.usuario : 'Enlace Directivo',
-                        estado: 'Pendiente',
-                        fecha: new Date().toLocaleDateString(),
-                        detallesTecnicos: {
-                            accion_id: idNueva,
-                            hito_padre_id: hitoActualEnModal,
-                            rubro: 'Operativo',
-                            hito: `${sug.area} - Mitigación`,
-                            accion: `[${sug.area}] ${sug.titulo}`,
-                            responsable: sug.resp,
-                            estatus: 'En Proceso',
-                            driveUrl: ''
-                        }
-                    };
+                const idx = chk.value;
+                const tituloEditado = document.getElementById(`txtSugTitulo_${idx}`).value.trim();
+                const respEditado = document.getElementById(`txtSugResp_${idx}`).value.trim();
+                const areaEditada = (document.getElementById(`txtSugArea_${idx}`).value.trim().toUpperCase() || 'E');
 
-                    solicitudesAdmin.unshift(solicitud);
-                    adoptadas++;
+                if (tituloEditado) {
+                    cestaAccionesAcumuladas.push({
+                        id_temp: Date.now() + Math.floor(Math.random() * 1000),
+                        titulo: tituloEditado,
+                        resp: respEditado || 'Área Responsable',
+                        area: areaEditada,
+                        tipoOrigen: 'Sugerida Editada',
+                        driveUrl: '',
+                        nota: `Mitigación asistida para ${hitoActualEnModal}`
+                    });
+                    chk.checked = false; // Desmarcar tras sumar
                 }
             });
 
-            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
-            ocultarFormularioVincularAccion();
-            closeModal('modal-trilateral-360');
-            alert(`¡Se han formulado ${adoptadas} solicitud(es) de acción vinculadas al hito ${hitoActualEnModal}!\n\nEstán listas en la Bandeja de Auditoría para aprobación del Super Admin.`);
+            actualizarRenderCesta();
         }
 
-        function guardarAccionManualDesdeModal(e) {
+        // 2. Agrega la acción manual a la misma cesta acumuladora
+        function agregarAccionManualACesta(e) {
             e.preventDefault();
             const titulo = document.getElementById('manualActionTitle').value.trim();
             const resp = document.getElementById('manualActionResp').value.trim();
+            const area = document.getElementById('manualActionArea').value;
             const drive = document.getElementById('manualActionDrive').value.trim();
             const nota = document.getElementById('manualActionNote').value.trim();
 
-            const idNueva = Date.now();
-            const solicitud = {
-                id: idNueva,
-                entidad: 'IEC',
-                area: 'Área General',
-                tipo: 'Modificar Acción',
-                titulo: `Nueva Acción para [${hitoActualEnModal}]: ${titulo}`,
-                desc: `[Mitigación Manual para ${hitoActualEnModal}] Responsable: ${resp} | Motivo: ${nota}`,
-                solicitante: currentUser ? currentUser.usuario : 'Enlace Operativo',
-                estado: 'Pendiente',
-                fecha: new Date().toLocaleDateString(),
-                detallesTecnicos: {
-                    accion_id: idNueva,
-                    hito_padre_id: hitoActualEnModal,
-                    rubro: 'Operativo',
-                    hito: `Mitigación - ${hitoActualEnModal}`,
-                    accion: titulo,
-                    responsable: resp,
-                    estatus: 'En Proceso',
-                    driveUrl: drive
-                }
-            };
-
-            solicitudesAdmin.unshift(solicitud);
-            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+            cestaAccionesAcumuladas.push({
+                id_temp: Date.now() + Math.floor(Math.random() * 1000),
+                titulo: titulo,
+                resp: resp,
+                area: area,
+                tipoOrigen: 'Manual',
+                driveUrl: drive,
+                nota: nota
+            });
 
             document.getElementById('formManualAccion').reset();
-            ocultarFormularioVincularAccion();
-            closeModal('modal-trilateral-360');
-            alert(`¡Acción manual vinculada al Hito ${hitoActualEnModal} enviada a auditoria.html!`);
+            document.getElementById('formManualAccion').classList.add('hidden');
+            actualizarRenderCesta();
         }
 
+        // 3. Dibuja las tareas acumuladas en la caja visual
+        function actualizarRenderCesta() {
+            const contenedor = document.getElementById('contenedorCestaAcciones');
+            const contador = document.getElementById('cestaAccionesCount');
+            if (!contenedor || !contador) return;
+
+            contador.innerText = cestaAccionesAcumuladas.length;
+
+            if (cestaAccionesAcumuladas.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="text-[11px] text-slate-400 italic p-2.5 text-center bg-white rounded-xl border border-slate-200">
+                        Aún no hay acciones acumuladas en esta sesión.
+                    </div>
+                `;
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            cestaAccionesAcumuladas.forEach((item, idx) => {
+                contenedor.innerHTML += `
+                    <div class="p-2 bg-white rounded-xl border border-emerald-200 flex items-center justify-between gap-2 shadow-sm text-xs">
+                        <div class="truncate">
+                            <span class="px-1.5 py-0.5 rounded font-mono font-bold text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200">Área ${item.area}</span>
+                            <strong class="text-slate-900 font-bold ml-1">• ${item.titulo}</strong>
+                            <span class="text-[10px] text-slate-500 block truncate">Resp: ${item.resp} | ${item.tipoOrigen}</span>
+                        </div>
+                        <button type="button" onclick="eliminarDeCesta(${idx})" class="text-rose-500 hover:text-rose-700 p-1 shrink-0" title="Quitar de la lista">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function eliminarDeCesta(idx) {
+            cestaAccionesAcumuladas.splice(idx, 1);
+            actualizarRenderCesta();
+        }
+
+        function limpiarCestaAcciones() {
+            cestaAccionesAcumuladas = [];
+            actualizarRenderCesta();
+        }
+
+        // 4. Envía todas las acciones de la cesta de un solo golpe
+        function adoptarYEnviarAcciones() {
+            if (cestaAccionesAcumuladas.length === 0) {
+                alert('No hay acciones acumuladas en la lista.\n\nEdite y marque sugerencias dando clic en "Agregar Opciones Marcadas a la Lista", o redacte una tarea manual antes de enviar.');
+                return;
+            }
+
+            let adoptadas = 0;
+            cestaAccionesAcumuladas.forEach(item => {
+                const idNueva = Date.now() + Math.floor(Math.random() * 1000);
+
+                const solicitud = {
+                    id: idNueva,
+                    entidad: 'IEC',
+                    area: `Área ${item.area}`,
+                    tipo: 'Modificar Acción',
+                    titulo: `Nueva Acción para [${hitoActualEnModal}]: ${item.titulo}`,
+                    desc: `[Mitigación Hito ${hitoActualEnModal}] Responsable: ${item.resp} | Origen: ${item.tipoOrigen} | Nota: ${item.nota}`,
+                    solicitante: currentUser ? currentUser.usuario : 'Enlace Directivo',
+                    estado: 'Pendiente',
+                    fecha: new Date().toLocaleDateString(),
+                    detallesTecnicos: {
+                        accion_id: idNueva,
+                        hito_padre_id: hitoActualEnModal,
+                        rubro: 'Operativo',
+                        hito: `${item.area} - Mitigación`,
+                        accion: `[${item.area}] ${item.titulo}`,
+                        responsable: item.resp,
+                        estatus: 'En Proceso',
+                        driveUrl: item.driveUrl || ''
+                    }
+                };
+
+                solicitudesAdmin.unshift(solicitud);
+                adoptadas++;
+            });
+
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+
+            cestaAccionesAcumuladas = [];
+            actualizarRenderCesta();
+            ocultarFormularioVincularAccion();
+            closeModal('modal-trilateral-360');
+
+            alert(`¡Éxito!\n\nSe han adoptado y enviado ${adoptadas} acción(es) acumuladas para el hito ${hitoActualEnModal}.\n\nEstán listas en la Bandeja de Validación en auditoria.html.`);
+        }
         
       // =========================================================================
         // MOTOR RELACIONAL TRILATERAL (RIESGO ➔ HITO ➔ ACCIONES & CRONOGRAMA)
@@ -5561,51 +5638,68 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                         </button>
                     </div>
 
-                    <!-- Panel Desplegable: Asistente con 3 Sugerencias y Captura Manual -->
+<!-- Panel Desplegable: Asistente con Edición, Acumulador y Captura Manual -->
                     <div id="panelAsistenteAcciones" class="hidden bg-slate-50 border border-emerald-200 rounded-2xl p-4 space-y-4 shadow-inner">
                         <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                             <div>
                                 <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
                                     <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Asistente de Mitigación Táctica
                                 </span>
-                                <p class="text-[11px] text-slate-500">Seleccione acciones recomendadas por arquitectura o redacte una personalizada.</p>
+                                <p class="text-[11px] text-slate-500">Edite las sugerencias si lo requiere, márquelas y agréguelas a la lista acumulada.</p>
                             </div>
                             <button type="button" onclick="ocultarFormularioVincularAccion()" class="text-slate-400 hover:text-slate-700 text-sm">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
 
-                        <!-- 3 Acciones Sugeridas Dinámicas -->
+                        <!-- 1. Opciones Sugeridas Editables -->
                         <div class="space-y-2">
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
-                                1. Acciones Sugeridas para este Hito (Marque las deseadas):
+                                1. Opciones Sugeridas (Edite los campos necesarios y marque las casillas):
                             </label>
-                            <div id="contenedorSugerenciasHito" class="space-y-2"></div>
-                            <button type="button" onclick="adoptarAccionesSugeridas()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-check-double"></i> Adoptar Acciones Marcadas
-                            </button>
+                            <div id="contenedorSugerenciasHito" class="space-y-2.5">
+                                <!-- Render dinámico editable -->
+                            </div>
+                            <div class="pt-1">
+                                <button type="button" onclick="agregarOpcionesMarcadasACesta()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> Agregar Opciones Marcadas a la Lista
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Opción de Captura Manual -->
+                        <!-- 2. Opción de Captura Manual Acumulativa -->
                         <div class="border-t border-slate-200 pt-3 space-y-2.5">
                             <button type="button" onclick="document.getElementById('formManualAccion').classList.toggle('hidden')" class="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1">
-                                <i class="fa-solid fa-keyboard"></i> ¿Prefieres redactar una acción personalizada? Haz clic aquí
+                                <i class="fa-solid fa-keyboard"></i> ¿Deseas redactar una acción adicional manualmente? Haz clic aquí
                             </button>
                             
-                            <form id="formManualAccion" class="hidden space-y-3 bg-white p-3.5 rounded-xl border border-slate-200" onsubmit="guardarAccionManualDesdeModal(event)">
+                            <form id="formManualAccion" class="hidden space-y-3 bg-white p-3.5 rounded-xl border border-slate-200" onsubmit="agregarAccionManualACesta(event)">
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-600 mb-1">Descripción Táctica de la Acción:</label>
                                     <input type="text" id="manualActionTitle" class="w-full p-2 border rounded-xl text-xs bg-slate-50 font-semibold" placeholder="Ej. Levantamiento físico en archivo o entrega de oficio..." required>
                                 </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div class="sm:col-span-2">
                                         <label class="block text-[10px] font-bold text-slate-600 mb-1">Instancia Responsable:</label>
                                         <input type="text" id="manualActionResp" class="w-full p-2 border rounded-xl text-xs bg-slate-50" placeholder="Ej. Control Patrimonial / RH" required>
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-600 mb-1">Enlace Drive Evidencia (Opcional):</label>
-                                        <input type="url" id="manualActionDrive" class="w-full p-2 border rounded-xl text-xs bg-slate-50" placeholder="https://drive.google.com/...">
+                                        <label class="block text-[10px] font-bold text-slate-600 mb-1">Área Clave (A-H):</label>
+                                        <select id="manualActionArea" class="w-full p-2 border rounded-xl text-xs bg-slate-50 font-bold text-indigo-700">
+                                            <option value="A">Área A</option>
+                                            <option value="B">Área B</option>
+                                            <option value="C">Área C</option>
+                                            <option value="D">Área D</option>
+                                            <option value="E" selected>Área E</option>
+                                            <option value="F">Área F</option>
+                                            <option value="G">Área G</option>
+                                            <option value="H">Área H</option>
+                                        </select>
                                     </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Enlace Drive Evidencia (Opcional):</label>
+                                    <input type="url" id="manualActionDrive" class="w-full p-2 border rounded-xl text-xs bg-slate-50" placeholder="https://drive.google.com/...">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-600 mb-1">Justificación del Requerimiento:</label>
@@ -5613,13 +5707,37 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                                 </div>
                                 <div class="flex justify-end gap-2 pt-1">
                                     <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow">
-                                        Enviar a Validación
+                                        <i class="fa-solid fa-cart-plus me-1"></i> Sumar a Lista Acumulada
                                     </button>
                                 </div>
                             </form>
                         </div>
-                    </div>
 
+                        <!-- 3. Bandeja Acumuladora (Cesta) y Botón de Envío Final -->
+                        <div class="border-t-2 border-dashed border-emerald-300 pt-3 bg-emerald-50/50 p-3 rounded-xl space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Acciones Preparadas para Adopción (<span id="cestaAccionesCount">0</span>)
+                                </span>
+                                <button type="button" onclick="limpiarCestaAcciones()" class="text-[10px] text-rose-600 hover:underline font-bold">
+                                    Vaciar lista
+                                </button>
+                            </div>
+
+                            <div id="contenedorCestaAcciones" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                <div class="text-[11px] text-slate-400 italic p-2 text-center bg-white rounded-lg border border-slate-200">
+                                    Aún no hay acciones acumuladas en esta sesión.
+                                </div>
+                            </div>
+
+                            <div class="pt-2 flex justify-end">
+                                <button type="button" id="btnAdoptarYEnviar" onclick="adoptarYEnviarAcciones()" class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-paper-plane text-amber-300"></i> Adoptar y Enviar Acciones
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Lista de Acciones ya vinculadas -->
                     <div id="triListaAcciones" class="space-y-2"></div>
                 </div>
