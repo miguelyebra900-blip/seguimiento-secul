@@ -4825,10 +4825,10 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
         // =========================================================================
         let filtroFaseCronogramaActual = 'ALL';
 
-        function abrirModalCronogramaGeneral() {
-            renderCronogramaGeneral();
-            openModal('modal-cronograma-general');
-        }
+       function abrirModalCronogramaGeneral() {
+    renderRoadmapGrafico();
+    openModal('modal-cronograma-general');
+}
 
         function filtrarCronogramaModal(fase) {
             filtroFaseCronogramaActual = fase;
@@ -5629,25 +5629,99 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                 </div>
             </div>
 
-            <!-- Contenido con Scroll: Tabla / Gantt de Hitos -->
-            <div class="p-5 overflow-y-auto flex-1">
-                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead class="bg-slate-100 text-slate-600 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
-                            <tr>
-                                <th class="p-3">Hito / Vertiente</th>
-                                <th class="p-3">Requerimiento & Área</th>
-                                <th class="p-3 text-center">Fecha Límite</th>
-                                <th class="p-3 text-center">Estatus Tiempo</th>
-                                <th class="p-3">Avance & Metas</th>
-                                <th class="p-3 text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbodyCronogramaGeneral" class="divide-y divide-slate-100">
-                            <!-- Inyección dinámica -->
-                        </tbody>
-                    </table>
+         <!-- Cuerpo con Scroll: Carriles Horizontales (Swimlanes Áreas A - H) -->
+            <div class="p-4 sm:p-6 overflow-y-auto overflow-x-auto space-y-4 flex-1">
+                <div class="min-w-[1100px] bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                    
+                    <!-- ENCABEZADO TEMPORAL MACRO -->
+                    <div class="grid grid-cols-12 gap-0 text-white font-bold text-center text-xs mb-1">
+                        <div class="col-span-2 bg-slate-900 rounded-tl-xl flex items-center justify-center py-2 border-r border-slate-700 text-slate-300 font-mono text-[11px]">
+                            ÁREAS ESTRATÉGICAS
+                        </div>
+                        <div class="col-span-4 bg-[#0a2540] py-2 border-r border-slate-700 font-black tracking-widest text-sm">
+                            2025 (Fase Inicio & Finiquitos)
+                        </div>
+                        <div class="col-span-6 bg-[#004b6e] rounded-tr-xl py-2 font-black tracking-widest text-sm">
+                            2026 (Prórroga, Transferencias & Cierre Fiscal)
+                        </div>
+                    </div>
+
+                    <!-- REGLA DE 10 MESES -->
+                    <div class="grid grid-cols-12 gap-0 bg-slate-100 border-x border-b border-slate-200 text-slate-600 font-bold text-[10px] text-center mb-3">
+                        <div class="col-span-2 py-1.5 bg-slate-200/80 border-r border-slate-300 font-mono text-slate-800">Eje Temático</div>
+                        <div class="py-1.5 border-r border-slate-200">Sep 25</div>
+                        <div class="py-1.5 border-r border-slate-200">Oct 25</div>
+                        <div class="py-1.5 border-r border-slate-200">Nov 25</div>
+                        <div class="py-1.5 border-r border-slate-200">Dic 25</div>
+                        <div class="py-1.5 border-r border-slate-200">Ene 26</div>
+                        <div class="py-1.5 border-r border-slate-200">Feb 26</div>
+                        <div class="py-1.5 border-r border-slate-200">Mar 26</div>
+                        <div class="py-1.5 border-r border-slate-200">Abr 26</div>
+                        <div class="py-1.5 border-r border-slate-200">May 26</div>
+                        <div class="py-1.5">Jun-Jul 26</div>
+                    </div>
+
+                    <!-- AQUÍ SE INYECTAN LOS 8 CARRILES (ÁREA A A LA H) -->
+                    <div class="space-y-3" id="contenedorCarrilesGantt"></div>
+
                 </div>
+
+                <!-- DASHBOARD TÁCTICO INFERIOR -->
+                <div class="min-w-[1100px] grid grid-cols-12 gap-3 items-stretch">
+                    <div class="col-span-2 bg-[#0a2540] text-white rounded-2xl flex items-center justify-center font-black tracking-wider text-sm shadow-sm p-3 text-center">
+                        Tablero Ejecutivo
+                    </div>
+                    <div class="col-span-10 grid grid-cols-6 gap-2.5">
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-[#0284c7] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Dependencias</div>
+                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                <span class="font-black text-slate-800 text-base">4 Instancias</span>
+                                <span class="text-[9px] text-slate-400 block font-semibold">SC • SF • ASEG • AGEG</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-[#e11d48] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Riesgos Críticos</div>
+                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                <span class="font-black text-rose-600 text-base">5 Puntos</span>
+                                <span class="text-[9px] text-slate-400 block font-semibold">Prioridad Alta</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-[#f59e0b] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Contingencias</div>
+                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                <span class="font-black text-amber-600 text-base">2,570</span>
+                                <span class="text-[9px] text-slate-400 block font-semibold">Bienes Faltantes</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-[#10b981] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Entregables</div>
+                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                <span class="font-black text-emerald-600 text-base">31 / 55</span>
+                                <span class="text-[9px] text-slate-400 block font-semibold">Soportes Validados</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-[#0284c7] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Presupuesto</div>
+                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                <span class="font-black text-indigo-700 text-base">$43.41 M</span>
+                                <span class="text-[9px] text-slate-400 block font-semibold">Reintegro Acumulado</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-[#7c3aed] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">En Radar</div>
+                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                <span class="font-black text-purple-700 text-base">SAT / FIARCA</span>
+                                <span class="text-[9px] text-slate-400 block font-semibold">Cierres Fatales 2026</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Footer -->
