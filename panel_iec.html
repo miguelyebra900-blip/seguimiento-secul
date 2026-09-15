@@ -4929,6 +4929,171 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                 resumen.innerHTML = `Mostrando <strong>${hitosFiltrados.length}</strong> hitos | <strong>${concluidos}</strong> Concluidos | <strong>${enRiesgo}</strong> Requieren Atención Prioritaria`;
             }
         }
+
+// =========================================================================
+        // MOTOR DEL ROADMAP GRÁFICO EJECUTIVO: 8 CARRILES OFICIALES (ÁREAS A - H)
+        // =========================================================================
+        function abrirModalCronogramaGeneral() {
+            renderRoadmapGrafico();
+            openModal('modal-cronograma-general');
+        }
+
+        function renderRoadmapGrafico() {
+            const contenedor = document.getElementById('contenedorCarrilesGantt');
+            if (!contenedor) return;
+            contenedor.innerHTML = '';
+
+            const hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || (typeof hitosFiscalizacionData !== 'undefined' ? hitosFiscalizacionData : []);
+            const acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
+
+            // LOS 8 CARRILES TEMÁTICOS OFICIALES (ÁREAS ESTRATÉGICAS A - H)
+            const carrilesOficiales = [
+                {
+                    codigo: 'Área A',
+                    nombre: 'Recursos Humanos & Estructura',
+                    colorBarra: '#e11d48', // Carmesí / Rose
+                    hitosIds: ['V1-04', 'V2-03', 'V2-04', 'V2-05', 'INF-03', 'INF-09']
+                },
+                {
+                    codigo: 'Área B',
+                    nombre: 'Asuntos Jurídicos & Contencioso',
+                    colorBarra: '#d97706', // Ámbar intenso
+                    hitosIds: ['V1-01', 'V2-01', 'V2-02', 'V2-06', 'V2-16', 'V2-19', 'V2-21', 'V2-22', 'INF-13', 'INF-14']
+                },
+                {
+                    codigo: 'Área C',
+                    nombre: 'Patrimonio Inmobiliario & Predios',
+                    colorBarra: '#059669', // Esmeralda
+                    hitosIds: ['V1-05', 'V2-15', 'INF-04']
+                },
+                {
+                    codigo: 'Área D',
+                    nombre: 'Fideicomisos & Fondos Especiales (FIARCA)',
+                    colorBarra: '#0284c7', // Azul cielo / Fiduciario
+                    hitosIds: ['INF-C01', 'INF-08']
+                },
+                {
+                    codigo: 'Área E',
+                    nombre: 'Control Patrimonial & Bienes Muebles',
+                    colorBarra: '#f97316', // Naranja
+                    hitosIds: ['V1-02', 'V1-07', 'V2-13', 'V2-14', 'V2-17', 'INF-A01', 'INF-A02', 'INF-A04', 'INF-05', 'INF-07', 'INF-15']
+                },
+                {
+                    codigo: 'Área F',
+                    nombre: 'Financiero, Presupuestal & Fiscal',
+                    colorBarra: '#4f46e5', // Índigo
+                    hitosIds: ['V1-03', 'V1-06', 'V1-10', 'V2-07', 'V2-08', 'V2-09', 'V2-10', 'V2-11', 'V2-12', 'INF-D02', 'INF-01', 'INF-02', 'INF-06', 'INF-12', 'INF-16']
+                },
+                {
+                    codigo: 'Área G',
+                    nombre: 'Tecnologías de la Información (TI) & Obra',
+                    colorBarra: '#0891b2', // Cian
+                    hitosIds: ['V1-09', 'V2-18', 'INF-10']
+                },
+                {
+                    codigo: 'Área H',
+                    nombre: 'Archivo & Gestión Documental',
+                    colorBarra: '#7c3aed', // Púrpura / Violeta
+                    hitosIds: ['V1-08', 'V2-20', 'INF-11']
+                }
+            ];
+
+            function obtenerIndiceMes(fechaStr) {
+                if (!fechaStr) return 7;
+                const f = new Date(fechaStr);
+                const anio = f.getFullYear();
+                const mes = f.getMonth() + 1;
+
+                if (anio <= 2025) {
+                    if (mes <= 9) return 1;
+                    if (mes === 10) return 2;
+                    if (mes === 11) return 3;
+                    return 4;
+                } else {
+                    if (mes === 1) return 5;
+                    if (mes === 2) return 6;
+                    if (mes === 3) return 7;
+                    if (mes === 4) return 8;
+                    if (mes === 5) return 9;
+                    return 10;
+                }
+            }
+
+            carrilesOficiales.forEach((carril) => {
+                let htmlBarras = '';
+
+                const hitosDelCarril = hitos.filter(h => 
+                    carril.hitosIds.includes(h.id) || 
+                    (h.area && (h.area.includes(carril.codigo) || h.area.toLowerCase().includes(carril.nombre.toLowerCase().slice(0, 8))))
+                );
+
+                const hitosUnicos = Array.from(new Set(hitosDelCarril.map(h => h.id)))
+                    .map(id => hitosDelCarril.find(h => h.id === id));
+
+                hitosUnicos.forEach((hData) => {
+                    const crono = (typeof cronogramaRelacionalHitos !== 'undefined' && cronogramaRelacionalHitos[hData.id]) 
+                        ? cronogramaRelacionalHitos[hData.id] 
+                        : { fecha_limite: '2026-06-30' };
+
+                    const hijas = acciones.filter(a => a.hito_padre_id === hData.id);
+                    let porcentaje = hData.avancePorcentaje !== undefined ? hData.avancePorcentaje : 0;
+                    if (hijas.length > 0) {
+                        const pesos = { 'Concluido': 100, 'Validación': 75, 'En Proceso': 40 };
+                        porcentaje = Math.round(hijas.reduce((sum, a) => sum + (pesos[a.estatus] || 0), 0) / hijas.length);
+                    }
+
+                    const colFin = obtenerIndiceMes(crono.fecha_limite);
+                    const colInicio = Math.max(1, colFin - 2);
+                    const colSpan = Math.max(2, (colFin - colInicio) + 1);
+
+                    let bgBarra = carril.colorBarra;
+                    const diasRestantes = Math.ceil((new Date(crono.fecha_limite) - new Date()) / (1000 * 60 * 60 * 24));
+                    if (porcentaje === 100) bgBarra = '#10b981';
+                    else if (diasRestantes < 0) bgBarra = '#be123c';
+                    else if (diasRestantes <= 45) bgBarra = '#ea580c';
+
+                    htmlBarras += `
+                        <div class="cursor-pointer transition-all hover:scale-[1.01] hover:brightness-110 shadow-sm rounded-lg text-white px-2.5 py-1.5 overflow-hidden my-1 flex flex-col justify-between"
+                             style="grid-column: ${colInicio} / span ${colSpan}; background-color: ${bgBarra}; min-height: 48px;"
+                             onclick="closeModal('modal-cronograma-general'); abrirTrazabilidadTrilateral('${hData.id}');">
+                            <div class="flex items-center justify-between text-[9px] font-black leading-none">
+                                <span class="bg-black/25 px-1 py-0.5 rounded font-mono">${hData.id}</span>
+                                <span class="bg-white/25 px-1.5 py-0.5 rounded">${porcentaje}%</span>
+                            </div>
+                            <strong class="block text-[10.5px] font-bold truncate mt-1 text-white" title="${hData.titulo}">
+                                ${hData.titulo}
+                            </strong>
+                            <div class="flex items-center justify-between text-[8.5px] text-white/90 font-mono mt-0.5">
+                                <span>Meta: ${crono.fecha_limite}</span>
+                                <span>${hijas.length} tareas</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (hitosUnicos.length === 0) {
+                    htmlBarras = `
+                        <div class="col-span-10 text-center py-3 text-[11px] text-slate-400 italic">
+                            Sin hitos normativos críticos asignados en esta fase.
+                        </div>
+                    `;
+                }
+
+                contenedor.innerHTML += `
+                    <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white hover:border-slate-300 transition">
+                        <div class="grid grid-cols-12 gap-0 items-stretch min-h-[60px]">
+                            <div class="col-span-2 bg-[#0a2540] text-white p-3 flex flex-col justify-center border-r border-slate-300">
+                                <span class="text-[10px] uppercase tracking-wider text-cyan-400 font-black">${carril.codigo}</span>
+                                <strong class="text-[11.5px] font-bold leading-tight text-white mt-0.5">${carril.nombre}</strong>
+                            </div>
+                            <div class="col-span-10 p-2 grid grid-cols-10 gap-x-1.5 relative items-center bg-slate-50/40">
+                                ${htmlBarras}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
         
     </script>
 
