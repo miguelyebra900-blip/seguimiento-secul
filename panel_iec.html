@@ -91,6 +91,11 @@
                         <i class="fa-solid fa-paper-plane"></i> Solicitar Hito
                     </button>
 
+                     <!-- Botón Cronograma -->
+                    <button onclick="abrirModalCronogramaGeneral()" class="px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-100 rounded-xl text-xs font-bold border border-indigo-500/30 flex items-center gap-1.5 transition shadow">
+    <i class="fa-solid fa-timeline text-amber-400"></i> Cronograma General
+</button>
+
                     <!-- Pestaña de Navegación de Vistas (Admin/Operativo) -->
              <a href="auditoria.html" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
     <i class="fa-solid fa-shield-halved text-amber-400"></i> Admin & Auditoría
@@ -4814,6 +4819,117 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                 icon.className = 'fa-solid fa-expand';
             }
         }
+
+// =========================================================================
+        // CONTROLADOR DEL CRONOGRAMA GENERAL DE AVANCE
+        // =========================================================================
+        let filtroFaseCronogramaActual = 'ALL';
+
+        function abrirModalCronogramaGeneral() {
+            renderCronogramaGeneral();
+            openModal('modal-cronograma-general');
+        }
+
+        function filtrarCronogramaModal(fase) {
+            filtroFaseCronogramaActual = fase;
+            document.querySelectorAll('.btn-filtro-crono').forEach(btn => {
+                if (btn.dataset.fase === fase) {
+                    btn.className = "px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm btn-filtro-crono";
+                } else {
+                    btn.className = "px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono";
+                }
+            });
+            renderCronogramaGeneral();
+        }
+
+        function renderCronogramaGeneral() {
+            const tbody = document.getElementById('tbodyCronogramaGeneral');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || (typeof hitosFiscalizacionData !== 'undefined' ? hitosFiscalizacionData : []);
+            const acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
+
+            let hitosFiltrados = hitos;
+            if (filtroFaseCronogramaActual !== 'ALL') {
+                hitosFiltrados = hitos.filter(h => h.vertiente === filtroFaseCronogramaActual);
+            }
+
+            let concluidos = 0;
+            let enRiesgo = 0;
+
+            hitosFiltrados.forEach(h => {
+                // Cálculo de avance alimentado por acciones
+                const hijas = acciones.filter(a => a.hito_padre_id === h.id);
+                let porcentaje = h.avancePorcentaje !== undefined ? h.avancePorcentaje : 0;
+                if (hijas.length > 0) {
+                    const pesos = { 'Concluido': 100, 'Validación': 75, 'En Proceso': 40 };
+                    const suma = hijas.reduce((acc, a) => acc + (pesos[a.estatus] || 0), 0);
+                    porcentaje = Math.round(suma / hijas.length);
+                }
+
+                // Cálculo de días y semáforo temporal
+                const crono = (typeof cronogramaRelacionalHitos !== 'undefined' && cronogramaRelacionalHitos[h.id])
+                    ? cronogramaRelacionalHitos[h.id]
+                    : { fecha_limite: '2026-06-30', fase: 'Operativa' };
+
+                const fechaObj = new Date(crono.fecha_limite);
+                const diasRestantes = Math.ceil((fechaObj - new Date()) / (1000 * 60 * 60 * 24));
+
+                let badgeTiempo = '';
+                if (porcentaje === 100) {
+                    concluidos++;
+                    badgeTiempo = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Concluido</span>`;
+                } else if (diasRestantes < 0) {
+                    enRiesgo++;
+                    badgeTiempo = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">Vencido (${Math.abs(diasRestantes)}d)</span>`;
+                } else if (diasRestantes <= 45) {
+                    enRiesgo++;
+                    badgeTiempo = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Crítico (${diasRestantes}d)</span>`;
+                } else {
+                    badgeTiempo = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">En Plazo (${diasRestantes}d)</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3">
+                            <span class="font-mono font-black text-slate-800 text-xs block">${h.id}</span>
+                            <span class="text-[10px] text-slate-400 font-semibold">${h.vertiente || 'Hito'}</span>
+                        </td>
+                        <td class="p-3 max-w-xs sm:max-w-md">
+                            <strong class="text-slate-900 block font-bold text-xs truncate" title="${h.titulo}">${h.titulo}</strong>
+                            <span class="text-slate-500 text-[10px] block mt-0.5"><i class="fa-solid fa-building-columns me-1 text-indigo-500"></i>${h.area}</span>
+                        </td>
+                        <td class="p-3 text-center font-mono font-bold text-slate-700 whitespace-nowrap">
+                            ${crono.fecha_limite}
+                        </td>
+                        <td class="p-3 text-center whitespace-nowrap">
+                            ${badgeTiempo}
+                        </td>
+                        <td class="p-3 min-w-[140px]">
+                            <div class="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
+                                <span>${porcentaje}%</span>
+                                <span class="text-indigo-600 font-normal">${hijas.length} Acciones</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${porcentaje}%"></div>
+                            </div>
+                        </td>
+                        <td class="p-3 text-center whitespace-nowrap">
+                            <button onclick="closeModal('modal-cronograma-general'); abrirTrazabilidadTrilateral('${h.id}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 text-[11px] transition">
+                                <i class="fa-solid fa-diagram-project me-1"></i> Trazabilidad
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const resumen = document.getElementById('cronoStatsResumen');
+            if (resumen) {
+                resumen.innerHTML = `Mostrando <strong>${hitosFiltrados.length}</strong> hitos | <strong>${concluidos}</strong> Concluidos | <strong>${enRiesgo}</strong> Requieren Atención Prioritaria`;
+            }
+        }
+        
     </script>
 
    <!-- ========================================================= -->
@@ -5307,6 +5423,80 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
 
         </div>
     </div>
-  
+
+<!-- ========================================================================= -->
+    <!-- MODAL: CRONOGRAMA GENERAL EJECUTIVO DE HITOS Y METAS (48 HITOS)          -->
+    <!-- ========================================================================= -->
+    <div id="modal-cronograma-general" class="fixed inset-0 z-[85] hidden modal-backdrop flex items-center justify-center p-3 sm:p-5">
+        <div class="bg-white rounded-3xl max-w-6xl w-full shadow-2xl border border-slate-100 max-h-[92vh] flex flex-col overflow-hidden">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0 border-b border-indigo-900/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-lg border border-amber-400/30 shadow-inner">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm sm:text-base flex items-center gap-2">
+                            Cronograma Maestro de Extinción y Fiscalización
+                        </h3>
+                        <p class="text-xs text-indigo-200">Línea de tiempo de los 48 Hitos Legales y Metas Operativas (Decreto No. 345 & ASEG)</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-cronograma-general')" class="text-slate-400 hover:text-white text-xl transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Filtros Rápidos de Fase & Buscador -->
+            <div class="bg-slate-50 p-4 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <button onclick="filtrarCronogramaModal('ALL')" class="px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm btn-filtro-crono" data-fase="ALL">Todos (48)</button>
+                    <button onclick="filtrarCronogramaModal('V1')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono" data-fase="V1">V1 - Liquidación</button>
+                    <button onclick="filtrarCronogramaModal('V2')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono" data-fase="V2">V2 - ASEG</button>
+                    <button onclick="filtrarCronogramaModal('INF')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono" data-fase="INF">Informes Mensuales</button>
+                </div>
+                <div class="text-xs text-slate-500 font-semibold flex items-center gap-3">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Concluido</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> En Plazo</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Crítico (&lt;45d)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Vencido</span>
+                </div>
+            </div>
+
+            <!-- Contenido con Scroll: Tabla / Gantt de Hitos -->
+            <div class="p-5 overflow-y-auto flex-1">
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Hito / Vertiente</th>
+                                <th class="p-3">Requerimiento & Área</th>
+                                <th class="p-3 text-center">Fecha Límite</th>
+                                <th class="p-3 text-center">Estatus Tiempo</th>
+                                <th class="p-3">Avance & Metas</th>
+                                <th class="p-3 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCronogramaGeneral" class="divide-y divide-slate-100">
+                            <!-- Inyección dinámica -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center shrink-0">
+                <span class="text-xs text-slate-500 font-medium" id="cronoStatsResumen">
+                    Cargando estatus de hitos...
+                </span>
+                <button type="button" onclick="closeModal('modal-cronograma-general')" class="px-5 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition">
+                    Cerrar Cronograma
+                </button>
+            </div>
+
+        </div>
+    </div>
+    
 </body>
 </html>
