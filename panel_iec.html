@@ -3904,6 +3904,418 @@ function openRiskDetailModal(riskId) {
             }
         }
 
+// =========================================================================
+        // CATÁLOGO MAESTRO DE ACCIONES SUGERIDAS (48 HITOS × 3 = 144 ACCIONES)
+        // =========================================================================
+        const bancoSugerenciasAcciones = {
+            // VERTIENTE V1: EXTINCIÓN Y LIQUIDACIÓN IEC (10 HITOS)
+            'V1-01': [
+                { id_sug: 's1', titulo: 'Protocolización y firma del Acta de Sesión Extraordinaria de Prórroga del Comité Liquidador', resp: 'Comisión Liquidadora / Secretaría Técnica', area: 'B' },
+                { id_sug: 's2', titulo: 'Publicación del Acuerdo de Prórroga en el Periódico Oficial del Gobierno del Estado de Guanajuato', resp: 'Dirección Jurídica / SC', area: 'B' },
+                { id_sug: 's3', titulo: 'Notificación formal del calendario ajustado de extinción a la Secretaría de Finanzas y ASEG', resp: 'Liquidador IEC', area: 'F' }
+            ],
+            'V1-02': [
+                { id_sug: 's1', titulo: 'Brigada de verificación física y marbeteo QR en bodega Huatzindeo y recintos desconcentrados', resp: 'Control Patrimonial Cultura / DGRMSGyC', area: 'E' },
+                { id_sug: 's2', titulo: 'Elaboración de cédulas de conciliación física vs registros contables del sistema SIGEG', resp: 'Control Patrimonial / Contabilidad', area: 'E' },
+                { id_sug: 's3', titulo: 'Integración del expediente de 2,570 bienes muebles no localizados con actas circunstanciadas', resp: 'Dirección Jurídica / Órgano Interno', area: 'B' }
+            ],
+            'V1-03': [
+                { id_sug: 's1', titulo: 'Corte de saldos líquidos y conciliación de cuentas bancarias productivas del IEC', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's2', titulo: 'Determinación y provisión contable de pasivos contingentes laborales y mercantiles pendientes', resp: 'Finanzas / Jurídico Contencioso', area: 'F' },
+                { id_sug: 's3', titulo: 'Cancelación y cierre administrativo de contratos de cuentas bancarias institucionales', resp: 'Tesororía / Liquidador IEC', area: 'F' }
+            ],
+            'V1-04': [
+                { id_sug: 's1', titulo: 'Cálculo y dispersión de liquidaciones e indemnizaciones conforme a la Ley del Trabajo del Estado', resp: 'Capital Humano / DGRH Finanzas', area: 'A' },
+                { id_sug: 's2', titulo: 'Firma y ratificación de convenios de terminación laboral ante el Tribunal de Conciliación y Arbitraje', resp: 'Dirección Jurídica / RH', area: 'A' },
+                { id_sug: 's3', titulo: 'Entrega física de expedientes únicos de personal liquidados y resguardo de plaza Nivel 8', resp: 'Capital Humano / RH Cultura', area: 'A' }
+            ],
+            'V1-05': [
+                { id_sug: 's1', titulo: 'Levantamiento topográfico y actualización de cédulas catastrales de zonas arqueológicas (Cóporo, Peralta)', resp: 'Jurídico / Inmuebles', area: 'C' },
+                { id_sug: 's2', titulo: 'Gestión de escrituración e inscripción de traslación de dominio ante el Registro Público de la Propiedad', resp: 'Dirección Jurídica / Notaría de Gobierno', area: 'C' },
+                { id_sug: 's3', titulo: 'Suscripción de actas de entrega-recepción de inmuebles históricos a la Secretaría de Cultura', resp: 'Secretaría de Cultura / Liquidador IEC', area: 'C' }
+            ],
+            'V1-06': [
+                { id_sug: 's1', titulo: 'Determinación de economías y remanentes presupuestales acumulados sujetos a reintegro legal ($43.41 MDP)', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's2', titulo: 'Generación de líneas de captura y transferencia bancaria de los recursos a la cuenta de SF', resp: 'Tesororía / Liquidador IEC', area: 'F' },
+                { id_sug: 's3', titulo: 'Conciliación de acuses de recibo oficial y emisión de constancia de entero por la DGEP', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'V1-07': [
+                { id_sug: 's1', titulo: 'Inspección mecánica y dictamen pericial de estado físico de 14 vehículos y 14 remolques', resp: 'Control Patrimonial / Talleres', area: 'E' },
+                { id_sug: 's2', titulo: 'Tramitación de bajas administrativas y placas oficiales ante el Padrón Vehicular de Finanzas', resp: 'Control Patrimonial / Finanzas', area: 'E' },
+                { id_sug: 's3', titulo: 'Formalización de contratos de donación o actas de reasignación vehicular a la Secretaría de Cultura', resp: 'Dirección Jurídica / SC', area: 'B' }
+            ],
+            'V1-08': [
+                { id_sug: 's1', titulo: 'Foliado, clasificación y expurgo documental conforme al Cuadro General de Clasificación Archivística', resp: 'Archivo Institucional IEC', area: 'H' },
+                { id_sug: 's2', titulo: 'Elaboración y validación técnica de inventarios generales de transferencia primaria y secundaria', resp: 'Archivo Institucional / AGEG', area: 'H' },
+                { id_sug: 's3', titulo: 'Firma del Acta Circunstanciada de Entrega-Recepción física y digital con el Archivo General del Estado', resp: 'Comisión Liquidadora / AGEG', area: 'H' }
+            ],
+            'V1-09': [
+                { id_sug: 's1', titulo: 'Conciliación del acta de finiquito y entrega-recepción de la obra Teatro Juárez con SICOM', resp: 'SICOM / Enlace Obras SC', area: 'G' },
+                { id_sug: 's2', titulo: 'Migración de bases de datos, aplicativos web y respaldos digitales a servidores de la Secretaría', resp: 'Tecnologías de la Información / Sistemas', area: 'G' },
+                { id_sug: 's3', titulo: 'Cancelación de licencias de software y contratos de telecomunicaciones del organismo en extinción', resp: 'Tecnologías / Finanzas', area: 'G' }
+            ],
+            'V1-10': [
+                { id_sug: 's1', titulo: 'Presentación de la declaración fiscal final del ejercicio de liquidación y cierre contable definitivo', resp: 'Contabilidad / Despacho Externo', area: 'F' },
+                { id_sug: 's2', titulo: 'Comparecencia presencial ante el módulo SAT Celaya para el trámite de cancelación de RFC', resp: 'Liquidador IEC', area: 'F' },
+                { id_sug: 's3', titulo: 'Publicación del Balance Final de Liquidación aprobado por el Comité en el Periódico Oficial', resp: 'Comisión Liquidadora', area: 'B' }
+            ],
+
+            // VERTIENTE V2: AUDITORÍA DE CUENTA PÚBLICA ASEG (22 HITOS)
+            'V2-01': [
+                { id_sug: 's1', titulo: 'Compilación certificada del Decreto 345, Ley Orgánica y acuerdos gubernativos de extinción', resp: 'Dirección Jurídica / SC', area: 'B' },
+                { id_sug: 's2', titulo: 'Integración de publicaciones oficiales en el Periódico Oficial del Estado relativas al IEC', resp: 'Archivo Institucional', area: 'H' },
+                { id_sug: 's3', titulo: 'Emisión del oficio de solventación y remisión formal del marco legal al equipo auditor de la ASEG', resp: 'Enlace Auditoría Superior', area: 'B' }
+            ],
+            'V2-02': [
+                { id_sug: 's1', titulo: 'Cotejo y certificación de actas ordinarias y extraordinarias del Consejo Directivo del IEC', resp: 'Secretaría Técnica / Jurídico', area: 'B' },
+                { id_sug: 's2', titulo: 'Armado del tomo foliado de minutas del Comité de Extinción y seguimiento de acuerdos', resp: 'Comisión Liquidadora', area: 'B' },
+                { id_sug: 's3', titulo: 'Validación de firmas autógrafas de los vocales y dependencias normativas en cada acta', resp: 'Órgano Interno de Control', area: 'B' }
+            ],
+            'V2-03': [
+                { id_sug: 's1', titulo: 'Cédula de conciliación entre estructura orgánica autorizada vs plazas efectivamente ocupadas', resp: 'Capital Humano / DGRH', area: 'A' },
+                { id_sug: 's2', titulo: 'Validación de tabuladores de sueldos y prestaciones devengadas durante la transición', resp: 'Administración y Finanzas', area: 'A' },
+                { id_sug: 's3', titulo: 'Dictamen de cierre de plazas y bajas definitivas en el sistema de nómina estatal', resp: 'Capital Humano', area: 'A' }
+            ],
+            'V2-04': [
+                { id_sug: 's1', titulo: 'Descarga masiva y validación del 100% de archivos XML/PDF de CFDI de nómina emitidos', resp: 'Contabilidad / TI', area: 'G' },
+                { id_sug: 's2', titulo: 'Conciliación de retenciones de ISR e ISSEG enteradas contra declaraciones mensuales', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's3', titulo: 'Elaboración de cédula analítica de dispersión de pagos extraordinarios y finiquitos', resp: 'Capital Humano / Finanzas', area: 'A' }
+            ],
+            'V2-05': [
+                { id_sug: 's1', titulo: 'Integración individual de expedientes de liquidación con hoja de cálculo de antigüedad y salario base', resp: 'Capital Humano / Jurídico', area: 'A' },
+                { id_sug: 's2', titulo: 'Anexión de convenios ratificados ante el Tribunal de Conciliación y recibos firmados', resp: 'Dirección Jurídica', area: 'B' },
+                { id_sug: 's3', titulo: 'Auditoría interna muestral de expedientes para verificar apego a la Ley de Trabajo', resp: 'Órgano Interno de Control', area: 'A' }
+            ],
+            'V2-06': [
+                { id_sug: 's1', titulo: 'Elaboración del informe pormenorizado del estado procesal de la totalidad de juicios activos', resp: 'Dirección Jurídica / Contencioso', area: 'B' },
+                { id_sug: 's2', titulo: 'Cálculo actuarial y cuantificación económica del pasivo laboral contingente por laudos probables', resp: 'Finanzas / Jurídico', area: 'F' },
+                { id_sug: 's3', titulo: 'Formalización de la subrogación procesal y traslado de defensa jurídica a la Secretaría de Cultura', resp: 'Dirección Jurídica / SC', area: 'B' }
+            ],
+            'V2-07': [
+                { id_sug: 's1', titulo: 'Conciliación analítica del Presupuesto por Partida del Gasto (Autorizado vs Modificado vs Devengado)', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's2', titulo: 'Integración de pólizas de diario, egreso e ingresos de las adecuaciones presupuestales autorizadas', resp: 'Contabilidad', area: 'F' },
+                { id_sug: 's3', titulo: 'Cédula de justificación de variaciones presupuestales superiores al 10% por capítulo de gasto', resp: 'Presupuesto / Finanzas', area: 'F' }
+            ],
+            'V2-08': [
+                { id_sug: 's1', titulo: 'Emisión y firma del Estado de Situación Financiera y Estado de Actividades dictaminados', resp: 'Contabilidad / Auditor Externo', area: 'F' },
+                { id_sug: 's2', titulo: 'Redacción técnica de Notas a los Estados Financieros revelando contingencias de extinción', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's3', titulo: 'Validación de cifras consolidadas contra balanza de comprobación mensual del SIGEG', resp: 'Contabilidad', area: 'F' }
+            ],
+            'V2-09': [
+                { id_sug: 's1', titulo: 'Armado de carpetas mensuales de conciliaciones bancarias debidamente autorizadas y firmadas', resp: 'Tesororía / Finanzas', area: 'F' },
+                { id_sug: 's2', titulo: 'Anexión de estados de cuenta emitidos por las instituciones bancarias', resp: 'Tesororía', area: 'F' },
+                { id_sug: 's3', titulo: 'Depuración y reclasificación de partidas en tránsito con antigüedad superior a 60 días', resp: 'Contabilidad', area: 'F' }
+            ],
+            'V2-10': [
+                { id_sug: 's1', titulo: 'Depuración del auxiliar contable de Deudores Diversos y anticipos a comprobar pendientes', resp: 'Contabilidad', area: 'F' },
+                { id_sug: 's2', titulo: 'Envío de requerimientos extrajudiciales de cobro a exservidores públicos omisos', resp: 'Dirección Jurídica / Finanzas', area: 'B' },
+                { id_sug: 's3', titulo: 'Dictamen jurídico-financiero para la cancelación en libros de créditos incobrables prescritos', resp: 'Comité de Extinción / Finanzas', area: 'F' }
+            ],
+            'V2-11': [
+                { id_sug: 's1', titulo: 'Cédula de antigüedad de saldos del pasivo circulante con proveedores y prestadores de servicios', resp: 'Contabilidad', area: 'F' },
+                { id_sug: 's2', titulo: 'Revisión documental de órdenes de compra, contratos y comprobantes fiscales que soportan el pasivo', resp: 'Adquisiciones / Finanzas', area: 'F' },
+                { id_sug: 's3', titulo: 'Liquidación o prescripción formal de obligaciones de pago conforme a la legislación aplicable', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'V2-12': [
+                { id_sug: 's1', titulo: 'Conciliación de convenios de transferencias federales (Cultura / Fondos Mixtos) no ejecutados', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's2', titulo: 'Cálculo de rendimientos financieros brutos generados en cuentas bancarias de origen federal y estatal', resp: 'Tesororía', area: 'F' },
+                { id_sug: 's3', titulo: 'Gestión de transferencias a la TESOFE y Finanzas del Estado con acuses oficiales', resp: 'Liquidador IEC', area: 'F' }
+            ],
+            'V2-13': [
+                { id_sug: 's1', titulo: 'Generación del Padrón de Bienes Muebles con valuación contable, depreciación acumulada y valor neto', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's2', titulo: 'Cédula de diferencias del inventario físico levantado vs registro de activo fijo en libros contables', resp: 'Control Patrimonial / Contabilidad', area: 'E' },
+                { id_sug: 's3', titulo: 'Integración del catálogo de bienes donados, transferidos y dados de baja por obsolescencia', resp: 'Control Patrimonial', area: 'E' }
+            ],
+            'V2-14': [
+                { id_sug: 's1', titulo: 'Cédula analítica individualizada de los 2,570 bienes faltantes con código, costo histórico y custodio', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's2', titulo: 'Compilación de actas circunstanciadas de hechos levantadas en cada inmueble y recinto cultural', resp: 'Dirección Jurídica', area: 'B' },
+                { id_sug: 's3', titulo: 'Presentación de denuncias o vistas al Órgano Interno de Control para deslinde de responsabilidades', resp: 'Dirección Jurídica / OIC', area: 'B' }
+            ],
+            'V2-15': [
+                { id_sug: 's1', titulo: 'Integración de expedientes técnicos individuales de inmuebles (escritura, folio real catastral y plano)', resp: 'Jurídico / Inmuebles', area: 'C' },
+                { id_sug: 's2', titulo: 'Cédula de estatus jurídico de predios rústicos y zonas arqueológicas en proceso de regularización', resp: 'Jurídico / Inmuebles', area: 'C' },
+                { id_sug: 's3', titulo: 'Valuación pericial comercial y catastral de la totalidad de inmuebles propiedad del extinto organismo', resp: 'Peritos Valuadores / Finanzas', area: 'C' }
+            ],
+            'V2-16': [
+                { id_sug: 's1', titulo: 'Copia certificada del contrato fiduciario constitutivo de FIARCA y reformas subsecuentes', resp: 'Dirección Jurídica', area: 'B' },
+                { id_sug: 's2', titulo: 'Estados de cuenta fiduciarios y balance financiero del patrimonio emitidos por Banorte', resp: 'Finanzas / Fiduciario', area: 'D' },
+                { id_sug: 's3', titulo: 'Informe del estado del convenio modificatorio derivado del Decreto 19 de reestructura fiduciaria', resp: 'Procuraduría Fiscal / SC', area: 'B' }
+            ],
+            'V2-17': [
+                { id_sug: 's1', titulo: 'Integración de expedientes de procedimientos de licitación pública, simplificada y adjudicación directa', resp: 'Adquisiciones / Recursos Materiales', area: 'E' },
+                { id_sug: 's2', titulo: 'Verificación de dictámenes técnicos, fallos, garantías de cumplimiento y contratos formalizados', resp: 'Adquisiciones / Jurídico', area: 'E' },
+                { id_sug: 's3', titulo: 'Cotejo de facturación electrónica validada ante el SAT contra entregables y recepciones de almacén', resp: 'Recursos Materiales / Contabilidad', area: 'F' }
+            ],
+            'V2-18': [
+                { id_sug: 's1', titulo: 'Revisión del expediente técnico de obra Teatro Juárez (proyecto ejecutivo, estimaciones, bitácora)', resp: 'SICOM / Enlace Obras SC', area: 'G' },
+                { id_sug: 's2', titulo: 'Verificación de actas de recepción de los trabajos, amortización de anticipos y finiquito económico', resp: 'SICOM / Finanzas', area: 'G' },
+                { id_sug: 's3', titulo: 'Resguardo y entrega de pólizas de fianza de vicios ocultos con vigencia activa', resp: 'Dirección Jurídica / SICOM', area: 'B' }
+            ],
+            'V2-19': [
+                { id_sug: 's1', titulo: 'Recopilación de convenios de apoyo a municipios, colectivos artísticos y fondos mixtos', resp: 'Secretaría Técnica / Jurídico', area: 'B' },
+                { id_sug: 's2', titulo: 'Expedientes de comprobación del gasto y evidencias de metas culturales alcanzadas', resp: 'Promoción Cultural / Finanzas', area: 'F' },
+                { id_sug: 's3', titulo: 'Cédula de requerimientos pendientes por subsidios no justificados con plazos vencidos', resp: 'Finanzas / Jurídico', area: 'F' }
+            ],
+            'V2-20': [
+                { id_sug: 's1', titulo: 'Inventario documental por series archivísticas transferidas conforme a la normatividad del AGEG', resp: 'Archivo Institucional', area: 'H' },
+                { id_sug: 's2', titulo: 'Cédulas de préstamo y control de expedientes requeridos para solventación de la auditoría', resp: 'Archivo Institucional', area: 'H' },
+                { id_sug: 's3', titulo: 'Validación de medidas de conservación y preservación del fondo documental histórico del IEC', resp: 'Archivo General del Estado (AGEG)', area: 'H' }
+            ],
+            'V2-21': [
+                { id_sug: 's1', titulo: 'Compilación cronológica y foliada de los 14 informes mensuales del Liquidador con anexos técnicos', resp: 'Comisión Liquidadora', area: 'B' },
+                { id_sug: 's2', titulo: 'Cédula de seguimiento y solventación de las observaciones formuladas por el Comité', resp: 'Secretaría Técnica', area: 'B' },
+                { id_sug: 's3', titulo: 'Acuses de entrega de los informes a la Secretaría de la Honestidad y Secretaría de Finanzas', resp: 'Liquidador IEC', area: 'F' }
+            ],
+            'V2-22': [
+                { id_sug: 's1', titulo: 'Integración de los formatos normativos de entrega-recepción conforme a lineamientos de la STyRC', resp: 'Comisión Liquidadora / SC', area: 'B' },
+                { id_sug: 's2', titulo: 'Validación de anexos correspondientes a recursos humanos, materiales, financieros y jurídicos', resp: 'Órgano Interno de Control', area: 'B' },
+                { id_sug: 's3', titulo: 'Celebración de la sesión protocolaria de firma del Acta de Entrega-Recepción Extraordinaria', resp: 'Liquidador IEC / Titular SC', area: 'B' }
+            ],
+
+            // VERTIENTE INF: INFORMES MENSUALES Y PERIÓDICOS (16 HITOS)
+            'INF-01': [
+                { id_sug: 's1', titulo: 'Elaboración del inventario preliminar de recursos financieros, materiales y humanos', resp: 'Comisión Liquidadora', area: 'F' },
+                { id_sug: 's2', titulo: 'Mapeo inicial de pasivos contingentes y obligaciones contractuales urgentes por atender', resp: 'Dirección Jurídica / Finanzas', area: 'B' },
+                { id_sug: 's3', titulo: 'Aprobación del Plan de Trabajo Inicial por el Comité de Extinción y emisión de minuta', resp: 'Secretaría Técnica', area: 'B' }
+            ],
+            'INF-02': [
+                { id_sug: 's1', titulo: 'Obtención y corte de estados de cuenta de la totalidad de contratos bancarios activos del IEC', resp: 'Tesororía', area: 'F' },
+                { id_sug: 's2', titulo: 'Detección de cuentas bancarias inactivas o con dispersiones pendientes de aclarar', resp: 'Contabilidad', area: 'F' },
+                { id_sug: 's3', titulo: 'Emisión del informe preliminar de disponibilidad financiera para el Comité de Extinción', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'INF-03': [
+                { id_sug: 's1', titulo: 'Notificación de inicio del proceso de liquidación al personal de áreas administrativas', resp: 'Capital Humano / DGRH', area: 'A' },
+                { id_sug: 's2', titulo: 'Cálculo de propuestas individuales de indemnización constitucional y prestaciones', resp: 'Capital Humano / Jurídico', area: 'A' },
+                { id_sug: 's3', titulo: 'Dispersión bancaria de la primera remesa de finiquitos y firma de cartas de no adeudo', resp: 'Tesororía / RH', area: 'A' }
+            ],
+            'INF-04': [
+                { id_sug: 's1', titulo: 'Revisión documental de expedientes agrarios y antecedentes de propiedad de zonas arqueológicas', resp: 'Jurídico / Inmuebles', area: 'C' },
+                { id_sug: 's2', titulo: 'Acercamiento con autoridades ejidales de Pénjamo y Ocampo para deslinde de polígonos', resp: 'Secretaría de Cultura / Jurídico', area: 'C' },
+                { id_sug: 's3', titulo: 'Informe de factibilidad técnico-legal para la incorporación formal al patrimonio del Estado', resp: 'Dirección Jurídica / Notaría', area: 'C' }
+            ],
+            'INF-05': [
+                { id_sug: 's1', titulo: 'Censo físico de bienes artísticos e instrumentos en Teatro Juárez y Teatro Cervantes', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's2', titulo: 'Levantamiento de inventario de bienes en centros culturales de Purísima del Rincón y Salamanca', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's3', titulo: 'Elaboración de actas parciales de inspección física con evidencia fotográfica digitalizada', resp: 'Control Patrimonial', area: 'E' }
+            ],
+            'INF-06': [
+                { id_sug: 's1', titulo: 'Determinación contable del saldo disponible no etiquetado al término del primer semestre', resp: 'Contabilidad', area: 'F' },
+                { id_sug: 's2', titulo: 'Transferencia del primer bloque de remanentes presupuestales a la cuenta concentradora de SF', resp: 'Tesororía', area: 'F' },
+                { id_sug: 's3', titulo: 'Notificación de entero al Comité de Extinción con acuse de póliza de ingreso de Finanzas', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'INF-07': [
+                { id_sug: 's1', titulo: 'Concentración física de los 14 vehículos y 14 remolques en corralón oficial designado', resp: 'Recursos Materiales / Servicios Generales', area: 'E' },
+                { id_sug: 's2', titulo: 'Revisión de tenencias, verificaciones y pagos de refrendo vehicular al corriente en Finanzas', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's3', titulo: 'Elaboración del dictamen de obsolescencia y propuesta de reasignación a la Secretaría de Cultura', resp: 'Comité de Extinción / Jurídico', area: 'E' }
+            ],
+            'INF-08': [
+                { id_sug: 's1', titulo: 'Reunión de trabajo interinstitucional con la Dirección de Fideicomisos de la Secretaría de Finanzas', resp: 'Finanzas / Jurídico', area: 'D' },
+                { id_sug: 's2', titulo: 'Revisión del proyecto de adenda para sustitución de fideicomisario conforme al Decreto 19', resp: 'Dirección Jurídica / Banorte', area: 'B' },
+                { id_sug: 's3', titulo: 'Presentación de la opinión de impacto financiero al Comité de Extinción', resp: 'Administración y Finanzas', area: 'D' }
+            ],
+            'INF-09': [
+                { id_sug: 's1', titulo: 'Conciliación de expedientes de mandos medios y directores para convenio de terminación', resp: 'Capital Humano / DGRH', area: 'A' },
+                { id_sug: 's2', titulo: 'Tramitación de actas de entrega-recepción de despachos y resguardos individuales de bienes', resp: 'Órgano Interno de Control', area: 'A' },
+                { id_sug: 's3', titulo: 'Pago de compensaciones legales y emisión de cartas de liberación patrimonial', resp: 'Capital Humano / Finanzas', area: 'A' }
+            ],
+            'INF-10': [
+                { id_sug: 's1', titulo: 'Mesa de validación de finiquitos de contratos de obra con la Dirección General de Obras de SICOM', resp: 'SICOM / Enlace SC', area: 'G' },
+                { id_sug: 's2', titulo: 'Inspección conjunta de entrega de trabajos de rehabilitación arquitectónica en Teatro Juárez', resp: 'SICOM / Obras SC', area: 'G' },
+                { id_sug: 's3', titulo: 'Emisión del informe de saldos liquidados y no adeudos por concepto de obra pública', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'INF-11': [
+                { id_sug: 's1', titulo: 'Recepción física de cajas de archivo de trámite procedentes de las direcciones extintas', resp: 'Archivo Institucional', area: 'H' },
+                { id_sug: 's2', titulo: 'Revisión y cotejo de guías de entrega documental firmadas por los titulares de área', resp: 'Archivo Institucional', area: 'H' },
+                { id_sug: 's3', titulo: 'Acondicionamiento y desinfección preventiva del acervo en la nave de resguardo central', resp: 'Archivo / Servicios Generales', area: 'H' }
+            ],
+            'INF-12': [
+                { id_sug: 's1', titulo: 'Corte de caja y determinación de economías netas tras el pago de indemnizaciones laborales', resp: 'Contabilidad', area: 'F' },
+                { id_sug: 's2', titulo: 'Gestión bancaria de la transferencia del segundo tramo del reintegro millonario a SF', resp: 'Tesororía / Liquidador', area: 'F' },
+                { id_sug: 's3', titulo: 'Incorporación de las pólizas de reintegro en el anexo de la cuenta pública semestral', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'INF-13': [
+                { id_sug: 's1', titulo: 'Cédula de seguimiento de observaciones preliminares emitidas por la Secretaría de la Honestidad', resp: 'Órgano Interno de Control', area: 'B' },
+                { id_sug: 's2', titulo: 'Recopilación y foliado de pruebas documentales y justificaciones normativas solventatorias', resp: 'Comisión Liquidadora', area: 'B' },
+                { id_sug: 's3', titulo: 'Recepción de oficios de conclusión y archivo definitivo de expedientes de auditoría interna', resp: 'OIC / Jurídico', area: 'B' }
+            ],
+            'INF-14': [
+                { id_sug: 's1', titulo: 'Elaboración del informe técnico justificativo detallando asuntos en trámite no concluibles al plazo', resp: 'Comisión Liquidadora', area: 'B' },
+                { id_sug: 's2', titulo: 'Presentación formal del proyecto de prórroga al pleno del Comité de Extinción', resp: 'Secretaría Técnica', area: 'B' },
+                { id_sug: 's3', titulo: 'Publicación de la ampliación del plazo de liquidación en el Periódico Oficial del Estado', resp: 'Dirección Jurídica', area: 'B' }
+            ],
+            'INF-15': [
+                { id_sug: 's1', titulo: 'Ejecución de la brigada especial de búsqueda de bienes en el inmueble de Huatzindeo Salvatierra', resp: 'Control Patrimonial Cultura', area: 'E' },
+                { id_sug: 's2', titulo: 'Levantamiento de actas de localización de 1,682 bienes y reincorporación a inventario', resp: 'Control Patrimonial / Notario', area: 'E' },
+                { id_sug: 's3', titulo: 'Turno del informe circunstanciado final sobre los 2,570 bienes restantes al área jurídica', resp: 'Control Patrimonial / Jurídico', area: 'B' }
+            ],
+            'INF-16': [
+                { id_sug: 's1', titulo: 'Consolidación de los 15 informes previos en el Expediente Maestro de Liquidación Institucional', resp: 'Comisión Liquidadora', area: 'B' },
+                { id_sug: 's2', titulo: 'Firma del dictamen financiero y administrativo final con saldos cero en cuentas bancarias', resp: 'Liquidador IEC / Finanzas', area: 'F' },
+                { id_sug: 's3', titulo: 'Entrega material del organismo y protocolización ante la titular de la Secretaría de Cultura', resp: 'Liquidador IEC / Secretaria de Cultura', area: 'B' }
+            ],
+
+            // Compatibilidad con prefijos especiales
+            'INF-A01': [
+                { id_sug: 's1', titulo: 'Levantamiento físico y marbeteo de bienes en Huatzindeo Salvatierra', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's2', titulo: 'Protocolización de Actas Circunstanciadas de bienes muebles no localizados', resp: 'Dirección Jurídica', area: 'B' },
+                { id_sug: 's3', titulo: 'Conciliación y registro contable de 1,682 activos en SIGEG', resp: 'Administración y Finanzas', area: 'F' }
+            ],
+            'INF-A02': [
+                { id_sug: 's1', titulo: 'Inspección física y mecánica de las 28 unidades vehiculares concentradas', resp: 'Servicios Generales', area: 'E' },
+                { id_sug: 's2', titulo: 'Tramitación de bajas oficiales de placas en oficinas recaudadoras de Finanzas', resp: 'Control Patrimonial', area: 'E' },
+                { id_sug: 's3', titulo: 'Actas de entrega y endoso de facturas originales a la Secretaría de Cultura', resp: 'Dirección Jurídica', area: 'B' }
+            ],
+            'INF-A04': [
+                { id_sug: 's1', titulo: 'Despliegue de cuadrillas de búsqueda física en bodegas regionales de Salvatierra', resp: 'Control Patrimonial Cultura', area: 'E' },
+                { id_sug: 's2', titulo: 'Cotejo de resguardos individuales firmados por exservidores públicos del IEC', resp: 'Recursos Humanos', area: 'A' },
+                { id_sug: 's3', titulo: 'Elaboración de informe de baja definitiva por presunto extravío u obsolescencia', resp: 'Dirección Jurídica / OIC', area: 'B' }
+            ],
+            'INF-C01': [
+                { id_sug: 's1', titulo: 'Corte líquido y conciliación de rendimientos con Fiduciaria Banorte', resp: 'Finanzas / Fiduciario', area: 'D' },
+                { id_sug: 's2', titulo: 'Formalización del 2do Convenio Modificatorio FIARCA (Decreto 19)', resp: 'Procuraduría Fiscal / SC', area: 'B' },
+                { id_sug: 's3', titulo: 'Instrucción fiduciaria de extinción de cuenta y reintegro a Finanzas', resp: 'Finanzas / Fiduciario', area: 'D' }
+            ],
+            'INF-D02': [
+                { id_sug: 's1', titulo: 'Comparecencia y trámite presencial de baja de RFC en Módulo SAT Celaya', resp: 'Liquidador IEC', area: 'F' },
+                { id_sug: 's2', titulo: 'Presentación de declaraciones fiscales complementarias de liquidación', resp: 'Administración y Finanzas', area: 'F' },
+                { id_sug: 's3', titulo: 'Obtención y resguardo de la Cédula de Cancelación Fiscal Definitiva', resp: 'Liquidador IEC', area: 'F' }
+            ]
+        };
+
+        let hitoActualEnModal = null;
+
+        // Sobrescribir apertura de Trazabilidad Trilateral para renderizar las sugerencias dinámicas
+        const _abrirTrazabilidadOrig = typeof abrirTrazabilidadTrilateral === 'function' ? abrirTrazabilidadTrilateral : null;
+        abrirTrazabilidadTrilateral = function(identificador) {
+            if (_abrirTrazabilidadOrig) _abrirTrazabilidadOrig(identificador);
+
+            hitoActualEnModal = identificador.startsWith('R-') 
+                ? (typeof cronogramaRelacionalHitos !== 'undefined' && Object.keys(cronogramaRelacionalHitos).find(h => cronogramaRelacionalHitos[h].riesgo_id === identificador) || 'V1-02')
+                : identificador;
+
+            ocultarFormularioVincularAccion();
+
+            const contenedor = document.getElementById('contenedorSugerenciasHito');
+            if (contenedor) {
+                contenedor.innerHTML = '';
+                const lista = bancoSugerenciasAcciones[hitoActualEnModal] || [
+                    { id_sug: 's1', titulo: `Levantamiento técnico de soportes para ${hitoActualEnModal}`, resp: 'Área Ejecutora', area: 'A' },
+                    { id_sug: 's2', titulo: `Revisión jurídica y dictamen de cumplimiento para ${hitoActualEnModal}`, resp: 'Dirección Jurídica', area: 'B' },
+                    { id_sug: 's3', titulo: `Emisión de acta de solventación ante Órganos de Control`, resp: 'Órgano Interno', area: 'F' }
+                ];
+
+                lista.forEach((sug, i) => {
+                    contenedor.innerHTML += `
+                        <label class="flex items-start gap-2.5 p-2.5 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 cursor-pointer transition">
+                            <input type="checkbox" name="chkSugerenciaAccion" value="${i}" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                            <div class="text-xs">
+                                <strong class="text-slate-900 block">• ${sug.titulo}</strong>
+                                <span class="text-[10px] text-slate-500">Área: ${sug.area} | Responsable sugerido: <strong>${sug.resp}</strong></span>
+                            </div>
+                        </label>
+                    `;
+                });
+            }
+        };
+
+        function mostrarFormularioVincularAccion() {
+            const p = document.getElementById('panelAsistenteAcciones');
+            if (p) p.classList.remove('hidden');
+        }
+
+        function ocultarFormularioVincularAccion() {
+            const p = document.getElementById('panelAsistenteAcciones');
+            if (p) p.classList.add('hidden');
+        }
+
+        function adoptarAccionesSugeridas() {
+            const checks = document.querySelectorAll('input[name="chkSugerenciaAccion"]:checked');
+            if (checks.length === 0) {
+                alert('Por favor seleccione al menos una de las 3 acciones sugeridas.');
+                return;
+            }
+
+            const lista = bancoSugerenciasAcciones[hitoActualEnModal] || [];
+            let adoptadas = 0;
+
+            checks.forEach(chk => {
+                const sug = lista[parseInt(chk.value)];
+                if (sug) {
+                    const idNueva = Date.now() + Math.floor(Math.random() * 1000);
+                    
+                    const solicitud = {
+                        id: idNueva,
+                        entidad: 'IEC',
+                        area: `Área ${sug.area}`,
+                        tipo: 'Modificar Acción',
+                        titulo: `Nueva Acción para [${hitoActualEnModal}]: ${sug.titulo}`,
+                        desc: `Mitigación Directa para Hito ${hitoActualEnModal}. Responsable propuesto: ${sug.resp}`,
+                        solicitante: currentUser ? currentUser.usuario : 'Enlace Directivo',
+                        estado: 'Pendiente',
+                        fecha: new Date().toLocaleDateString(),
+                        detallesTecnicos: {
+                            accion_id: idNueva,
+                            hito_padre_id: hitoActualEnModal,
+                            rubro: 'Operativo',
+                            hito: `${sug.area} - Mitigación`,
+                            accion: `[${sug.area}] ${sug.titulo}`,
+                            responsable: sug.resp,
+                            estatus: 'En Proceso',
+                            driveUrl: ''
+                        }
+                    };
+
+                    solicitudesAdmin.unshift(solicitud);
+                    adoptadas++;
+                }
+            });
+
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+            ocultarFormularioVincularAccion();
+            closeModal('modal-trilateral-360');
+            alert(`¡Se han formulado ${adoptadas} solicitud(es) de acción vinculadas al hito ${hitoActualEnModal}!\n\nEstán listas en la Bandeja de Auditoría para aprobación del Super Admin.`);
+        }
+
+        function guardarAccionManualDesdeModal(e) {
+            e.preventDefault();
+            const titulo = document.getElementById('manualActionTitle').value.trim();
+            const resp = document.getElementById('manualActionResp').value.trim();
+            const drive = document.getElementById('manualActionDrive').value.trim();
+            const nota = document.getElementById('manualActionNote').value.trim();
+
+            const idNueva = Date.now();
+            const solicitud = {
+                id: idNueva,
+                entidad: 'IEC',
+                area: 'Área General',
+                tipo: 'Modificar Acción',
+                titulo: `Nueva Acción para [${hitoActualEnModal}]: ${titulo}`,
+                desc: `[Mitigación Manual para ${hitoActualEnModal}] Responsable: ${resp} | Motivo: ${nota}`,
+                solicitante: currentUser ? currentUser.usuario : 'Enlace Operativo',
+                estado: 'Pendiente',
+                fecha: new Date().toLocaleDateString(),
+                detallesTecnicos: {
+                    accion_id: idNueva,
+                    hito_padre_id: hitoActualEnModal,
+                    rubro: 'Operativo',
+                    hito: `Mitigación - ${hitoActualEnModal}`,
+                    accion: titulo,
+                    responsable: resp,
+                    estatus: 'En Proceso',
+                    driveUrl: drive
+                }
+            };
+
+            solicitudesAdmin.unshift(solicitud);
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+
+            document.getElementById('formManualAccion').reset();
+            ocultarFormularioVincularAccion();
+            closeModal('modal-trilateral-360');
+            alert(`¡Acción manual vinculada al Hito ${hitoActualEnModal} enviada a auditoria.html!`);
+        }
+
+        
       // =========================================================================
         // MOTOR RELACIONAL TRILATERAL (RIESGO ➔ HITO ➔ ACCIONES & CRONOGRAMA)
         // =========================================================================
