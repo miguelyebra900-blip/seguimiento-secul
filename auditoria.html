@@ -430,57 +430,94 @@
             if (badge) badge.innerText = `${pendientes} Pendientes`;
         }
 
-        // Resolución de Solicitudes con Inyección Cruzada
+// Resolución de Solicitudes con Inyección Cruzada y Validación de Roles
         function resolverSolicitudMaestra(entidad, solId, resolucion) {
+            // 1. Candado de Seguridad: Solo admin y super_admin pueden resolver
+            const userActivo = currentUser || JSON.parse(localStorage.getItem('secul_user'));
+            const rol = (userActivo && userActivo.rol ? userActivo.rol : '').toLowerCase();
+            const esAdminValido = rol.includes('admin') || rol.includes('super');
+
+            if (!esAdminValido) {
+                alert('Acceso denegado: Únicamente los perfiles con rol "admin" o "super_admin" tienen autorización para aprobar o rechazar solicitudes.');
+                return;
+            }
+
             let targetArray = entidad === 'IEC' ? solicitudesIEC : solicitudesForum;
             let targetKey = entidad === 'IEC' ? 'secul_solicitudes' : 'secul_forum_solicitudes';
 
             const idx = targetArray.findIndex(s => s.id === solId);
             if (idx === -1) return;
 
-            targetArray[idx].estado = resolucion;
+            const sol = targetArray[idx];
+            sol.estado = resolucion;
             localStorage.setItem(targetKey, JSON.stringify(targetArray));
 
-            // Estampado en Bitácora con Huella Digital
+            const adminFirmante = userActivo ? (userActivo.nombre || userActivo.usuario) : 'Super Administrador';
+
+            // 2. Estampado en Bitácora con Huella Digital
             registrarEventoAuditoria(entidad, `Resolución Solicitud (${resolucion})`, {
                 solicitud_id: solId,
-                titulo: targetArray[idx].titulo,
+                titulo: sol.titulo,
                 entidad: entidad,
                 resolucion: resolucion,
-                admin: 'Super Administrador'
+                admin: adminFirmante
             });
 
-            // Si es aprobada y solicita 'Nuevo Hito', se crea en la entidad destino
-            if (resolucion === 'Aprobado' && targetArray[idx].tipo === 'Nuevo Hito') {
-                const nuevoId = entidad === 'IEC' ? `V1-${Date.now().toString().slice(-4)}` : `FORUM-${Date.now().toString().slice(-4)}`;
-                const nuevoHito = {
-                    id: nuevoId,
-                    vertiente: 'V1',
-                    vertienteNombre: `${entidad} - Aprobado vía Auditoría`,
-                    numeral: 'Ext',
-                    titulo: targetArray[idx].titulo,
-                    normativa: 'Acuerdo Directivo Decreto 345',
-                    area: targetArray[idx].area || 'Administración',
-                    prioridadArea: 'Alta',
-                    estatus: 'En Proceso',
-                    avancePorcentaje: 0,
-                    documentos: [{ id_doc: `DOC-${nuevoId}-A`, nombre: `Expediente Inicial ${nuevoId}`, subido: false, url: null }]
-                };
+            // 3. Impacto real de aprobación en la base operativa
+            if (resolucion === 'Aprobado') {
 
-                if (entidad === 'IEC') {
-                    hitosIEC.unshift(nuevoHito);
-                    localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosIEC));
-                } else {
-                    hitosForum.unshift(nuevoHito);
-                    localStorage.setItem('secul_forum_hitos', JSON.stringify(hitosForum));
+                // CASO A: MODIFICAR ACCIÓN EXISTENTE
+                if (sol.tipo === 'Modificar Acción' && sol.detallesTecnicos) {
+                    const keyAcciones = entidad === 'IEC' ? 'secul_iec_acciones' : 'secul_forum_acciones';
+                    let accionesLista = JSON.parse(localStorage.getItem(keyAcciones)) || [];
+
+                    const accIdx = accionesLista.findIndex(a => a.id === sol.detallesTecnicos.accion_id);
+                    if (accIdx !== -1) {
+                        accionesLista[accIdx].accion = sol.detallesTecnicos.accion;
+                        accionesLista[accIdx].responsable = sol.detallesTecnicos.responsable;
+                        accionesLista[accIdx].estatus = sol.detallesTecnicos.estatus;
+                        accionesLista[accIdx].rubro = sol.detallesTecnicos.rubro;
+                        accionesLista[accIdx].hito = sol.detallesTecnicos.hito;
+                        if (sol.detallesTecnicos.driveUrl) {
+                            accionesLista[accIdx].driveUrl = sol.detallesTecnicos.driveUrl;
+                        }
+                        localStorage.setItem(keyAcciones, JSON.stringify(accionesLista));
+                    }
+                }
+
+                // CASO B: CREACIÓN DE NUEVO HITO
+                if (sol.tipo === 'Nuevo Hito') {
+                    const nuevoId = entidad === 'IEC' ? `V1-${Date.now().toString().slice(-4)}` : `FORUM-${Date.now().toString().slice(-4)}`;
+                    const nuevoHito = {
+                        id: nuevoId,
+                        vertiente: 'V1',
+                        vertienteNombre: `${entidad} - Aprobado vía Auditoría`,
+                        numeral: 'Ext',
+                        titulo: sol.titulo,
+                        normativa: 'Acuerdo Directivo Decreto 345',
+                        area: sol.area || 'Administración',
+                        prioridadArea: 'Alta',
+                        estatus: 'En Proceso',
+                        avancePorcentaje: 0,
+                        documentos: [{ id_doc: `DOC-${nuevoId}-A`, nombre: `Expediente Inicial ${nuevoId}`, subido: false, url: null }]
+                    };
+
+                    if (entidad === 'IEC') {
+                        hitosIEC.unshift(nuevoHito);
+                        localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosIEC));
+                    } else {
+                        hitosForum.unshift(nuevoHito);
+                        localStorage.setItem('secul_forum_hitos', JSON.stringify(hitosForum));
+                    }
                 }
             }
 
             renderBandejaSolicitudes();
             renderBitacoraAuditoria();
             actualizarKpis();
-            alert(`¡Solicitud ${resolucion.toLowerCase()} con éxito para ${entidad}!`);
+            alert(`¡Solicitud ${resolucion.toLowerCase()} con éxito para ${entidad}!\nLos cambios se han transferido a la base de datos operativa.`);
         }
+        
 
         // Renderizado de Bitácora Forense de Auditoría
         function renderBitacoraAuditoria() {
