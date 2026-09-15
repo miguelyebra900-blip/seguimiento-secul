@@ -4389,12 +4389,25 @@ function openRiskDetailModal(riskId) {
             const accionesHijas = accionesMatriz.filter(a => a.hito_padre_id === hitoId);
             document.getElementById('triCountAcciones').innerText = `${accionesHijas.length} Acciones Vinculadas`;
 
+// 3. Llenar Nodo Acciones de Mitigación
+            const contenedorAcciones = document.getElementById('triListaAcciones');
+            if (contenedorAcciones) {
+                contenedorAcciones.innerHTML = '';
+            }
+            
+            const badgeCount = document.getElementById('triCountAcciones');
+            if (badgeCount) {
+                badgeCount.innerText = `${accionesHijas.length} Acciones Vinculadas`;
+            }
+
             if (accionesHijas.length === 0) {
-                contenedorAcciones.innerHTML = `
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 italic text-[11px] text-center">
-                        Este hito opera mediante validación documental directa. Puedes añadir una acción específica desde el botón "Solicitar Hito".
-                    </div>
-                `;
+                if (contenedorAcciones) {
+                    contenedorAcciones.innerHTML = `
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 italic text-[11px] text-center">
+                            No hay acciones operativas registradas para este hito. Utilice el botón superior <strong>"+ Vincular / Proponer Acción"</strong> para adoptar sugerencias o capturar una nueva tarea.
+                        </div>
+                    `;
+                }
             } else {
                 accionesHijas.forEach(a => {
                     let badgeEst = 'bg-slate-100 text-slate-700 border-slate-200';
@@ -4402,28 +4415,55 @@ function openRiskDetailModal(riskId) {
                     if (a.estatus === 'Validación') badgeEst = 'bg-amber-100 text-amber-800 border-amber-300';
                     if (a.estatus === 'En Proceso') badgeEst = 'bg-blue-100 text-blue-800 border-blue-300';
 
-                    contenedorAcciones.innerHTML += `
-                        <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition">
-                            <div>
-                                <strong class="text-slate-900 block text-xs">• ${a.accion}</strong>
-                                <span class="text-slate-500 text-[10px] block mt-0.5">
-                                    <i class="fa-solid fa-user-shield me-1 text-indigo-600"></i>${a.responsable}
-                                </span>
+                    if (contenedorAcciones) {
+                        contenedorAcciones.innerHTML += `
+                            <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition">
+                                <div>
+                                    <strong class="text-slate-900 block text-xs">• ${a.accion}</strong>
+                                    <span class="text-slate-500 text-[10px] block mt-0.5">
+                                        <i class="fa-solid fa-user-shield me-1 text-indigo-600"></i>${a.responsable}
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeEst}">${a.estatus}</span>
+                                    <button type="button" onclick="closeModal('modal-trilateral-360'); abrirModalEdicionAccion(${a.id})" class="px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-[10px] font-bold shadow hover:bg-indigo-700 transition">
+                                        Editar
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeEst}">${a.estatus}</span>
-                                <button type="button" onclick="closeModal('modal-trilateral-360'); abrirModalEdicionAccion(${a.id})" class="px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-[10px] font-bold shadow hover:bg-indigo-700 transition">
-                                    Editar
-                                </button>
+                        `;
+                    }
+                });
+            }
+
+            // Desplegar las 3 sugerencias dinámicas del hito
+            const contSugerencias = document.getElementById('contenedorSugerenciasHito');
+            if (contSugerencias) {
+                contSugerencias.innerHTML = '';
+                const lista = (typeof bancoSugerenciasAcciones !== 'undefined' && bancoSugerenciasAcciones[hitoId]) 
+                    ? bancoSugerenciasAcciones[hitoId] 
+                    : [
+                        { id_sug: 's1', titulo: `Levantamiento técnico de soportes para ${hitoId}`, resp: 'Área Ejecutora', area: 'A' },
+                        { id_sug: 's2', titulo: `Revisión jurídica y dictamen de cumplimiento para ${hitoId}`, resp: 'Dirección Jurídica', area: 'B' },
+                        { id_sug: 's3', titulo: `Emisión de acta de solventación ante Órganos de Control`, resp: 'Órgano Interno', area: 'F' }
+                    ];
+
+                lista.forEach((sug, i) => {
+                    contSugerencias.innerHTML += `
+                        <label class="flex items-start gap-2.5 p-2.5 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 cursor-pointer transition">
+                            <input type="checkbox" name="chkSugerenciaAccion" value="${i}" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                            <div class="text-xs">
+                                <strong class="text-slate-900 block">• ${sug.titulo}</strong>
+                                <span class="text-[10px] text-slate-500">Área: ${sug.area} | Responsable sugerido: <strong>${sug.resp}</strong></span>
                             </div>
-                        </div>
+                        </label>
                     `;
                 });
             }
 
             openModal('modal-trilateral-360');
         }
-
+        
         // Navegación con auto-scroll a la Matriz de Acciones filtrada
         function scrollYFiltrarAccionesPorHito(hitoId) {
             const seccion = document.getElementById('tablaAccionesMatriz');
@@ -5179,17 +5219,83 @@ function openRiskDetailModal(riskId) {
                     </div>
                 </div>
 
-                <!-- 3. Nodo Acciones de Mitigación -->
-                <div class="space-y-2.5">
+<!-- 3. Nodo Acciones de Mitigación & Asistente Directo -->
+                <div class="space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <h5 class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-list-check text-emerald-600"></i> Acciones Operativas de Mitigación Directa
-                        </h5>
-                        <span class="text-[10px] text-slate-400 font-semibold" id="triCountAcciones">0 Tareas</span>
+                        <div class="flex items-center gap-2">
+                            <h5 class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-emerald-600"></i> Acciones Operativas de Mitigación Directa
+                            </h5>
+                            <span class="text-[10px] text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-full" id="triCountAcciones">0 Tareas</span>
+                        </div>
+                        <button type="button" onclick="mostrarFormularioVincularAccion()" class="px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-plus text-xs"></i> Vincular / Proponer Acción
+                        </button>
                     </div>
+
+                    <!-- Panel Desplegable: Asistente con 3 Sugerencias y Captura Manual -->
+                    <div id="panelAsistenteAcciones" class="hidden bg-slate-50 border border-emerald-200 rounded-2xl p-4 space-y-4 shadow-inner">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                            <div>
+                                <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Asistente de Mitigación Táctica
+                                </span>
+                                <p class="text-[11px] text-slate-500">Seleccione acciones recomendadas por arquitectura o redacte una personalizada.</p>
+                            </div>
+                            <button type="button" onclick="ocultarFormularioVincularAccion()" class="text-slate-400 hover:text-slate-700 text-sm">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <!-- 3 Acciones Sugeridas Dinámicas -->
+                        <div class="space-y-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
+                                1. Acciones Sugeridas para este Hito (Marque las deseadas):
+                            </label>
+                            <div id="contenedorSugerenciasHito" class="space-y-2"></div>
+                            <button type="button" onclick="adoptarAccionesSugeridas()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-check-double"></i> Adoptar Acciones Marcadas
+                            </button>
+                        </div>
+
+                        <!-- Opción de Captura Manual -->
+                        <div class="border-t border-slate-200 pt-3 space-y-2.5">
+                            <button type="button" onclick="document.getElementById('formManualAccion').classList.toggle('hidden')" class="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1">
+                                <i class="fa-solid fa-keyboard"></i> ¿Prefieres redactar una acción personalizada? Haz clic aquí
+                            </button>
+                            
+                            <form id="formManualAccion" class="hidden space-y-3 bg-white p-3.5 rounded-xl border border-slate-200" onsubmit="guardarAccionManualDesdeModal(event)">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Descripción Táctica de la Acción:</label>
+                                    <input type="text" id="manualActionTitle" class="w-full p-2 border rounded-xl text-xs bg-slate-50 font-semibold" placeholder="Ej. Levantamiento físico en archivo o entrega de oficio..." required>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-600 mb-1">Instancia Responsable:</label>
+                                        <input type="text" id="manualActionResp" class="w-full p-2 border rounded-xl text-xs bg-slate-50" placeholder="Ej. Control Patrimonial / RH" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-600 mb-1">Enlace Drive Evidencia (Opcional):</label>
+                                        <input type="url" id="manualActionDrive" class="w-full p-2 border rounded-xl text-xs bg-slate-50" placeholder="https://drive.google.com/...">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Justificación del Requerimiento:</label>
+                                    <input type="text" id="manualActionNote" class="w-full p-2 border rounded-xl text-xs bg-slate-50" placeholder="Motivo o relación directa con el hito..." required>
+                                </div>
+                                <div class="flex justify-end gap-2 pt-1">
+                                    <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow">
+                                        Enviar a Validación
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Acciones ya vinculadas -->
                     <div id="triListaAcciones" class="space-y-2"></div>
                 </div>
-
+                
             </div>
 
             <!-- Footer -->
