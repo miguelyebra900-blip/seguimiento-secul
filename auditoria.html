@@ -321,6 +321,7 @@
         }
 
         let currentAmbito = 'GLOBAL';
+        let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
 
         // 1. Carga de Datos Cruzados desde Almacenamiento Local y Nube
         let hitosIEC = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || [];
@@ -431,9 +432,14 @@
         }
 
 // Resolución de Solicitudes con Inyección Cruzada y Validación de Roles
-        function resolverSolicitudMaestra(entidad, solId, resolucion) {
-            // 1. Candado de Seguridad: Solo admin y super_admin pueden resolver
-            const userActivo = currentUser || JSON.parse(localStorage.getItem('secul_user'));
+        
+      function resolverSolicitudMaestra(entidad, solId, resolucion) {
+            // 1. Obtener usuario activo de forma segura
+            let userActivo = null;
+            try {
+                userActivo = JSON.parse(localStorage.getItem('secul_user'));
+            } catch(e) {}
+
             const rol = (userActivo && userActivo.rol ? userActivo.rol : '').toLowerCase();
             const esAdminValido = rol.includes('admin') || rol.includes('super');
 
