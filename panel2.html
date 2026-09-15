@@ -2890,8 +2890,8 @@
             }
         };
 
-        // Matriz Consolidada de Acciones Detalladas
-        let accionesMatriz = [
+        // Matriz Consolidada de Acciones Detalladas sincronizada con auditoria.html
+        let accionesMatriz = JSON.parse(localStorage.getItem('secul_iec_acciones')) || [
             { id: 1, hito: 'A - RH', rubro: 'Laboral', accion: 'Entrega formal de expedientes laborales a DGRH Finanzas', responsable: 'IEC Liquidador / SF', estatus: 'Concluido', driveUrl: '' },
             { id: 2, hito: 'A - RH', rubro: 'Laboral', accion: 'Resguardo de Plaza Nivel 8 y 131 bienes del Liquidador', responsable: 'Liquidador IEC', estatus: 'Concluido', driveUrl: '' },
             { id: 3, hito: 'A - RH', rubro: 'Patrimonio', accion: 'Capitalización de 1,682 activos y búsqueda de 2,570 faltantes', responsable: 'IEC / Dirección General de Bienes', estatus: 'En Proceso', driveUrl: '' },
@@ -2903,6 +2903,11 @@
             { id: 9, hito: 'D - Finanzas', rubro: 'Financiero', accion: 'Trámite de Baja de RFC del IEC ante el SAT (Cita Celaya)', responsable: 'Liquidador IEC', estatus: 'En Proceso', driveUrl: '' },
             { id: 10, hito: 'E - Archivo', rubro: 'Archivo', accion: 'Entrega de archivo de trámite e histórico al AGEG', responsable: 'IEC / Archivo General', estatus: 'En Proceso', driveUrl: '' }
         ];
+
+        // Guardar estado inicial si no existía en el almacenamiento
+        if (!localStorage.getItem('secul_iec_acciones')) {
+            localStorage.setItem('secul_iec_acciones', JSON.stringify(accionesMatriz));
+        }
 
         let solicitudesAdmin = JSON.parse(localStorage.getItem('secul_solicitudes')) || [
             { id: 1, area: 'B', tipo: 'Modificar Acción', titulo: 'Actualización Convenio Banorte FIARCA', desc: 'Validar proyecto con Fiduciaria Banorte.', solicitante: 'dir_general', estado: 'Pendiente', fecha: '2026-08-25' }
