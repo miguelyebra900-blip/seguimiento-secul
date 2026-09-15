@@ -658,15 +658,19 @@
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-700">
-                    <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+
+<thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
                         <tr>
-                            <th class="p-3">Hito / Rubro</th>
-                            <th class="p-3">Acción Específica</th>
-                            <th class="p-3">Instancia Responsable</th>
-                            <th class="p-3">Estatus</th>
-                            <th class="p-3 text-center">Acciones / Drive</th>
+                            <th class="p-3">Vertiente & Folio</th>
+                            <th class="p-3">Hito / Requerimiento Oficial</th>
+                            <th class="p-3">Área Responsable (Secretaría de Cultura)</th>
+                            <th class="p-3 text-center">Prioridad</th>
+                            <th class="p-3">Cronograma & Plazo Legal</th>
+                            <th class="p-3">Progreso Derivado (Acciones/Docs)</th>
+                            <th class="p-3 text-center">Acción / Evidencias</th>
                         </tr>
                     </thead>
+                    
                     <tbody id="tablaAccionesMatriz" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
@@ -3020,13 +3024,46 @@ function openRiskDetailModal(riskId) {
             let docsTotales = 0;
             let docsSubidos = 0;
 
+// 1. Lectura de acciones para alimentar los hitos en cascada
+            const accionesActuales = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
+
             filtrados.forEach((h) => {
-                const totalD = h.documentos.length;
-                const subidosD = h.documentos.filter(d => d.subido).length;
+                const totalD = (h.documentos || []).length;
+                const subidosD = (h.documentos || []).filter(d => d.subido).length;
                 docsTotales += totalD;
                 docsSubidos += subidosD;
 
-                const porcentaje = h.avancePorcentaje !== undefined ? h.avancePorcentaje : (totalD > 0 ? Math.round((subidosD / totalD) * 100) : 0);
+                // 2. CÁLCULO EN CASCADA: El avance del hito se alimenta de sus acciones hijas
+                const hijas = accionesActuales.filter(a => a.hito_padre_id === h.id);
+                let porcentaje = h.avancePorcentaje !== undefined ? h.avancePorcentaje : 0;
+                let detalleFuenteAvance = `${subidosD}/${totalD} Docs`;
+
+                if (hijas.length > 0) {
+                    const pesos = { 'Concluido': 100, 'Validación': 75, 'En Proceso': 40 };
+                    const sumaHijas = hijas.reduce((sum, a) => sum + (pesos[a.estatus] || 0), 0);
+                    porcentaje = Math.round(sumaHijas / hijas.length);
+                    h.avancePorcentaje = porcentaje;
+                    detalleFuenteAvance = `${hijas.length} Acciones alimentando`;
+                }
+
+                // 3. CÁLCULO DEL CRONOGRAMA DINÁMICO
+                const cronoInfo = (typeof cronogramaRelacionalHitos !== 'undefined' && cronogramaRelacionalHitos[h.id]) 
+                    ? cronogramaRelacionalHitos[h.id] 
+                    : { fecha_limite: '2026-06-30', fase: 'Operativa' };
+
+                const fechaLimiteObj = new Date(cronoInfo.fecha_limite);
+                const diasRestantes = Math.ceil((fechaLimiteObj - new Date()) / (1000 * 60 * 60 * 24));
+                
+                let badgeCrono = '';
+                if (porcentaje === 100) {
+                    badgeCrono = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1 w-fit"><i class="fa-solid fa-circle-check"></i> Cumplido</span>`;
+                } else if (diasRestantes < 0) {
+                    badgeCrono = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1 w-fit"><i class="fa-solid fa-clock-rotate-left"></i> Vencido (${Math.abs(diasRestantes)}d)</span>`;
+                } else if (diasRestantes <= 45) {
+                    badgeCrono = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1 w-fit"><i class="fa-solid fa-triangle-exclamation"></i> Crítico (${diasRestantes}d)</span>`;
+                } else {
+                    badgeCrono = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1 w-fit"><i class="fa-regular fa-clock"></i> En Plazo (${diasRestantes}d)</span>`;
+                }
 
                 let badgePrioridad = 'bg-slate-100 text-slate-700 border-slate-200';
                 const prio = h.prioridadArea || h.riesgo;
@@ -3062,13 +3099,26 @@ function openRiskDetailModal(riskId) {
                                 ${prio}
                             </span>
                         </td>
+                        <!-- COLUMNA NUEVA: CRONOGRAMA & FECHA FATAL -->
+                        <td class="p-3 whitespace-nowrap">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-xs font-bold text-slate-800 font-mono">${cronoInfo.fecha_limite}</span>
+                                ${badgeCrono}
+                            </div>
+                        </td>
+                        <!-- COLUMNA NUEVA: AVANCE ALIMENTADO POR ACCIONES -->
                         <td class="p-3">
                             <div class="w-full bg-slate-200 rounded-full h-2 max-w-[120px] mb-1">
                                 <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${porcentaje}%"></div>
                             </div>
-                            <span class="text-[10px] font-bold ${porcentaje === 100 ? 'text-emerald-600' : 'text-slate-600'}">
-                                ${porcentaje}% (${subidosD}/${totalD} Docs)
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-bold ${porcentaje === 100 ? 'text-emerald-600' : 'text-slate-700'}">
+                                    ${porcentaje}%
+                                </span>
+                                <span class="text-[9px] text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition" onclick="abrirTrazabilidadTrilateral('${h.id}')" title="Ver acciones y cronograma de este hito">
+                                    ${detalleFuenteAvance}
+                                </span>
+                            </div>
                         </td>
                         <td class="p-3 text-center whitespace-nowrap">
                             <button onclick="abrirModalGestionFiscalizacion('${h.id}')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold border border-indigo-200 transition text-[11px] flex items-center gap-1.5 mx-auto">
@@ -3078,7 +3128,7 @@ function openRiskDetailModal(riskId) {
                     </tr>
                 `;
             });
-
+            
             const kpiDocs = document.getElementById('kpiDocsAcreditados');
             if(kpiDocs) kpiDocs.innerText = `${docsSubidos} / ${docsTotales}`;
             
