@@ -4819,31 +4819,61 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                 icon.className = 'fa-solid fa-expand';
             }
         }
-
 // =========================================================================
-        // CONTROLADOR DEL CRONOGRAMA GENERAL DE AVANCE
+        // MOTOR DUAL: LISTADO (48 HITOS) + ROADMAP GRÁFICO (ÁREAS A - H) + TOOLS
         // =========================================================================
-        let filtroFaseCronogramaActual = 'ALL';
+        let vistaCronogramaActual = 'LISTADO';
+        let filtroVertienteHitosActual = 'ALL';
+        let escalaZoomRoadmap = 100;
+        let esPantallaCompletaCrono = false;
 
-       function abrirModalCronogramaGeneral() {
-    renderRoadmapGrafico();
-    openModal('modal-cronograma-general');
-}
-
-        function filtrarCronogramaModal(fase) {
-            filtroFaseCronogramaActual = fase;
-            document.querySelectorAll('.btn-filtro-crono').forEach(btn => {
-                if (btn.dataset.fase === fase) {
-                    btn.className = "px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm btn-filtro-crono";
-                } else {
-                    btn.className = "px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono";
-                }
-            });
-            renderCronogramaGeneral();
+        function abrirModalCronogramaGeneral() {
+            cambiarVistaCronograma('LISTADO');
+            openModal('modal-cronograma-general');
         }
 
-        function renderCronogramaGeneral() {
-            const tbody = document.getElementById('tbodyCronogramaGeneral');
+        function cambiarVistaCronograma(vista) {
+            vistaCronogramaActual = vista;
+            const btnListado = document.getElementById('tabBtnListado');
+            const btnRoadmap = document.getElementById('tabBtnRoadmap');
+            const secListado = document.getElementById('vistaListadoHitos');
+            const secRoadmap = document.getElementById('vistaRoadmapGrafico');
+            const toolbarRoadmap = document.getElementById('toolbarRoadmapGrafico');
+            const filtrosListado = document.getElementById('filtrosListadoContainer');
+
+            if (vista === 'LISTADO') {
+                if (btnListado) btnListado.className = "px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 bg-indigo-600 text-white shadow-sm transition";
+                if (btnRoadmap) btnRoadmap.className = "px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 transition";
+                if (secListado) secListado.classList.remove('hidden');
+                if (secRoadmap) secRoadmap.classList.add('hidden');
+                if (toolbarRoadmap) toolbarRoadmap.classList.add('hidden');
+                if (filtrosListado) filtrosListado.classList.remove('hidden');
+                renderListadoHitosCronograma();
+            } else {
+                if (btnRoadmap) btnRoadmap.className = "px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 bg-indigo-600 text-white shadow-sm transition";
+                if (btnListado) btnListado.className = "px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 transition";
+                if (secRoadmap) secRoadmap.classList.remove('hidden');
+                if (secListado) secListado.classList.add('hidden');
+                if (toolbarRoadmap) toolbarRoadmap.classList.remove('hidden');
+                if (filtrosListado) filtrosListado.classList.add('hidden');
+                renderRoadmapGrafico();
+            }
+        }
+
+        function filtrarHitosListadoModal(vertiente) {
+            filtroVertienteHitosActual = vertiente;
+            document.querySelectorAll('.btn-subfiltro-hitos').forEach(btn => {
+                if (btn.dataset.vertiente === vertiente) {
+                    btn.className = "px-2.5 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm btn-subfiltro-hitos";
+                } else {
+                    btn.className = "px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 btn-subfiltro-hitos";
+                }
+            });
+            renderListadoHitosCronograma();
+        }
+
+        function renderListadoHitosCronograma() {
+            const tbody = document.getElementById('tbodyCronogramaListado');
             if (!tbody) return;
             tbody.innerHTML = '';
 
@@ -4851,27 +4881,24 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
             const acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
 
             let hitosFiltrados = hitos;
-            if (filtroFaseCronogramaActual !== 'ALL') {
-                hitosFiltrados = hitos.filter(h => h.vertiente === filtroFaseCronogramaActual);
+            if (filtroVertienteHitosActual !== 'ALL') {
+                hitosFiltrados = hitos.filter(h => h.vertiente === filtroVertienteHitosActual);
             }
 
             let concluidos = 0;
             let enRiesgo = 0;
 
             hitosFiltrados.forEach(h => {
-                // Cálculo de avance alimentado por acciones
                 const hijas = acciones.filter(a => a.hito_padre_id === h.id);
                 let porcentaje = h.avancePorcentaje !== undefined ? h.avancePorcentaje : 0;
                 if (hijas.length > 0) {
                     const pesos = { 'Concluido': 100, 'Validación': 75, 'En Proceso': 40 };
-                    const suma = hijas.reduce((acc, a) => acc + (pesos[a.estatus] || 0), 0);
-                    porcentaje = Math.round(suma / hijas.length);
+                    porcentaje = Math.round(hijas.reduce((acc, a) => acc + (pesos[a.estatus] || 0), 0) / hijas.length);
                 }
 
-                // Cálculo de días y semáforo temporal
                 const crono = (typeof cronogramaRelacionalHitos !== 'undefined' && cronogramaRelacionalHitos[h.id])
                     ? cronogramaRelacionalHitos[h.id]
-                    : { fecha_limite: '2026-06-30', fase: 'Operativa' };
+                    : { fecha_limite: '2026-06-30' };
 
                 const fechaObj = new Date(crono.fecha_limite);
                 const diasRestantes = Math.ceil((fechaObj - new Date()) / (1000 * 60 * 60 * 24));
@@ -4930,14 +4957,6 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
             }
         }
 
-// =========================================================================
-        // MOTOR DEL ROADMAP GRÁFICO EJECUTIVO: 8 CARRILES OFICIALES (ÁREAS A - H)
-        // =========================================================================
-        function abrirModalCronogramaGeneral() {
-            renderRoadmapGrafico();
-            openModal('modal-cronograma-general');
-        }
-
         function renderRoadmapGrafico() {
             const contenedor = document.getElementById('contenedorCarrilesGantt');
             if (!contenedor) return;
@@ -4946,56 +4965,15 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
             const hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || (typeof hitosFiscalizacionData !== 'undefined' ? hitosFiscalizacionData : []);
             const acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
 
-            // LOS 8 CARRILES TEMÁTICOS OFICIALES (ÁREAS ESTRATÉGICAS A - H)
             const carrilesOficiales = [
-                {
-                    codigo: 'Área A',
-                    nombre: 'Recursos Humanos & Estructura',
-                    colorBarra: '#e11d48', // Carmesí / Rose
-                    hitosIds: ['V1-04', 'V2-03', 'V2-04', 'V2-05', 'INF-03', 'INF-09']
-                },
-                {
-                    codigo: 'Área B',
-                    nombre: 'Asuntos Jurídicos & Contencioso',
-                    colorBarra: '#d97706', // Ámbar intenso
-                    hitosIds: ['V1-01', 'V2-01', 'V2-02', 'V2-06', 'V2-16', 'V2-19', 'V2-21', 'V2-22', 'INF-13', 'INF-14']
-                },
-                {
-                    codigo: 'Área C',
-                    nombre: 'Patrimonio Inmobiliario & Predios',
-                    colorBarra: '#059669', // Esmeralda
-                    hitosIds: ['V1-05', 'V2-15', 'INF-04']
-                },
-                {
-                    codigo: 'Área D',
-                    nombre: 'Fideicomisos & Fondos Especiales (FIARCA)',
-                    colorBarra: '#0284c7', // Azul cielo / Fiduciario
-                    hitosIds: ['INF-C01', 'INF-08']
-                },
-                {
-                    codigo: 'Área E',
-                    nombre: 'Control Patrimonial & Bienes Muebles',
-                    colorBarra: '#f97316', // Naranja
-                    hitosIds: ['V1-02', 'V1-07', 'V2-13', 'V2-14', 'V2-17', 'INF-A01', 'INF-A02', 'INF-A04', 'INF-05', 'INF-07', 'INF-15']
-                },
-                {
-                    codigo: 'Área F',
-                    nombre: 'Financiero, Presupuestal & Fiscal',
-                    colorBarra: '#4f46e5', // Índigo
-                    hitosIds: ['V1-03', 'V1-06', 'V1-10', 'V2-07', 'V2-08', 'V2-09', 'V2-10', 'V2-11', 'V2-12', 'INF-D02', 'INF-01', 'INF-02', 'INF-06', 'INF-12', 'INF-16']
-                },
-                {
-                    codigo: 'Área G',
-                    nombre: 'Tecnologías de la Información (TI) & Obra',
-                    colorBarra: '#0891b2', // Cian
-                    hitosIds: ['V1-09', 'V2-18', 'INF-10']
-                },
-                {
-                    codigo: 'Área H',
-                    nombre: 'Archivo & Gestión Documental',
-                    colorBarra: '#7c3aed', // Púrpura / Violeta
-                    hitosIds: ['V1-08', 'V2-20', 'INF-11']
-                }
+                { codigo: 'Área A', nombre: 'Recursos Humanos & Estructura', colorBarra: '#e11d48', hitosIds: ['V1-04', 'V2-03', 'V2-04', 'V2-05', 'INF-03', 'INF-09'] },
+                { codigo: 'Área B', nombre: 'Asuntos Jurídicos & Contencioso', colorBarra: '#d97706', hitosIds: ['V1-01', 'V2-01', 'V2-02', 'V2-06', 'V2-16', 'V2-19', 'V2-21', 'V2-22', 'INF-13', 'INF-14'] },
+                { codigo: 'Área C', nombre: 'Patrimonio Inmobiliario & Predios', colorBarra: '#059669', hitosIds: ['V1-05', 'V2-15', 'INF-04'] },
+                { codigo: 'Área D', nombre: 'Fideicomisos & Fondos Especiales (FIARCA)', colorBarra: '#0284c7', hitosIds: ['INF-C01', 'INF-08'] },
+                { codigo: 'Área E', nombre: 'Control Patrimonial & Bienes Muebles', colorBarra: '#f97316', hitosIds: ['V1-02', 'V1-07', 'V2-13', 'V2-14', 'V2-17', 'INF-A01', 'INF-A02', 'INF-A04', 'INF-05', 'INF-07', 'INF-15'] },
+                { codigo: 'Área F', nombre: 'Financiero, Presupuestal & Fiscal', colorBarra: '#4f46e5', hitosIds: ['V1-03', 'V1-06', 'V1-10', 'V2-07', 'V2-08', 'V2-09', 'V2-10', 'V2-11', 'V2-12', 'INF-D02', 'INF-01', 'INF-02', 'INF-06', 'INF-12', 'INF-16'] },
+                { codigo: 'Área G', nombre: 'Tecnologías de la Información (TI) & Obra', colorBarra: '#0891b2', hitosIds: ['V1-09', 'V2-18', 'INF-10'] },
+                { codigo: 'Área H', nombre: 'Archivo & Gestión Documental', colorBarra: '#7c3aed', hitosIds: ['V1-08', 'V2-20', 'INF-11'] }
             ];
 
             function obtenerIndiceMes(fechaStr) {
@@ -5081,10 +5059,10 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
 
                 contenedor.innerHTML += `
                     <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white hover:border-slate-300 transition">
-                        <div class="grid grid-cols-12 gap-0 items-stretch min-h-[60px]">
+                        <div class="grid grid-cols-12 gap-0 items-stretch min-h-[58px]">
                             <div class="col-span-2 bg-[#0a2540] text-white p-3 flex flex-col justify-center border-r border-slate-300">
                                 <span class="text-[10px] uppercase tracking-wider text-cyan-400 font-black">${carril.codigo}</span>
-                                <strong class="text-[11.5px] font-bold leading-tight text-white mt-0.5">${carril.nombre}</strong>
+                                <strong class="text-[11px] font-bold leading-tight text-white mt-0.5">${carril.nombre}</strong>
                             </div>
                             <div class="col-span-10 p-2 grid grid-cols-10 gap-x-1.5 relative items-center bg-slate-50/40">
                                 ${htmlBarras}
@@ -5093,8 +5071,80 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                     </div>
                 `;
             });
+
+            const resumen = document.getElementById('cronoStatsResumen');
+            if (resumen) {
+                resumen.innerHTML = `Master Roadmap Activo: <strong>8 Áreas Estratégicas</strong> sincronizadas con Decreto No. 345 y ASEG`;
+            }
         }
-        
+
+        // =========================================================================
+        // HERRAMIENTAS: ZOOM, PANTALLA COMPLETA E IMPRESIÓN
+        // =========================================================================
+        function ajustarZoomCronograma(delta) {
+            escalaZoomRoadmap = Math.min(150, Math.max(70, escalaZoomRoadmap + delta));
+            const wrapper = document.getElementById('zoomRoadmapWrapper');
+            const display = document.getElementById('zoomLevelDisplay');
+            if (wrapper) {
+                wrapper.style.transform = `scale(${escalaZoomRoadmap / 100})`;
+                wrapper.style.transformOrigin = 'top left';
+            }
+            if (display) {
+                display.innerText = `${escalaZoomRoadmap}%`;
+            }
+        }
+
+        function togglePantallaCompletaCronograma() {
+            const card = document.getElementById('cronogramaModalCard');
+            const icon = document.getElementById('btnFullscreenIcon');
+            esPantallaCompletaCrono = !esPantallaCompletaCrono;
+
+            if (esPantallaCompletaCrono) {
+                card.classList.remove('max-w-7xl', 'max-h-[96vh]', 'rounded-3xl');
+                card.classList.add('w-screen', 'h-screen', 'max-w-none', 'max-h-none', 'rounded-none');
+                icon.className = 'fa-solid fa-compress';
+            } else {
+                card.classList.remove('w-screen', 'h-screen', 'max-w-none', 'max-h-none', 'rounded-none');
+                card.classList.add('max-w-7xl', 'max-h-[96vh]', 'rounded-3xl');
+                icon.className = 'fa-solid fa-expand';
+            }
+        }
+
+        function imprimirCronogramaRoadmap() {
+            const area = document.getElementById('areaImpresionRoadmap');
+            if (!area) return;
+
+            const ventana = window.open('', '_blank');
+            ventana.document.write(`
+                <html>
+                <head>
+                    <title>Master Roadmap Cronograma de Extinción IEC</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <style>
+                        @media print {
+                            @page { size: landscape; margin: 8mm; }
+                            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: sans-serif; }
+                        }
+                    </style>
+                </head>
+                <body class="p-4 bg-white text-slate-900">
+                    <div class="mb-3 border-b border-slate-300 pb-2 flex justify-between items-center">
+                        <div>
+                            <h1 class="text-base font-black text-slate-900">Transición Institucional IEC ➔ Secretaría de Cultura</h1>
+                            <p class="text-xs text-slate-600">Master Roadmap 2025–2026: 8 Áreas Estratégicas • Decreto No. 345 & ASEG</p>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-slate-500">${new Date().toLocaleDateString()}</span>
+                    </div>
+                    ${area.innerHTML}
+                </body>
+                </html>
+            `);
+            ventana.document.close();
+            setTimeout(() => {
+                ventana.focus();
+                ventana.print();
+            }, 600);
+        }
     </script>
 
    <!-- ========================================================= -->
@@ -5590,146 +5640,203 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
     </div>
 
 <!-- ========================================================================= -->
-    <!-- MODAL: CRONOGRAMA GENERAL EJECUTIVO DE HITOS Y METAS (48 HITOS)          -->
+    <!-- MODAL DUAL: LISTADO DE HITOS (48) + MASTER ROADMAP GRÁFICO (ÁREAS A - H)  -->
     <!-- ========================================================================= -->
-    <div id="modal-cronograma-general" class="fixed inset-0 z-[85] hidden modal-backdrop flex items-center justify-center p-3 sm:p-5">
-        <div class="bg-white rounded-3xl max-w-6xl w-full shadow-2xl border border-slate-100 max-h-[92vh] flex flex-col overflow-hidden">
+    <div id="modal-cronograma-general" class="fixed inset-0 z-[85] hidden modal-backdrop flex items-center justify-center p-2 sm:p-4 transition-all duration-300">
+        <div id="cronogramaModalCard" class="bg-slate-100 rounded-3xl max-w-7xl w-full shadow-2xl border border-slate-300 max-h-[96vh] flex flex-col overflow-hidden transition-all duration-300">
             
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0 border-b border-indigo-900/40">
+            <!-- Encabezado Directivo -->
+            <div class="bg-[#0f2d4a] text-white px-6 py-3.5 flex justify-between items-center shrink-0 border-b border-cyan-900/40">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-lg border border-amber-400/30 shadow-inner">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-lg border border-cyan-400/30">
                         <i class="fa-solid fa-calendar-days"></i>
                     </div>
                     <div>
-                        <h3 class="font-black text-sm sm:text-base flex items-center gap-2">
+                        <h3 class="font-black text-sm sm:text-base tracking-wide flex items-center gap-2">
                             Cronograma Maestro de Extinción y Fiscalización
                         </h3>
-                        <p class="text-xs text-indigo-200">Línea de tiempo de los 48 Hitos Legales y Metas Operativas (Decreto No. 345 & ASEG)</p>
+                        <p class="text-[11px] text-cyan-200/80">Decreto No. 345 & Auditoría Superior del Estado (ASEG)</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeModal('modal-cronograma-general')" class="text-slate-400 hover:text-white text-xl transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <!-- Filtros Rápidos de Fase & Buscador -->
-            <div class="bg-slate-50 p-4 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between shrink-0">
+                
+                <!-- Acciones Rápidas: Zoom, Imprimir, Pantalla Completa y Cerrar -->
                 <div class="flex items-center gap-2">
-                    <button onclick="filtrarCronogramaModal('ALL')" class="px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm btn-filtro-crono" data-fase="ALL">Todos (48)</button>
-                    <button onclick="filtrarCronogramaModal('V1')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono" data-fase="V1">V1 - Liquidación</button>
-                    <button onclick="filtrarCronogramaModal('V2')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono" data-fase="V2">V2 - ASEG</button>
-                    <button onclick="filtrarCronogramaModal('INF')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 btn-filtro-crono" data-fase="INF">Informes Mensuales</button>
-                </div>
-                <div class="text-xs text-slate-500 font-semibold flex items-center gap-3">
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Concluido</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> En Plazo</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Crítico (&lt;45d)</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Vencido</span>
+                    <div id="toolbarRoadmapGrafico" class="hidden flex items-center gap-1.5 bg-black/25 px-2 py-1 rounded-xl border border-white/10">
+                        <button type="button" onclick="ajustarZoomCronograma(-10)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white flex items-center justify-center text-xs transition" title="Reducir Zoom">
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                        </button>
+                        <span id="zoomLevelDisplay" class="text-[10px] font-mono px-1 text-cyan-200 font-bold">100%</span>
+                        <button type="button" onclick="ajustarZoomCronograma(10)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white flex items-center justify-center text-xs transition" title="Aumentar Zoom">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </button>
+                        <div class="h-4 w-px bg-white/20 mx-0.5"></div>
+                        <button type="button" onclick="imprimirCronogramaRoadmap()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-lg text-xs flex items-center gap-1 shadow transition">
+                            <i class="fa-solid fa-print text-xs"></i> Imprimir
+                        </button>
+                    </div>
+
+                    <!-- Botón Pantalla Completa -->
+                    <button type="button" onclick="togglePantallaCompletaCronograma()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center text-xs transition" title="Alternar Pantalla Completa">
+                        <i id="btnFullscreenIcon" class="fa-solid fa-expand"></i>
+                    </button>
+                    <!-- Cerrar -->
+                    <button type="button" onclick="closeModal('modal-cronograma-general')" class="text-slate-400 hover:text-white text-xl ml-1 transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             </div>
 
-         <!-- Cuerpo con Scroll: Carriles Horizontales (Swimlanes Áreas A - H) -->
-            <div class="p-4 sm:p-6 overflow-y-auto overflow-x-auto space-y-4 flex-1">
-                <div class="min-w-[1100px] bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-                    
-                    <!-- ENCABEZADO TEMPORAL MACRO -->
-                    <div class="grid grid-cols-12 gap-0 text-white font-bold text-center text-xs mb-1">
-                        <div class="col-span-2 bg-slate-900 rounded-tl-xl flex items-center justify-center py-2 border-r border-slate-700 text-slate-300 font-mono text-[11px]">
-                            ÁREAS ESTRATÉGICAS
-                        </div>
-                        <div class="col-span-4 bg-[#0a2540] py-2 border-r border-slate-700 font-black tracking-widest text-sm">
-                            2025 (Fase Inicio & Finiquitos)
-                        </div>
-                        <div class="col-span-6 bg-[#004b6e] rounded-tr-xl py-2 font-black tracking-widest text-sm">
-                            2026 (Prórroga, Transferencias & Cierre Fiscal)
-                        </div>
-                    </div>
-
-                    <!-- REGLA DE 10 MESES -->
-                    <div class="grid grid-cols-12 gap-0 bg-slate-100 border-x border-b border-slate-200 text-slate-600 font-bold text-[10px] text-center mb-3">
-                        <div class="col-span-2 py-1.5 bg-slate-200/80 border-r border-slate-300 font-mono text-slate-800">Eje Temático</div>
-                        <div class="py-1.5 border-r border-slate-200">Sep 25</div>
-                        <div class="py-1.5 border-r border-slate-200">Oct 25</div>
-                        <div class="py-1.5 border-r border-slate-200">Nov 25</div>
-                        <div class="py-1.5 border-r border-slate-200">Dic 25</div>
-                        <div class="py-1.5 border-r border-slate-200">Ene 26</div>
-                        <div class="py-1.5 border-r border-slate-200">Feb 26</div>
-                        <div class="py-1.5 border-r border-slate-200">Mar 26</div>
-                        <div class="py-1.5 border-r border-slate-200">Abr 26</div>
-                        <div class="py-1.5 border-r border-slate-200">May 26</div>
-                        <div class="py-1.5">Jun-Jul 26</div>
-                    </div>
-
-                    <!-- AQUÍ SE INYECTAN LOS 8 CARRILES (ÁREA A A LA H) -->
-                    <div class="space-y-3" id="contenedorCarrilesGantt"></div>
-
+            <!-- Selector de Pestañas (Tabs Maestras) -->
+            <div class="bg-white px-6 py-2.5 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="tabBtnListado" onclick="cambiarVistaCronograma('LISTADO')" class="px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 bg-indigo-600 text-white shadow-sm transition">
+                        <i class="fa-solid fa-list-check"></i> Listado de Hitos (48)
+                    </button>
+                    <button type="button" id="tabBtnRoadmap" onclick="cambiarVistaCronograma('ROADMAP')" class="px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                        <i class="fa-solid fa-chart-gantt text-indigo-600"></i> Ver Cronograma General (Swimlanes Áreas A - H)
+                    </button>
                 </div>
 
-                <!-- DASHBOARD TÁCTICO INFERIOR -->
-                <div class="min-w-[1100px] grid grid-cols-12 gap-3 items-stretch">
-                    <div class="col-span-2 bg-[#0a2540] text-white rounded-2xl flex items-center justify-center font-black tracking-wider text-sm shadow-sm p-3 text-center">
-                        Tablero Ejecutivo
-                    </div>
-                    <div class="col-span-10 grid grid-cols-6 gap-2.5">
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div class="bg-[#0284c7] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Dependencias</div>
-                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
-                                <span class="font-black text-slate-800 text-base">4 Instancias</span>
-                                <span class="text-[9px] text-slate-400 block font-semibold">SC • SF • ASEG • AGEG</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div class="bg-[#e11d48] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Riesgos Críticos</div>
-                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
-                                <span class="font-black text-rose-600 text-base">5 Puntos</span>
-                                <span class="text-[9px] text-slate-400 block font-semibold">Prioridad Alta</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div class="bg-[#f59e0b] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Contingencias</div>
-                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
-                                <span class="font-black text-amber-600 text-base">2,570</span>
-                                <span class="text-[9px] text-slate-400 block font-semibold">Bienes Faltantes</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div class="bg-[#10b981] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Entregables</div>
-                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
-                                <span class="font-black text-emerald-600 text-base">31 / 55</span>
-                                <span class="text-[9px] text-slate-400 block font-semibold">Soportes Validados</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div class="bg-[#0284c7] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Presupuesto</div>
-                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
-                                <span class="font-black text-indigo-700 text-base">$43.41 M</span>
-                                <span class="text-[9px] text-slate-400 block font-semibold">Reintegro Acumulado</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div class="bg-[#7c3aed] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">En Radar</div>
-                            <div class="p-2 text-center flex-1 flex flex-col justify-center">
-                                <span class="font-black text-purple-700 text-base">SAT / FIARCA</span>
-                                <span class="text-[9px] text-slate-400 block font-semibold">Cierres Fatales 2026</span>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Filtros del Listado -->
+                <div id="filtrosListadoContainer" class="flex items-center gap-1.5 flex-wrap">
+                    <button type="button" onclick="filtrarHitosListadoModal('ALL')" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm btn-subfiltro-hitos" data-vertiente="ALL">Todos (48)</button>
+                    <button type="button" onclick="filtrarHitosListadoModal('V1')" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 btn-subfiltro-hitos" data-vertiente="V1">V1 - Liquidación</button>
+                    <button type="button" onclick="filtrarHitosListadoModal('V2')" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 btn-subfiltro-hitos" data-vertiente="V2">V2 - ASEG</button>
+                    <button type="button" onclick="filtrarHitosListadoModal('INF')" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 btn-subfiltro-hitos" data-vertiente="INF">Informes Mensuales</button>
                 </div>
 
+                <!-- Leyenda de Estados -->
+                <div class="text-[11px] text-slate-500 font-semibold flex items-center gap-3">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Concluido</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> En Plazo</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Crítico (&lt;45d)</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Vencido</span>
+                </div>
             </div>
 
-            <!-- Footer -->
-            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center shrink-0">
-                <span class="text-xs text-slate-500 font-medium" id="cronoStatsResumen">
-                    Cargando estatus de hitos...
+            <!-- VISTA 1: LISTADO DE HITOS (48) -->
+            <div id="vistaListadoHitos" class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-3">
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-black tracking-wider text-[10.5px] border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Hito / Vertiente</th>
+                                <th class="p-3">Requerimiento & Área Responsable</th>
+                                <th class="p-3 text-center">Fecha Límite</th>
+                                <th class="p-3 text-center">Estatus Tiempo</th>
+                                <th class="p-3">Avance Ponderado & Metas</th>
+                                <th class="p-3 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCronogramaListado" class="divide-y divide-slate-100">
+                            <!-- Se inyecta reactivamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA 2: ROADMAP GRÁFICO (SWIMLANES ÁREAS A - H) -->
+            <div id="vistaRoadmapGrafico" class="hidden p-4 sm:p-5 overflow-y-auto overflow-x-auto flex-1 space-y-4">
+                <div id="areaImpresionRoadmap" class="space-y-4">
+                    <div id="zoomRoadmapWrapper" class="min-w-[1150px] bg-white rounded-2xl p-4 shadow-sm border border-slate-200 origin-top-left transition-transform duration-200">
+                        
+                        <!-- Header Temporal -->
+                        <div class="grid grid-cols-12 gap-0 text-white font-bold text-center text-xs mb-1">
+                            <div class="col-span-2 bg-slate-900 rounded-tl-xl flex items-center justify-center py-2 border-r border-slate-700 text-slate-300 font-mono text-[11px]">
+                                ÁREAS ESTRATÉGICAS
+                            </div>
+                            <div class="col-span-4 bg-[#0a2540] py-2 border-r border-slate-700 font-black tracking-widest text-sm">
+                                2025 (Fase Inicio & Finiquitos)
+                            </div>
+                            <div class="col-span-6 bg-[#004b6e] rounded-tr-xl py-2 font-black tracking-widest text-sm">
+                                2026 (Prórroga, Transferencias & Cierre Fiscal)
+                            </div>
+                        </div>
+
+                        <!-- Regla de 10 Meses -->
+                        <div class="grid grid-cols-12 gap-0 bg-slate-100 border-x border-b border-slate-200 text-slate-600 font-bold text-[10px] text-center mb-3">
+                            <div class="col-span-2 py-1.5 bg-slate-200/80 border-r border-slate-300 font-mono text-slate-800">Eje Temático</div>
+                            <div class="py-1.5 border-r border-slate-200">Sep 25</div>
+                            <div class="py-1.5 border-r border-slate-200">Oct 25</div>
+                            <div class="py-1.5 border-r border-slate-200">Nov 25</div>
+                            <div class="py-1.5 border-r border-slate-200">Dic 25</div>
+                            <div class="py-1.5 border-r border-slate-200">Ene 26</div>
+                            <div class="py-1.5 border-r border-slate-200">Feb 26</div>
+                            <div class="py-1.5 border-r border-slate-200">Mar 26</div>
+                            <div class="py-1.5 border-r border-slate-200">Abr 26</div>
+                            <div class="py-1.5 border-r border-slate-200">May 26</div>
+                            <div class="py-1.5">Jun-Jul 26</div>
+                        </div>
+
+                        <!-- Los 8 Carriles Dinámicos (Área A - Área H) -->
+                        <div class="space-y-2.5" id="contenedorCarrilesGantt"></div>
+
+                    </div>
+
+                    <!-- Dashboard Táctico Inferior -->
+                    <div class="min-w-[1150px] grid grid-cols-12 gap-3 items-stretch">
+                        <div class="col-span-2 bg-[#0a2540] text-white rounded-2xl flex items-center justify-center font-black tracking-wider text-sm shadow-sm p-3 text-center">
+                            Tablero Ejecutivo
+                        </div>
+                        <div class="col-span-10 grid grid-cols-6 gap-2.5">
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                                <div class="bg-[#0284c7] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Dependencias</div>
+                                <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                    <span class="font-black text-slate-800 text-base">4 Instancias</span>
+                                    <span class="text-[9px] text-slate-400 block font-semibold">SC • SF • ASEG • AGEG</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                                <div class="bg-[#e11d48] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Riesgos Críticos</div>
+                                <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                    <span class="font-black text-rose-600 text-base">5 Puntos</span>
+                                    <span class="text-[9px] text-slate-400 block font-semibold">Prioridad Alta</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                                <div class="bg-[#f59e0b] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Contingencias</div>
+                                <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                    <span class="font-black text-amber-600 text-base">2,570</span>
+                                    <span class="text-[9px] text-slate-400 block font-semibold">Bienes Faltantes</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                                <div class="bg-[#10b981] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Entregables</div>
+                                <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                    <span class="font-black text-emerald-600 text-base">31 / 55</span>
+                                    <span class="text-[9px] text-slate-400 block font-semibold">Soportes Validados</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                                <div class="bg-[#0284c7] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">Presupuesto</div>
+                                <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                    <span class="font-black text-indigo-700 text-base">$43.41 M</span>
+                                    <span class="text-[9px] text-slate-400 block font-semibold">Reintegro Acumulado</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                                <div class="bg-[#7c3aed] text-white text-[10px] font-bold py-1 px-2 text-center uppercase tracking-wider">En Radar</div>
+                                <div class="p-2 text-center flex-1 flex flex-col justify-center">
+                                    <span class="font-black text-purple-700 text-base">SAT / FIARCA</span>
+                                    <span class="text-[9px] text-slate-400 block font-semibold">Cierres Fatales 2026</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer con Resumen Dinámico y Cierre -->
+            <div class="bg-slate-200/80 px-6 py-3 border-t border-slate-300 flex justify-between items-center shrink-0">
+                <span class="text-xs text-slate-600 font-medium" id="cronoStatsResumen">
+                    Calculando estatus de hitos...
                 </span>
-                <button type="button" onclick="closeModal('modal-cronograma-general')" class="px-5 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition">
+                <button type="button" onclick="closeModal('modal-cronograma-general')" class="px-6 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition">
                     Cerrar Cronograma
                 </button>
             </div>
