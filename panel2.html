@@ -1509,7 +1509,7 @@
 
 
     <!-- ========================================================= -->
-    <!-- MODAL 3: EDICIÓN DE ACCIÓN INDIVIDUAL (MATRIZ)            -->
+    <!-- MODAL 3: EDICIÓN DE ACCIÓN INDIVIDUAL (MATRIZ RECALIBRADA)-->
     <!-- ========================================================= -->
     <div id="modal-edit-action" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
@@ -1517,47 +1517,75 @@
                 <h3 class="font-bold text-sm flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Editar Compromiso Institucional
                 </h3>
-                <button onclick="closeModal('modal-edit-action')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" onclick="closeModal('modal-edit-action')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            
             <form onsubmit="guardarEdicionAccion(event)" class="p-5 space-y-4 text-xs">
                 <input type="hidden" id="editActionId">
+
+                <!-- 1. Selector de Área Estratégica Especializada -->
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Compromiso / Acción:</label>
-                    <input type="text" id="editActionTitle" class="w-full p-2.5 border rounded-xl bg-slate-100 font-semibold text-slate-800" readonly>
+                    <label class="block font-bold text-slate-700 mb-1">Área Estratégica Especializada:</label>
+                    <select id="editActionAreaSelect" onchange="actualizarSugerenciaArea(this.value)" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold focus:ring-2 focus:ring-indigo-500" required>
+                        <option value="A">Área A - Recursos Humanos & Estructura</option>
+                        <option value="B">Área B - Asuntos Jurídicos & Contencioso</option>
+                        <option value="C">Área C - Patrimonio Inmobiliario & Predios</option>
+                        <option value="D">Área D - Fideicomisos & Fondos Especiales (FIARCA)</option>
+                        <option value="E">Área E - Control Patrimonial & Bienes Muebles</option>
+                        <option value="F">Área F - Financiero, Presupuestal & Fiscal</option>
+                        <option value="G">Área G - Tecnologías de la Información (TI)</option>
+                        <option value="H">Área H - Archivo & Gestión Documental</option>
+                    </select>
                 </div>
+
+                <!-- 2. Compromiso / Acción (Editable con Hito/Rubro visible) -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Compromiso / Acción (Editable):</label>
+                    <input type="text" id="editActionTitle" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500" placeholder="Redacte el compromiso institucional..." required>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">El prefijo del hito se mantendrá sincronizado con el área seleccionada.</span>
+                </div>
+
+                <!-- 3. Instancia Responsable (Sugerida por defecto / Modificable) y Estatus -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
-                        <input type="text" id="editActionResp" class="w-full p-2.5 border rounded-xl bg-slate-100 text-slate-700" readonly>
+                        <input type="text" id="editActionResp" class="w-full p-2.5 border rounded-xl bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500" placeholder="Área responsable..." required>
+                        <span class="text-[9px] text-indigo-600 block mt-0.5">Sugerencia automática editable.</span>
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Estatus Actual:</label>
-                        <select id="editActionStatus" class="w-full p-2.5 border rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500">
+                        <select id="editActionStatus" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold focus:ring-2 focus:ring-indigo-500">
                             <option value="En Proceso">En Proceso</option>
                             <option value="Validación">Validación</option>
                             <option value="Concluido">Concluido</option>
                         </select>
                     </div>
                 </div>
+
+                <!-- 4. Enlace Drive -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Enlace Repositorio Google Drive (URL):</label>
-                    <input type="url" id="editActionDriveUrl" class="w-full p-2.5 border rounded-xl" placeholder="https://drive.google.com/file/d/...">
+                    <input type="url" id="editActionDriveUrl" class="w-full p-2.5 border rounded-xl bg-white" placeholder="https://drive.google.com/file/d/...">
                 </div>
+
+                <!-- 5. Justificación / Nota de Auditoría -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación del Cambio:</label>
-                    <textarea id="editActionAuditNote" rows="2" class="w-full p-2.5 border rounded-xl" placeholder="Indique el motivo de la modificación o número de oficio..." required></textarea>
+                    <textarea id="editActionAuditNote" rows="2" class="w-full p-2.5 border rounded-xl bg-white" placeholder="Indique el sustento técnico o número de oficio para revisión del Super Admin..." required></textarea>
                 </div>
-                <div class="bg-indigo-50 p-2.5 rounded-xl text-[11px] text-indigo-800 border border-indigo-200">
-                    <i class="fa-solid fa-fingerprint me-1"></i> Se firmará este cambio con su cuenta institucional activa.
+
+                <div class="bg-indigo-50 p-2.5 rounded-xl text-[11px] text-indigo-800 border border-indigo-200 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-indigo-600"></i>
+                    <span>Este cambio se canalizará a la Bandeja de Validación en <strong>auditoria.html</strong>.</span>
                 </div>
-                <div class="flex justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeModal('modal-edit-action')" class="px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                    <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Guardar y Firmar</button>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-edit-action')" class="px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow">Guardar y Firmar</button>
                 </div>
             </form>
         </div>
     </div>
-
 
     <!-- ========================================================= -->
     <!-- MODAL 4: SUBIDA / VINCULACIÓN DRIVE                       -->
@@ -3660,53 +3688,125 @@
         }
 
         
-        // Edición de Acción Individual de la Matriz
+
+        // Diccionario de arquitectura institucional para sugerencia de instancias y prefijos
+        const sugerenciasArquitectura = {
+            'A': { prefijo: '[A - RH]', resp: 'Capital Humano / RH', rubro: 'Laboral' },
+            'B': { prefijo: '[B - Jurídico]', resp: 'Dirección Jurídica', rubro: 'Jurídico' },
+            'C': { prefijo: '[C - Inmuebles]', resp: 'Jurídico / Inmuebles', rubro: 'Jurídico' },
+            'D': { prefijo: '[D - Fideicomisos]', resp: 'Finanzas / Fiduciario', rubro: 'Financiero' },
+            'E': { prefijo: '[E - Patrimonio]', resp: 'Control Patrimonial', rubro: 'Patrimonio' },
+            'F': { prefijo: '[F - Fiscal]', resp: 'Administración y Finanzas', rubro: 'Financiero' },
+            'G': { prefijo: '[G - TI]', resp: 'Tecnologías / Sistemas', rubro: 'Obras' },
+            'H': { prefijo: '[H - Archivo]', resp: 'Archivo Institucional', rubro: 'Archivo' }
+        };
+
+        // Función que dispara el cambio en el selector de área dentro del modal
+        function actualizarSugerenciaArea(areaKey) {
+            const data = sugerenciasArquitectura[areaKey];
+            if (!data) return;
+
+            // 1. Sugerir la instancia responsable por defecto (permitiendo edición)
+            const inputResp = document.getElementById('editActionResp');
+            if (inputResp) inputResp.value = data.resp;
+
+            // 2. Mantener el prefijo del hito/rubro en el campo de texto del compromiso
+            const inputTitle = document.getElementById('editActionTitle');
+            if (inputTitle) {
+                let textoLimpio = inputTitle.value.replace(/^\[[A-H]\s*-\s*[^\]]+\]\s*/i, '');
+                inputTitle.value = `${data.prefijo} ${textoLimpio}`.trim();
+            }
+        }
+
+        // Apertura del modal con carga de datos inicial
         function abrirModalEdicionAccion(id) {
-            if(!currentUser) {
-                alert('Debe iniciar sesión para ver y editar compromisos institucionales.');
+            if (!currentUser) {
+                alert('Debe iniciar sesión con su cuenta institucional para proponer ediciones a los compromisos.');
                 openModal('modal-auth');
                 return;
             }
 
             const item = accionesMatriz.find(a => a.id === id);
-            if(!item) return;
+            if (!item) return;
 
             document.getElementById('editActionId').value = item.id;
-            document.getElementById('editActionTitle').value = `[${item.hito}] ${item.accion}`;
-            document.getElementById('editActionResp').value = item.responsable;
-            document.getElementById('editActionStatus').value = item.estatus;
+            
+            // Detectar clave de área desde el hito (ej. 'A - RH' -> 'A') o por defecto 'A'
+            let areaKey = (item.hito || 'A').charAt(0).toUpperCase();
+            if (!sugerenciasArquitectura[areaKey]) areaKey = 'A';
+
+            const selectArea = document.getElementById('editActionAreaSelect');
+            if (selectArea) selectArea.value = areaKey;
+
+            // Asegurar que el título contenga el prefijo del hito
+            const dataArea = sugerenciasArquitectura[areaKey];
+            let tituloAccion = item.accion || '';
+            if (!tituloAccion.startsWith('[')) {
+                tituloAccion = `${dataArea.prefijo} ${tituloAccion}`;
+            }
+
+            document.getElementById('editActionTitle').value = tituloAccion;
+            document.getElementById('editActionResp').value = item.responsable || dataArea.resp;
+            document.getElementById('editActionStatus').value = item.estatus || 'En Proceso';
             document.getElementById('editActionDriveUrl').value = item.driveUrl || '';
             document.getElementById('editActionAuditNote').value = '';
 
             openModal('modal-edit-action');
         }
 
+        // Guardar cambios y canalizar la propuesta hacia auditoria.html
         function guardarEdicionAccion(e) {
             e.preventDefault();
             const id = parseInt(document.getElementById('editActionId').value);
-            const status = document.getElementById('editActionStatus').value;
-            const url = document.getElementById('editActionDriveUrl').value;
-            const nota = document.getElementById('editActionAuditNote').value;
+            const areaKey = document.getElementById('editActionAreaSelect').value;
+            const nuevoTitulo = document.getElementById('editActionTitle').value.trim();
+            const nuevoResp = document.getElementById('editActionResp').value.trim();
+            const nuevoStatus = document.getElementById('editActionStatus').value;
+            const nuevoUrl = document.getElementById('editActionDriveUrl').value.trim();
+            const notaAuditoria = document.getElementById('editActionAuditNote').value.trim();
 
             const idx = accionesMatriz.findIndex(a => a.id === id);
-            if(idx !== -1) {
-                const anterior = accionesMatriz[idx].estatus;
-                accionesMatriz[idx].estatus = status;
-                accionesMatriz[idx].driveUrl = url;
+            if (idx === -1) return;
 
-                registrarAuditoria('Edición Matriz', {
+            const accionOriginal = accionesMatriz[idx];
+            const dataArea = sugerenciasArquitectura[areaKey];
+
+            // 1. Crear el paquete de solicitud para la bandeja de auditoria.html
+            const solicitudCambio = {
+                id: Date.now(),
+                entidad: 'IEC',
+                area: `Área ${areaKey}`,
+                tipo: 'Modificar Acción',
+                titulo: `Propuesta de modificación: ${nuevoTitulo}`,
+                desc: `[Cambio Propuesto]: Estatus -> ${nuevoStatus} | Responsable -> ${nuevoResp} | Drive -> ${nuevoUrl || 'Sin URL'} | Motivo: ${notaAuditoria}`,
+                solicitante: currentUser ? currentUser.usuario : 'Enlace IEC',
+                estado: 'Pendiente',
+                fecha: new Date().toLocaleDateString(),
+                detallesTecnicos: {
                     accion_id: id,
-                    compromiso: accionesMatriz[idx].accion,
-                    estatus_anterior: anterior,
-                    estatus_nuevo: status,
-                    driveUrl: url,
-                    justificacion: nota
-                });
+                    rubro: dataArea.rubro,
+                    hito: `${areaKey} - ${dataArea.rubro}`,
+                    accion: nuevoTitulo,
+                    responsable: nuevoResp,
+                    estatus: nuevoStatus,
+                    driveUrl: nuevoUrl
+                }
+            };
 
-                filterActionsTable();
-                closeModal('modal-edit-action');
-                alert('¡Compromiso actualizado con éxito y registrado en la bitácora de auditoría!');
-            }
+            // 2. Guardar en la bandeja de solicitudes compartida
+            solicitudesAdmin.unshift(solicitudCambio);
+            localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudesAdmin));
+
+            // 3. Estampar la huella en la bitácora de auditoría
+            registrarAuditoria('Propuesta de Modificación de Compromiso', {
+                compromiso_id: id,
+                solicitante: currentUser ? currentUser.usuario : 'Anónimo',
+                justificacion: notaAuditoria,
+                cambios: solicitudCambio.detallesTecnicos
+            });
+
+            closeModal('modal-edit-action');
+            alert('¡Propuesta firmada y enviada al Centro de Mando!\n\nEl cambio ha sido canalizado a la Bandeja de Validación en auditoria.html para la autorización formal del Super Administrador.');
         }
 
      // Modales Básicos (Blindados contra conflictos CSS)
