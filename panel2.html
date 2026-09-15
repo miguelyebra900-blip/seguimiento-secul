@@ -2890,24 +2890,22 @@
             }
         };
 
-        // Matriz Consolidada de Acciones Detalladas sincronizada con auditoria.html
+      // Matriz Consolidada con enlace al Hito Padre oficial
         let accionesMatriz = JSON.parse(localStorage.getItem('secul_iec_acciones')) || [
-            { id: 1, hito: 'A - RH', rubro: 'Laboral', accion: 'Entrega formal de expedientes laborales a DGRH Finanzas', responsable: 'IEC Liquidador / SF', estatus: 'Concluido', driveUrl: '' },
-            { id: 2, hito: 'A - RH', rubro: 'Laboral', accion: 'Resguardo de Plaza Nivel 8 y 131 bienes del Liquidador', responsable: 'Liquidador IEC', estatus: 'Concluido', driveUrl: '' },
-            { id: 3, hito: 'A - RH', rubro: 'Patrimonio', accion: 'Capitalización de 1,682 activos y búsqueda de 2,570 faltantes', responsable: 'IEC / Dirección General de Bienes', estatus: 'En Proceso', driveUrl: '' },
-            { id: 4, hito: 'B - Jurídico', rubro: 'Jurídico', accion: 'Regularización predios Cóporo, Peralta y Plazuelas', responsable: 'Secretaría de Cultura', estatus: 'En Proceso', driveUrl: '' },
-            { id: 5, hito: 'B - Jurídico', rubro: 'Jurídico', accion: '2do Convenio Modificatorio FIARCA con Banorte (Decreto 19)', responsable: 'Procuraduría Fiscal / SC', estatus: 'Validación', driveUrl: '' },
-            { id: 6, hito: 'C - Obras', rubro: 'Obras', accion: 'Finiquito y cierre administrativo de obra Teatro Juárez', responsable: 'SICOM / SC', estatus: 'Concluido', driveUrl: '' },
-            { id: 7, hito: 'C - Obras', rubro: 'Obras', accion: 'Endoso y baja del 100% de la flotilla vehicular (14 autos / 14 remolques)', responsable: 'Liquidador IEC / SCUL', estatus: 'Concluido', driveUrl: '' },
-            { id: 8, hito: 'D - Finanzas', rubro: 'Financiero', accion: 'Reintegro acumulado de $43.41 MDP a Secretaría de Finanzas', responsable: 'Liquidador IEC / Finanzas', estatus: 'Concluido', driveUrl: '' },
-            { id: 9, hito: 'D - Finanzas', rubro: 'Financiero', accion: 'Trámite de Baja de RFC del IEC ante el SAT (Cita Celaya)', responsable: 'Liquidador IEC', estatus: 'En Proceso', driveUrl: '' },
-            { id: 10, hito: 'E - Archivo', rubro: 'Archivo', accion: 'Entrega de archivo de trámite e histórico al AGEG', responsable: 'IEC / Archivo General', estatus: 'En Proceso', driveUrl: '' }
+            { id: 1, hito_padre_id: 'INF-A01', hito: 'A - RH', rubro: 'Laboral', accion: 'Entrega formal de expedientes laborales a DGRH Finanzas', responsable: 'Capital Humano / RH', estatus: 'Concluido', driveUrl: '' },
+            { id: 2, hito_padre_id: 'INF-A01', hito: 'A - RH', rubro: 'Laboral', accion: 'Resguardo de Plaza Nivel 8 y 131 bienes del Liquidador', responsable: 'Capital Humano / RH', estatus: 'Concluido', driveUrl: '' },
+            { id: 3, hito_padre_id: 'V1-02', hito: 'E - Patrimonio', rubro: 'Patrimonio', accion: 'Capitalización de 1,682 activos y búsqueda de 2,570 faltantes', responsable: 'Control Patrimonial', estatus: 'En Proceso', driveUrl: '' },
+            { id: 4, hito_padre_id: 'V1-05', hito: 'C - Inmuebles', rubro: 'Jurídico', accion: 'Regularización predios Cóporo, Peralta y Plazuelas', responsable: 'Jurídico / Inmuebles', estatus: 'En Proceso', driveUrl: '' },
+            { id: 5, hito_padre_id: 'INF-C01', hito: 'D - Fideicomisos', rubro: 'Financiero', accion: '2do Convenio Modificatorio FIARCA con Banorte (Decreto 19)', responsable: 'Finanzas / Fiduciario', estatus: 'Validación', driveUrl: '' },
+            { id: 6, hito_padre_id: 'V1-09', hito: 'G - TI', rubro: 'Obras', accion: 'Finiquito y cierre administrativo de obra Teatro Juárez', responsable: 'Tecnologías / Sistemas', estatus: 'Concluido', driveUrl: '' },
+            { id: 7, hito_padre_id: 'INF-A02', hito: 'E - Patrimonio', rubro: 'Patrimonio', accion: 'Endoso y baja del 100% de la flotilla vehicular (14 autos / 14 remolques)', responsable: 'Control Patrimonial', estatus: 'Concluido', driveUrl: '' },
+            { id: 8, hito_padre_id: 'V1-06', hito: 'F - Fiscal', rubro: 'Financiero', accion: 'Reintegro acumulado de $43.41 MDP a Secretaría de Finanzas', responsable: 'Administración y Finanzas', estatus: 'Concluido', driveUrl: '' },
+            { id: 9, hito_padre_id: 'INF-D02', hito: 'F - Fiscal', rubro: 'Financiero', accion: 'Trámite de Baja de RFC del IEC ante el SAT (Cita Celaya)', responsable: 'Administración y Finanzas', estatus: 'En Proceso', driveUrl: '' },
+            { id: 10, hito_padre_id: 'V1-08', hito: 'H - Archivo', rubro: 'Archivo', accion: 'Entrega de archivo de trámite e histórico al AGEG', responsable: 'Archivo Institucional', estatus: 'En Proceso', driveUrl: '' }
         ];
 
-        // Guardar estado inicial si no existía en el almacenamiento
-        if (!localStorage.getItem('secul_iec_acciones')) {
-            localStorage.setItem('secul_iec_acciones', JSON.stringify(accionesMatriz));
-        }
+        // Asegurar la persistencia del dataset actualizado
+        localStorage.setItem('secul_iec_acciones', JSON.stringify(accionesMatriz));
 
         let solicitudesAdmin = JSON.parse(localStorage.getItem('secul_solicitudes')) || [
             { id: 1, area: 'B', tipo: 'Modificar Acción', titulo: 'Actualización Convenio Banorte FIARCA', desc: 'Validar proyecto con Fiduciaria Banorte.', solicitante: 'dir_general', estado: 'Pendiente', fecha: '2026-08-25' }
@@ -3789,6 +3787,7 @@
                 fecha: new Date().toLocaleDateString(),
                 detallesTecnicos: {
                     accion_id: id,
+                    hito_padre_id: accionOriginal.hito_padre_id || '',
                     rubro: dataArea.rubro,
                     hito: `${areaKey} - ${dataArea.rubro}`,
                     accion: nuevoTitulo,
@@ -3814,6 +3813,44 @@
             alert('¡Propuesta firmada y enviada al Centro de Mando!\n\nEl cambio ha sido canalizado a la Bandeja de Validación en auditoria.html para la autorización formal del Super Administrador.');
         }
 
+// Recalcula el % del Hito Padre a partir del estatus de sus Acciones Hijas
+        function recalcularAvanceHitoPadre(hitoId) {
+            if (!hitoId) return;
+
+            let hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || hitosFiscalizacionData;
+            let acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || accionesMatriz;
+
+            const accionesHijas = acciones.filter(a => a.hito_padre_id === hitoId);
+            if (accionesHijas.length === 0) return;
+
+            const pesosEstatus = {
+                'Concluido': 100,
+                'Validación': 75,
+                'En Proceso': 40
+            };
+
+            const sumaTotal = accionesHijas.reduce((acc, a) => acc + (pesosEstatus[a.estatus] || 0), 0);
+            const nuevoPorcentaje = Math.round(sumaTotal / accionesHijas.length);
+
+            const hitoIdx = hitos.findIndex(h => h.id === hitoId);
+            if (hitoIdx !== -1) {
+                hitos[hitoIdx].avancePorcentaje = nuevoPorcentaje;
+                if (nuevoPorcentaje === 100) {
+                    hitos[hitoIdx].estatus = 'Concluido';
+                } else if (nuevoPorcentaje >= 75) {
+                    hitos[hitoIdx].estatus = 'Validación';
+                } else {
+                    hitos[hitoIdx].estatus = 'En Proceso';
+                }
+
+                hitosFiscalizacionData = hitos;
+                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitos));
+
+                renderTablaFiscalizacion();
+                renderCharts(hitosFiscalizacionData);
+            }
+        }
+        
      // Modales Básicos (Blindados contra conflictos CSS)
         function openModal(id) {
             const m = document.getElementById(id);
