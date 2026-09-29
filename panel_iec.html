@@ -5222,6 +5222,162 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                 ventana.print();
             }, 600);
         }
+
+        // =========================================================================
+// GESTIÓN DE MODAL DE FISCALIZACIÓN Y GUARDADO DE EVIDENCIAS (CORREGIDO)
+// =========================================================================
+
+let hitoActualEnEdicion = null;
+
+function abrirModalGestionFiscalizacion(idHito) {
+    const hito = hitosFiscalizacionData.find(h => h.id === idHito);
+    if (!hito) return;
+
+    hitoActualEnEdicion = hito;
+
+    document.getElementById('modalFiscalTitle').innerText = hito.titulo;
+    document.getElementById('modalFiscalTag').innerText = `Folio: ${hito.id} (${hito.vertienteNombre || hito.vertiente})`;
+    document.getElementById('modalFiscalArea').innerText = hito.area || 'No especificada';
+    document.getElementById('modalFiscalNorma').innerText = hito.normativa || 'Sin referencia';
+    
+    document.getElementById('modalFiscalPrioridad').value = hito.prioridadArea || 'Media';
+    document.getElementById('modalFiscalEstatus').value = hito.estatus || 'En Proceso';
+    
+    const avance = hito.avancePorcentaje || 0;
+    document.getElementById('modalFiscalAvance').value = avance;
+    document.getElementById('modalFiscalAvanceLabel').innerText = avance + '%';
+    
+    document.getElementById('uploadHitoId').value = hito.id;
+    document.getElementById('uploadDocUrl').value = '';
+    document.getElementById('modalFiscalObs').value = '';
+
+    // Renderizar lista de documentos del hito
+    renderListaDocumentosModal(hito);
+
+    // Poblar el select de documentos para vincular enlace Drive
+    const selectDoc = document.getElementById('uploadSelectDoc');
+    selectDoc.innerHTML = '';
+    if (hito.documentos && hito.documentos.length > 0) {
+        hito.documentos.forEach(doc => {
+            selectDoc.innerHTML += `<option value="${doc.id_doc}">${doc.nombre}${doc.subido ? '(Vinculado)' : '(Pendiente)'}</option>`;
+        });
+    } else {
+        selectDoc.innerHTML = `<option value="">Sin documentos requeridos</option>`;
+    }
+
+    openModal('modal-hito-fiscalizacion');
+}
+
+function renderListaDocumentosModal(hito) {
+    const container = document.getElementById('modalFiscalDocsList');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    if (!hito.documentos || hito.documentos.length === 0) {
+        container.innerHTML = `<p class="text-slate-400 italic text-[11px]">No hay expedientes normativos registrados para este hito.</p>";
+        return;
+    }
+
+    hito.documentos.forEach((doc, idx) => {
+        container.innerHTML += `
+            <div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <i class="fa-solid ${doc.subido ? 'fa-file-circle-check text-emerald-600' : 'fa-file-circle-exclamation text-amber-500'} text-sm shrink-0"></i>
+                    <div class="truncate">
+                        <span class="font-bold text-slate-800 block truncate text-[11px]">${doc.nombre}</span>
+                        <span class="text-[9px] text-slate-500">${doc.url ? doc.url : 'Sin enlace Drive'}</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                    ${doc.url ? `<a href="${doc.url}" target="_blank" class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold hover:bg-indigo-100"><i class="fa-solid fa-external-link-alt"></i></a>` : ''}
+                    <button type="button" onclick="eliminarDocumentoHito('${hito.id}', ${idx})" class="text-slate-400 hover:text-rose-600 p-1 text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function agregarDocumentoAResponsable() {
+    const input = document.getElementById('nuevoDocNombreInput');
+    const nombreDoc = input.value.trim();
+    if (!nombreDoc || !hitoActualEnEdicion) return;
+
+    if (!hitoActualEnEdicion.documentos) {
+        hitoActualEnEdicion.documentos = [];
+    }
+
+    const nuevoId = `DOC-${hitoActualEnEdicion.id}-${Date.now().toString().slice(-4)}`;
+    hitoActualEnEdicion.documentos.push({
+        id_doc: nuevoId,
+        nombre: nombreDoc,
+        subido: false,
+        url: null
+    });
+
+    input.value = '';
+    renderListaDocumentosModal(hitoActualEnEdicion);
+    
+    // Actualizar select de enlace
+    const selectDoc = document.getElementById('uploadSelectDoc');
+    selectDoc.innerHTML = '';
+    hitoActualEnEdicion.documentos.forEach(doc => {
+        selectDoc.innerHTML += `<option value="${doc.id_doc}">${doc.nombre}</option>`;
+    });
+}
+
+function eliminarDocumentoHito(idHito, index) {
+    if (!hitoActualEnEdicion) return;
+    hitoActualEnEdicion.documentos.splice(index, 1);
+    renderListaDocumentosModal(hitoActualEnEdicion);
+}
+
+// FUNCIÓN PRINCIPAL DE GUARDADO Y ACTUALIZACIÓN (LOCAL + SUPABASE + BITÁCORA)
+function guardarEvidenciaFiscalizacion() {
+    if (!hitoActualEnEdicion) return;
+
+    const nuevaPrioridad = document.getElementById('modalFiscalPrioridad').value;
+    const nuevoEstatus = document.getElementById('modalFiscalEstatus').value;
+    const nuevoAvance = parseInt(document.getElementById('modalFiscalAvance').value) || 0;
+    const docIdSeleccionado = document.getElementById('uploadSelectDoc').value;
+    const urlDrive = document.getElementById('uploadDocUrl').value.trim();
+    const observacion = document.getElementById('modalFiscalObs').value.trim();
+
+    // Actualizar el objeto en memoria
+    hitoActualEnEdicion.prioridadArea = nuevaPrioridad;
+    hitoActualEnEdicion.estatus = nuevoEstatus;
+    hitoActualEnEdicion.avancePorcentaje = nuevoAvance;
+
+    // Si se adjuntó URL de Drive, actualizar el documento correspondiente
+    if (urlDrive && docIdSeleccionado && hitoActualEnEdicion.documentos) {
+        const docObj = hitoActualEnEdicion.documentos.find(d => d.id_doc === docIdSeleccionado);
+        if (docObj) {
+            docObj.url = urlDrive;
+            docObj.subido = true;
+        }
+    }
+
+    // Guardar en LocalStorage para persistencia inmediata
+    localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+
+    // Registrar en la Bitácora de Auditoría si existe la función
+    if (typeof registrarLogAuditoria === 'function') {
+        registrarLogAuditoria(
+            currentUser ? currentUser.usuario : 'Usuario Institucional',
+            `Actualización de Hito [${hitoActualEnEdicion.id}]`,
+            `Estatus: ${nuevoEstatus}, Avance: ${nuevoAvance}%. ${observacion ? 'Nota: ' + observacion : ''}`
+        );
+    }
+
+    // Refrescar vistas y gráficas del tablero
+    if (typeof renderTablaFiscalizacion === 'function') renderTablaFiscalizacion();
+    if (typeof actualizarKPIsGlobales === 'function') actualizarKPIsGlobales();
+    if (typeof renderCharts === 'function') renderCharts();
+
+    closeModal('modal-hito-fiscalizacion');
+    alert("¡Avance y evidencia guardados correctamente con trazabilidad institucional!");
+}
+
+        
     </script>
 
    <!-- ========================================================= -->
