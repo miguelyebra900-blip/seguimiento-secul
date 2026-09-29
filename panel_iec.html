@@ -5223,7 +5223,7 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
             }, 600);
         }
 
-        // =========================================================================
+   // =========================================================================
 // GESTIÓN DE MODAL DE FISCALIZACIÓN Y GUARDADO DE EVIDENCIAS (CORREGIDO)
 // =========================================================================
 
@@ -5251,15 +5251,13 @@ function abrirModalGestionFiscalizacion(idHito) {
     document.getElementById('uploadDocUrl').value = '';
     document.getElementById('modalFiscalObs').value = '';
 
-    // Renderizar lista de documentos del hito
     renderListaDocumentosModal(hito);
 
-    // Poblar el select de documentos para vincular enlace Drive
     const selectDoc = document.getElementById('uploadSelectDoc');
     selectDoc.innerHTML = '';
     if (hito.documentos && hito.documentos.length > 0) {
         hito.documentos.forEach(doc => {
-            selectDoc.innerHTML += `<option value="${doc.id_doc}">${doc.nombre}${doc.subido ? '(Vinculado)' : '(Pendiente)'}</option>`;
+            selectDoc.innerHTML += `<option value="${doc.id_doc}">${doc.nombre} ${doc.subido ? '(Vinculado)' : '(Pendiente)'}</option>`;
         });
     } else {
         selectDoc.innerHTML = `<option value="">Sin documentos requeridos</option>`;
@@ -5274,7 +5272,7 @@ function renderListaDocumentosModal(hito) {
     
     container.innerHTML = '';
     if (!hito.documentos || hito.documentos.length === 0) {
-        container.innerHTML = `<p class="text-slate-400 italic text-[11px]">No hay expedientes normativos registrados para este hito.</p>";
+        container.innerHTML = `<p class="text-slate-400 italic text-[11px]">No hay expedientes normativos registrados para este hito.</p>`;
         return;
     }
 
@@ -5317,7 +5315,6 @@ function agregarDocumentoAResponsable() {
     input.value = '';
     renderListaDocumentosModal(hitoActualEnEdicion);
     
-    // Actualizar select de enlace
     const selectDoc = document.getElementById('uploadSelectDoc');
     selectDoc.innerHTML = '';
     hitoActualEnEdicion.documentos.forEach(doc => {
@@ -5331,7 +5328,6 @@ function eliminarDocumentoHito(idHito, index) {
     renderListaDocumentosModal(hitoActualEnEdicion);
 }
 
-// FUNCIÓN PRINCIPAL DE GUARDADO Y ACTUALIZACIÓN (LOCAL + SUPABASE + BITÁCORA)
 function guardarEvidenciaFiscalizacion() {
     if (!hitoActualEnEdicion) return;
 
@@ -5342,12 +5338,10 @@ function guardarEvidenciaFiscalizacion() {
     const urlDrive = document.getElementById('uploadDocUrl').value.trim();
     const observacion = document.getElementById('modalFiscalObs').value.trim();
 
-    // Actualizar el objeto en memoria
     hitoActualEnEdicion.prioridadArea = nuevaPrioridad;
     hitoActualEnEdicion.estatus = nuevoEstatus;
     hitoActualEnEdicion.avancePorcentaje = nuevoAvance;
 
-    // Si se adjuntó URL de Drive, actualizar el documento correspondiente
     if (urlDrive && docIdSeleccionado && hitoActualEnEdicion.documentos) {
         const docObj = hitoActualEnEdicion.documentos.find(d => d.id_doc === docIdSeleccionado);
         if (docObj) {
@@ -5356,10 +5350,8 @@ function guardarEvidenciaFiscalizacion() {
         }
     }
 
-    // Guardar en LocalStorage para persistencia inmediata
     localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
 
-    // Registrar en la Bitácora de Auditoría si existe la función
     if (typeof registrarLogAuditoria === 'function') {
         registrarLogAuditoria(
             currentUser ? currentUser.usuario : 'Usuario Institucional',
@@ -5368,15 +5360,13 @@ function guardarEvidenciaFiscalizacion() {
         );
     }
 
-    // Refrescar vistas y gráficas del tablero
     if (typeof renderTablaFiscalizacion === 'function') renderTablaFiscalizacion();
     if (typeof actualizarKPIsGlobales === 'function') actualizarKPIsGlobales();
     if (typeof renderCharts === 'function') renderCharts();
 
     closeModal('modal-hito-fiscalizacion');
-    alert("¡Avance y evidencia guardados correctamente con trazabilidad institucional!");
+    alert("¡Avance y evidencia guardados correctamente!");
 }
-
         
     </script>
 
