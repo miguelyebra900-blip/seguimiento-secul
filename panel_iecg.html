@@ -1877,6 +1877,47 @@
     <!-- SCRIPT DE LÓGICA, SUPABASE Y ARQUITECTURA                 -->
     <!-- ========================================================= -->
     <script>
+// Función gerencial de alternancia de pestañas
+        function mostrarSeccionTab(tabId) {
+            const tabs = ['tab-dashboard', 'tab-hitos', 'tab-acciones', 'tab-criticos'];
+            const btnMap = {
+                'tab-dashboard': 'btnNavDash',
+                'tab-hitos': 'btnNavHitos',
+                'tab-acciones': 'btnNavAcciones',
+                'tab-criticos': 'btnNavCriticos'
+            };
+
+            tabs.forEach(t => {
+                const el = document.getElementById(t);
+                if (el) {
+                    if (t === tabId) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+            });
+
+            Object.keys(btnMap).forEach(key => {
+                const btn = document.getElementById(btnMap[key]);
+                if (btn) {
+                    if (key === tabId) {
+                        btn.className = "active-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2";
+                    } else {
+                        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-2";
+                    }
+                }
+            });
+
+            if (tabId === 'tab-dashboard') {
+                setTimeout(() => {
+                    if (typeof renderCharts === 'function' && typeof hitosFiscalizacionData !== 'undefined') {
+                        renderCharts(hitosFiscalizacionData);
+                    }
+                }, 50);
+            }
+        }
+        
         // Declaración única de la instancia ampliada de gráficas
         let chartEnlargedInstance = null;
 
