@@ -2904,71 +2904,75 @@ function openRiskDetailModal(riskId) {
         }
       
         // Base de Datos Estructurada de Hitos Operativos (A - F)
-        const hitosDetailedData = {
+const hitosDetailedData = {
             'A': {
                 id: 'A',
-                nombre: 'Recursos Humanos y Estructura',
-                desc: 'Gestión de expedientes laborales, plaza del Liquidador e inventario de 20,658 bienes muebles en SAP S/4 HANA.',
+                nombre: 'Recursos Humanos & Estructura',
+                desc: 'Expedientes laborales DGRH, plazas de base, finiquitos y dispersión de nómina residual.',
                 items: [
-                    { titulo: 'Expedientes Laborales', detalle: 'Entrega-recepción formal concluida ante la DGRH de Secretaría de Finanzas.', accion: 'Traspaso de carpetas individuales para garantizar continuidad de derechos y nómina.' },
-                    { titulo: 'Plaza del Liquidador', detalle: 'Plaza de base nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes en resguardo temporal hasta cierre.', accion: 'Mantener la plaza activa y el resguardo de bienes en la sociedad IECG hasta concluir la liquidación total.' },
-                    { titulo: 'Inventarios y Capitalización', detalle: '1,682 bienes reasignados capitalizados en Nov 2025 y búsqueda de 2,570 faltantes.', accion: 'Validación física de activos y actualización de resguardos individuales por servidor público.' }
+                    { titulo: 'Expedientes Laborales', detalle: 'Entrega-Recepción DGRH concluida (303 plazas transferidas del IEC y Fórum).', accion: 'Traspaso de carpetas individuales para garantizar antigüedad y derechos adquiridos.' },
+                    { titulo: 'Plaza del Liquidador', detalle: 'Resguardo de Plaza Nivel 8 (Jefe/a C, sec. 30068799) y 131 bienes temporales.', accion: 'Mantener activa la plaza en la sociedad IECG hasta culminar el informe final de cierre.' },
+                    { titulo: 'Finiquitos y Convenios', detalle: 'Dispersión de indemnizaciones conforme a la Ley de Trabajo del Estado.', accion: 'Ratificación de convenios de terminación laboral ante el Tribunal de Conciliación.' }
                 ]
             },
             'B': {
                 id: 'B',
-                nombre: 'Jurídico, Inmuebles y FIARCA',
-                desc: 'Regularización de zonas arqueológicas, juicios en trámite y dictamen del Fideicomiso FIARCA.',
+                nombre: 'Asuntos Jurídicos & Contencioso',
+                desc: 'Juicios laborales, litigios en trámite, sustitución procesal y actas de Comité.',
                 items: [
-                    { titulo: 'Sitios Arqueológicos', detalle: 'Regularización e incorporación de 3 inmuebles (Cóporo, Peralta, Plazuelas).', accion: 'Trámites agrarios y notariales para incorporación al Padrón Inmobiliario del Estado.' },
-                    { titulo: 'Sustitución Procesal', detalle: 'Asunción legal de la Secretaría de Cultura en litigios y juicios activos del IEC.', accion: 'Actualizar representación jurídica ante tribunales laborales y civiles.' },
-                    { titulo: 'Fideicomiso FIARCA', detalle: 'Formalización del 2do Convenio Modificatorio con Fiduciaria Banorte (Decreto Gub. 19).', accion: 'Validar convenio modificatorio con Fiduciaria Banorte y Consejería Jurídica.' }
+                    { titulo: 'Acta de Sesión de Prórroga', detalle: 'Protocolización y recabo de firmas autógrafas de vocales del Comité (10/Dic/2025).', accion: 'Circular y formalizar el acta con Finanzas y Honestidad para solventar R-05 ante ASEG.' },
+                    { titulo: 'Sustitución Procesal', detalle: 'Asunción legal de la Secretaría de Cultura en litigios activos del IEC.', accion: 'Actualizar representación jurídica en juzgados laborales y civiles.' },
+                    { titulo: 'Compilación Marco Legal', detalle: 'Certificación del expediente del Decreto No. 345 y publicaciones POEG.', accion: 'Entrega oficial del compendio jurídico al equipo auditor de la ASEG.' }
                 ]
             },
             'C': {
                 id: 'C',
-                nombre: 'Infraestructura y Programas Q, G, P',
-                desc: 'Cierre del Teatro Juárez, Biblioteca León y metas en Zonas Arqueológicas y Culturas Populares.',
+                nombre: 'Patrimonio Inmobiliario & Predios',
+                desc: 'Zonas arqueológicas (Cóporo, Peralta, Plazuelas), recintos históricos y acuerdos de destino.',
                 items: [
-                    { titulo: 'Teatro Juárez (QC3233)', detalle: 'Cierre administrativo de obra (SICOM) y 2 metas pendientes asumidas por SC.', accion: 'Concluir finiquito financiero y administrativo de la obra con SICOM.' },
-                    { titulo: 'Biblioteca León (QB3981)', detalle: 'Instalación de elevador y montacargas.', accion: 'Ejecución presupuestal y contractual del proyecto pendiente.' },
-                    { titulo: 'Culturas Populares (P0427)', detalle: 'Conclusión de concursos artesanales y exposiciones.', accion: 'Seguimiento a metas semestrales en plataformas institucionales de evaluación.' }
+                    { titulo: 'Sitios Arqueológicos', detalle: 'Regularización e incorporación agraria de 3 predios arqueológicos.', accion: 'Trámites notariales y registrales para incorporación al Padrón Inmobiliario estatal.' },
+                    { titulo: 'Acuerdos de Destino', detalle: 'Certeza jurídica sobre recintos históricos operados por el Instituto.', accion: 'Formalización de Acuerdos de Destino con la Consejería del Ejecutivo (R-04).' },
+                    { titulo: 'Expedientes Catastrales', detalle: 'Planos, cédulas catastrales y folios reales de bienes inmuebles.', accion: 'Entrega formal de expedientes a la Dirección General de Control Patrimonial.' }
                 ]
             },
             'D': {
                 id: 'D',
-                nombre: 'Cierre Financiero, Fiscal y TI',
-                desc: 'Cancelación de cuentas bancarias, reintegros a Finanzas ($43.41 MDP), baja de RFC y e.firma SAT.',
+                nombre: 'Fideicomisos & Fondos Especiales (FIARCA)',
+                desc: 'Extinción, cese de pasivos y 2do Convenio Modificatorio FIARCA con Banorte.',
                 items: [
-                    { titulo: 'Reintegros Realizados', detalle: 'Devolución de $43,409,858.26 MXN (Taquilla FIC, Recursos Propios e intereses).', accion: 'Conciliación contable y solicitud formal a Secretaría de Finanzas para cancelación de cuentas.' },
-                    { titulo: 'Baja de RFC y e.Firma', detalle: 'e.Firma renovada en SAT Irapuato (Sep 2025); cita de baja en Celaya (Dic 2025).', accion: 'Presentación de aviso de cancelación ante el SAT una vez concluida la liquidación.' },
-                    { titulo: 'Flotilla Vehicular Transferida', detalle: '100% de vehículos (14 autos y 14 remolques) endosados a la Secretaría de Cultura.', accion: 'Notificación a DG de Tecnologías y Control Patrimonial para reasignaciones.' }
+                    { titulo: 'Convenio Modificatorio Banorte', detalle: 'Formalización del 2do Convenio Modificatorio FIARCA (Decreto Gub. 19).', accion: 'Validar proyecto de adenda con Fiduciaria Banorte y Consejería Jurídica.' },
+                    { titulo: 'Cese de Pasivos', detalle: 'Desincorporación de erogaciones operativas cargadas indebidamente al IEC.', accion: 'Traspaso de derechos y obligaciones fiduciarias a la Secretaría de Cultura (R-03).' },
+                    { titulo: 'Conciliación de Rendimientos', detalle: 'Corte de disponibilidades y rendimientos brutos generados.', accion: 'Reintegro de remanentes fiduciarios a la Secretaría de Finanzas.' }
                 ]
             },
             'E': {
                 id: 'E',
-                nombre: 'Gestión Documental y Archivo',
-                desc: 'Transferencia de archivos de trámite y concentración a la SC y acervo histórico al Archivo General.',
+                nombre: 'Control Patrimonial & Bienes Muebles',
+                desc: 'Inventario de 20,658 bienes, búsqueda de 2,570 faltantes y parque vehicular.',
                 items: [
-                    { titulo: 'Archivos de Trámite y Concentración', detalle: 'Entrega e inventariado a la Secretaría de Cultura.', accion: 'Integración de inventarios documentales conforme a la Ley de Archivos del Estado.' },
-                    { titulo: 'Archivo Histórico', detalle: 'Transferencia formal al Archivo General del Estado de Guanajuato.', accion: 'Acreditación y entrega de acervo con valor histórico superior.' }
+                    { titulo: 'Búsqueda de 2,570 Faltantes', detalle: 'Bienes sin ubicar en Huatzindeo Salvatierra, PAICE y Orquestas.', accion: 'Brigadas de campo, rescate de facturas en AGEG y actas de baja por desuso (R-01).' },
+                    { titulo: 'Capitalización Fase 1', detalle: '1,682 activos reasignados capitalizados en el sistema SIGEG/SAP.', accion: 'Pólizas contables y actualización de resguardos individuales por custodio.' },
+                    { titulo: 'Flotilla Vehicular (100%)', detalle: '14 autos y 14 remolques transferidos y endosados a la Secretaría.', accion: 'Baja formal de placas en Finanzas y alta patrimonial en SCUL.' }
                 ]
             },
             'F': {
                 id: 'F',
-                nombre: 'Informes y Reportes de Liquidación',
-                desc: 'Informes periódicos de avance y elaboración del Informe Final de Liquidación para el Comité de Extinción.',
+                nombre: 'Financiero, Presupuestal & Fiscal',
+                desc: '$43.41 MDP reintegrados, cancelación de cuentas bancarias y baja de RFC en el SAT.',
                 items: [
-                    { titulo: '14 Informes Mensuales', detalle: 'Reportes rendidos de Octubre 2024 a Noviembre 2025 ante el Comité de Extinción.', accion: 'Integración y presentación de avances mensuales del liquidador.' },
-                    { titulo: 'Paquete Fiscal 2026', detalle: 'Presupuesto integrado exclusivamente en Capítulo 1000 para la figura liquidadora.', accion: 'Asegurar continuidad administrativa durante el periodo de prórroga.' }
+                    { titulo: 'Reintegros Oficiales SF', detalle: '$43,409,858.26 devueltos ($16.35M FIC, $27M Propios e intereses).', accion: 'Integrar recibos de caja emitidos por SF a la cuenta pública de liquidación.' },
+                    { titulo: 'Cierre de Cuentas Residuales', detalle: 'Cancelación de cuentas bancarias operativas en BBVA, Salamanca y M. Ocampo.', accion: 'Obtención de constancias de saldo cero y cierre bancario definitivo.' },
+                    { titulo: 'Baja de RFC ante el SAT', detalle: 'e.Firma renovada en SAT Irapuato; cita presencial en SAT Celaya.', accion: 'Presentación del trámite de cancelación de RFC por extinción (R-02).' }
                 ]
             },
             'G': {
                 id: 'G',
-                nombre: 'Tecnologías de la Información (TI)',
-                desc: 'Bajas y modificaciones en DGTIT, entrega de accesos SAP, servidores y licencias.',
+                nombre: 'Tecnologías de la Información & Obra',
+                desc: 'Bajas en DGTIT, usuarios SAP, servidores, dominios y finiquito Teatro Juárez.',
                 items: [
-                    { titulo: 'Accesos y Licenciamiento SAP', detalle: 'Baja y desincorporación formal ante DGTIT.', accion: 'Entrega de servidores, respaldos y credenciales maestras.' }
+                    { titulo: 'Usuarios y Licenciamiento SAP', detalle: 'Baja y desincorporación formal de usuarios ante la DGTIT de Finanzas.', accion: 'Cancelación de contratos de software y reasignación tecnológica.' },
+                    { titulo: 'Servidores y Respaldo BD', detalle: 'Migración digital de bases de datos y aplicativos a servidores SCUL.', accion: 'Entrega de respaldos íntegros y credenciales maestras de administración.' },
+                    { titulo: 'Finiquito Obra Teatro Juárez', detalle: 'Cierre administrativo y económico de obra con la SICOM.', accion: 'Recepción de acta de entrega-recepción y pólizas de vicios ocultos.' }
                 ]
             },
             'H': {
@@ -2976,11 +2980,12 @@ function openRiskDetailModal(riskId) {
                 nombre: 'Archivo & Gestión Documental',
                 desc: 'Transferencia de archivos de trámite y concentración a SC y acervo histórico al AGEG.',
                 items: [
-                    { titulo: 'Transferencia AGEG', detalle: 'Acervo con valor histórico y archivo de concentración.', accion: 'Integración de inventarios conforme a la Ley de Archivos del Estado.' }
+                    { titulo: 'Archivos de Trámite y Concentración', detalle: 'Entrega e inventariado de cajas documentales a la Secretaría de Cultura.', accion: 'Integración de inventarios por series archivísticas conforme a la Ley de Archivos.' },
+                    { titulo: 'Transferencia al AGEG', detalle: 'Entrega formal del fondo documental histórico con valor permanente.', accion: 'Suscripción de Acta Circunstanciada y acuse de recepción oficial del AGEG.' },
+                    { titulo: 'Soportes para Auditoría ASEG', detalle: 'Control y expedición de expedientes probatorios requeridos.', accion: 'Cédulas de préstamo documental para solventación de pliegos de observaciones.' }
                 ]
             }
         };
-
       // Matriz Consolidada con enlace al Hito Padre oficial
         let accionesMatriz = [
             { id: 1, hito_padre_id: 'INF-A01', hito: 'INF-A01 | Área A - RH', rubro: 'Laboral', accion: 'Entrega formal de expedientes laborales a DGRH Secretaría de Finanzas', responsable: 'Capital Humano / RH', estatus: 'Concluido', avance: '100.0%', riesgo: 'Continuidad de Nómina', soporte: 'Expediente Digital DGRH', driveUrl: '' },
