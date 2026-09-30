@@ -3835,7 +3835,16 @@ function openRiskDetailModal(riskId) {
             title.innerText = data.t;
             subtitle.innerText = data.st;
 
-            data.items.forEach(item => {
+          data.items.forEach(item => {
+                const areaKey = item.hito.includes('Área A') ? 'A' :
+                                item.hito.includes('Área B') ? 'B' :
+                                item.hito.includes('Área C') ? 'C' :
+                                item.hito.includes('Área D') ? 'D' :
+                                item.hito.includes('Área E') ? 'E' :
+                                item.hito.includes('Área F') ? 'F' :
+                                item.hito.includes('Área G') ? 'G' :
+                                item.hito.includes('Área H') ? 'H' : null;
+
                 container.innerHTML += `
                     <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <div>
@@ -3846,9 +3855,16 @@ function openRiskDetailModal(riskId) {
                             <span class="text-slate-600 block text-[11px] mt-0.5">${item.desc}</span>
                             <span class="text-slate-400 block text-[10px]"><strong>Responsable:</strong> ${item.resp}</span>
                         </div>
-                        <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm shrink-0">
-                            ${item.estatus}
-                        </span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="px-2.5 py-1 bg-white border border-slate-200 font-bold text-[10px] rounded-lg text-slate-700 shadow-sm">
+                                ${item.estatus}
+                            </span>
+                            ${areaKey ? `
+                                <button type="button" onclick="closeModal('modal-dashboard-detail'); openHitoDetailedModal('${areaKey}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold transition shadow flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Ver Acciones
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -3857,7 +3873,6 @@ function openRiskDetailModal(riskId) {
         }
 
         
-
         // Diccionario de arquitectura institucional para sugerencia de instancias y prefijos
         const sugerenciasArquitectura = {
             'A': { prefijo: '[A - RH]', resp: 'Capital Humano / RH', rubro: 'Laboral' },
