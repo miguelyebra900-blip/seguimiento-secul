@@ -4,33 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Armado de Expediente Digital - SECUL</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Tesseract.js para OCR de imágenes en cliente -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
   <style>
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header / Navbar -->
+  <!-- Header / Navbar Colaborativa -->
   <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
@@ -39,31 +25,30 @@
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold tracking-tight">Armado Digital de Expediente</h1>
-          <p class="text-xs text-indigo-200">Sincronización directa con Google Drive (Apps Script)</p>
+          <p class="text-xs text-indigo-200">Colaboración multiusuario en tiempo real (Google Drive)</p>
         </div>
       </div>
       
-      <!-- Selector de Proyectos Guardados y Acciones -->
       <div class="flex items-center space-x-2 flex-wrap">
         <div class="flex items-center bg-indigo-950/80 border border-indigo-700/60 rounded-lg px-2.5 py-1 text-xs">
           <label for="project-selector" class="text-indigo-200 mr-2 font-medium">Expediente:</label>
-          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
-          </select>
+          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer"></select>
         </div>
 
-        <button onclick="createNewProjectPrompt()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Crear un nuevo expediente en blanco">
-          <i class="fa-solid fa-folder-plus"></i>
-          <span>Nuevo</span>
+        <button onclick="syncFromCloud(true)" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Consultar cambios de otros usuarios">
+          <i class="fa-solid fa-arrows-rotate"></i><span>Refrescar Nube</span>
         </button>
 
-        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Descargar respaldo JSON de este expediente">
-          <i class="fa-solid fa-download"></i>
-          <span>Respaldo</span>
+        <button onclick="createNewProjectPrompt()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1">
+          <i class="fa-solid fa-folder-plus"></i><span>Nuevo</span>
         </button>
 
-        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1" title="Cargar respaldo JSON">
-          <i class="fa-solid fa-upload"></i>
-          <span>Cargar</span>
+        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1">
+          <i class="fa-solid fa-download"></i><span>Respaldo</span>
+        </button>
+
+        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1">
+          <i class="fa-solid fa-upload"></i><span>Cargar</span>
           <input type="file" accept=".json" class="hidden" onchange="importProjectJSON(event)">
         </label>
       </div>
@@ -78,24 +63,22 @@
         <span id="active-project-name" class="font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono">ANEXOS_SOLVENTACION_OBS_035_FORUM</span>
         <span id="drive-root-link" class="hidden">
           <a href="#" target="_blank" id="drive-root-url" class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center space-x-1 underline">
-            <i class="fa-brands fa-google-drive"></i>
-            <span>Ver en Google Drive</span>
+            <i class="fa-brands fa-google-drive"></i><span>Ver en Google Drive</span>
           </a>
         </span>
       </div>
 
       <div class="flex items-center space-x-4 text-slate-600">
         <div class="flex items-center space-x-1.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-          <span>Apps Script Conectado</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Nube Multiusuario Activa</span>
         </div>
         <span class="text-slate-300">|</span>
-        <span id="autosave-indicator" class="text-[11px] text-slate-400 italic">Guardado localmente</span>
+        <span id="autosave-indicator" class="text-[11px] text-slate-400 italic">Sincronizando...</span>
       </div>
     </div>
   </div>
 
-  <!-- Contenedor Principal -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
 
     <!-- 1. Definición / Edición de la Estructura -->
@@ -106,7 +89,6 @@
           <span>1. Estructura de Carpetas y Anexos</span>
         </div>
         
-        <!-- Pestañas de modo -->
         <div class="flex bg-slate-200 p-1 rounded-lg text-xs font-medium">
           <button id="tab-btn-text" onclick="switchInputTab('text')" class="px-3 py-1.5 rounded-md bg-white text-indigo-700 shadow-sm transition">
             <i class="fa-solid fa-code-fork mr-1"></i> Texto / Árbol
@@ -121,22 +103,19 @@
       </div>
 
       <div class="p-6">
-        <!-- Modo 1: Editor de Texto / Árbol -->
         <div id="tab-text-content" class="space-y-3">
           <p class="text-xs text-slate-500">
-            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code>.pdf</code>, <code>.xlsx</code>, etc.) se reconocerán como documentos o anexos requeridos.
+            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code class="bg-slate-100 px-1 py-0.5 rounded">.pdf</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">.xlsx</code>, etc.) se reconocerán como documentos requeridos.
           </p>
           <textarea id="raw-structure-input" rows="7" class="w-full font-mono text-xs bg-slate-900 text-emerald-400 p-3.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none custom-scrollbar" placeholder="📁 NOMBRE_EXPEDIENTE/&#10;|-- 01_CARPETA_ADMINISTRATIVA/&#10;|   |-- 01.1_Oficio_Presentacion.pdf"></textarea>
           <div class="flex justify-between items-center">
-            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, los nombres de carpetas existentes se preservarán.</span>
+            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, las carpetas existentes se preservarán.</span>
             <button onclick="parseAndBuildTree()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-arrows-rotate"></i>
-              <span>Actualizar Estructura</span>
+              <i class="fa-solid fa-arrows-rotate"></i><span>Actualizar Estructura</span>
             </button>
           </div>
         </div>
 
-        <!-- Modo 2: Carga de Imagen con Reconocimiento OCR -->
         <div id="tab-ocr-content" class="hidden space-y-4">
           <div class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50/20 rounded-xl p-8 text-center transition cursor-pointer" onclick="document.getElementById('image-structure-file').click()">
             <input type="file" id="image-structure-file" accept="image/*" class="hidden" onchange="handleImageSelected(event)">
@@ -144,7 +123,7 @@
               <i class="fa-solid fa-file-image text-xl"></i>
             </div>
             <p class="text-sm font-semibold text-slate-700">Arrastra o haz clic para subir una captura de pantalla del árbol de carpetas</p>
-            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con IA/OCR</p>
+            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con OCR</p>
           </div>
 
           <div id="ocr-progress-container" class="hidden bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-2">
@@ -163,7 +142,6 @@
     <!-- 2. Sección Interactiva: Árbol y Carga de Documentos -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
       
-      <!-- Panel Izquierdo: Árbol de Carpetas (5 cols) -->
       <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         <div class="border-b border-slate-200 bg-slate-50 px-4 py-3 flex justify-between items-center">
           <div class="flex items-center space-x-2">
@@ -173,24 +151,18 @@
           <span id="tree-items-counter" class="text-xs bg-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">0 carpetas</span>
         </div>
 
-        <!-- Árbol Interactivo -->
-        <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700">
-        </div>
+        <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700"></div>
 
-        <!-- Barra inferior del árbol: acciones rápidas -->
         <div class="border-t border-slate-200 bg-slate-50 p-3 flex justify-between items-center text-xs">
           <button onclick="addNewFolderPrompt()" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center space-x-1">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Nueva Carpeta</span>
+            <i class="fa-solid fa-plus-circle"></i><span>Nueva Carpeta</span>
           </button>
           <span class="text-slate-400" id="total-anexos-info">0 archivos listos</span>
         </div>
       </div>
 
-      <!-- Panel Derecho: Detalle de la Carpeta y Carga de Anexos (7 cols) -->
       <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         
-        <!-- Encabezado de la Carpeta Activa -->
         <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex flex-wrap justify-between items-center gap-3">
           <div>
             <div class="flex items-center space-x-2">
@@ -205,16 +177,13 @@
             </div>
           </div>
 
-          <!-- Acciones de Sincronización en Drive -->
           <div class="flex items-center space-x-2">
             <button id="btn-sync-all-drive" onclick="syncAllToDrive()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-cloud-arrow-up"></i>
-              <span>Crear Estructura en Drive</span>
+              <i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>
             </button>
           </div>
         </div>
 
-        <!-- Contenedor de Anexos y Documentos de la Carpeta -->
         <div id="folder-detail-container" class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-4">
           <div class="text-center py-16 text-slate-400">
             <i class="fa-solid fa-arrow-left text-2xl mb-2 text-slate-300 block"></i>
@@ -223,11 +192,10 @@
           </div>
         </div>
 
-        <!-- Barra de Estado Inferior -->
         <div class="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-between items-center text-xs">
           <div class="flex items-center space-x-2 text-slate-500">
-            <i class="fa-solid fa-circle-info text-indigo-500"></i>
-            <span>Puedes regresar a esta página en cualquier momento; tus archivos y carpetas quedan guardados.</span>
+            <i class="fa-solid fa-users text-indigo-500"></i>
+            <span>Los cambios se guardan y sincronizan automáticamente entre todos los usuarios.</span>
           </div>
         </div>
 
@@ -237,23 +205,21 @@
 
   </main>
 
-  <!-- Pie de página -->
   <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
       <span>Sistema de Armado Digital de Expedientes • SECUL</span>
-      <span>Conexión Webhook Activa con Google Apps Script</span>
+      <span>Base de Datos Colaborativa en Tiempo Real</span>
     </div>
   </footer>
 
-  <!-- SCRIPT DE LÓGICA DEL SISTEMA -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8pZEo47Cg1skUMe5Ad9u4idFGkCuVis-J24Ab4FgBiX23zKx4ayx7qSfaJHZkm3SvZQ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
     let allProjects = {};
     let currentProjectId = null;
     let activeFolderId = null;
+    let isSyncing = false;
 
-    // Helper: normaliza el arreglo de archivos para compatibilidad hacia atrás
     function ensureDocFiles(doc) {
       if (!doc.files || !Array.isArray(doc.files)) {
         doc.files = [];
@@ -273,75 +239,76 @@
       return doc.files;
     }
 
-    window.addEventListener("DOMContentLoaded", function() {
+    window.addEventListener("DOMContentLoaded", async function() {
       loadProjectsFromLocalStorage();
-      if (Object.keys(allProjects).length === 0) {
-        loadDefaultTemplate(false);
-      } else {
-        const savedActiveId = localStorage.getItem("secul_active_project_id");
-        if (savedActiveId && allProjects[savedActiveId]) {
-          currentProjectId = savedActiveId;
-        } else {
-          currentProjectId = Object.keys(allProjects)[0];
-        }
-        updateProjectSelector();
+      updateProjectSelector();
+      if (currentProjectId && allProjects[currentProjectId]) {
         loadCurrentProjectUI();
       }
+
+      // Traer datos frescos de la nube al iniciar
+      await syncFromCloud(false);
+
+      // Sincronización periódica automática cada 15 segundos
+      setInterval(function() {
+        syncFromCloud(false);
+      }, 15000);
     });
 
-    function loadDefaultTemplate(forceReset) {
-      if (forceReset && !confirm("¿Deseas reiniciar la estructura al ejemplo por defecto?")) {
-        return;
-      }
+    // SINCRONIZACIÓN CON LA NUBE (DESCARGA CAMBIOS DE OTROS USUARIOS)
+    async function syncFromCloud(manual) {
+      if (isSyncing) return;
+      isSyncing = true;
+      const indicator = document.getElementById("autosave-indicator");
+      if (manual && indicator) indicator.textContent = "Consultando nube...";
 
-      const defaultId = "proj_solventacion_035";
-      const demoData = {
-        id: defaultId,
-        rootName: "ANEXOS_SOLVENTACION_OBS_035_FORUM",
-        driveRootId: null,
-        driveRootUrl: null,
-        lastModified: new Date().toISOString(),
-        folders: [
-          {
-            id: "f_01",
-            name: "01_ANEXO_ACTA_COMITE",
-            titleDisplay: "Carpeta 01 (Acta del Comité)",
-            driveFolderId: null,
-            docs: [
-              {
-                id: "d_01_1",
-                suggestedName: "01.1_Acta_Comite_Extincion_10_Dic_2025_Firmada.pdf",
-                description: "Copia digital certificada del Acta de la Sesión del Comité de Extinción de fecha 10 de diciembre de 2025.",
-                required: true,
-                files: []
-              }
-            ]
-          },
-          {
-            id: "f_02",
-            name: "02_ANEXO_JURIDICO_Y_LABORAL",
-            titleDisplay: "Carpeta 02 (Jurídico y Laboral)",
-            driveFolderId: null,
-            docs: [
-              {
-                id: "d_02_1",
-                suggestedName: "02.1_Cedula_Analitica_Inventario_7_Litigios.pdf",
-                description: "Cédula analítica en formato PDF/Excel que desglose los expedientes.",
-                required: true,
-                files: []
-              }
-            ]
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ accion: "obtenerProyectos" })
+        });
+        const data = await res.json();
+
+        if (data.status === "success" && data.proyectos) {
+          const cloudProjects = data.proyectos;
+          let changed = false;
+
+          Object.keys(cloudProjects).forEach(function(pid) {
+            const cloudProj = cloudProjects[pid];
+            const localProj = allProjects[pid];
+
+            // Si el proyecto en la nube es más nuevo o no existe en local, se actualiza
+            if (!localProj || !localProj.lastModified || new Date(cloudProj.lastModified) > new Date(localProj.lastModified)) {
+              allProjects[pid] = cloudProj;
+              changed = true;
+            }
+          });
+
+          if (Object.keys(allProjects).length === 0) {
+            loadDefaultTemplate(false);
+          } else {
+            if (!currentProjectId || !allProjects[currentProjectId]) {
+              currentProjectId = Object.keys(allProjects)[0];
+            }
+            if (changed) {
+              updateProjectSelector();
+              loadCurrentProjectUI();
+            }
           }
-        ]
-      };
 
-      allProjects[defaultId] = demoData;
-      currentProjectId = defaultId;
-      saveProjectsToLocalStorage();
-      updateProjectSelector();
-      loadCurrentProjectUI();
+          if (indicator) indicator.textContent = "Nube sincronizada: " + new Date().toLocaleTimeString();
+          if (manual) alert("¡Datos actualizados con éxito desde la nube!");
+        }
+      } catch (err) {
+        console.warn("Fallo temporal al consultar nube:", err);
+        if (manual) alert("No se pudo conectar con la nube en este momento. Revisa tu conexión.");
+      } finally {
+        isSyncing = false;
+      }
     }
 
+    // GUARDA EN LOCAL Y DISPARA GUARDADO EN LA NUBE PARA TODOS
     function saveProjectsToLocalStorage() {
       if (currentProjectId && allProjects[currentProjectId]) {
         allProjects[currentProjectId].lastModified = new Date().toISOString();
@@ -378,7 +345,6 @@
                         uploaded: fl.uploaded,
                         driveFileId: fl.driveFileId,
                         driveFileUrl: fl.driveFileUrl
-                        // Omitimos fileBase64 para evitar QuotaExceededError en localStorage
                       };
                     })
                   };
@@ -390,13 +356,33 @@
 
         localStorage.setItem("secul_expedientes_projects", JSON.stringify(projectsMetadata));
         localStorage.setItem("secul_active_project_id", currentProjectId);
+
+        // Enviar a la nube en segundo plano
+        if (currentProjectId && projectsMetadata[currentProjectId]) {
+          sendProjectToCloud(projectsMetadata[currentProjectId]);
+        }
       } catch (err) {
-        console.warn("No se pudo guardar en localStorage:", err);
+        console.warn("Error al guardar localmente:", err);
       }
       
       var indicator = document.getElementById("autosave-indicator");
       if (indicator) {
         indicator.textContent = "Guardado: " + new Date().toLocaleTimeString();
+      }
+    }
+
+    async function sendProjectToCloud(projData) {
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            accion: "guardarProyecto",
+            proyecto: projData
+          })
+        });
+      } catch (e) {
+        console.warn("No se pudo enviar cambio a la nube en este momento:", e);
       }
     }
 
@@ -406,7 +392,6 @@
         try {
           allProjects = JSON.parse(stored);
         } catch (e) {
-          console.error("Error al cargar proyectos:", e);
           allProjects = {};
         }
       }
@@ -485,7 +470,7 @@
           saveProjectsToLocalStorage();
           updateProjectSelector();
           loadCurrentProjectUI();
-          alert("¡Expediente importado exitosamente!");
+          alert("¡Expediente importado y sincronizado!");
         } catch (err) {
           alert("Error al importar: " + err.message);
         }
@@ -619,7 +604,7 @@
       saveProjectsToLocalStorage();
       updateProjectSelector();
       loadCurrentProjectUI();
-      alert("¡Estructura procesada y guardada con éxito!");
+      alert("¡Estructura procesada y guardada en la nube con éxito!");
     }
 
     async function handleImageSelected(event) {
@@ -725,7 +710,7 @@
         let statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-rose-400" title="Sin archivos"></span>';
         if (totalFolderFiles > 0 && folderUploadedFiles < totalFolderFiles) {
           statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-amber-400" title="Parcial (' + folderUploadedFiles + '/' + totalFolderFiles + ' en Drive)"></span>';
-        } else if (totalFolderFiles > 0 && folderUploadedFiles === totalFolderFiles) {
+        } else if (totalFolderFiles > 0 && folderUploadedFiles === totalFolderFiles && totalFolderFiles > 0) {
           statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo en Drive (' + totalFolderFiles + ' archivos)"></span>';
         }
 
@@ -806,7 +791,7 @@
         emptyAlert.innerHTML = 
           '<i class="fa-regular fa-file-circle-plus text-3xl text-slate-300 mb-2 block"></i>' +
           '<p class="text-xs font-semibold text-slate-600">Esta carpeta no tiene anexos o documentos definidos.</p>' +
-          '<p class="text-[11px] text-slate-400 mt-1 mb-4">Haz clic abajo para agregar el primer anexo requerido o sugerido.</p>';
+          '<p class="text-[11px] text-slate-400 mt-1 mb-4">Haz clic abajo para agregar el primer requerimiento.</p>';
         detailContainer.appendChild(emptyAlert);
       }
 
@@ -815,7 +800,6 @@
         const docCard = document.createElement("div");
         docCard.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition space-y-3";
 
-        // Cabecera del documento / casilla
         const headerDiv = document.createElement("div");
         headerDiv.className = "flex justify-between items-start gap-2";
 
@@ -858,12 +842,11 @@
         headerDiv.appendChild(docActions);
         docCard.appendChild(headerDiv);
 
-        // Lista de archivos adjuntados dentro de esta misma casilla
         const filesContainer = document.createElement("div");
         filesContainer.className = "space-y-2";
 
         if (docFiles.length > 0) {
-          docFiles.forEach(function(fl, fileIdx) {
+          docFiles.forEach(function(fl) {
             const fileItem = document.createElement("div");
             fileItem.className = "flex items-center justify-between p-2.5 " + (fl.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-slate-200 text-slate-800") + " border rounded-lg text-xs";
             
@@ -911,13 +894,12 @@
           });
         }
 
-        // Zona de Carga (Dropzone que acepta MULTIPLES archivos)
         const dropDiv = document.createElement("div");
         dropDiv.className = "border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3 text-center cursor-pointer transition";
         
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.multiple = true; // Permite subir varios archivos a la vez
+        fileInput.multiple = true;
         fileInput.id = "input_files_" + doc.id;
         fileInput.className = "hidden";
         fileInput.onchange = function(e) { handleFilesChosen(e, folder.id, doc.id); };
@@ -977,7 +959,6 @@
       toolsBar.appendChild(delBtn);
     }
 
-    // MANEJO DE MULTIPLES ARCHIVOS POR CASILLA
     function handleFilesChosen(event, folderId, docId) {
       const files = event.target.files;
       if (!files || files.length === 0) return;
@@ -1163,7 +1144,6 @@
       }
     }
 
-    // SINCRONIZACIÓN Y SUBIDA A GOOGLE DRIVE
     async function syncAllToDrive() {
       const proj = getCurrentProject();
       if (!proj || proj.folders.length === 0) {
@@ -1308,6 +1288,5 @@
       }
     }
   </script>
-</script>
 </body>
 </html>
