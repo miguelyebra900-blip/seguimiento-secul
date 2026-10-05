@@ -4,33 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Armado de Expediente Digital - SECUL</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Tesseract.js para OCR de imágenes en cliente -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
   <style>
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header / Navbar -->
   <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
@@ -43,34 +28,28 @@
         </div>
       </div>
       
-      <!-- Selector de Proyectos Guardados y Acciones -->
       <div class="flex items-center space-x-2 flex-wrap">
         <div class="flex items-center bg-indigo-950/80 border border-indigo-700/60 rounded-lg px-2.5 py-1 text-xs">
           <label for="project-selector" class="text-indigo-200 mr-2 font-medium">Expediente:</label>
-          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
-          </select>
+          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer"></select>
         </div>
 
-        <button onclick="createNewProjectPrompt()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Crear un nuevo expediente en blanco">
-          <i class="fa-solid fa-folder-plus"></i>
-          <span>Nuevo</span>
+        <button onclick="createNewProjectPrompt()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1">
+          <i class="fa-solid fa-folder-plus"></i><span>Nuevo</span>
         </button>
 
-        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Descargar respaldo JSON de este expediente">
-          <i class="fa-solid fa-download"></i>
-          <span>Respaldo</span>
+        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1">
+          <i class="fa-solid fa-download"></i><span>Respaldo</span>
         </button>
 
-        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1" title="Cargar respaldo JSON">
-          <i class="fa-solid fa-upload"></i>
-          <span>Cargar</span>
+        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1">
+          <i class="fa-solid fa-upload"></i><span>Cargar</span>
           <input type="file" accept=".json" class="hidden" onchange="importProjectJSON(event)">
         </label>
       </div>
     </div>
   </header>
 
-  <!-- Banner Informativo del Expediente Activo -->
   <div class="bg-white border-b border-slate-200 px-4 sm:px-8 py-2.5">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center text-xs gap-3">
       <div class="flex items-center space-x-2">
@@ -78,8 +57,7 @@
         <span id="active-project-name" class="font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono">ANEXOS_SOLVENTACION_OBS_035_FORUM</span>
         <span id="drive-root-link" class="hidden">
           <a href="#" target="_blank" id="drive-root-url" class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center space-x-1 underline">
-            <i class="fa-brands fa-google-drive"></i>
-            <span>Ver en Google Drive</span>
+            <i class="fa-brands fa-google-drive"></i><span>Ver en Google Drive</span>
           </a>
         </span>
       </div>
@@ -95,10 +73,8 @@
     </div>
   </div>
 
-  <!-- Contenedor Principal -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
 
-    <!-- 1. Definición / Edición de la Estructura -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="border-b border-slate-200 bg-slate-100/70 px-6 py-3 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center space-x-2 text-slate-700 font-semibold text-sm">
@@ -106,7 +82,6 @@
           <span>1. Estructura de Carpetas y Anexos</span>
         </div>
         
-        <!-- Pestañas de modo -->
         <div class="flex bg-slate-200 p-1 rounded-lg text-xs font-medium">
           <button id="tab-btn-text" onclick="switchInputTab('text')" class="px-3 py-1.5 rounded-md bg-white text-indigo-700 shadow-sm transition">
             <i class="fa-solid fa-code-fork mr-1"></i> Texto / Árbol
@@ -121,22 +96,19 @@
       </div>
 
       <div class="p-6">
-        <!-- Modo 1: Editor de Texto / Árbol -->
         <div id="tab-text-content" class="space-y-3">
           <p class="text-xs text-slate-500">
-            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code>.pdf</code>, <code>.xlsx</code>, etc.) se reconocerán como documentos o anexos requeridos.
+            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code class="bg-slate-100 px-1 py-0.5 rounded">.pdf</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">.xlsx</code>, etc.) se reconocerán como documentos requeridos.
           </p>
           <textarea id="raw-structure-input" rows="7" class="w-full font-mono text-xs bg-slate-900 text-emerald-400 p-3.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none custom-scrollbar" placeholder="📁 NOMBRE_EXPEDIENTE/&#10;|-- 01_CARPETA_ADMINISTRATIVA/&#10;|   |-- 01.1_Oficio_Presentacion.pdf"></textarea>
           <div class="flex justify-between items-center">
-            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, los nombres de carpetas existentes se preservarán.</span>
+            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, las carpetas existentes se preservarán.</span>
             <button onclick="parseAndBuildTree()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-arrows-rotate"></i>
-              <span>Actualizar Estructura</span>
+              <i class="fa-solid fa-arrows-rotate"></i><span>Actualizar Estructura</span>
             </button>
           </div>
         </div>
 
-        <!-- Modo 2: Carga de Imagen con Reconocimiento OCR -->
         <div id="tab-ocr-content" class="hidden space-y-4">
           <div class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50/20 rounded-xl p-8 text-center transition cursor-pointer" onclick="document.getElementById('image-structure-file').click()">
             <input type="file" id="image-structure-file" accept="image/*" class="hidden" onchange="handleImageSelected(event)">
@@ -144,7 +116,7 @@
               <i class="fa-solid fa-file-image text-xl"></i>
             </div>
             <p class="text-sm font-semibold text-slate-700">Arrastra o haz clic para subir una captura de pantalla del árbol de carpetas</p>
-            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con IA/OCR</p>
+            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con OCR</p>
           </div>
 
           <div id="ocr-progress-container" class="hidden bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-2">
@@ -160,10 +132,8 @@
       </div>
     </section>
 
-    <!-- 2. Sección Interactiva: Árbol y Carga de Documentos -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
       
-      <!-- Panel Izquierdo: Árbol de Carpetas (5 cols) -->
       <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         <div class="border-b border-slate-200 bg-slate-50 px-4 py-3 flex justify-between items-center">
           <div class="flex items-center space-x-2">
@@ -173,24 +143,18 @@
           <span id="tree-items-counter" class="text-xs bg-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">0 carpetas</span>
         </div>
 
-        <!-- Árbol Interactivo -->
-        <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700">
-        </div>
+        <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700"></div>
 
-        <!-- Barra inferior del árbol: acciones rápidas -->
         <div class="border-t border-slate-200 bg-slate-50 p-3 flex justify-between items-center text-xs">
           <button onclick="addNewFolderPrompt()" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center space-x-1">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Nueva Carpeta</span>
+            <i class="fa-solid fa-plus-circle"></i><span>Nueva Carpeta</span>
           </button>
           <span class="text-slate-400" id="total-anexos-info">0 archivos listos</span>
         </div>
       </div>
 
-      <!-- Panel Derecho: Detalle de la Carpeta y Carga de Anexos (7 cols) -->
       <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         
-        <!-- Encabezado de la Carpeta Activa -->
         <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex flex-wrap justify-between items-center gap-3">
           <div>
             <div class="flex items-center space-x-2">
@@ -205,16 +169,13 @@
             </div>
           </div>
 
-          <!-- Acciones de Sincronización en Drive -->
           <div class="flex items-center space-x-2">
             <button id="btn-sync-all-drive" onclick="syncAllToDrive()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-cloud-arrow-up"></i>
-              <span>Crear Estructura en Drive</span>
+              <i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>
             </button>
           </div>
         </div>
 
-        <!-- Contenedor de Anexos y Documentos de la Carpeta -->
         <div id="folder-detail-container" class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-4">
           <div class="text-center py-16 text-slate-400">
             <i class="fa-solid fa-arrow-left text-2xl mb-2 text-slate-300 block"></i>
@@ -223,7 +184,6 @@
           </div>
         </div>
 
-        <!-- Barra de Estado Inferior -->
         <div class="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-between items-center text-xs">
           <div class="flex items-center space-x-2 text-slate-500">
             <i class="fa-solid fa-circle-info text-indigo-500"></i>
@@ -237,7 +197,6 @@
 
   </main>
 
-  <!-- Pie de página -->
   <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
       <span>Sistema de Armado Digital de Expedientes • SECUL</span>
@@ -245,9 +204,7 @@
     </div>
   </footer>
 
-  <!-- SCRIPT DE LÓGICA DEL SISTEMA -->
   <script>
-    // URL DE TU GOOGLE APPS SCRIPT
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
     let allProjects = {};
@@ -292,7 +249,7 @@
               {
                 id: "d_01_1",
                 suggestedName: "01.1_Acta_Comite_Extincion_10_Dic_2025_Firmada.pdf",
-                description: "Copia digital certificada del Acta de la Sesión del Comité de Extinción de fecha 10 de diciembre de 2025, conteniendo el registro íntegro de firmas autógrafas de todos sus integrantes, acompañada de su respectiva convocatoria y lista de asistencia digitalizada.",
+                description: "Copia digital certificada del Acta de la Sesión del Comité de Extinción de fecha 10 de diciembre de 2025.",
                 required: true,
                 uploaded: false,
                 driveFileId: null,
@@ -313,128 +270,8 @@
               {
                 id: "d_02_1",
                 suggestedName: "02.1_Cedula_Analitica_Inventario_7_Litigios.pdf",
-                description: "Cédula analítica en formato PDF/Excel que desglose los 7 expedientes (que contenga como mínimo: número de juicio, juzgado de radicación, partes, estado procesal actual y cuantía o contingencia estimada).",
+                description: "Cédula analítica en formato PDF/Excel que desglose los 7 expedientes.",
                 required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              },
-              {
-                id: "d_02_2",
-                suggestedName: "02.2_Soporte_Documental_Pagos_Laudo_Y_Prestaciones.pdf",
-                description: "Comprobantes de depósito, fichas de consignación ante el tribunal laboral o respaldos de billetes de depósito respecto al laudo del extrabajador y las prestaciones de la trabajadora finada.",
-                required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              }
-            ]
-          },
-          {
-            id: "f_03",
-            name: "03_ANEXO_FINANCIERO_Y_CONTABLE",
-            titleDisplay: "Carpeta 03 (Financiero y Contable)",
-            driveFolderId: null,
-            docs: [
-              {
-                id: "d_03_1",
-                suggestedName: "03.1_Estado_Situacion_Financiera_Analitico.pdf",
-                description: "Estado de Situación Financiera analítico con corte a la fecha de cierre de operaciones, validado por el área contable.",
-                required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              },
-              {
-                id: "d_03_2",
-                suggestedName: "03.2_Conciliaciones_Bancarias_Al_Corte.pdf",
-                description: "Estados de cuenta bancarios con ceros o saldos mínimos indispensables, junto con sus cédulas de conciliación bancaria y la comprobación de transferencia de remanentes a la Secretaría de Finanzas.",
-                required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              },
-              {
-                id: "d_03_3",
-                suggestedName: "03.3_Depuracion_Y_Cierre_De_Pasivos.pdf",
-                description: "Soporte documental de depuración y extinción de pasivos contables.",
-                required: false,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              }
-            ]
-          },
-          {
-            id: "f_04",
-            name: "04_ANEXO_ARCHIVO_Y_DOCUMENTAL",
-            titleDisplay: "Carpeta 04 (Archivo y Documental)",
-            driveFolderId: null,
-            docs: [
-              {
-                id: "d_04_1",
-                suggestedName: "04.1_Inventario_Documental_Formatos_AGE_2023_2024.pdf",
-                description: "Inventarios documentales de los archivos de trámite y concentración correspondientes a los ejercicios 2023 y 2024, elaborados estrictamente en los Formatos Oficiales emitidos por el Archivo General del Estado.",
-                required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              },
-              {
-                id: "d_04_2",
-                suggestedName: "04.2_Actas_De_Transferencia_Y_Custodia_De_Acervo.pdf",
-                description: "Acta de entrega-recepción física y topográfica del acervo, especificando la asignación formal de custodias para blindar la memoria institucional.",
-                required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              }
-            ]
-          },
-          {
-            id: "f_05",
-            name: "05_INFORMES_LIQUIDADOR",
-            titleDisplay: "Carpeta 05 (Informes periódicos del Liquidador y Matriz)",
-            driveFolderId: null,
-            docs: [
-              {
-                id: "d_05_1",
-                suggestedName: "05.1_reportes_mensuales_2025.pdf",
-                description: "Los reportes mensuales de avance que el Lic. Liquidador rindió formalmente durante el ejercicio 2025 a la Presidencia del Comité de Extinción.",
-                required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
-              },
-              {
-                id: "d_05_2",
-                suggestedName: "05.2_matriz_digital_seguimiento.pdf",
-                description: "Un reporte impreso (captura ejecutiva en PDF) de la matriz digital de seguimiento donde se visualicen los hitos, responsables y estatus (a tu consideración si estimas oportuno).",
-                required: false,
                 uploaded: false,
                 driveFileId: null,
                 fileName: null,
@@ -459,7 +296,6 @@
         allProjects[currentProjectId].lastModified = new Date().toISOString();
       }
       try {
-        // Clonamos el objeto excluyendo el contenido pesado base64 para no saturar el límite de 5MB de localStorage
         var projectsMetadata = {};
         Object.keys(allProjects).forEach(function(pid) {
           var p = allProjects[pid];
@@ -487,7 +323,6 @@
                     fileName: d.fileName,
                     fileSize: d.fileSize,
                     fileMime: d.fileMime
-                    // OMITIMOS fileBase64 de localStorage para evitar QuotaExceededError
                   };
                 })
               };
@@ -498,7 +333,7 @@
         localStorage.setItem("secul_expedientes_projects", JSON.stringify(projectsMetadata));
         localStorage.setItem("secul_active_project_id", currentProjectId);
       } catch (err) {
-        console.warn("No se pudo guardar en localStorage debido a cuota:", err);
+        console.warn("No se pudo guardar en localStorage:", err);
       }
       
       var indicator = document.getElementById("autosave-indicator");
@@ -542,7 +377,7 @@
     }
 
     function createNewProjectPrompt() {
-      const name = prompt("Ingrese el nombre del nuevo expediente (ej. EXPEDIENTE_ADQUISICIONES_2026):");
+      const name = prompt("Ingrese el nombre del nuevo expediente:");
       if (!name || !name.trim()) return;
 
       const newId = "proj_" + Date.now();
@@ -583,7 +418,7 @@
         try {
           const imported = JSON.parse(e.target.result);
           if (!imported.rootName || !imported.folders) {
-            throw new Error("Formato de JSON no válido para expediente");
+            throw new Error("Formato de JSON no válido");
           }
           const importedId = imported.id || ("proj_" + Date.now());
           imported.id = importedId;
@@ -594,7 +429,7 @@
           loadCurrentProjectUI();
           alert("¡Expediente importado exitosamente!");
         } catch (err) {
-          alert("Error al importar archivo JSON: " + err.message);
+          alert("Error al importar: " + err.message);
         }
       };
       reader.readAsText(file);
@@ -646,7 +481,7 @@
       return text;
     }
 
-        function parseAndBuildTree() {
+    function parseAndBuildTree() {
       const raw = document.getElementById("raw-structure-input").value;
       if (!raw.trim()) {
         alert("Por favor escribe o pega texto con la estructura de carpetas.");
@@ -660,12 +495,10 @@
       let detectedRoot = proj.rootName;
 
       lines.forEach(function(line, index) {
-        // Limpieza profunda de conectores de árbol, símbolos gráficos y caracteres residuales de OCR
         let clean = line.replace(/^[|/\\_\-\s├└─+•*~]+\s*/g, "").trim();
         clean = clean.replace(/^[📁📄📂📝]+\s*/g, "").trim();
         clean = clean.replace(/^[|/\\_\-\s├└─+•*~]+\s*/g, "").trim();
 
-        // Si la línea quedó vacía o solo contenía caracteres de unión tipo '|' o '---', ignorarla
         if (clean.length === 0 || /^[|/\\_\-\s.]+$/.test(clean)) return;
 
         if (index === 0 && (clean.endsWith("/") || (!clean.includes(".") && newFolders.length === 0 && clean.toUpperCase().includes("ANEXOS")))) {
@@ -756,7 +589,7 @@
               const p = Math.round(m.progress * 100);
               progressBar.style.width = p + "%";
               percentageLabel.textContent = p + "%";
-              progressLabel.textContent = "Leyendo imagen con IA (" + p + "%)...";
+              progressLabel.textContent = "Leyendo imagen con OCR (" + p + "%)...";
             }
           }
         });
@@ -795,7 +628,6 @@
       }
     }
 
-        // 6. RENDERIZADO DEL ÁRBOL EN PANEL IZQUIERDO CON OPCIONES DE AGREGAR / EDITAR / ELIMINAR
     function renderFolderTree() {
       const proj = getCurrentProject();
       if (!proj) return;
@@ -810,7 +642,6 @@
 
       container.innerHTML = "";
 
-      // Cabecera de la Raíz del Expediente
       const rootBanner = document.createElement("div");
       rootBanner.className = "p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-lg flex items-center justify-between text-indigo-900 font-bold mb-3";
       rootBanner.innerHTML = 
@@ -842,7 +673,6 @@
         itemDiv.className = "p-2.5 rounded-xl border transition flex items-center justify-between group " +
           (isSelected ? "bg-indigo-600 text-white border-indigo-600 shadow-md" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700");
 
-        // Sección izquierda clickeable para seleccionar carpeta
         const selectSection = document.createElement("div");
         selectSection.className = "flex items-center space-x-2.5 overflow-hidden flex-1 cursor-pointer mr-2";
         selectSection.onclick = function() { selectFolder(folder.id); };
@@ -853,7 +683,6 @@
             '<p class="text-[10px] ' + (isSelected ? "text-indigo-200" : "text-slate-400") + '">' + uploadedCount + '/' + folderDocsCount + ' anexos</p>' +
           '</div>';
 
-        // Sección derecha: botones de acción (renombrar, eliminar, estatus)
         const actionsSection = document.createElement("div");
         actionsSection.className = "flex items-center space-x-1 shrink-0";
 
@@ -887,7 +716,6 @@
       infoTotal.textContent = totalUploaded + " de " + totalDocs + " archivos integrados";
     }
 
-    // 7. SELECCIONAR CARPETA Y MOSTRAR DETALLE CON GESTIÓN COMPLETA DE DOCUMENTOS
     function selectFolder(folderId) {
       activeFolderId = folderId;
       renderFolderTree();
@@ -906,7 +734,6 @@
         driveBadge.classList.add("hidden");
       }
 
-      // Inyectar barra de herramientas de la carpeta activa en el encabezado
       updateFolderHeaderActions(folder);
 
       const detailContainer = document.getElementById("folder-detail-container");
@@ -928,7 +755,6 @@
 
         const isReady = doc.fileBase64 || doc.uploaded;
 
-        // Cabecera del documento / anexo
         const headerDiv = document.createElement("div");
         headerDiv.className = "flex justify-between items-start gap-2";
 
@@ -949,7 +775,6 @@
             '<p class="text-xs text-slate-600 mt-1 leading-relaxed">' + doc.description + '</p>' +
           '</div>';
 
-        // Acciones por documento: Editar nombre/descripción y Eliminar anexo
         const docActions = document.createElement("div");
         docActions.className = "flex items-center space-x-1 shrink-0";
 
@@ -972,7 +797,6 @@
         headerDiv.appendChild(docActions);
         docCard.appendChild(headerDiv);
 
-        // Área de Archivo o Dropzone
         const dropzoneContainer = document.createElement("div");
         dropzoneContainer.className = "mt-2";
 
@@ -1011,7 +835,6 @@
             actionsRight.appendChild(viewLink);
           }
 
-          // Botón para quitar el archivo adjunto
           const detachFileBtn = document.createElement("button");
           detachFileBtn.className = "px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-100 rounded transition";
           detachFileBtn.title = "Quitar archivo adjunto de esta casilla";
@@ -1050,7 +873,6 @@
         detailContainer.appendChild(docCard);
       });
 
-      // Botón visible al pie para agregar anexo a esta carpeta
       const addDocBtn = document.createElement("button");
       addDocBtn.className = "w-full py-2.5 border-2 border-dashed border-slate-300 hover:border-indigo-500 text-slate-600 hover:text-indigo-600 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition";
       addDocBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
@@ -1058,7 +880,6 @@
       detailContainer.appendChild(addDocBtn);
     }
 
-    // Actualiza los botones de acción rápida de la carpeta activa en la barra superior
     function updateFolderHeaderActions(folder) {
       const headerTitleContainer = document.getElementById("active-folder-title").parentElement;
       let toolsBar = document.getElementById("active-folder-tools-bar");
@@ -1070,19 +891,16 @@
       }
       toolsBar.innerHTML = "";
 
-      // Botón + Agregar Anexo
       const addBtn = document.createElement("button");
       addBtn.className = "px-2.5 py-1 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg transition inline-flex items-center space-x-1";
       addBtn.innerHTML = '<i class="fa-solid fa-file-circle-plus"></i><span>+ Anexo</span>';
       addBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
 
-      // Botón Renombrar Carpeta
       const renBtn = document.createElement("button");
       renBtn.className = "px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-indigo-700 hover:bg-slate-100 border border-slate-200 rounded-lg transition inline-flex items-center space-x-1";
       renBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i><span>Renombrar</span>';
       renBtn.onclick = function() { renameFolderPrompt(folder.id); };
 
-      // Botón Eliminar Carpeta
       const delBtn = document.createElement("button");
       delBtn.className = "px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition inline-flex items-center space-x-1";
       delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i><span>Eliminar Carpeta</span>';
@@ -1093,11 +911,139 @@
       toolsBar.appendChild(delBtn);
     }
 
-    // FUNCIONES DE EDICIÓN Y ELIMINACIÓN DE CARPETAS Y EXPEDIENTE
+    function handleFileChosen(event, folderId, docId) {
+      const file = event.target.files[0];
+      if (!file) return;
+      processFileForDoc(folderId, docId, file);
+    }
+
+    function handleFileDrop(event, folderId, docId) {
+      event.preventDefault();
+      const file = event.dataTransfer.files[0];
+      if (!file) return;
+      processFileForDoc(folderId, docId, file);
+    }
+
+    function processFileForDoc(folderId, docId, file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result.split(",")[1];
+        const proj = getCurrentProject();
+        const folder = proj.folders.find(function(f) { return f.id === folderId; });
+        if (!folder) return;
+        const doc = folder.docs.find(function(d) { return d.id === docId; });
+        if (!doc) return;
+
+        doc.fileName = file.name;
+        doc.fileSize = file.size;
+        doc.fileMime = file.type || "application/pdf";
+        doc.fileBase64 = base64Data;
+        doc.uploaded = false;
+
+        saveProjectsToLocalStorage();
+        selectFolder(folderId);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearSelectedFile(folderId, docId) {
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (!folder) return;
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
+      if (!doc) return;
+
+      doc.fileName = null;
+      doc.fileSize = null;
+      doc.fileBase64 = null;
+      doc.uploaded = false;
+      doc.driveFileId = null;
+      doc.driveFileUrl = null;
+
+      saveProjectsToLocalStorage();
+      selectFolder(folderId);
+    }
+
+    function addNewFolderPrompt() {
+      const name = prompt("Nombre de la nueva carpeta (ej. 06_ANEXO_COMPLEMENTARIO):");
+      if (!name || !name.trim()) return;
+
+      const proj = getCurrentProject();
+      const newFolder = {
+        id: "f_" + Date.now(),
+        name: name.trim().replace(/\s+/g, "_").toUpperCase(),
+        titleDisplay: name.trim(),
+        driveFolderId: null,
+        docs: []
+      };
+
+      proj.folders.push(newFolder);
+      saveProjectsToLocalStorage();
+      renderFolderTree();
+      selectFolder(newFolder.id);
+    }
+
+    function addDocToFolderPrompt(folderId) {
+      const name = prompt("Nombre sugerido del archivo (ej. 02.3_Convenio_Modificatorio.pdf):");
+      if (!name || !name.trim()) return;
+      const desc = prompt("Descripción documental:", "Documento complementario solicitado.");
+
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (folder) {
+        folder.docs.push({
+          id: "d_" + Date.now(),
+          suggestedName: name.trim(),
+          description: desc || "",
+          required: true,
+          uploaded: false,
+          driveFileId: null,
+          fileName: null,
+          fileSize: null,
+          fileBase64: null,
+          fileMime: null
+        });
+        saveProjectsToLocalStorage();
+        selectFolder(folderId);
+      }
+    }
+
+    function editDocRequirementPrompt(folderId, docId) {
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (!folder) return;
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
+      if (!doc) return;
+
+      const newName = prompt("Nombre sugerido del archivo:", doc.suggestedName);
+      if (!newName || !newName.trim()) return;
+
+      const newDesc = prompt("Descripción / Sugerencia documental:", doc.description);
+      const isReq = confirm("¿Este documento es OBLIGATORIO?\n(Presiona 'Aceptar' para Obligatorio, o 'Cancelar' para Opcional)");
+
+      doc.suggestedName = newName.trim();
+      doc.description = (newDesc !== null ? newDesc.trim() : doc.description);
+      doc.required = isReq;
+
+      saveProjectsToLocalStorage();
+      selectFolder(folderId);
+    }
+
+    function removeDocRequirement(folderId, docId) {
+      if (!confirm("¿Deseas eliminar este requerimiento de anexo?")) return;
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (folder) {
+        folder.docs = folder.docs.filter(function(d) { return d.id !== docId; });
+        saveProjectsToLocalStorage();
+        selectFolder(folderId);
+      }
+    }
+
     function renameRootPrompt() {
       const proj = getCurrentProject();
       if (!proj) return;
-      const newName = prompt("Ingrese el nuevo nombre para la carpeta raíz del expediente:", proj.rootName);
+      const newName = prompt("Nuevo nombre para la carpeta raíz:", proj.rootName);
       if (!newName || !newName.trim()) return;
       proj.rootName = newName.trim().replace(/\s+/g, "_").toUpperCase();
       saveProjectsToLocalStorage();
@@ -1123,7 +1069,7 @@
       const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
 
-      if (!confirm('¿Seguro que deseas eliminar la carpeta "' + (folder.titleDisplay || folder.name) + '" y todos sus anexos?')) {
+      if (!confirm('¿Seguro que deseas eliminar la carpeta "' + (folder.titleDisplay || folder.name) + '"?')) {
         return;
       }
 
@@ -1145,27 +1091,6 @@
             '<button onclick="addNewFolderPrompt()" class="mt-3 text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold">+ Crear Carpeta</button>' +
           '</div>';
       }
-    }
-
-    function editDocRequirementPrompt(folderId, docId) {
-      const proj = getCurrentProject();
-      const folder = proj.folders.find(function(f) { return f.id === folderId; });
-      if (!folder) return;
-      const doc = folder.docs.find(function(d) { return d.id === docId; });
-      if (!doc) return;
-
-      const newName = prompt("Nombre sugerido del archivo:", doc.suggestedName);
-      if (!newName || !newName.trim()) return;
-
-      const newDesc = prompt("Descripción / Sugerencia documental:", doc.description);
-      const isReq = confirm("¿Este documento es OBLIGATORIO?\n(Presiona 'Aceptar' para Obligatorio, o 'Cancelar' para Opcional/Sugerido)");
-
-      doc.suggestedName = newName.trim();
-      doc.description = (newDesc !== null ? newDesc.trim() : doc.description);
-      doc.required = isReq;
-
-      saveProjectsToLocalStorage();
-      selectFolder(folderId);
     }
 
     async function syncAllToDrive() {
