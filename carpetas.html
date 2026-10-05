@@ -1071,17 +1071,19 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>';
 
       try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            accion: "crearEstructura",
-            rootName: proj.rootName,
-            existingRootId: proj.driveRootId,
-            folders: proj.folders.map(function(f) { return { id: f.id, name: f.name, driveFolderId: f.driveFolderId }; })
-          })
-        });
-
+       // FORMA COMPATIBLE CON CORS PARA GOOGLE APPS SCRIPT:
+const response = await fetch(APPS_SCRIPT_URL, {
+  method: "POST",
+  // No agregar cabeceras personalizadas para evitar preflight OPTIONS
+  body: JSON.stringify({
+    accion: "crearEstructura",
+    rootName: proj.rootName,
+    existingRootId: proj.driveRootId,
+    folders: proj.folders.map(function(f) {
+      return { id: f.id, name: f.name, driveFolderId: f.driveFolderId };
+    })
+  })
+});
         const data = await response.json();
 
         if (data.status === "error") {
