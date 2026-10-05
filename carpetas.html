@@ -8,11 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Tesseract.js para OCR de imágenes en el cliente -->
+  <!-- Tesseract.js para OCR de imágenes en cliente -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <!-- Google API Client & Identity Services -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
 
   <style>
     .custom-scrollbar::-webkit-scrollbar {
@@ -33,42 +30,81 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header / Navbar -->
+  <!-- Header / Navbar con Gestor de Proyectos y Estatus de Conexión -->
   <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
         <div class="w-10 h-10 rounded-lg bg-indigo-700 flex items-center justify-center text-amber-400 font-bold text-xl shadow-inner">
           <i class="fa-solid fa-folder-tree"></i>
         </div>
         <div>
-          <h1 class="text-lg font-bold tracking-tight">Armado Digital de Expediente</h1>
-          <p class="text-xs text-indigo-200">Estructuración, anexos y sincronización con Google Drive</p>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight">Armado Digital de Expediente</h1>
+          <p class="text-xs text-indigo-200">Sincronización directa con Google Drive (Apps Script)</p>
         </div>
       </div>
       
-      <!-- Estado de conexión con Drive -->
-      <div class="flex items-center space-x-3">
-        <div id="drive-status-badge" class="flex items-center space-x-2 text-xs bg-indigo-950/60 border border-indigo-800/80 px-3 py-1.5 rounded-full">
-          <span class="w-2.5 h-2.5 rounded-full bg-rose-500" id="drive-dot"></span>
-          <span id="drive-status-text" class="text-slate-200">Drive Desconectado</span>
+      <!-- Selector de Proyectos Guardados y Acciones -->
+      <div class="flex items-center space-x-2 flex-wrap">
+        <div class="flex items-center bg-indigo-950/80 border border-indigo-700/60 rounded-lg px-2.5 py-1 text-xs">
+          <label for="project-selector" class="text-indigo-200 mr-2 font-medium">Expediente:</label>
+          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
+            <!-- Se puebla dinámicamente -->
+          </select>
         </div>
-        <button id="btn-auth-drive" onclick="handleAuthClick()" class="inline-flex items-center space-x-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg shadow-sm transition">
-          <i class="fa-brands fa-google-drive"></i>
-          <span id="btn-auth-text">Conectar Google</span>
+
+        <button onclick="createNewProjectPrompt()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Crear un nuevo expediente en blanco">
+          <i class="fa-solid fa-folder-plus"></i>
+          <span>Nuevo</span>
         </button>
+
+        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Descargar respaldo JSON de este expediente">
+          <i class="fa-solid fa-download"></i>
+          <span>Respaldo</span>
+        </button>
+
+        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1" title="Cargar respaldo JSON">
+          <i class="fa-solid fa-upload"></i>
+          <span>Cargar</span>
+          <input type="file" accept=".json" class="hidden" onchange="importProjectJSON(event)">
+        </label>
       </div>
     </div>
   </header>
 
+  <!-- Banner Informativo del Expediente Activo -->
+  <div class="bg-white border-b border-slate-200 px-4 sm:px-8 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center text-xs gap-3">
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-500">Expediente actual:</span>
+        <span id="active-project-name" class="font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono">ANEXOS_SOLVENTACION_OBS_035_FORUM</span>
+        <span id="drive-root-link" class="hidden">
+          <a href="#" target="_blank" id="drive-root-url" class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center space-x-1 underline">
+            <i class="fa-brands fa-google-drive"></i>
+            <span>Ver en Google Drive</span>
+          </a>
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-4 text-slate-600">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span>Apps Script Conectado</span>
+        </div>
+        <span class="text-slate-300">|</span>
+        <span id="autosave-indicator" class="text-[11px] text-slate-400 italic">Guardado localmente</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Contenedor Principal -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
 
-    <!-- Tarjeta de Definición de Estructura (Tabs: Texto / Imagen / Plantilla) -->
+    <!-- 1. Definición / Edición de la Estructura -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="border-b border-slate-200 bg-slate-100/70 px-6 py-3 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center space-x-2 text-slate-700 font-semibold text-sm">
           <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
-          <span>1. Definición de la Estructura de Carpetas y Anexos</span>
+          <span>1. Estructura de Carpetas y Anexos</span>
         </div>
         
         <!-- Pestañas de modo -->
@@ -79,8 +115,8 @@
           <button id="tab-btn-ocr" onclick="switchInputTab('ocr')" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">
             <i class="fa-solid fa-camera mr-1"></i> Subir Imagen (OCR)
           </button>
-          <button id="tab-btn-template" onclick="loadDefaultTemplate()" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">
-            <i class="fa-solid fa-folder-open mr-1"></i> Cargar Ejemplo Demo
+          <button id="tab-btn-template" onclick="loadDefaultTemplate(true)" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Reiniciar al Ejemplo
           </button>
         </div>
       </div>
@@ -89,17 +125,14 @@
         <!-- Modo 1: Editor de Texto / Árbol -->
         <div id="tab-text-content" class="space-y-3">
           <p class="text-xs text-slate-500">
-            Pega o escribe tu jerarquía usando caracteres como <code>|--</code>, viñetas (<code>-</code>) o sangrías. Las líneas con extensión de archivo (<code>.pdf</code>, <code>.xlsx</code>, etc.) se reconocerán como documentos sugeridos.
+            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code>.pdf</code>, <code>.xlsx</code>, etc.) se reconocerán como documentos o anexos requeridos.
           </p>
-          <textarea id="raw-structure-input" rows="8" class="w-full font-mono text-xs bg-slate-900 text-emerald-400 p-3.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none custom-scrollbar" placeholder="📁 ANEXOS_EXPEDIENTE/
-|-- 01_CARPETA_ADMINISTRATIVA/
-|   |-- 01.1_Oficio_Presentacion.pdf
-|-- 02_CARPETA_FINANCIERA/
-|   |-- 02.1_Estado_Cuenta.pdf"></textarea>
-          <div class="flex justify-end">
+          <textarea id="raw-structure-input" rows="7" class="w-full font-mono text-xs bg-slate-900 text-emerald-400 p-3.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none custom-scrollbar" placeholder="📁 NOMBRE_EXPEDIENTE/&#10;|-- 01_CARPETA_ADMINISTRATIVA/&#10;|   |-- 01.1_Oficio_Presentacion.pdf"></textarea>
+          <div class="flex justify-between items-center">
+            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, los nombres de carpetas existentes se preservarán.</span>
             <button onclick="parseAndBuildTree()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
               <i class="fa-solid fa-arrows-rotate"></i>
-              <span>Procesar Estructura</span>
+              <span>Actualizar Estructura</span>
             </button>
           </div>
         </div>
@@ -111,13 +144,13 @@
             <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
               <i class="fa-solid fa-file-image text-xl"></i>
             </div>
-            <p class="text-sm font-semibold text-slate-700">Arrastra o haz clic para subir la captura de la estructura</p>
-            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de árbol de carpetas, esquemas impresos o listas en imagen</p>
+            <p class="text-sm font-semibold text-slate-700">Arrastra o haz clic para subir una captura de pantalla del árbol de carpetas</p>
+            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con IA/OCR</p>
           </div>
 
           <div id="ocr-progress-container" class="hidden bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-2">
             <div class="flex justify-between text-xs font-medium text-slate-700">
-              <span id="ocr-status-label">Leyendo imagen con IA/OCR...</span>
+              <span id="ocr-status-label">Leyendo imagen...</span>
               <span id="ocr-percentage">0%</span>
             </div>
             <div class="w-full bg-slate-300 rounded-full h-2 overflow-hidden">
@@ -128,40 +161,36 @@
       </div>
     </section>
 
-    <!-- Sección de Armado y Carga de Anexos (2 Paneles) -->
+    <!-- 2. Sección Interactiva: Árbol y Carga de Documentos -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
       
-      <!-- Panel Izquierdo: Árbol Visual del Expediente (5 columnas) -->
-      <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[720px]">
+      <!-- Panel Izquierdo: Árbol de Carpetas (5 cols) -->
+      <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         <div class="border-b border-slate-200 bg-slate-50 px-4 py-3 flex justify-between items-center">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-folder text-amber-500"></i>
-            <span class="font-bold text-slate-700 text-sm">Explorador de Carpetas</span>
+            <span class="font-bold text-slate-700 text-sm">Carpetas del Expediente</span>
           </div>
           <span id="tree-items-counter" class="text-xs bg-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">0 carpetas</span>
         </div>
 
         <!-- Árbol Interactivo -->
         <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700">
-          <div class="text-center py-12 text-slate-400">
-            <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
-            <p class="text-xs">No hay estructura cargada aún.</p>
-            <p class="text-[11px] text-slate-400 mt-1">Haz clic en <strong>"Cargar Ejemplo Demo"</strong> o procesa tu propio texto/imagen.</p>
-          </div>
+          <!-- Renderizado dinámico -->
         </div>
 
-        <!-- Barra inferior del árbol: acciones globales -->
+        <!-- Barra inferior del árbol: acciones rápidas -->
         <div class="border-t border-slate-200 bg-slate-50 p-3 flex justify-between items-center text-xs">
           <button onclick="addNewFolderPrompt()" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center space-x-1">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Nueva Carpeta</span>
           </button>
-          <span class="text-slate-400" id="total-anexos-info">0 anexos configurados</span>
+          <span class="text-slate-400" id="total-anexos-info">0 archivos listos</span>
         </div>
       </div>
 
-      <!-- Panel Derecho: Carga de Archivos para la Carpeta Seleccionada (7 columnas) -->
-      <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[720px]">
+      <!-- Panel Derecho: Detalle de la Carpeta y Carga de Anexos (7 cols) -->
+      <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         
         <!-- Encabezado de la Carpeta Activa -->
         <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex flex-wrap justify-between items-center gap-3">
@@ -170,72 +199,43 @@
               <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded" id="active-folder-badge">Carpeta Seleccionada</span>
               <h2 id="active-folder-title" class="font-bold text-slate-800 text-base">Seleccione una carpeta</h2>
             </div>
-            <p id="active-folder-path" class="text-xs text-slate-400 mt-0.5 font-mono">/raíz</p>
+            <div class="flex items-center space-x-2 mt-1">
+              <p id="active-folder-path" class="text-xs text-slate-400 font-mono">/raíz</p>
+              <span id="active-folder-drive-status" class="hidden text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.2 rounded-full">
+                <i class="fa-solid fa-cloud-check mr-1"></i>Sincronizada en Drive
+              </span>
+            </div>
           </div>
 
-          <!-- Botón de Sincronizar / Crear en Drive -->
-          <button id="btn-sync-folder-drive" onclick="syncFolderToDrive()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition disabled:opacity-50" disabled>
-            <i class="fa-brands fa-google-drive"></i>
-            <span>Crear y Subir a Drive</span>
-          </button>
+          <!-- Acciones de Sincronización en Drive -->
+          <div class="flex items-center space-x-2">
+            <button id="btn-sync-all-drive" onclick="syncAllToDrive()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span>Crear Estructura en Drive</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Contenido de Anexos y Documentos de la Carpeta -->
-        <div id="folder-detail-container" class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+        <!-- Contenedor de Anexos y Documentos de la Carpeta -->
+        <div id="folder-detail-container" class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-4">
           <div class="text-center py-16 text-slate-400">
             <i class="fa-solid fa-arrow-left text-2xl mb-2 text-slate-300 block"></i>
             <p class="text-sm font-medium">Selecciona una carpeta del panel izquierdo</p>
-            <p class="text-xs text-slate-400 mt-1">Podrás ver los documentos sugeridos, agregar nuevos y subir tus anexos en PDF o imagen.</p>
+            <p class="text-xs text-slate-400 mt-1">Podrás cargar anexos, subir archivos adicionales y enviarlos a Google Drive.</p>
           </div>
         </div>
 
-        <!-- Resumen de Cargas Listas -->
+        <!-- Barra de Estado Inferior -->
         <div class="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-between items-center text-xs">
-          <div class="flex items-center space-x-2 text-slate-600">
-            <i class="fa-solid fa-shield-halved text-emerald-600"></i>
-            <span>Los archivos se asocian localmente y se transmiten directamente a su Drive.</span>
+          <div class="flex items-center space-x-2 text-slate-500">
+            <i class="fa-solid fa-circle-info text-indigo-500"></i>
+            <span>Puedes regresar a esta página en cualquier momento; tus archivos y carpetas quedan guardados.</span>
           </div>
-          <button onclick="syncAllToDrive()" class="text-emerald-700 hover:text-emerald-800 font-bold flex items-center space-x-1">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span>Sincronizar Todo el Expediente</span>
-          </button>
         </div>
 
       </div>
 
     </section>
-
-    <!-- Modal / Drawer de Configuración de API Drive (Opcional si usa API Keys personalizadas) -->
-    <div id="drive-config-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-bold text-slate-800 text-base flex items-center space-x-2">
-            <i class="fa-brands fa-google text-indigo-600"></i>
-            <span>Configuración de Google Drive API</span>
-          </h3>
-          <button onclick="toggleDriveModal(false)" class="text-slate-400 hover:text-slate-600 text-sm">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-          Para que el sistema se comunique directamente con Google Drive desde el navegador, se requiere tu <strong>Client ID</strong> de Google Cloud Console (con API Drive activada).
-        </p>
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Google Client ID (OAuth 2.0):</label>
-            <input type="text" id="cfg-client-id" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 font-mono" placeholder="ej. 123456789-xxxxxx.apps.googleusercontent.com">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">ID de Carpeta Raíz de Drive (Opcional):</label>
-            <input type="text" id="cfg-parent-folder" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 font-mono" placeholder="Dejar en blanco para guardar en Mi Unidad">
-          </div>
-        </div>
-        <div class="mt-6 flex justify-end space-x-2">
-          <button onclick="toggleDriveModal(false)" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
-          <button onclick="saveDriveConfig()" class="px-4 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded">Guardar y Conectar</button>
-        </div>
-      </div>
-    </div>
 
   </main>
 
@@ -243,49 +243,74 @@
   <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
       <span>Sistema de Armado Digital de Expedientes • SECUL</span>
-      <span>Diseñado para Cloudflare Pages & Google Workspace</span>
+      <span>Conexión Webhook Activa con Google Apps Script</span>
     </div>
   </footer>
 
-  <!-- Lógica en JavaScript del Sistema -->
+  <!-- SCRIPT DE LÓGICA DEL SISTEMA -->
   <script>
+    // ==========================================
+    // CONFIGURACIÓN DE TU APPS SCRIPT WEB APP
+    // ==========================================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8pZEo47Cg1skUMe5Ad9u4idFGkCuVis-J24Ab4FgBiX23zKx4ayx7qSfaJHZkm3SvZQ/exec";
+
     // ESTADO GLOBAL DE LA APLICACIÓN
-    let expedienteData = {
-      rootName: "ANEXOS_SOLVENTACION_OBS_035_FORUM",
-      folders: []
-    };
+    let allProjects = {}; // Diccionario con todos los proyectos guardados { projectId: expedienteData }
+    let currentProjectId = null;
     let activeFolderId = null;
-    let driveToken = null;
-    let tokenClient = null;
 
-    // CLIENT ID CONFIGURABLE (Se guarda en localStorage)
-    let GOOGLE_CLIENT_ID = localStorage.getItem('secul_drive_client_id') || "";
-    let DRIVE_PARENT_ID = localStorage.getItem('secul_drive_parent_id') || "root";
-    const SCOPES = "https://www.googleapis.com/auth/drive.file";
-
-    // INICIALIZACIÓN
+    // INICIALIZACIÓN AL CARGAR LA PÁGINA
     window.addEventListener('DOMContentLoaded', () => {
-      // Cargar plantilla ejemplo por defecto para comenzar de inmediato
-      loadDefaultTemplate();
-      initGoogleAuth();
+      loadProjectsFromLocalStorage();
+      
+      // Si no hay proyectos guardados en el navegador, inicializamos con la plantilla ejemplo
+      if (Object.keys(allProjects).length === 0) {
+        loadDefaultTemplate(false);
+      } else {
+        // Seleccionamos el último proyecto abierto o el primero
+        const savedActiveId = localStorage.getItem('secul_active_project_id');
+        if (savedActiveId && allProjects[savedActiveId]) {
+          currentProjectId = savedActiveId;
+        } else {
+          currentProjectId = Object.keys(allProjects)[0];
+        }
+        updateProjectSelector();
+        loadCurrentProjectUI();
+      }
     });
 
     // 1. CARGA DE PLANTILLA POR DEFECTO (Ejemplo de las imágenes del usuario)
-    function loadDefaultTemplate() {
-      expedienteData = {
+    function loadDefaultTemplate(forceReset = false) {
+      if (forceReset && !confirm("¿Deseas reiniciar la estructura al ejemplo por defecto de solventación de observaciones?")) {
+        return;
+      }
+
+      const defaultId = "proj_solventacion_035";
+      const demoData = {
+        id: defaultId,
         rootName: "ANEXOS_SOLVENTACION_OBS_035_FORUM",
+        driveRootId: null, // Se asignará cuando se cree en Drive
+        driveRootUrl: null,
+        lastModified: new Date().toISOString(),
         folders: [
           {
             id: "f_01",
             name: "01_ANEXO_ACTA_COMITE",
             titleDisplay: "Carpeta 01 (Acta del Comité)",
+            driveFolderId: null,
             docs: [
               {
                 id: "d_01_1",
                 suggestedName: "01.1_Acta_Comite_Extincion_10_Dic_2025_Firmada.pdf",
                 description: "Copia digital certificada del Acta de la Sesión del Comité de Extinción de fecha 10 de diciembre de 2025, conteniendo el registro íntegro de firmas autógrafas de todos sus integrantes, acompañada de su respectiva convocatoria y lista de asistencia digitalizada.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                driveFileUrl: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               }
             ]
           },
@@ -293,20 +318,31 @@
             id: "f_02",
             name: "02_ANEXO_JURIDICO_Y_LABORAL",
             titleDisplay: "Carpeta 02 (Jurídico y Laboral)",
+            driveFolderId: null,
             docs: [
               {
                 id: "d_02_1",
                 suggestedName: "02.1_Cedula_Analitica_Inventario_7_Litigios.pdf",
                 description: "Cédula analítica en formato PDF/Excel que desglose los 7 expedientes (que contenga como mínimo: número de juicio, juzgado de radicación, partes, estado procesal actual y cuantía o contingencia estimada).",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               },
               {
                 id: "d_02_2",
                 suggestedName: "02.2_Soporte_Documental_Pagos_Laudo_Y_Prestaciones.pdf",
                 description: "Comprobantes de depósito, fichas de consignación ante el tribunal laboral o respaldos de billetes de depósito respecto al laudo del extrabajador y las prestaciones de la trabajadora finada.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               }
             ]
           },
@@ -314,27 +350,43 @@
             id: "f_03",
             name: "03_ANEXO_FINANCIERO_Y_CONTABLE",
             titleDisplay: "Carpeta 03 (Financiero y Contable)",
+            driveFolderId: null,
             docs: [
               {
                 id: "d_03_1",
                 suggestedName: "03.1_Estado_Situacion_Financiera_Analitico.pdf",
                 description: "Estado de Situación Financiera analítico con corte a la fecha de cierre de operaciones, validado por el área contable.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               },
               {
                 id: "d_03_2",
                 suggestedName: "03.2_Conciliaciones_Bancarias_Al_Corte.pdf",
                 description: "Estados de cuenta bancarios con ceros o saldos mínimos indispensables, junto con sus cédulas de conciliación bancaria y la comprobación de transferencia de remanentes a la Secretaría de Finanzas.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               },
               {
                 id: "d_03_3",
                 suggestedName: "03.3_Depuracion_Y_Cierre_De_Pasivos.pdf",
                 description: "Soporte documental de depuración y extinción de pasivos contables.",
                 required: false,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               }
             ]
           },
@@ -342,20 +394,31 @@
             id: "f_04",
             name: "04_ANEXO_ARCHIVO_Y_DOCUMENTAL",
             titleDisplay: "Carpeta 04 (Archivo y Documental)",
+            driveFolderId: null,
             docs: [
               {
                 id: "d_04_1",
                 suggestedName: "04.1_Inventario_Documental_Formatos_AGE_2023_2024.pdf",
                 description: "Inventarios documentales de los archivos de trámite y concentración correspondientes a los ejercicios 2023 y 2024, elaborados estrictamente en los Formatos Oficiales emitidos por el Archivo General del Estado.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               },
               {
                 id: "d_04_2",
                 suggestedName: "04.2_Actas_De_Transferencia_Y_Custodia_De_Acervo.pdf",
                 description: "Acta de entrega-recepción física y topográfica del acervo, especificando la asignación formal de custodias para blindar la memoria institucional.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               }
             ]
           },
@@ -363,37 +426,193 @@
             id: "f_05",
             name: "05_INFORMES_LIQUIDADOR",
             titleDisplay: "Carpeta 05 (Informes periódicos del Liquidador y Matriz)",
+            driveFolderId: null,
             docs: [
               {
                 id: "d_05_1",
                 suggestedName: "05.1_reportes_mensuales_2025.pdf",
                 description: "Los reportes mensuales de avance que el Lic. Liquidador rindió formalmente durante el ejercicio 2025 a la Presidencia del Comité de Extinción.",
                 required: true,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               },
               {
                 id: "d_05_2",
                 suggestedName: "05.2_matriz_digital_seguimiento.pdf",
                 description: "Un reporte impreso (captura ejecutiva en PDF) de la matriz digital de seguimiento donde se visualicen los hitos, responsables y estatus (a tu consideración si estimas oportuno).",
                 required: false,
-                file: null
+                uploaded: false,
+                driveFileId: null,
+                fileName: null,
+                fileSize: null,
+                fileBase64: null,
+                fileMime: null
               }
             ]
           }
         ]
       };
 
-      // Reflejar texto en el textarea
-      document.getElementById('raw-structure-input').value = generateTreeRepresentation(expedienteData);
-      renderFolderTree();
-      selectFolder(expedienteData.folders[0].id);
+      allProjects[defaultId] = demoData;
+      currentProjectId = defaultId;
+      saveProjectsToLocalStorage();
+      updateProjectSelector();
+      loadCurrentProjectUI();
     }
 
-    // Genera representación textual con caracteres de árbol
-    function generateTreeRepresentation(data) {
-      let text = `📁 ${data.rootName}/
+    // 2. GESTIÓN DE PROYECTOS (LOCALSTORAGE)
+    function saveProjectsToLocalStorage() {
+      if (currentProjectId && allProjects[currentProjectId]) {
+        allProjects[currentProjectId].lastModified = new Date().toISOString();
+      }
+      localStorage.setItem('secul_expedientes_projects', JSON.stringify(allProjects));
+      localStorage.setItem('secul_active_project_id', currentProjectId);
+      
+      const indicator = document.getElementById('autosave-indicator');
+      if (indicator) {
+        indicator.textContent = "Guardado: " + new Date().toLocaleTimeString();
+      }
+    }
+
+    function loadProjectsFromLocalStorage() {
+      const stored = localStorage.getItem('secul_expedientes_projects');
+      if (stored) {
+        try {
+          allProjects = JSON.parse(stored);
+        } catch (e) {
+          console.error("Error al cargar proyectos de localStorage:", e);
+          allProjects = {};
+        }
+      }
+    }
+
+    function updateProjectSelector() {
+      const select = document.getElementById('project-selector');
+      select.innerHTML = '';
+      
+      Object.keys(allProjects).forEach(projId => {
+        const proj = allProjects[projId];
+        const opt = document.createElement('option');
+        opt.value = proj.id;
+        opt.textContent = proj.rootName + (proj.driveRootId ? " ☁️" : "");
+        if (proj.id === currentProjectId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function onProjectSelectChanged(newProjectId) {
+      if (allProjects[newProjectId]) {
+        currentProjectId = newProjectId;
+        localStorage.setItem('secul_active_project_id', currentProjectId);
+        loadCurrentProjectUI();
+      }
+    }
+
+    function createNewProjectPrompt() {
+      const name = prompt("Ingrese el nombre del nuevo expediente (ej. EXPEDIENTE_ADQUISICIONES_2026):");
+      if (!name || !name.trim()) return;
+
+      const newId = "proj_" + Date.now();
+      allProjects[newId] = {
+        id: newId,
+        rootName: name.trim().replace(/\s+/g, '_').toUpperCase(),
+        driveRootId: null,
+        driveRootUrl: null,
+        lastModified: new Date().toISOString(),
+        folders: []
+      };
+
+      currentProjectId = newId;
+      saveProjectsToLocalStorage();
+      updateProjectSelector();
+      loadCurrentProjectUI();
+    }
+
+    function exportCurrentProjectJSON() {
+      const proj = getCurrentProject();
+      if (!proj) return;
+      const jsonStr = JSON.stringify(proj, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${proj.rootName}_respaldo.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importProjectJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!imported.rootName || !imported.folders) {
+            throw new Error("Formato de JSON no válido para expediente");
+          }
+          const importedId = imported.id || "proj_" + Date.now();
+          imported.id = importedId;
+          allProjects[importedId] = imported;
+          currentProjectId = importedId;
+          saveProjectsToLocalStorage();
+          updateProjectSelector();
+          loadCurrentProjectUI();
+          alert("¡Expediente importado exitosamente!");
+        } catch (err) {
+          alert("Error al importar archivo JSON: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function getCurrentProject() {
+      return allProjects[currentProjectId];
+    }
+
+    // 3. ACTUALIZACIÓN VISUAL DEL EXPEDIENTE SELECCIONADO
+    function loadCurrentProjectUI() {
+      const proj = getCurrentProject();
+      if (!proj) return;
+
+      document.getElementById('active-project-name').textContent = proj.rootName;
+      document.getElementById('raw-structure-input').value = generateTreeRepresentation(proj);
+
+      // Enlace de Google Drive si ya fue creado
+      const driveRootBadge = document.getElementById('drive-root-link');
+      const driveRootUrl = document.getElementById('drive-root-url');
+      if (proj.driveRootId) {
+        driveRootBadge.classList.remove('hidden');
+        driveRootUrl.href = `https://drive.google.com/drive/folders/${proj.driveRootId}`;
+        document.getElementById('btn-sync-all-drive').innerHTML = `<i class="fa-solid fa-cloud-check"></i><span>Sincronizar Cambios con Drive</span>`;
+      } else {
+        driveRootBadge.classList.add('hidden');
+        document.getElementById('btn-sync-all-drive').innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>`;
+      }
+
+      renderFolderTree();
+      if (proj.folders.length > 0) {
+        selectFolder(proj.folders[0].id);
+      } else {
+        document.getElementById('folder-detail-container').innerHTML = `
+          <div class="text-center py-16 text-slate-400">
+            <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+            <p class="text-sm font-medium">Este expediente no tiene carpetas aún.</p>
+            <p class="text-xs text-slate-400 mt-1">Escribe la estructura arriba o haz clic en "Nueva Carpeta".</p>
+          </div>
+        `;
+      }
+    }
+
+    function generateTreeRepresentation(proj) {
+      let text = `📁 ${proj.rootName}/
 `;
-      data.folders.forEach((f, idx) => {
+      proj.folders.forEach(f => {
         text += `|-- 📁 ${f.name}/
 `;
         f.docs.forEach(d => {
@@ -404,65 +623,75 @@
       return text;
     }
 
-    // 2. PARSEADOR INTELIGENTE DE TEXTO A ÁRBOL
+    // 4. PARSER INTELIGENTE DE TEXTO / DIAGRAMA A ESTRUCTURA
     function parseAndBuildTree() {
       const raw = document.getElementById('raw-structure-input').value;
       if (!raw.trim()) {
-        alert("Por favor ingrese texto con la estructura de carpetas.");
+        alert("Por favor escribe o pega texto con la estructura de carpetas.");
         return;
       }
 
-      const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const proj = getCurrentProject();
+      const lines = raw.split('
+').map(l => l.trim()).filter(l => l.length > 0);
       let newFolders = [];
       let currentFolder = null;
-      let rootName = "EXPEDIENTE_DIGITAL";
+      let detectedRoot = proj.rootName;
 
       lines.forEach((line, index) => {
-        // Limpieza de símbolos gráficos de árbol
         let clean = line.replace(/^[|\s├└─\-\+]+/g, '').trim();
         clean = clean.replace(/^[📁📄📂📝]+\s*/g, '').trim();
-
         if (clean.length === 0) return;
 
-        // Si es la primera línea y termina en / o parece raíz
         if (index === 0 && (clean.endsWith('/') || !clean.includes('.'))) {
-          rootName = clean.replace(/\/$/, '').trim();
+          detectedRoot = clean.replace(/\/$/, '').trim();
           return;
         }
 
-        const isDoc = clean.match(/\.(pdf|docx|xlsx|xls|png|jpg|jpeg|zip|xml)$/i) || clean.toLowerCase().includes('anexo_') && clean.includes('.');
+        const isDoc = clean.match(/\.(pdf|docx|xlsx|xls|png|jpg|jpeg|zip|xml)$/i) || (clean.toLowerCase().includes('anexo_') && clean.includes('.'));
 
         if (!isDoc && (clean.endsWith('/') || !clean.includes('.') || clean.toLowerCase().includes('carpeta') || clean.toLowerCase().includes('anexo'))) {
-          // Es una carpeta
           const folderName = clean.replace(/\/$/, '').trim();
+          // Si ya existía esta carpeta en el proyecto, preservamos sus IDs y documentos ya cargados
+          const existingFolder = proj.folders.find(f => f.name.toLowerCase() === folderName.toLowerCase());
+          
           currentFolder = {
-            id: 'f_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            id: existingFolder ? existingFolder.id : ('f_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
             name: folderName,
-            titleDisplay: folderName,
-            docs: []
+            titleDisplay: existingFolder ? existingFolder.titleDisplay : folderName,
+            driveFolderId: existingFolder ? existingFolder.driveFolderId : null,
+            docs: existingFolder ? existingFolder.docs : []
           };
           newFolders.push(currentFolder);
         } else {
-          // Es un documento / anexo
           const isOptional = clean.toLowerCase().includes('(opcional)') || clean.toLowerCase().includes('consideración');
           const cleanDocName = clean.replace(/\(.*?\)/g, '').trim();
-          
+
           const docObj = {
             id: 'd_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
             suggestedName: cleanDocName,
-            description: "Documento anexo correspondiente a " + (currentFolder ? currentFolder.name : "el expediente"),
+            description: "Documento anexo solicitado.",
             required: !isOptional,
-            file: null
+            uploaded: false,
+            driveFileId: null,
+            fileName: null,
+            fileSize: null,
+            fileBase64: null,
+            fileMime: null
           };
 
           if (currentFolder) {
-            currentFolder.docs.push(docObj);
+            // Evitar duplicar si ya existía el mismo nombre sugerido
+            const docExists = currentFolder.docs.find(d => d.suggestedName.toLowerCase() === cleanDocName.toLowerCase());
+            if (!docExists) {
+              currentFolder.docs.push(docObj);
+            }
           } else {
-            // Si vino un archivo antes de una carpeta, creamos una por defecto
             currentFolder = {
               id: 'f_default',
               name: '01_GENERALES',
               titleDisplay: '01_GENERALES',
+              driveFolderId: null,
               docs: [docObj]
             };
             newFolders.push(currentFolder);
@@ -470,22 +699,15 @@
         }
       });
 
-      if (newFolders.length === 0) {
-        alert("No se detectaron carpetas en el texto. Asegúrese de separar carpetas y archivos.");
-        return;
-      }
-
-      expedienteData = {
-        rootName: rootName,
-        folders: newFolders
-      };
-
-      renderFolderTree();
-      selectFolder(expedienteData.folders[0].id);
-      alert(`¡Estructura interpretada con éxito! Se generaron ${newFolders.length} carpetas.`);
+      proj.rootName = detectedRoot;
+      proj.folders = newFolders;
+      saveProjectsToLocalStorage();
+      updateProjectSelector();
+      loadCurrentProjectUI();
+      alert("¡Estructura procesada y guardada con éxito!");
     }
 
-    // 3. OCR DE IMÁGENES CON TESSERACT.JS
+    // 5. OCR DE IMÁGENES
     async function handleImageSelected(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -496,13 +718,13 @@
       const percentageLabel = document.getElementById('ocr-percentage');
 
       progressContainer.classList.remove('hidden');
-      progressBar.style.width = '5%';
-      progressLabel.textContent = "Cargando motor de reconocimiento OCR...";
+      progressBar.style.width = '10%';
+      progressLabel.textContent = "Iniciando motor de OCR...";
 
       try {
         const worker = await Tesseract.createWorker('spa');
+        progressLabel.textContent = "Leyendo diagrama de árbol en la imagen...";
         
-        progressLabel.textContent = "Analizando estructura en la imagen...";
         const ret = await worker.recognize(file, {
           logger: m => {
             if (m.status === 'recognizing text') {
@@ -514,23 +736,20 @@
         });
 
         await worker.terminate();
-        progressLabel.textContent = "Extracción finalizada";
+        progressLabel.textContent = "Extracción completada";
         progressBar.style.width = '100%';
 
-        // Pasamos el texto al textarea y procesamos
         document.getElementById('raw-structure-input').value = ret.data.text;
         switchInputTab('text');
         parseAndBuildTree();
-
       } catch (err) {
         console.error(err);
-        alert("Ocurrió un error al procesar la imagen: " + err.message);
+        alert("Error al leer la imagen: " + err.message);
       } finally {
         setTimeout(() => progressContainer.classList.add('hidden'), 2000);
       }
     }
 
-    // 4. CAMBIO DE PESTAÑAS
     function switchInputTab(tab) {
       const btnText = document.getElementById('tab-btn-text');
       const btnOcr = document.getElementById('tab-btn-ocr');
@@ -550,35 +769,41 @@
       }
     }
 
-    // 5. RENDERIZADO DEL ÁRBOL EN PANEL IZQUIERDO
+    // 6. RENDERIZADO DEL ÁRBOL
     function renderFolderTree() {
+      const proj = getCurrentProject();
+      if (!proj) return;
+
       const container = document.getElementById('tree-container');
       const counter = document.getElementById('tree-items-counter');
       const infoTotal = document.getElementById('total-anexos-info');
 
-      counter.textContent = `${expedienteData.folders.length} carpetas`;
+      counter.textContent = `${proj.folders.length} carpetas`;
       let totalDocs = 0;
-      let totalFilesUploaded = 0;
+      let totalUploaded = 0;
 
       container.innerHTML = `
-        <div class="p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-lg flex items-center space-x-2 text-indigo-900 font-bold mb-3">
-          <i class="fa-solid fa-folder-tree text-indigo-600"></i>
-          <span class="truncate">${expedienteData.rootName}</span>
+        <div class="p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-lg flex items-center justify-between text-indigo-900 font-bold mb-3">
+          <div class="flex items-center space-x-2 truncate">
+            <i class="fa-solid fa-folder-tree text-indigo-600"></i>
+            <span class="truncate">${proj.rootName}</span>
+          </div>
+          ${proj.driveRootId ? '<span title="Sincronizado en Drive" class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-cloud-check"></i></span>' : ''}
         </div>
       `;
 
-      expedienteData.folders.forEach(folder => {
+      proj.folders.forEach(folder => {
         const folderDocsCount = folder.docs.length;
-        const uploadedCount = folder.docs.filter(d => d.file !== null).length;
+        const uploadedCount = folder.docs.filter(d => d.uploaded || d.fileBase64).length;
         totalDocs += folderDocsCount;
-        totalFilesUploaded += uploadedCount;
+        totalUploaded += uploadedCount;
 
         // Semáforo de estatus
         let statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-rose-400" title="Sin archivos"></span>`;
         if (uploadedCount > 0 && uploadedCount < folderDocsCount) {
           statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400" title="Parcial (${uploadedCount}/${folderDocsCount})"></span>`;
         } else if (uploadedCount > 0 && uploadedCount === folderDocsCount) {
-          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo"></span>`;
+          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo (${uploadedCount}/${folderDocsCount})"></span>`;
         }
 
         const isSelected = folder.id === activeFolderId;
@@ -595,10 +820,11 @@
             <i class="fa-solid fa-folder ${isSelected ? 'text-amber-300' : 'text-amber-500'} text-lg"></i>
             <div class="truncate">
               <p class="font-semibold text-xs leading-snug truncate">${folder.titleDisplay || folder.name}</p>
-              <p class="text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}">${folderDocsCount} anexos solicitados</p>
+              <p class="text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}">${uploadedCount}/${folderDocsCount} anexos listos</p>
             </div>
           </div>
           <div class="flex items-center space-x-2">
+            ${folder.driveFolderId ? '<i class="fa-brands fa-google-drive text-[11px] text-emerald-300 mr-1" title="Carpeta sincronizada en Drive"></i>' : ''}
             ${statusBadge}
             <i class="fa-solid fa-chevron-right text-xs ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-slate-400'}"></i>
           </div>
@@ -607,30 +833,36 @@
         container.appendChild(itemDiv);
       });
 
-      infoTotal.textContent = `${totalFilesUploaded} de ${totalDocs} archivos listos`;
+      infoTotal.textContent = `${totalUploaded} de ${totalDocs} archivos integrados`;
     }
 
-    // 6. SELECCIONAR CARPETA Y MOSTRAR DETALLES
+    // 7. SELECCIONAR CARPETA Y MOSTRAR DOCUMENTOS
     function selectFolder(folderId) {
       activeFolderId = folderId;
       renderFolderTree();
 
-      const folder = expedienteData.folders.find(f => f.id === folderId);
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(f => f.id === folderId);
       if (!folder) return;
 
       document.getElementById('active-folder-title').textContent = folder.titleDisplay || folder.name;
-      document.getElementById('active-folder-path').textContent = `/${expedienteData.rootName}/${folder.name}`;
-      document.getElementById('btn-sync-folder-drive').disabled = !driveToken;
+      document.getElementById('active-folder-path').textContent = `/${proj.rootName}/${folder.name}`;
+
+      const driveBadge = document.getElementById('active-folder-drive-status');
+      if (folder.driveFolderId) {
+        driveBadge.classList.remove('hidden');
+      } else {
+        driveBadge.classList.add('hidden');
+      }
 
       const detailContainer = document.getElementById('folder-detail-container');
       detailContainer.innerHTML = '';
 
-      // Lista de requerimientos de la carpeta
       folder.docs.forEach((doc, idx) => {
         const docCard = document.createElement('div');
         docCard.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition space-y-3";
 
-        const hasFile = doc.file !== null;
+        const isReady = doc.fileBase64 || doc.uploaded;
 
         docCard.innerHTML = `
           <div class="flex justify-between items-start gap-2">
@@ -642,6 +874,9 @@
                   ${doc.required 
                     ? '<span class="text-[10px] font-semibold bg-rose-100 text-rose-700 px-2 py-0.2 rounded-full">Obligatorio</span>' 
                     : '<span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.2 rounded-full">Sugerido / Opcional</span>'}
+                  ${doc.uploaded 
+                    ? '<span class="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.2 rounded-full"><i class="fa-solid fa-check mr-1"></i>En Drive</span>' 
+                    : ''}
                 </div>
                 <p class="text-xs text-slate-600 mt-1 leading-relaxed">${doc.description}</p>
               </div>
@@ -651,33 +886,50 @@
             </button>
           </div>
 
-          <!-- Zona de Drag & Drop o Estado de Archivo Cargado -->
+          <!-- Área de archivo cargado / Dropzone -->
           <div class="mt-2">
-            ${hasFile ? `
-              <div class="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-300 rounded-lg text-emerald-800">
+            ${isReady ? `
+              <div class="flex items-center justify-between p-3 ${doc.uploaded ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-indigo-50 border-indigo-200 text-indigo-900'} border rounded-lg">
                 <div class="flex items-center space-x-2.5 truncate">
-                  <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                  <i class="fa-solid ${doc.uploaded ? 'fa-cloud-circle-check text-emerald-600' : 'fa-file-circle-check text-indigo-600'} text-lg"></i>
                   <div class="truncate">
-                    <p class="text-xs font-bold truncate">${doc.file.name}</p>
-                    <p class="text-[10px] text-emerald-600">${(doc.file.size / 1024 / 1024).toFixed(2)} MB • Listo para subir</p>
+                    <p class="text-xs font-bold truncate">${doc.fileName || doc.suggestedName}</p>
+                    <p class="text-[10px] ${doc.uploaded ? 'text-emerald-700' : 'text-indigo-600'}">
+                      ${doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Adjunto'} • 
+                      ${doc.uploaded ? 'Guardado permanentemente en Google Drive' : 'Listo localmente para subir a Drive'}
+                    </p>
                   </div>
                 </div>
-                <button onclick="clearSelectedFile('${folder.id}', '${doc.id}')" class="text-emerald-700 hover:text-rose-600 text-xs font-semibold px-2 py-1">
-                  Cambiar
-                </button>
+
+                <div class="flex items-center space-x-2">
+                  ${!doc.uploaded ? `
+                    <button id="btn-upload-single-${doc.id}" onclick="uploadSingleFileToDrive('${folder.id}', '${doc.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-2.5 py-1 rounded shadow-sm transition">
+                      <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive
+                    </button>
+                  ` : `
+                    ${doc.driveFileUrl ? `
+                      <a href="${doc.driveFileUrl}" target="_blank" class="text-indigo-600 hover:underline text-xs font-medium mr-1">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver
+                      </a>
+                    ` : ''}
+                  `}
+                  <button onclick="clearSelectedFile('${folder.id}', '${doc.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1" title="Reemplazar archivo">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                  </button>
+                </div>
               </div>
             ` : `
               <div 
-                class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-4 text-center cursor-pointer transition"
+                class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3.5 text-center cursor-pointer transition"
                 onclick="document.getElementById('input_file_${doc.id}').click()"
                 ondragover="event.preventDefault(); this.classList.add('border-indigo-500','bg-indigo-50');"
                 ondragleave="this.classList.remove('border-indigo-500','bg-indigo-50');"
                 ondrop="handleFileDrop(event, '${folder.id}', '${doc.id}')"
               >
                 <input type="file" id="input_file_${doc.id}" class="hidden" onchange="handleFileChosen(event, '${folder.id}', '${doc.id}')">
-                <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-lg mb-1"></i>
-                <p class="text-xs font-semibold text-slate-600">Arrastre aquí el archivo o haga clic para seleccionar</p>
-                <p class="text-[11px] text-slate-400 mt-0.5">Soporta PDF, XLSX, JPG o PNG</p>
+                <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-base mb-1"></i>
+                <p class="text-xs font-semibold text-slate-700">Arrastre aquí el anexo o haga clic para seleccionarlo</p>
+                <p class="text-[10px] text-slate-400">PDF, Excel, Word o Imagen</p>
               </div>
             `}
           </div>
@@ -686,269 +938,269 @@
         detailContainer.appendChild(docCard);
       });
 
-      // Botón para agregar un anexo extra a esta carpeta
+      // Botón para agregar documento adicional
       const addDocBtn = document.createElement('button');
       addDocBtn.className = "w-full py-2.5 border-2 border-dashed border-slate-300 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition";
       addDocBtn.onclick = () => addDocToFolderPrompt(folder.id);
-      addDocBtn.innerHTML = `<i class="fa-solid fa-plus"></i><span>Agregar otro documento / anexo a esta carpeta</span>`;
+      addDocBtn.innerHTML = `<i class="fa-solid fa-plus"></i><span>Agregar documento o anexo complementario</span>`;
       detailContainer.appendChild(addDocBtn);
     }
 
-    // 7. MANEJO DE ARCHIVOS ADJUNTADOS
+    // 8. MANEJO DE ARCHIVOS Y CONVERSIÓN A BASE64
     function handleFileChosen(event, folderId, docId) {
       const file = event.target.files[0];
       if (!file) return;
-      attachFileToDoc(folderId, docId, file);
+      processFileForDoc(folderId, docId, file);
     }
 
     function handleFileDrop(event, folderId, docId) {
       event.preventDefault();
       const file = event.dataTransfer.files[0];
       if (!file) return;
-      attachFileToDoc(folderId, docId, file);
+      processFileForDoc(folderId, docId, file);
     }
 
-    function attachFileToDoc(folderId, docId, file) {
-      const folder = expedienteData.folders.find(f => f.id === folderId);
+    function processFileForDoc(folderId, docId, file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        
+        const proj = getCurrentProject();
+        const folder = proj.folders.find(f => f.id === folderId);
+        if (!folder) return;
+        const doc = folder.docs.find(d => d.id === docId);
+        if (!doc) return;
+
+        doc.fileName = file.name;
+        doc.fileSize = file.size;
+        doc.fileMime = file.type || "application/pdf";
+        doc.fileBase64 = base64Data;
+        doc.uploaded = false; // Aún no está en Drive
+
+        saveProjectsToLocalStorage();
+        selectFolder(folderId);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearSelectedFile(folderId, docId) {
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(f => f.id === folderId);
       if (!folder) return;
       const doc = folder.docs.find(d => d.id === docId);
       if (!doc) return;
 
-      doc.file = file;
-      selectFolder(folderId); // Refrescar vista
-    }
+      doc.fileName = null;
+      doc.fileSize = null;
+      doc.fileBase64 = null;
+      doc.uploaded = false;
+      doc.driveFileId = null;
+      doc.driveFileUrl = null;
 
-    function clearSelectedFile(folderId, docId) {
-      attachFileToDoc(folderId, docId, null);
+      saveProjectsToLocalStorage();
+      selectFolder(folderId);
     }
 
     function addNewFolderPrompt() {
-      const name = prompt("Ingrese el nombre de la nueva carpeta (ej. 06_ANEXO_COMPLEMENTARIO):");
-      if (!name) return;
+      const name = prompt("Nombre de la nueva carpeta (ej. 06_ANEXO_COMPLEMENTARIO):");
+      if (!name || !name.trim()) return;
+
+      const proj = getCurrentProject();
       const newFolder = {
         id: 'f_' + Date.now(),
         name: name.trim().replace(/\s+/g, '_').toUpperCase(),
         titleDisplay: name.trim(),
+        driveFolderId: null,
         docs: []
       };
-      expedienteData.folders.push(newFolder);
+
+      proj.folders.push(newFolder);
+      saveProjectsToLocalStorage();
       renderFolderTree();
       selectFolder(newFolder.id);
     }
 
     function addDocToFolderPrompt(folderId) {
-      const name = prompt("Nombre sugerido del archivo (ej. 01.3_Oficio_Respuesta.pdf):");
-      if (!name) return;
-      const desc = prompt("Descripción o sugerencia documental:", "Documento complementario solicitado.");
-      
-      const folder = expedienteData.folders.find(f => f.id === folderId);
+      const name = prompt("Nombre sugerido del archivo (ej. 02.3_Convenio_Modificatorio.pdf):");
+      if (!name || !name.trim()) return;
+      const desc = prompt("Descripción documental:", "Documento complementario solicitado.");
+
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(f => f.id === folderId);
       if (folder) {
         folder.docs.push({
           id: 'd_' + Date.now(),
           suggestedName: name.trim(),
           description: desc || "",
           required: true,
-          file: null
+          uploaded: false,
+          driveFileId: null,
+          fileName: null,
+          fileSize: null,
+          fileBase64: null,
+          fileMime: null
         });
+        saveProjectsToLocalStorage();
         selectFolder(folderId);
       }
     }
 
     function removeDocRequirement(folderId, docId) {
-      if (!confirm("¿Deseas eliminar este requerimiento de anexo?")) return;
-      const folder = expedienteData.folders.find(f => f.id === folderId);
+      if (!confirm("¿Deseas eliminar este anexo?")) return;
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(f => f.id === folderId);
       if (folder) {
         folder.docs = folder.docs.filter(d => d.id !== docId);
+        saveProjectsToLocalStorage();
         selectFolder(folderId);
       }
     }
 
-    // 8. AUTENTICACIÓN GOOGLE DRIVE
-    function initGoogleAuth() {
-      if (!GOOGLE_CLIENT_ID) {
-        updateDriveUI(false, "Drive no configurado");
+    // ==============================================================
+    // 9. COMUNICACIÓN DIRECTA CON GOOGLE APPS SCRIPT WEB APP
+    // ==============================================================
+
+    // Sincronizar o Crear toda la estructura en Google Drive
+    async function syncAllToDrive() {
+      const proj = getCurrentProject();
+      if (!proj || proj.folders.length === 0) {
+        alert("Primero defina carpetas para este expediente.");
         return;
       }
 
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: SCOPES,
-        callback: (response) => {
-          if (response.error !== undefined) {
-            throw (response);
-          }
-          driveToken = response.access_token;
-          updateDriveUI(true, "Conectado a Google Drive");
-          if (activeFolderId) selectFolder(activeFolderId);
-        },
-      });
-    }
-
-    function handleAuthClick() {
-      if (!GOOGLE_CLIENT_ID) {
-        toggleDriveModal(true);
-        return;
-      }
-      if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-      }
-    }
-
-    function updateDriveUI(connected, text) {
-      const dot = document.getElementById('drive-dot');
-      const statusText = document.getElementById('drive-status-text');
-      const btnText = document.getElementById('btn-auth-text');
-
-      statusText.textContent = text;
-      if (connected) {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
-        btnText.textContent = "Reconectar";
-      } else {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
-        btnText.textContent = "Conectar Drive";
-      }
-    }
-
-    function toggleDriveModal(show) {
-      const modal = document.getElementById('drive-config-modal');
-      if (show) {
-        document.getElementById('cfg-client-id').value = GOOGLE_CLIENT_ID;
-        document.getElementById('cfg-parent-folder').value = DRIVE_PARENT_ID === 'root' ? '' : DRIVE_PARENT_ID;
-        modal.classList.remove('hidden');
-      } else {
-        modal.classList.add('hidden');
-      }
-    }
-
-    function saveDriveConfig() {
-      const clientId = document.getElementById('cfg-client-id').value.trim();
-      const parentId = document.getElementById('cfg-parent-folder').value.trim() || 'root';
-
-      if (!clientId) {
-        alert("Por favor ingrese su Client ID de Google Cloud.");
-        return;
-      }
-
-      GOOGLE_CLIENT_ID = clientId;
-      DRIVE_PARENT_ID = parentId;
-      localStorage.setItem('secul_drive_client_id', clientId);
-      localStorage.setItem('secul_drive_parent_id', parentId);
-
-      toggleDriveModal(false);
-      initGoogleAuth();
-      alert("Configuración guardada. Ahora haz clic en 'Conectar Drive'.");
-    }
-
-    // 9. COMUNICACIÓN DIRECTA CON DRIVE API (Creación de carpetas y carga de archivos)
-    async function createDriveFolder(name, parentId = 'root') {
-      const metadata = {
-        name: name,
-        mimeType: 'application/vnd.google-apps.folder',
-        parents: [parentId]
-      };
-
-      const res = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + driveToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(metadata)
-      });
-
-      if (!res.ok) throw new Error("Error creando carpeta " + name);
-      return await res.json();
-    }
-
-    async function uploadFileToDrive(file, customName, parentFolderId) {
-      const metadata = {
-        name: customName || file.name,
-        parents: [parentFolderId]
-      };
-
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', file);
-
-      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + driveToken
-        },
-        body: form
-      });
-
-      if (!res.ok) throw new Error("Error subiendo archivo " + (customName || file.name));
-      return await res.json();
-    }
-
-    // Sincronizar carpeta actual
-    async function syncFolderToDrive() {
-      if (!driveToken) {
-        alert("Primero debe conectar su cuenta de Google Drive.");
-        return;
-      }
-      const folder = expedienteData.folders.find(f => f.id === activeFolderId);
-      if (!folder) return;
-
-      const btn = document.getElementById('btn-sync-folder-drive');
+      const btn = document.getElementById('btn-sync-all-drive');
+      const originalText = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>`;
 
       try {
-        // 1. Crear carpeta del anexo en Drive
-        const driveFolder = await createDriveFolder(folder.name, DRIVE_PARENT_ID);
-        let uploaded = 0;
+        // Petición a Apps Script para crear o verificar carpetas
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" }, // text/plain evita bloqueos CORS pre-flight
+          body: JSON.stringify({
+            accion: "crearEstructura",
+            rootName: proj.rootName,
+            existingRootId: proj.driveRootId,
+            folders: proj.folders.map(f => ({ id: f.id, name: f.name, driveFolderId: f.driveFolderId }))
+          })
+        });
 
-        // 2. Subir los archivos adjuntos
-        for (const doc of folder.docs) {
-          if (doc.file) {
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ${doc.suggestedName}...</span>`;
-            await uploadFileToDrive(doc.file, doc.suggestedName, driveFolder.id);
-            uploaded++;
-          }
+        const data = await response.json();
+
+        if (data.status === "error") {
+          throw new Error(data.message || "Error al comunicarse con Google Apps Script");
         }
 
-        alert(`¡Carpeta "${folder.name}" creada con éxito en Drive con ${uploaded} archivo(s)!`);
-      } catch (err) {
-        console.error(err);
-        alert("Ocurrió un error en la sincronización: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-brands fa-google-drive"></i><span>Crear y Subir a Drive</span>`;
-      }
-    }
+        // Asignar el ID de la raíz devuelto por Drive
+        proj.driveRootId = data.rootFolderId;
+        proj.driveRootUrl = `https://drive.google.com/drive/folders/${data.rootFolderId}`;
 
-    // Sincronizar todo el expediente recursivamente
-    async function syncAllToDrive() {
-      if (!driveToken) {
-        alert("Primero debe conectar su cuenta de Google Drive en el botón superior.");
-        return;
-      }
+        // Asignar los IDs de cada subcarpeta
+        if (data.folders && Array.isArray(data.folders)) {
+          data.folders.forEach(resFolder => {
+            const f = proj.folders.find(item => item.id === resFolder.idInterno || item.name === resFolder.name);
+            if (f) {
+              f.driveFolderId = resFolder.driveFolderId;
+            }
+          });
+        }
 
-      if (!confirm(`¿Deseas crear la carpeta raíz "${expedienteData.rootName}" y todas sus subcarpetas en Google Drive?`)) {
-        return;
-      }
-
-      try {
-        alert("Iniciando creación en Drive. Por favor no cierre la ventana...");
-        // 1. Carpeta Raíz
-        const rootFolder = await createDriveFolder(expedienteData.rootName, DRIVE_PARENT_ID);
-        
-        // 2. Subcarpetas y anexos
-        for (const folder of expedienteData.folders) {
-          const subFolder = await createDriveFolder(folder.name, rootFolder.id);
+        // Subir automáticamente los archivos que ya estén cargados localmente
+        let uploadedFilesCount = 0;
+        for (const folder of proj.folders) {
           for (const doc of folder.docs) {
-            if (doc.file) {
-              await uploadFileToDrive(doc.file, doc.suggestedName, subFolder.id);
+            if (doc.fileBase64 && !doc.uploaded) {
+              btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ${doc.suggestedName}...</span>`;
+              const uploadRes = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                  accion: "subirArchivo",
+                  driveFolderId: folder.driveFolderId,
+                  fileName: doc.suggestedName || doc.fileName,
+                  mimeType: doc.fileMime || "application/pdf",
+                  base64Content: doc.fileBase64
+                })
+              });
+              const upData = await uploadRes.json();
+              if (upData.status === "success") {
+                doc.uploaded = true;
+                doc.driveFileId = upData.fileId;
+                doc.driveFileUrl = upData.fileUrl;
+                uploadedFilesCount++;
+              }
             }
           }
         }
 
-        alert("¡Expediente digital completamente estructurado y sincronizado en Google Drive!");
+        saveProjectsToLocalStorage();
+        loadCurrentProjectUI();
+
+        alert(`¡Expediente "${proj.rootName}" sincronizado en Google Drive con éxito! Se subieron ${uploadedFilesCount} archivo(s).`);
+
       } catch (err) {
         console.error(err);
-        alert("Error durante la sincronización total: " + err.message);
+        alert("Ocurrió un error al sincronizar con Google Drive: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    // Subir un único archivo adicional cuando la sesión ya fue retomada
+    async function uploadSingleFileToDrive(folderId, docId) {
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(f => f.id === folderId);
+      if (!folder) return;
+      const doc = folder.docs.find(d => d.id === docId);
+      if (!doc || !doc.fileBase64) return;
+
+      const btn = document.getElementById(`btn-upload-single-${docId}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+      }
+
+      try {
+        // Si la carpeta aún no tiene driveFolderId, creamos la estructura primero
+        if (!folder.driveFolderId) {
+          alert("Primero se asegurará la creación de las carpetas en Drive...");
+          await syncAllToDrive();
+        }
+
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            accion: "subirArchivo",
+            driveFolderId: folder.driveFolderId,
+            fileName: doc.suggestedName || doc.fileName,
+            mimeType: doc.fileMime || "application/pdf",
+            base64Content: doc.fileBase64
+          })
+        });
+
+        const upData = await res.json();
+        if (upData.status === "success") {
+          doc.uploaded = true;
+          doc.driveFileId = upData.fileId;
+          doc.driveFileUrl = upData.fileUrl;
+          saveProjectsToLocalStorage();
+          selectFolder(folderId);
+          alert(`¡Archivo "${doc.suggestedName}" subido exitosamente a Google Drive!`);
+        } else {
+          throw new Error(upData.message || "Error al subir");
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Error al subir archivo a Drive: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive`;
+        }
       }
     }
   </script>
