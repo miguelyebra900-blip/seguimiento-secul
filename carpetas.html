@@ -4,18 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Armado de Expediente Digital - SECUL</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Tesseract.js para OCR de imágenes en cliente -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <style>
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
+  <!-- Header / Navbar -->
   <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
@@ -28,28 +43,34 @@
         </div>
       </div>
       
+      <!-- Selector de Proyectos Guardados y Acciones -->
       <div class="flex items-center space-x-2 flex-wrap">
         <div class="flex items-center bg-indigo-950/80 border border-indigo-700/60 rounded-lg px-2.5 py-1 text-xs">
           <label for="project-selector" class="text-indigo-200 mr-2 font-medium">Expediente:</label>
-          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer"></select>
+          <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
+          </select>
         </div>
 
-        <button onclick="createNewProjectPrompt()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1">
-          <i class="fa-solid fa-folder-plus"></i><span>Nuevo</span>
+        <button onclick="createNewProjectPrompt()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Crear un nuevo expediente en blanco">
+          <i class="fa-solid fa-folder-plus"></i>
+          <span>Nuevo</span>
         </button>
 
-        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1">
-          <i class="fa-solid fa-download"></i><span>Respaldo</span>
+        <button onclick="exportCurrentProjectJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1" title="Descargar respaldo JSON de este expediente">
+          <i class="fa-solid fa-download"></i>
+          <span>Respaldo</span>
         </button>
 
-        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1">
-          <i class="fa-solid fa-upload"></i><span>Cargar</span>
+        <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer flex items-center space-x-1" title="Cargar respaldo JSON">
+          <i class="fa-solid fa-upload"></i>
+          <span>Cargar</span>
           <input type="file" accept=".json" class="hidden" onchange="importProjectJSON(event)">
         </label>
       </div>
     </div>
   </header>
 
+  <!-- Banner Informativo del Expediente Activo -->
   <div class="bg-white border-b border-slate-200 px-4 sm:px-8 py-2.5">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center text-xs gap-3">
       <div class="flex items-center space-x-2">
@@ -57,7 +78,8 @@
         <span id="active-project-name" class="font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono">ANEXOS_SOLVENTACION_OBS_035_FORUM</span>
         <span id="drive-root-link" class="hidden">
           <a href="#" target="_blank" id="drive-root-url" class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center space-x-1 underline">
-            <i class="fa-brands fa-google-drive"></i><span>Ver en Google Drive</span>
+            <i class="fa-brands fa-google-drive"></i>
+            <span>Ver en Google Drive</span>
           </a>
         </span>
       </div>
@@ -73,8 +95,10 @@
     </div>
   </div>
 
+  <!-- Contenedor Principal -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
 
+    <!-- 1. Definición / Edición de la Estructura -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="border-b border-slate-200 bg-slate-100/70 px-6 py-3 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center space-x-2 text-slate-700 font-semibold text-sm">
@@ -82,6 +106,7 @@
           <span>1. Estructura de Carpetas y Anexos</span>
         </div>
         
+        <!-- Pestañas de modo -->
         <div class="flex bg-slate-200 p-1 rounded-lg text-xs font-medium">
           <button id="tab-btn-text" onclick="switchInputTab('text')" class="px-3 py-1.5 rounded-md bg-white text-indigo-700 shadow-sm transition">
             <i class="fa-solid fa-code-fork mr-1"></i> Texto / Árbol
@@ -96,19 +121,22 @@
       </div>
 
       <div class="p-6">
+        <!-- Modo 1: Editor de Texto / Árbol -->
         <div id="tab-text-content" class="space-y-3">
           <p class="text-xs text-slate-500">
-            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code class="bg-slate-100 px-1 py-0.5 rounded">.pdf</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">.xlsx</code>, etc.) se reconocerán como documentos requeridos.
+            Puedes editar o pegar cualquier estructura. Las líneas con extensión de archivo (<code>.pdf</code>, <code>.xlsx</code>, etc.) se reconocerán como documentos o anexos requeridos.
           </p>
           <textarea id="raw-structure-input" rows="7" class="w-full font-mono text-xs bg-slate-900 text-emerald-400 p-3.5 rounded-lg border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none custom-scrollbar" placeholder="📁 NOMBRE_EXPEDIENTE/&#10;|-- 01_CARPETA_ADMINISTRATIVA/&#10;|   |-- 01.1_Oficio_Presentacion.pdf"></textarea>
           <div class="flex justify-between items-center">
-            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, las carpetas existentes se preservarán.</span>
+            <span class="text-[11px] text-slate-400 italic">Si el proyecto ya existe en Drive, los nombres de carpetas existentes se preservarán.</span>
             <button onclick="parseAndBuildTree()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-arrows-rotate"></i><span>Actualizar Estructura</span>
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Actualizar Estructura</span>
             </button>
           </div>
         </div>
 
+        <!-- Modo 2: Carga de Imagen con Reconocimiento OCR -->
         <div id="tab-ocr-content" class="hidden space-y-4">
           <div class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50/20 rounded-xl p-8 text-center transition cursor-pointer" onclick="document.getElementById('image-structure-file').click()">
             <input type="file" id="image-structure-file" accept="image/*" class="hidden" onchange="handleImageSelected(event)">
@@ -116,7 +144,7 @@
               <i class="fa-solid fa-file-image text-xl"></i>
             </div>
             <p class="text-sm font-semibold text-slate-700">Arrastra o haz clic para subir una captura de pantalla del árbol de carpetas</p>
-            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con OCR</p>
+            <p class="text-xs text-slate-400 mt-1">Reconoce diagramas de carpetas, organigramas o listas impresas con IA/OCR</p>
           </div>
 
           <div id="ocr-progress-container" class="hidden bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-2">
@@ -132,8 +160,10 @@
       </div>
     </section>
 
+    <!-- 2. Sección Interactiva: Árbol y Carga de Documentos -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
       
+      <!-- Panel Izquierdo: Árbol de Carpetas (5 cols) -->
       <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         <div class="border-b border-slate-200 bg-slate-50 px-4 py-3 flex justify-between items-center">
           <div class="flex items-center space-x-2">
@@ -143,18 +173,24 @@
           <span id="tree-items-counter" class="text-xs bg-slate-200 text-slate-600 font-semibold px-2 py-0.5 rounded-full">0 carpetas</span>
         </div>
 
-        <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700"></div>
+        <!-- Árbol Interactivo -->
+        <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700">
+        </div>
 
+        <!-- Barra inferior del árbol: acciones rápidas -->
         <div class="border-t border-slate-200 bg-slate-50 p-3 flex justify-between items-center text-xs">
           <button onclick="addNewFolderPrompt()" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center space-x-1">
-            <i class="fa-solid fa-plus-circle"></i><span>Nueva Carpeta</span>
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Nueva Carpeta</span>
           </button>
           <span class="text-slate-400" id="total-anexos-info">0 archivos listos</span>
         </div>
       </div>
 
+      <!-- Panel Derecho: Detalle de la Carpeta y Carga de Anexos (7 cols) -->
       <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[760px]">
         
+        <!-- Encabezado de la Carpeta Activa -->
         <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex flex-wrap justify-between items-center gap-3">
           <div>
             <div class="flex items-center space-x-2">
@@ -169,13 +205,16 @@
             </div>
           </div>
 
+          <!-- Acciones de Sincronización en Drive -->
           <div class="flex items-center space-x-2">
             <button id="btn-sync-all-drive" onclick="syncAllToDrive()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span>Crear Estructura en Drive</span>
             </button>
           </div>
         </div>
 
+        <!-- Contenedor de Anexos y Documentos de la Carpeta -->
         <div id="folder-detail-container" class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-4">
           <div class="text-center py-16 text-slate-400">
             <i class="fa-solid fa-arrow-left text-2xl mb-2 text-slate-300 block"></i>
@@ -184,6 +223,7 @@
           </div>
         </div>
 
+        <!-- Barra de Estado Inferior -->
         <div class="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-between items-center text-xs">
           <div class="flex items-center space-x-2 text-slate-500">
             <i class="fa-solid fa-circle-info text-indigo-500"></i>
@@ -197,6 +237,7 @@
 
   </main>
 
+  <!-- Pie de página -->
   <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
       <span>Sistema de Armado Digital de Expedientes • SECUL</span>
@@ -204,12 +245,33 @@
     </div>
   </footer>
 
+  <!-- SCRIPT DE LÓGICA DEL SISTEMA -->
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8pZEo47Cg1skUMe5Ad9u4idFGkCuVis-J24Ab4FgBiX23zKx4ayx7qSfaJHZkm3SvZQ/exec";
 
     let allProjects = {};
     let currentProjectId = null;
     let activeFolderId = null;
+
+    // Helper: normaliza el arreglo de archivos para compatibilidad hacia atrás
+    function ensureDocFiles(doc) {
+      if (!doc.files || !Array.isArray(doc.files)) {
+        doc.files = [];
+        if (doc.fileName || doc.uploaded || doc.fileBase64) {
+          doc.files.push({
+            id: "fl_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+            fileName: doc.fileName || doc.suggestedName,
+            fileSize: doc.fileSize || 0,
+            fileMime: doc.fileMime || "application/pdf",
+            fileBase64: doc.fileBase64 || null,
+            uploaded: !!doc.uploaded,
+            driveFileId: doc.driveFileId || null,
+            driveFileUrl: doc.driveFileUrl || null
+          });
+        }
+      }
+      return doc.files;
+    }
 
     window.addEventListener("DOMContentLoaded", function() {
       loadProjectsFromLocalStorage();
@@ -251,13 +313,7 @@
                 suggestedName: "01.1_Acta_Comite_Extincion_10_Dic_2025_Firmada.pdf",
                 description: "Copia digital certificada del Acta de la Sesión del Comité de Extinción de fecha 10 de diciembre de 2025.",
                 required: true,
-                uploaded: false,
-                driveFileId: null,
-                driveFileUrl: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
+                files: []
               }
             ]
           },
@@ -270,14 +326,9 @@
               {
                 id: "d_02_1",
                 suggestedName: "02.1_Cedula_Analitica_Inventario_7_Litigios.pdf",
-                description: "Cédula analítica en formato PDF/Excel que desglose los 7 expedientes.",
+                description: "Cédula analítica en formato PDF/Excel que desglose los expedientes.",
                 required: true,
-                uploaded: false,
-                driveFileId: null,
-                fileName: null,
-                fileSize: null,
-                fileBase64: null,
-                fileMime: null
+                files: []
               }
             ]
           }
@@ -312,17 +363,24 @@
                 titleDisplay: f.titleDisplay,
                 driveFolderId: f.driveFolderId,
                 docs: (f.docs || []).map(function(d) {
+                  var fileList = ensureDocFiles(d);
                   return {
                     id: d.id,
                     suggestedName: d.suggestedName,
                     description: d.description,
                     required: d.required,
-                    uploaded: d.uploaded,
-                    driveFileId: d.driveFileId,
-                    driveFileUrl: d.driveFileUrl,
-                    fileName: d.fileName,
-                    fileSize: d.fileSize,
-                    fileMime: d.fileMime
+                    files: fileList.map(function(fl) {
+                      return {
+                        id: fl.id,
+                        fileName: fl.fileName,
+                        fileSize: fl.fileSize,
+                        fileMime: fl.fileMime,
+                        uploaded: fl.uploaded,
+                        driveFileId: fl.driveFileId,
+                        driveFileUrl: fl.driveFileUrl
+                        // Omitimos fileBase64 para evitar QuotaExceededError en localStorage
+                      };
+                    })
                   };
                 })
               };
@@ -535,12 +593,7 @@
             suggestedName: cleanDocName,
             description: "Documento anexo solicitado.",
             required: !isOptional,
-            uploaded: false,
-            driveFileId: null,
-            fileName: null,
-            fileSize: null,
-            fileBase64: null,
-            fileMime: null
+            files: []
           };
 
           if (currentFolder) {
@@ -638,7 +691,7 @@
 
       counter.textContent = proj.folders.length + " carpetas";
       let totalDocs = 0;
-      let totalUploaded = 0;
+      let totalUploadedFiles = 0;
 
       container.innerHTML = "";
 
@@ -657,15 +710,23 @@
 
       proj.folders.forEach(function(folder) {
         const folderDocsCount = folder.docs.length;
-        const uploadedCount = folder.docs.filter(function(d) { return d.uploaded || d.fileBase64; }).length;
+        let totalFolderFiles = 0;
+        let folderUploadedFiles = 0;
+
+        folder.docs.forEach(function(d) {
+          const fls = ensureDocFiles(d);
+          totalFolderFiles += fls.length;
+          folderUploadedFiles += fls.filter(function(f) { return f.uploaded; }).length;
+        });
+
         totalDocs += folderDocsCount;
-        totalUploaded += uploadedCount;
+        totalUploadedFiles += folderUploadedFiles;
 
         let statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-rose-400" title="Sin archivos"></span>';
-        if (uploadedCount > 0 && uploadedCount < folderDocsCount) {
-          statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-amber-400" title="Parcial (' + uploadedCount + '/' + folderDocsCount + ')"></span>';
-        } else if (uploadedCount > 0 && uploadedCount === folderDocsCount && folderDocsCount > 0) {
-          statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo (' + uploadedCount + '/' + folderDocsCount + ')"></span>';
+        if (totalFolderFiles > 0 && folderUploadedFiles < totalFolderFiles) {
+          statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-amber-400" title="Parcial (' + folderUploadedFiles + '/' + totalFolderFiles + ' en Drive)"></span>';
+        } else if (totalFolderFiles > 0 && folderUploadedFiles === totalFolderFiles) {
+          statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo en Drive (' + totalFolderFiles + ' archivos)"></span>';
         }
 
         const isSelected = folder.id === activeFolderId;
@@ -680,7 +741,7 @@
           '<i class="fa-solid fa-folder ' + (isSelected ? "text-amber-300" : "text-amber-500") + ' text-base shrink-0"></i>' +
           '<div class="truncate">' +
             '<p class="font-semibold text-xs leading-snug truncate">' + (folder.titleDisplay || folder.name) + '</p>' +
-            '<p class="text-[10px] ' + (isSelected ? "text-indigo-200" : "text-slate-400") + '">' + uploadedCount + '/' + folderDocsCount + ' anexos</p>' +
+            '<p class="text-[10px] ' + (isSelected ? "text-indigo-200" : "text-slate-400") + '">' + folderDocsCount + ' casillas • ' + totalFolderFiles + ' archivos</p>' +
           '</div>';
 
         const actionsSection = document.createElement("div");
@@ -713,7 +774,7 @@
         container.appendChild(itemDiv);
       });
 
-      infoTotal.textContent = totalUploaded + " de " + totalDocs + " archivos integrados";
+      infoTotal.textContent = totalUploadedFiles + " archivos en Drive";
     }
 
     function selectFolder(folderId) {
@@ -750,11 +811,11 @@
       }
 
       folder.docs.forEach(function(doc, idx) {
+        const docFiles = ensureDocFiles(doc);
         const docCard = document.createElement("div");
         docCard.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition space-y-3";
 
-        const isReady = doc.fileBase64 || doc.uploaded;
-
+        // Cabecera del documento / casilla
         const headerDiv = document.createElement("div");
         headerDiv.className = "flex justify-between items-start gap-2";
 
@@ -768,9 +829,9 @@
               (doc.required 
                 ? '<span class="text-[10px] font-semibold bg-rose-100 text-rose-700 px-2 py-0.2 rounded-full">Obligatorio</span>' 
                 : '<span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.2 rounded-full">Sugerido / Opcional</span>') +
-              (doc.uploaded 
-                ? '<span class="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.2 rounded-full"><i class="fa-solid fa-check mr-1"></i>En Drive</span>' 
-                : "") +
+              (docFiles.length > 0
+                ? '<span class="text-[10px] font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.2 rounded-full"><i class="fa-solid fa-paperclip mr-1"></i>' + docFiles.length + ' archivo(s)</span>'
+                : '') +
             '</div>' +
             '<p class="text-xs text-slate-600 mt-1 leading-relaxed">' + doc.description + '</p>' +
           '</div>';
@@ -780,13 +841,13 @@
 
         const editDocBtn = document.createElement("button");
         editDocBtn.className = "p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-200 rounded text-xs transition";
-        editDocBtn.title = "Editar nombre o descripción de este anexo";
+        editDocBtn.title = "Editar nombre o descripción de esta casilla";
         editDocBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
         editDocBtn.onclick = function() { editDocRequirementPrompt(folder.id, doc.id); };
 
         const deleteDocBtn = document.createElement("button");
         deleteDocBtn.className = "p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded text-xs transition";
-        deleteDocBtn.title = "Eliminar este requerimiento de anexo";
+        deleteDocBtn.title = "Eliminar este requerimiento";
         deleteDocBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
         deleteDocBtn.onclick = function() { removeDocRequirement(folder.id, doc.id); };
 
@@ -797,86 +858,91 @@
         headerDiv.appendChild(docActions);
         docCard.appendChild(headerDiv);
 
-        const dropzoneContainer = document.createElement("div");
-        dropzoneContainer.className = "mt-2";
+        // Lista de archivos adjuntados dentro de esta misma casilla
+        const filesContainer = document.createElement("div");
+        filesContainer.className = "space-y-2";
 
-        if (isReady) {
-          const readyDiv = document.createElement("div");
-          readyDiv.className = "flex items-center justify-between p-3 " + (doc.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-indigo-50 border-indigo-200 text-indigo-900") + " border rounded-lg";
-          
-          const fileInfoLeft = document.createElement("div");
-          fileInfoLeft.className = "flex items-center space-x-2.5 truncate";
-          fileInfoLeft.innerHTML = 
-            '<i class="fa-solid ' + (doc.uploaded ? "fa-cloud-circle-check text-emerald-600" : "fa-file-circle-check text-indigo-600") + ' text-lg"></i>' +
-            '<div class="truncate">' +
-              '<p class="text-xs font-bold truncate">' + (doc.fileName || doc.suggestedName) + '</p>' +
-              '<p class="text-[10px] ' + (doc.uploaded ? "text-emerald-700" : "text-indigo-600") + '">' +
-                (doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + " MB" : "Adjunto") + " • " +
-                (doc.uploaded ? "Guardado en Google Drive" : "Listo para subir a Drive") +
-              '</p>' +
-            '</div>';
+        if (docFiles.length > 0) {
+          docFiles.forEach(function(fl, fileIdx) {
+            const fileItem = document.createElement("div");
+            fileItem.className = "flex items-center justify-between p-2.5 " + (fl.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-slate-200 text-slate-800") + " border rounded-lg text-xs";
+            
+            const fileLeft = document.createElement("div");
+            fileLeft.className = "flex items-center space-x-2 truncate mr-2";
+            fileLeft.innerHTML = 
+              '<i class="fa-solid ' + (fl.uploaded ? "fa-cloud-circle-check text-emerald-600" : "fa-file-lines text-indigo-600") + ' text-base"></i>' +
+              '<div class="truncate">' +
+                '<p class="font-bold truncate">' + fl.fileName + '</p>' +
+                '<p class="text-[10px] ' + (fl.uploaded ? "text-emerald-700" : "text-slate-400") + '">' +
+                  (fl.fileSize ? (fl.fileSize / 1024 / 1024).toFixed(2) + " MB" : "Documento") + " • " +
+                  (fl.uploaded ? "Guardado en Google Drive" : "Listo para subir") +
+                '</p>' +
+              '</div>';
 
-          const actionsRight = document.createElement("div");
-          actionsRight.className = "flex items-center space-x-2";
+            const fileRight = document.createElement("div");
+            fileRight.className = "flex items-center space-x-1.5 shrink-0";
 
-          if (!doc.uploaded) {
-            const uploadBtn = document.createElement("button");
-            uploadBtn.id = "btn-upload-single-" + doc.id;
-            uploadBtn.className = "bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-2.5 py-1 rounded shadow-sm transition flex items-center space-x-1";
-            uploadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Subir a Drive</span>';
-            uploadBtn.onclick = function() { uploadSingleFileToDrive(folder.id, doc.id); };
-            actionsRight.appendChild(uploadBtn);
-          } else if (doc.driveFileUrl) {
-            const viewLink = document.createElement("a");
-            viewLink.href = doc.driveFileUrl;
-            viewLink.target = "_blank";
-            viewLink.className = "text-indigo-600 hover:underline text-xs font-semibold mr-1 inline-flex items-center space-x-1";
-            viewLink.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i><span>Ver</span>';
-            actionsRight.appendChild(viewLink);
-          }
+            if (!fl.uploaded) {
+              const uploadSingleBtn = document.createElement("button");
+              uploadSingleBtn.id = "btn_up_" + fl.id;
+              uploadSingleBtn.className = "px-2 py-1 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm transition flex items-center space-x-1";
+              uploadSingleBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Subir</span>';
+              uploadSingleBtn.onclick = function() { uploadFileItemToDrive(folder.id, doc.id, fl.id); };
+              fileRight.appendChild(uploadSingleBtn);
+            } else if (fl.driveFileUrl) {
+              const viewLink = document.createElement("a");
+              viewLink.href = fl.driveFileUrl;
+              viewLink.target = "_blank";
+              viewLink.className = "text-indigo-600 hover:underline text-xs font-semibold mr-1 inline-flex items-center space-x-1";
+              viewLink.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i><span>Ver</span>';
+              fileRight.appendChild(viewLink);
+            }
 
-          const detachFileBtn = document.createElement("button");
-          detachFileBtn.className = "px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-100 rounded transition";
-          detachFileBtn.title = "Quitar archivo adjunto de esta casilla";
-          detachFileBtn.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>Quitar archivo';
-          detachFileBtn.onclick = function() { clearSelectedFile(folder.id, doc.id); };
-          actionsRight.appendChild(detachFileBtn);
+            const removeBtn = document.createElement("button");
+            removeBtn.className = "p-1 text-slate-400 hover:text-rose-600 text-xs rounded hover:bg-rose-50 transition";
+            removeBtn.title = "Quitar este archivo de la casilla";
+            removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            removeBtn.onclick = function() { removeFileFromDoc(folder.id, doc.id, fl.id); };
+            fileRight.appendChild(removeBtn);
 
-          readyDiv.appendChild(fileInfoLeft);
-          readyDiv.appendChild(actionsRight);
-          dropzoneContainer.appendChild(readyDiv);
-        } else {
-          const dropDiv = document.createElement("div");
-          dropDiv.className = "border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3.5 text-center cursor-pointer transition";
-          
-          const fileInput = document.createElement("input");
-          fileInput.type = "file";
-          fileInput.id = "input_file_" + doc.id;
-          fileInput.className = "hidden";
-          fileInput.onchange = function(e) { handleFileChosen(e, folder.id, doc.id); };
-
-          dropDiv.onclick = function() { fileInput.click(); };
-          dropDiv.ondragover = function(e) { e.preventDefault(); dropDiv.classList.add("border-indigo-500", "bg-indigo-50"); };
-          dropDiv.ondragleave = function() { dropDiv.classList.remove("border-indigo-500", "bg-indigo-50"); };
-          dropDiv.ondrop = function(e) { handleFileDrop(e, folder.id, doc.id); };
-
-          dropDiv.innerHTML = 
-            '<i class="fa-solid fa-cloud-arrow-up text-slate-400 text-base mb-1"></i>' +
-            '<p class="text-xs font-semibold text-slate-700">Arrastre aquí el anexo o haga clic para seleccionarlo</p>' +
-            '<p class="text-[10px] text-slate-400">PDF, Excel, Word o Imagen</p>';
-
-          dropDiv.appendChild(fileInput);
-          dropzoneContainer.appendChild(dropDiv);
+            fileItem.appendChild(fileLeft);
+            fileItem.appendChild(fileRight);
+            filesContainer.appendChild(fileItem);
+          });
         }
 
-        docCard.appendChild(dropzoneContainer);
+        // Zona de Carga (Dropzone que acepta MULTIPLES archivos)
+        const dropDiv = document.createElement("div");
+        dropDiv.className = "border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3 text-center cursor-pointer transition";
+        
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.multiple = true; // Permite subir varios archivos a la vez
+        fileInput.id = "input_files_" + doc.id;
+        fileInput.className = "hidden";
+        fileInput.onchange = function(e) { handleFilesChosen(e, folder.id, doc.id); };
+
+        dropDiv.onclick = function() { fileInput.click(); };
+        dropDiv.ondragover = function(e) { e.preventDefault(); dropDiv.classList.add("border-indigo-500", "bg-indigo-50"); };
+        dropDiv.ondragleave = function() { dropDiv.classList.remove("border-indigo-500", "bg-indigo-50"); };
+        dropDiv.ondrop = function(e) { handleFilesDrop(e, folder.id, doc.id); };
+
+        dropDiv.innerHTML = 
+          '<i class="fa-solid fa-cloud-arrow-up text-slate-400 text-sm mb-0.5"></i>' +
+          '<p class="text-xs font-semibold text-slate-700">Arrastra aquí uno o varios archivos (PDF, Excel, Word o Imagen)</p>' +
+          '<p class="text-[10px] text-slate-400">Puedes seleccionar varios archivos juntos para este mismo anexo</p>';
+
+        dropDiv.appendChild(fileInput);
+        filesContainer.appendChild(dropDiv);
+
+        docCard.appendChild(filesContainer);
         detailContainer.appendChild(docCard);
       });
 
       const addDocBtn = document.createElement("button");
       addDocBtn.className = "w-full py-2.5 border-2 border-dashed border-slate-300 hover:border-indigo-500 text-slate-600 hover:text-indigo-600 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition";
       addDocBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
-      addDocBtn.innerHTML = '<i class="fa-solid fa-plus-circle text-indigo-500"></i><span>Agregar documento o anexo complementario</span>';
+      addDocBtn.innerHTML = '<i class="fa-solid fa-plus-circle text-indigo-500"></i><span>+ Agregar otra casilla / requerimiento a este anexo</span>';
       detailContainer.appendChild(addDocBtn);
     }
 
@@ -893,7 +959,7 @@
 
       const addBtn = document.createElement("button");
       addBtn.className = "px-2.5 py-1 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg transition inline-flex items-center space-x-1";
-      addBtn.innerHTML = '<i class="fa-solid fa-file-circle-plus"></i><span>+ Anexo</span>';
+      addBtn.innerHTML = '<i class="fa-solid fa-file-circle-plus"></i><span>+ Casilla</span>';
       addBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
 
       const renBtn = document.createElement("button");
@@ -911,55 +977,64 @@
       toolsBar.appendChild(delBtn);
     }
 
-    function handleFileChosen(event, folderId, docId) {
-      const file = event.target.files[0];
-      if (!file) return;
-      processFileForDoc(folderId, docId, file);
+    // MANEJO DE MULTIPLES ARCHIVOS POR CASILLA
+    function handleFilesChosen(event, folderId, docId) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+      processMultipleFiles(folderId, docId, files);
     }
 
-    function handleFileDrop(event, folderId, docId) {
+    function handleFilesDrop(event, folderId, docId) {
       event.preventDefault();
-      const file = event.dataTransfer.files[0];
-      if (!file) return;
-      processFileForDoc(folderId, docId, file);
+      const files = event.dataTransfer.files;
+      if (!files || files.length === 0) return;
+      processMultipleFiles(folderId, docId, files);
     }
 
-    function processFileForDoc(folderId, docId, file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64Data = e.target.result.split(",")[1];
-        const proj = getCurrentProject();
-        const folder = proj.folders.find(function(f) { return f.id === folderId; });
-        if (!folder) return;
-        const doc = folder.docs.find(function(d) { return d.id === docId; });
-        if (!doc) return;
-
-        doc.fileName = file.name;
-        doc.fileSize = file.size;
-        doc.fileMime = file.type || "application/pdf";
-        doc.fileBase64 = base64Data;
-        doc.uploaded = false;
-
-        saveProjectsToLocalStorage();
-        selectFolder(folderId);
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearSelectedFile(folderId, docId) {
+    function processMultipleFiles(folderId, docId, fileList) {
       const proj = getCurrentProject();
       const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
       const doc = folder.docs.find(function(d) { return d.id === docId; });
       if (!doc) return;
 
-      doc.fileName = null;
-      doc.fileSize = null;
-      doc.fileBase64 = null;
-      doc.uploaded = false;
-      doc.driveFileId = null;
-      doc.driveFileUrl = null;
+      const docFiles = ensureDocFiles(doc);
+      let loadedCount = 0;
+      const totalToLoad = fileList.length;
 
+      Array.from(fileList).forEach(function(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64Data = e.target.result.split(",")[1];
+          docFiles.push({
+            id: "fl_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+            fileName: file.name,
+            fileSize: file.size,
+            fileMime: file.type || "application/pdf",
+            fileBase64: base64Data,
+            uploaded: false,
+            driveFileId: null,
+            driveFileUrl: null
+          });
+          loadedCount++;
+          if (loadedCount === totalToLoad) {
+            saveProjectsToLocalStorage();
+            selectFolder(folderId);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeFileFromDoc(folderId, docId, fileItemId) {
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (!folder) return;
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
+      if (!doc) return;
+
+      const docFiles = ensureDocFiles(doc);
+      doc.files = docFiles.filter(function(fl) { return fl.id !== fileItemId; });
       saveProjectsToLocalStorage();
       selectFolder(folderId);
     }
@@ -984,7 +1059,7 @@
     }
 
     function addDocToFolderPrompt(folderId) {
-      const name = prompt("Nombre sugerido del archivo (ej. 02.3_Convenio_Modificatorio.pdf):");
+      const name = prompt("Nombre sugerido de la casilla (ej. 01.2_Convocatoria_Sesion_Comite.pdf):");
       if (!name || !name.trim()) return;
       const desc = prompt("Descripción documental:", "Documento complementario solicitado.");
 
@@ -996,12 +1071,7 @@
           suggestedName: name.trim(),
           description: desc || "",
           required: true,
-          uploaded: false,
-          driveFileId: null,
-          fileName: null,
-          fileSize: null,
-          fileBase64: null,
-          fileMime: null
+          files: []
         });
         saveProjectsToLocalStorage();
         selectFolder(folderId);
@@ -1015,7 +1085,7 @@
       const doc = folder.docs.find(function(d) { return d.id === docId; });
       if (!doc) return;
 
-      const newName = prompt("Nombre sugerido del archivo:", doc.suggestedName);
+      const newName = prompt("Nombre sugerido de la casilla:", doc.suggestedName);
       if (!newName || !newName.trim()) return;
 
       const newDesc = prompt("Descripción / Sugerencia documental:", doc.description);
@@ -1030,7 +1100,7 @@
     }
 
     function removeDocRequirement(folderId, docId) {
-      if (!confirm("¿Deseas eliminar este requerimiento de anexo?")) return;
+      if (!confirm("¿Deseas eliminar este requerimiento y sus archivos asociados?")) return;
       const proj = getCurrentProject();
       const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (folder) {
@@ -1093,6 +1163,7 @@
       }
     }
 
+    // SINCRONIZACIÓN Y SUBIDA A GOOGLE DRIVE
     async function syncAllToDrive() {
       const proj = getCurrentProject();
       if (!proj || proj.folders.length === 0) {
@@ -1138,25 +1209,28 @@
         let uploadedFilesCount = 0;
         for (const folder of proj.folders) {
           for (const doc of folder.docs) {
-            if (doc.fileBase64 && !doc.uploaded) {
-              btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ' + doc.suggestedName + '...</span>';
-              const uploadRes = await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                  accion: "subirArchivo",
-                  driveFolderId: folder.driveFolderId,
-                  fileName: doc.suggestedName || doc.fileName,
-                  mimeType: doc.fileMime || "application/pdf",
-                  base64Content: doc.fileBase64
-                })
-              });
-              const upData = await uploadRes.json();
-              if (upData.status === "success") {
-                doc.uploaded = true;
-                doc.driveFileId = upData.fileId;
-                doc.driveFileUrl = upData.fileUrl;
-                uploadedFilesCount++;
+            const docFiles = ensureDocFiles(doc);
+            for (const fl of docFiles) {
+              if (fl.fileBase64 && !fl.uploaded) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ' + fl.fileName + '...</span>';
+                const uploadRes = await fetch(APPS_SCRIPT_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "text/plain;charset=utf-8" },
+                  body: JSON.stringify({
+                    accion: "subirArchivo",
+                    driveFolderId: folder.driveFolderId,
+                    fileName: fl.fileName,
+                    mimeType: fl.fileMime || "application/pdf",
+                    base64Content: fl.fileBase64
+                  })
+                });
+                const upData = await uploadRes.json();
+                if (upData.status === "success") {
+                  fl.uploaded = true;
+                  fl.driveFileId = upData.fileId;
+                  fl.driveFileUrl = upData.fileUrl;
+                  uploadedFilesCount++;
+                }
               }
             }
           }
@@ -1176,14 +1250,18 @@
       }
     }
 
-    async function uploadSingleFileToDrive(folderId, docId) {
+    async function uploadFileItemToDrive(folderId, docId, fileItemId) {
       const proj = getCurrentProject();
       const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
       const doc = folder.docs.find(function(d) { return d.id === docId; });
-      if (!doc || !doc.fileBase64) return;
+      if (!doc) return;
 
-      const btn = document.getElementById("btn-upload-single-" + docId);
+      const docFiles = ensureDocFiles(doc);
+      const fl = docFiles.find(function(item) { return item.id === fileItemId; });
+      if (!fl || !fl.fileBase64) return;
+
+      const btn = document.getElementById("btn_up_" + fileItemId);
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -1201,20 +1279,20 @@
           body: JSON.stringify({
             accion: "subirArchivo",
             driveFolderId: folder.driveFolderId,
-            fileName: doc.suggestedName || doc.fileName,
-            mimeType: doc.fileMime || "application/pdf",
-            base64Content: doc.fileBase64
+            fileName: fl.fileName,
+            mimeType: fl.fileMime || "application/pdf",
+            base64Content: fl.fileBase64
           })
         });
 
         const upData = await res.json();
         if (upData.status === "success") {
-          doc.uploaded = true;
-          doc.driveFileId = upData.fileId;
-          doc.driveFileUrl = upData.fileUrl;
+          fl.uploaded = true;
+          fl.driveFileId = upData.fileId;
+          fl.driveFileUrl = upData.fileUrl;
           saveProjectsToLocalStorage();
           selectFolder(folderId);
-          alert('¡Archivo "' + doc.suggestedName + '" subido exitosamente a Google Drive!');
+          alert('¡Archivo "' + fl.fileName + '" subido exitosamente a Google Drive!');
         } else {
           throw new Error(upData.message || "Error al subir");
         }
@@ -1225,10 +1303,11 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive';
+          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Subir</span>';
         }
       }
     }
   </script>
+</script>
 </body>
 </html>
