@@ -248,7 +248,7 @@
   <!-- SCRIPT DE LÓGICA DEL SISTEMA -->
   <script>
     // URL DE TU GOOGLE APPS SCRIPT
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/library/d/1PwFvU5lJtbNWW-SVBOfeUFAPYHIndeSHCnkyZPpwmeXwtuAhIHh11R4Y/2";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
     let allProjects = {};
     let currentProjectId = null;
@@ -458,10 +458,50 @@
       if (currentProjectId && allProjects[currentProjectId]) {
         allProjects[currentProjectId].lastModified = new Date().toISOString();
       }
-      localStorage.setItem("secul_expedientes_projects", JSON.stringify(allProjects));
-      localStorage.setItem("secul_active_project_id", currentProjectId);
+      try {
+        // Clonamos el objeto excluyendo el contenido pesado base64 para no saturar el límite de 5MB de localStorage
+        var projectsMetadata = {};
+        Object.keys(allProjects).forEach(function(pid) {
+          var p = allProjects[pid];
+          projectsMetadata[pid] = {
+            id: p.id,
+            rootName: p.rootName,
+            driveRootId: p.driveRootId,
+            driveRootUrl: p.driveRootUrl,
+            lastModified: p.lastModified,
+            folders: (p.folders || []).map(function(f) {
+              return {
+                id: f.id,
+                name: f.name,
+                titleDisplay: f.titleDisplay,
+                driveFolderId: f.driveFolderId,
+                docs: (f.docs || []).map(function(d) {
+                  return {
+                    id: d.id,
+                    suggestedName: d.suggestedName,
+                    description: d.description,
+                    required: d.required,
+                    uploaded: d.uploaded,
+                    driveFileId: d.driveFileId,
+                    driveFileUrl: d.driveFileUrl,
+                    fileName: d.fileName,
+                    fileSize: d.fileSize,
+                    fileMime: d.fileMime
+                    // OMITIMOS fileBase64 de localStorage para evitar QuotaExceededError
+                  };
+                })
+              };
+            })
+          };
+        });
+
+        localStorage.setItem("secul_expedientes_projects", JSON.stringify(projectsMetadata));
+        localStorage.setItem("secul_active_project_id", currentProjectId);
+      } catch (err) {
+        console.warn("No se pudo guardar en localStorage debido a cuota:", err);
+      }
       
-      const indicator = document.getElementById("autosave-indicator");
+      var indicator = document.getElementById("autosave-indicator");
       if (indicator) {
         indicator.textContent = "Guardado: " + new Date().toLocaleTimeString();
       }
@@ -1071,19 +1111,17 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>';
 
       try {
-       // FORMA COMPATIBLE CON CORS PARA GOOGLE APPS SCRIPT:
-const response = await fetch(APPS_SCRIPT_URL, {
-  method: "POST",
-  // No agregar cabeceras personalizadas para evitar preflight OPTIONS
-  body: JSON.stringify({
-    accion: "crearEstructura",
-    rootName: proj.rootName,
-    existingRootId: proj.driveRootId,
-    folders: proj.folders.map(function(f) {
-      return { id: f.id, name: f.name, driveFolderId: f.driveFolderId };
-    })
-  })
-});
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            accion: "crearEstructura",
+            rootName: proj.rootName,
+            existingRootId: proj.driveRootId,
+            folders: proj.folders.map(function(f) { return { id: f.id, name: f.name, driveFolderId: f.driveFolderId }; })
+          })
+        });
+
         const data = await response.json();
 
         if (data.status === "error") {
