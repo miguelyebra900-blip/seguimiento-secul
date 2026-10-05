@@ -255,19 +255,17 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
     // ESTADO GLOBAL DE LA APLICACIÓN
-    let allProjects = {}; // Diccionario con todos los proyectos guardados { projectId: expedienteData }
+    let allProjects = {}; // Diccionario con todos los proyectos guardados
     let currentProjectId = null;
     let activeFolderId = null;
 
     // INICIALIZACIÓN AL CARGAR LA PÁGINA
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', function() {
       loadProjectsFromLocalStorage();
       
-      // Si no hay proyectos guardados en el navegador, inicializamos con la plantilla ejemplo
       if (Object.keys(allProjects).length === 0) {
         loadDefaultTemplate(false);
       } else {
-        // Seleccionamos el último proyecto abierto o el primero
         const savedActiveId = localStorage.getItem('secul_active_project_id');
         if (savedActiveId && allProjects[savedActiveId]) {
           currentProjectId = savedActiveId;
@@ -279,8 +277,8 @@
       }
     });
 
-    // 1. CARGA DE PLANTILLA POR DEFECTO (Ejemplo de las imágenes del usuario)
-    function loadDefaultTemplate(forceReset = false) {
+    // 1. CARGA DE PLANTILLA POR DEFECTO
+    function loadDefaultTemplate(forceReset) {
       if (forceReset && !confirm("¿Deseas reiniciar la estructura al ejemplo por defecto de solventación de observaciones?")) {
         return;
       }
@@ -289,7 +287,7 @@
       const demoData = {
         id: defaultId,
         rootName: "ANEXOS_SOLVENTACION_OBS_035_FORUM",
-        driveRootId: null, // Se asignará cuando se cree en Drive
+        driveRootId: null,
         driveRootUrl: null,
         lastModified: new Date().toISOString(),
         folders: [
@@ -494,7 +492,7 @@
       const select = document.getElementById('project-selector');
       select.innerHTML = '';
       
-      Object.keys(allProjects).forEach(projId => {
+      Object.keys(allProjects).forEach(function(projId) {
         const proj = allProjects[projId];
         const opt = document.createElement('option');
         opt.value = proj.id;
@@ -540,7 +538,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${proj.rootName}_respaldo.json`;
+      a.download = proj.rootName + "_respaldo.json";
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -556,7 +554,7 @@
           if (!imported.rootName || !imported.folders) {
             throw new Error("Formato de JSON no válido para expediente");
           }
-          const importedId = imported.id || "proj_" + Date.now();
+          const importedId = imported.id || ("proj_" + Date.now());
           imported.id = importedId;
           allProjects[importedId] = imported;
           currentProjectId = importedId;
@@ -583,41 +581,36 @@
       document.getElementById('active-project-name').textContent = proj.rootName;
       document.getElementById('raw-structure-input').value = generateTreeRepresentation(proj);
 
-      // Enlace de Google Drive si ya fue creado
       const driveRootBadge = document.getElementById('drive-root-link');
       const driveRootUrl = document.getElementById('drive-root-url');
       if (proj.driveRootId) {
         driveRootBadge.classList.remove('hidden');
-        driveRootUrl.href = `https://drive.google.com/drive/folders/${proj.driveRootId}`;
-        document.getElementById('btn-sync-all-drive').innerHTML = `<i class="fa-solid fa-cloud-check"></i><span>Sincronizar Cambios con Drive</span>`;
+        driveRootUrl.href = "https://drive.google.com/drive/folders/" + proj.driveRootId;
+        document.getElementById('btn-sync-all-drive').innerHTML = '<i class="fa-solid fa-cloud-check"></i><span>Sincronizar Cambios con Drive</span>';
       } else {
         driveRootBadge.classList.add('hidden');
-        document.getElementById('btn-sync-all-drive').innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>`;
+        document.getElementById('btn-sync-all-drive').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>';
       }
 
       renderFolderTree();
       if (proj.folders.length > 0) {
         selectFolder(proj.folders[0].id);
       } else {
-        document.getElementById('folder-detail-container').innerHTML = `
-          <div class="text-center py-16 text-slate-400">
-            <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
-            <p class="text-sm font-medium">Este expediente no tiene carpetas aún.</p>
-            <p class="text-xs text-slate-400 mt-1">Escribe la estructura arriba o haz clic en "Nueva Carpeta".</p>
-          </div>
-        `;
+        document.getElementById('folder-detail-container').innerHTML = 
+          '<div class="text-center py-16 text-slate-400">' +
+            '<i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>' +
+            '<p class="text-sm font-medium">Este expediente no tiene carpetas aún.</p>' +
+            '<p class="text-xs text-slate-400 mt-1">Escribe la estructura arriba o haz clic en "Nueva Carpeta".</p>' +
+          '</div>';
       }
     }
 
     function generateTreeRepresentation(proj) {
-      let text = `📁 ${proj.rootName}/
-`;
-      proj.folders.forEach(f => {
-        text += `|-- 📁 ${f.name}/
-`;
-        f.docs.forEach(d => {
-          text += `|   |-- 📄 ${d.suggestedName} ${!d.required ? '(Opcional)' : ''}
-`;
+      let text = "📁 " + proj.rootName + "/\n";
+      proj.folders.forEach(function(f) {
+        text += "|-- 📁 " + f.name + "/\n";
+        f.docs.forEach(function(d) {
+          text += "|   |-- 📄 " + d.suggestedName + (!d.required ? " (Opcional)" : "") + "\n";
         });
       });
       return text;
@@ -632,13 +625,12 @@
       }
 
       const proj = getCurrentProject();
-      const lines = raw.split('
-').map(l => l.trim()).filter(l => l.length > 0);
+      const lines = raw.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
       let newFolders = [];
       let currentFolder = null;
       let detectedRoot = proj.rootName;
 
-      lines.forEach((line, index) => {
+      lines.forEach(function(line, index) {
         let clean = line.replace(/^[|\s├└─\-\+]+/g, '').trim();
         clean = clean.replace(/^[📁📄📂📝]+\s*/g, '').trim();
         if (clean.length === 0) return;
@@ -652,8 +644,7 @@
 
         if (!isDoc && (clean.endsWith('/') || !clean.includes('.') || clean.toLowerCase().includes('carpeta') || clean.toLowerCase().includes('anexo'))) {
           const folderName = clean.replace(/\/$/, '').trim();
-          // Si ya existía esta carpeta en el proyecto, preservamos sus IDs y documentos ya cargados
-          const existingFolder = proj.folders.find(f => f.name.toLowerCase() === folderName.toLowerCase());
+          const existingFolder = proj.folders.find(function(f) { return f.name.toLowerCase() === folderName.toLowerCase(); });
           
           currentFolder = {
             id: existingFolder ? existingFolder.id : ('f_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
@@ -681,8 +672,7 @@
           };
 
           if (currentFolder) {
-            // Evitar duplicar si ya existía el mismo nombre sugerido
-            const docExists = currentFolder.docs.find(d => d.suggestedName.toLowerCase() === cleanDocName.toLowerCase());
+            const docExists = currentFolder.docs.find(function(d) { return d.suggestedName.toLowerCase() === cleanDocName.toLowerCase(); });
             if (!docExists) {
               currentFolder.docs.push(docObj);
             }
@@ -726,7 +716,7 @@
         progressLabel.textContent = "Leyendo diagrama de árbol en la imagen...";
         
         const ret = await worker.recognize(file, {
-          logger: m => {
+          logger: function(m) {
             if (m.status === 'recognizing text') {
               const p = Math.round(m.progress * 100);
               progressBar.style.width = p + '%';
@@ -746,7 +736,7 @@
         console.error(err);
         alert("Error al leer la imagen: " + err.message);
       } finally {
-        setTimeout(() => progressContainer.classList.add('hidden'), 2000);
+        setTimeout(function() { progressContainer.classList.add('hidden'); }, 2000);
       }
     }
 
@@ -778,62 +768,56 @@
       const counter = document.getElementById('tree-items-counter');
       const infoTotal = document.getElementById('total-anexos-info');
 
-      counter.textContent = `${proj.folders.length} carpetas`;
+      counter.textContent = proj.folders.length + " carpetas";
       let totalDocs = 0;
       let totalUploaded = 0;
 
-      container.innerHTML = `
-        <div class="p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-lg flex items-center justify-between text-indigo-900 font-bold mb-3">
-          <div class="flex items-center space-x-2 truncate">
-            <i class="fa-solid fa-folder-tree text-indigo-600"></i>
-            <span class="truncate">${proj.rootName}</span>
-          </div>
-          ${proj.driveRootId ? '<span title="Sincronizado en Drive" class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-cloud-check"></i></span>' : ''}
-        </div>
-      `;
+      container.innerHTML = 
+        '<div class="p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-lg flex items-center justify-between text-indigo-900 font-bold mb-3">' +
+          '<div class="flex items-center space-x-2 truncate">' +
+            '<i class="fa-solid fa-folder-tree text-indigo-600"></i>' +
+            '<span class="truncate">' + proj.rootName + '</span>' +
+          '</div>' +
+          (proj.driveRootId ? '<span title="Sincronizado en Drive" class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-cloud-check"></i></span>' : '') +
+        '</div>';
 
-      proj.folders.forEach(folder => {
+      proj.folders.forEach(function(folder) {
         const folderDocsCount = folder.docs.length;
-        const uploadedCount = folder.docs.filter(d => d.uploaded || d.fileBase64).length;
+        const uploadedCount = folder.docs.filter(function(d) { return d.uploaded || d.fileBase64; }).length;
         totalDocs += folderDocsCount;
         totalUploaded += uploadedCount;
 
-        // Semáforo de estatus
-        let statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-rose-400" title="Sin archivos"></span>`;
+        let statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-rose-400" title="Sin archivos"></span>';
         if (uploadedCount > 0 && uploadedCount < folderDocsCount) {
-          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400" title="Parcial (${uploadedCount}/${folderDocsCount})"></span>`;
+          statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-amber-400" title="Parcial (' + uploadedCount + '/' + folderDocsCount + ')"></span>';
         } else if (uploadedCount > 0 && uploadedCount === folderDocsCount) {
-          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo (${uploadedCount}/${folderDocsCount})"></span>`;
+          statusBadge = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Completo (' + uploadedCount + '/' + folderDocsCount + ')"></span>';
         }
 
         const isSelected = folder.id === activeFolderId;
         const itemDiv = document.createElement('div');
-        itemDiv.className = `p-3 rounded-xl border cursor-pointer transition flex items-center justify-between group ${
-          isSelected 
-            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
-            : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-        }`;
-        itemDiv.onclick = () => selectFolder(folder.id);
+        itemDiv.className = "p-3 rounded-xl border cursor-pointer transition flex items-center justify-between group " +
+          (isSelected ? "bg-indigo-600 text-white border-indigo-600 shadow-md" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700");
+        itemDiv.onclick = function() { selectFolder(folder.id); };
 
-        itemDiv.innerHTML = `
-          <div class="flex items-center space-x-3 overflow-hidden">
-            <i class="fa-solid fa-folder ${isSelected ? 'text-amber-300' : 'text-amber-500'} text-lg"></i>
-            <div class="truncate">
-              <p class="font-semibold text-xs leading-snug truncate">${folder.titleDisplay || folder.name}</p>
-              <p class="text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}">${uploadedCount}/${folderDocsCount} anexos listos</p>
-            </div>
-          </div>
-          <div class="flex items-center space-x-2">
-            ${folder.driveFolderId ? '<i class="fa-brands fa-google-drive text-[11px] text-emerald-300 mr-1" title="Carpeta sincronizada en Drive"></i>' : ''}
-            ${statusBadge}
-            <i class="fa-solid fa-chevron-right text-xs ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-slate-400'}"></i>
-          </div>
-        `;
+        itemDiv.innerHTML = 
+          '<div class="flex items-center space-x-3 overflow-hidden">' +
+            '<i class="fa-solid fa-folder ' + (isSelected ? 'text-amber-300' : 'text-amber-500') + ' text-lg"></i>' +
+            '<div class="truncate">' +
+              '<p class="font-semibold text-xs leading-snug truncate">' + (folder.titleDisplay || folder.name) + '</p>' +
+              '<p class="text-[10px] ' + (isSelected ? 'text-indigo-200' : 'text-slate-400') + '">' + uploadedCount + '/' + folderDocsCount + ' anexos listos</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center space-x-2">' +
+            (folder.driveFolderId ? '<i class="fa-brands fa-google-drive text-[11px] text-emerald-300 mr-1" title="Carpeta sincronizada en Drive"></i>' : '') +
+            statusBadge +
+            '<i class="fa-solid fa-chevron-right text-xs ' + (isSelected ? 'text-white' : 'text-slate-300 group-hover:text-slate-400') + '"></i>' +
+          '</div>';
 
         container.appendChild(itemDiv);
       });
 
-      infoTotal.textContent = `${totalUploaded} de ${totalDocs} archivos integrados`;
+      infoTotal.textContent = totalUploaded + " de " + totalDocs + " archivos integrados";
     }
 
     // 7. SELECCIONAR CARPETA Y MOSTRAR DOCUMENTOS
@@ -842,11 +826,11 @@
       renderFolderTree();
 
       const proj = getCurrentProject();
-      const folder = proj.folders.find(f => f.id === folderId);
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
 
       document.getElementById('active-folder-title').textContent = folder.titleDisplay || folder.name;
-      document.getElementById('active-folder-path').textContent = `/${proj.rootName}/${folder.name}`;
+      document.getElementById('active-folder-path').textContent = "/" + proj.rootName + "/" + folder.name;
 
       const driveBadge = document.getElementById('active-folder-drive-status');
       if (folder.driveFolderId) {
@@ -858,91 +842,80 @@
       const detailContainer = document.getElementById('folder-detail-container');
       detailContainer.innerHTML = '';
 
-      folder.docs.forEach((doc, idx) => {
+      folder.docs.forEach(function(doc, idx) {
         const docCard = document.createElement('div');
         docCard.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition space-y-3";
 
         const isReady = doc.fileBase64 || doc.uploaded;
 
-        docCard.innerHTML = `
-          <div class="flex justify-between items-start gap-2">
-            <div class="flex items-start space-x-2.5">
-              <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">${idx + 1}</span>
-              <div>
-                <div class="flex items-center space-x-2 flex-wrap">
-                  <h4 class="font-mono text-xs font-bold text-indigo-950">${doc.suggestedName}</h4>
-                  ${doc.required 
+        docCard.innerHTML = 
+          '<div class="flex justify-between items-start gap-2">' +
+            '<div class="flex items-start space-x-2.5">' +
+              '<span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">' + (idx + 1) + '</span>' +
+              '<div>' +
+                '<div class="flex items-center space-x-2 flex-wrap">' +
+                  '<h4 class="font-mono text-xs font-bold text-indigo-950">' + doc.suggestedName + '</h4>' +
+                  (doc.required 
                     ? '<span class="text-[10px] font-semibold bg-rose-100 text-rose-700 px-2 py-0.2 rounded-full">Obligatorio</span>' 
-                    : '<span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.2 rounded-full">Sugerido / Opcional</span>'}
-                  ${doc.uploaded 
+                    : '<span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.2 rounded-full">Sugerido / Opcional</span>') +
+                  (doc.uploaded 
                     ? '<span class="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.2 rounded-full"><i class="fa-solid fa-check mr-1"></i>En Drive</span>' 
-                    : ''}
-                </div>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">${doc.description}</p>
-              </div>
-            </div>
-            <button onclick="removeDocRequirement('${folder.id}', '${doc.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1" title="Eliminar este anexo">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </div>
-
-          <!-- Área de archivo cargado / Dropzone -->
-          <div class="mt-2">
-            ${isReady ? `
-              <div class="flex items-center justify-between p-3 ${doc.uploaded ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-indigo-50 border-indigo-200 text-indigo-900'} border rounded-lg">
-                <div class="flex items-center space-x-2.5 truncate">
-                  <i class="fa-solid ${doc.uploaded ? 'fa-cloud-circle-check text-emerald-600' : 'fa-file-circle-check text-indigo-600'} text-lg"></i>
-                  <div class="truncate">
-                    <p class="text-xs font-bold truncate">${doc.fileName || doc.suggestedName}</p>
-                    <p class="text-[10px] ${doc.uploaded ? 'text-emerald-700' : 'text-indigo-600'}">
-                      ${doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Adjunto'} • 
-                      ${doc.uploaded ? 'Guardado permanentemente en Google Drive' : 'Listo localmente para subir a Drive'}
-                    </p>
-                  </div>
-                </div>
-
-                <div class="flex items-center space-x-2">
-                  ${!doc.uploaded ? `
-                    <button id="btn-upload-single-${doc.id}" onclick="uploadSingleFileToDrive('${folder.id}', '${doc.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-2.5 py-1 rounded shadow-sm transition">
-                      <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive
-                    </button>
-                  ` : `
-                    ${doc.driveFileUrl ? `
-                      <a href="${doc.driveFileUrl}" target="_blank" class="text-indigo-600 hover:underline text-xs font-medium mr-1">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver
-                      </a>
-                    ` : ''}
-                  `}
-                  <button onclick="clearSelectedFile('${folder.id}', '${doc.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1" title="Reemplazar archivo">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                  </button>
-                </div>
-              </div>
-            ` : `
-              <div 
-                class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3.5 text-center cursor-pointer transition"
-                onclick="document.getElementById('input_file_${doc.id}').click()"
-                ondragover="event.preventDefault(); this.classList.add('border-indigo-500','bg-indigo-50');"
-                ondragleave="this.classList.remove('border-indigo-500','bg-indigo-50');"
-                ondrop="handleFileDrop(event, '${folder.id}', '${doc.id}')"
-              >
-                <input type="file" id="input_file_${doc.id}" class="hidden" onchange="handleFileChosen(event, '${folder.id}', '${doc.id}')">
-                <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-base mb-1"></i>
-                <p class="text-xs font-semibold text-slate-700">Arrastre aquí el anexo o haga clic para seleccionarlo</p>
-                <p class="text-[10px] text-slate-400">PDF, Excel, Word o Imagen</p>
-              </div>
-            `}
-          </div>
-        `;
+                    : '') +
+                '</div>' +
+                '<p class="text-xs text-slate-600 mt-1 leading-relaxed">' + doc.description + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<button onclick="removeDocRequirement('' + folder.id + '', '' + doc.id + '')" class="text-slate-300 hover:text-rose-500 text-xs p-1" title="Eliminar este anexo">' +
+              '<i class="fa-solid fa-trash-can"></i>' +
+            '</button>' +
+          '</div>' +
+          '<div class="mt-2">' +
+            (isReady ? (
+              '<div class="flex items-center justify-between p-3 ' + (doc.uploaded ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-indigo-50 border-indigo-200 text-indigo-900') + ' border rounded-lg">' +
+                '<div class="flex items-center space-x-2.5 truncate">' +
+                  '<i class="fa-solid ' + (doc.uploaded ? 'fa-cloud-circle-check text-emerald-600' : 'fa-file-circle-check text-indigo-600') + ' text-lg"></i>' +
+                  '<div class="truncate">' +
+                    '<p class="text-xs font-bold truncate">' + (doc.fileName || doc.suggestedName) + '</p>' +
+                    '<p class="text-[10px] ' + (doc.uploaded ? 'text-emerald-700' : 'text-indigo-600') + '">' +
+                      (doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Adjunto') + ' • ' +
+                      (doc.uploaded ? 'Guardado en Google Drive' : 'Listo para subir a Drive') +
+                    '</p>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="flex items-center space-x-2">' +
+                  (!doc.uploaded ? (
+                    '<button id="btn-upload-single-' + doc.id + '" onclick="uploadSingleFileToDrive('' + folder.id + '', '' + doc.id + '')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-2.5 py-1 rounded shadow-sm transition">' +
+                      '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive' +
+                    '</button>'
+                  ) : (
+                    doc.driveFileUrl ? (
+                      '<a href="' + doc.driveFileUrl + '" target="_blank" class="text-indigo-600 hover:underline text-xs font-medium mr-1">' +
+                        '<i class="fa-solid fa-arrow-up-right-from-square"></i> Ver' +
+                      '</a>'
+                    ) : ''
+                  )) +
+                  '<button onclick="clearSelectedFile('' + folder.id + '', '' + doc.id + '')" class="text-slate-400 hover:text-rose-600 text-xs p-1" title="Reemplazar archivo">' +
+                    '<i class="fa-solid fa-arrows-rotate"></i>' +
+                  '</button>' +
+                '</div>' +
+              '</div>'
+            ) : (
+              '<div class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3.5 text-center cursor-pointer transition" onclick="document.getElementById('input_file_' + doc.id + '').click()" ondragover="event.preventDefault(); this.classList.add('border-indigo-500','bg-indigo-50');" ondragleave="this.classList.remove('border-indigo-500','bg-indigo-50');" ondrop="handleFileDrop(event, '' + folder.id + '', '' + doc.id + '')">' +
+                '<input type="file" id="input_file_' + doc.id + '" class="hidden" onchange="handleFileChosen(event, '' + folder.id + '', '' + doc.id + '')">' +
+                '<i class="fa-solid fa-cloud-arrow-up text-slate-400 text-base mb-1"></i>' +
+                '<p class="text-xs font-semibold text-slate-700">Arrastre aquí el anexo o haga clic para seleccionarlo</p>' +
+                '<p class="text-[10px] text-slate-400">PDF, Excel, Word o Imagen</p>' +
+              '</div>'
+            )) +
+          '</div>';
 
         detailContainer.appendChild(docCard);
       });
 
-      // Botón para agregar documento adicional
       const addDocBtn = document.createElement('button');
       addDocBtn.className = "w-full py-2.5 border-2 border-dashed border-slate-300 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition";
-      addDocBtn.onclick = () => addDocToFolderPrompt(folder.id);
-      addDocBtn.innerHTML = `<i class="fa-solid fa-plus"></i><span>Agregar documento o anexo complementario</span>`;
+      addDocBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
+      addDocBtn.innerHTML = '<i class="fa-solid fa-plus"></i><span>Agregar documento o anexo complementario</span>';
       detailContainer.appendChild(addDocBtn);
     }
 
@@ -966,16 +939,16 @@
         const base64Data = e.target.result.split(',')[1];
         
         const proj = getCurrentProject();
-        const folder = proj.folders.find(f => f.id === folderId);
+        const folder = proj.folders.find(function(f) { return f.id === folderId; });
         if (!folder) return;
-        const doc = folder.docs.find(d => d.id === docId);
+        const doc = folder.docs.find(function(d) { return d.id === docId; });
         if (!doc) return;
 
         doc.fileName = file.name;
         doc.fileSize = file.size;
         doc.fileMime = file.type || "application/pdf";
         doc.fileBase64 = base64Data;
-        doc.uploaded = false; // Aún no está en Drive
+        doc.uploaded = false;
 
         saveProjectsToLocalStorage();
         selectFolder(folderId);
@@ -985,9 +958,9 @@
 
     function clearSelectedFile(folderId, docId) {
       const proj = getCurrentProject();
-      const folder = proj.folders.find(f => f.id === folderId);
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
-      const doc = folder.docs.find(d => d.id === docId);
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
       if (!doc) return;
 
       doc.fileName = null;
@@ -1026,7 +999,7 @@
       const desc = prompt("Descripción documental:", "Documento complementario solicitado.");
 
       const proj = getCurrentProject();
-      const folder = proj.folders.find(f => f.id === folderId);
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (folder) {
         folder.docs.push({
           id: 'd_' + Date.now(),
@@ -1048,9 +1021,9 @@
     function removeDocRequirement(folderId, docId) {
       if (!confirm("¿Deseas eliminar este anexo?")) return;
       const proj = getCurrentProject();
-      const folder = proj.folders.find(f => f.id === folderId);
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (folder) {
-        folder.docs = folder.docs.filter(d => d.id !== docId);
+        folder.docs = folder.docs.filter(function(d) { return d.id !== docId; });
         saveProjectsToLocalStorage();
         selectFolder(folderId);
       }
@@ -1060,7 +1033,6 @@
     // 9. COMUNICACIÓN DIRECTA CON GOOGLE APPS SCRIPT WEB APP
     // ==============================================================
 
-    // Sincronizar o Crear toda la estructura en Google Drive
     async function syncAllToDrive() {
       const proj = getCurrentProject();
       if (!proj || proj.folders.length === 0) {
@@ -1071,18 +1043,17 @@
       const btn = document.getElementById('btn-sync-all-drive');
       const originalText = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>`;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>';
 
       try {
-        // Petición a Apps Script para crear o verificar carpetas
         const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" }, // text/plain evita bloqueos CORS pre-flight
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             accion: "crearEstructura",
             rootName: proj.rootName,
             existingRootId: proj.driveRootId,
-            folders: proj.folders.map(f => ({ id: f.id, name: f.name, driveFolderId: f.driveFolderId }))
+            folders: proj.folders.map(function(f) { return { id: f.id, name: f.name, driveFolderId: f.driveFolderId }; })
           })
         });
 
@@ -1092,26 +1063,23 @@
           throw new Error(data.message || "Error al comunicarse con Google Apps Script");
         }
 
-        // Asignar el ID de la raíz devuelto por Drive
         proj.driveRootId = data.rootFolderId;
-        proj.driveRootUrl = `https://drive.google.com/drive/folders/${data.rootFolderId}`;
+        proj.driveRootUrl = "https://drive.google.com/drive/folders/" + data.rootFolderId;
 
-        // Asignar los IDs de cada subcarpeta
         if (data.folders && Array.isArray(data.folders)) {
-          data.folders.forEach(resFolder => {
-            const f = proj.folders.find(item => item.id === resFolder.idInterno || item.name === resFolder.name);
+          data.folders.forEach(function(resFolder) {
+            const f = proj.folders.find(function(item) { return item.id === resFolder.idInterno || item.name === resFolder.name; });
             if (f) {
               f.driveFolderId = resFolder.driveFolderId;
             }
           });
         }
 
-        // Subir automáticamente los archivos que ya estén cargados localmente
         let uploadedFilesCount = 0;
         for (const folder of proj.folders) {
           for (const doc of folder.docs) {
             if (doc.fileBase64 && !doc.uploaded) {
-              btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ${doc.suggestedName}...</span>`;
+              btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ' + doc.suggestedName + '...</span>';
               const uploadRes = await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -1137,7 +1105,7 @@
         saveProjectsToLocalStorage();
         loadCurrentProjectUI();
 
-        alert(`¡Expediente "${proj.rootName}" sincronizado en Google Drive con éxito! Se subieron ${uploadedFilesCount} archivo(s).`);
+        alert('¡Expediente "' + proj.rootName + '" sincronizado en Google Drive con éxito! Se subieron ' + uploadedFilesCount + ' archivo(s).');
 
       } catch (err) {
         console.error(err);
@@ -1148,22 +1116,20 @@
       }
     }
 
-    // Subir un único archivo adicional cuando la sesión ya fue retomada
     async function uploadSingleFileToDrive(folderId, docId) {
       const proj = getCurrentProject();
-      const folder = proj.folders.find(f => f.id === folderId);
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
-      const doc = folder.docs.find(d => d.id === docId);
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
       if (!doc || !doc.fileBase64) return;
 
-      const btn = document.getElementById(`btn-upload-single-${docId}`);
+      const btn = document.getElementById("btn-upload-single-" + docId);
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
       }
 
       try {
-        // Si la carpeta aún no tiene driveFolderId, creamos la estructura primero
         if (!folder.driveFolderId) {
           alert("Primero se asegurará la creación de las carpetas en Drive...");
           await syncAllToDrive();
@@ -1188,7 +1154,7 @@
           doc.driveFileUrl = upData.fileUrl;
           saveProjectsToLocalStorage();
           selectFolder(folderId);
-          alert(`¡Archivo "${doc.suggestedName}" subido exitosamente a Google Drive!`);
+          alert('¡Archivo "' + doc.suggestedName + '" subido exitosamente a Google Drive!');
         } else {
           throw new Error(upData.message || "Error al subir");
         }
@@ -1199,7 +1165,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive`;
+          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive';
         }
       }
     }
