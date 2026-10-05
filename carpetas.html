@@ -30,7 +30,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header / Navbar con Gestor de Proyectos y Estatus de Conexión -->
+  <!-- Header / Navbar -->
   <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
@@ -48,7 +48,6 @@
         <div class="flex items-center bg-indigo-950/80 border border-indigo-700/60 rounded-lg px-2.5 py-1 text-xs">
           <label for="project-selector" class="text-indigo-200 mr-2 font-medium">Expediente:</label>
           <select id="project-selector" onchange="onProjectSelectChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
-            <!-- Se puebla dinámicamente -->
           </select>
         </div>
 
@@ -176,7 +175,6 @@
 
         <!-- Árbol Interactivo -->
         <div id="tree-container" class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 text-sm text-slate-700">
-          <!-- Renderizado dinámico -->
         </div>
 
         <!-- Barra inferior del árbol: acciones rápidas -->
@@ -249,24 +247,19 @@
 
   <!-- SCRIPT DE LÓGICA DEL SISTEMA -->
   <script>
-    // ==========================================
-    // CONFIGURACIÓN DE TU APPS SCRIPT WEB APP
-    // ==========================================
+    // URL DE TU GOOGLE APPS SCRIPT
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
-    // ESTADO GLOBAL DE LA APLICACIÓN
-    let allProjects = {}; // Diccionario con todos los proyectos guardados
+    let allProjects = {};
     let currentProjectId = null;
     let activeFolderId = null;
 
-    // INICIALIZACIÓN AL CARGAR LA PÁGINA
-    window.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener("DOMContentLoaded", function() {
       loadProjectsFromLocalStorage();
-      
       if (Object.keys(allProjects).length === 0) {
         loadDefaultTemplate(false);
       } else {
-        const savedActiveId = localStorage.getItem('secul_active_project_id');
+        const savedActiveId = localStorage.getItem("secul_active_project_id");
         if (savedActiveId && allProjects[savedActiveId]) {
           currentProjectId = savedActiveId;
         } else {
@@ -277,9 +270,8 @@
       }
     });
 
-    // 1. CARGA DE PLANTILLA POR DEFECTO
     function loadDefaultTemplate(forceReset) {
-      if (forceReset && !confirm("¿Deseas reiniciar la estructura al ejemplo por defecto de solventación de observaciones?")) {
+      if (forceReset && !confirm("¿Deseas reiniciar la estructura al ejemplo por defecto?")) {
         return;
       }
 
@@ -462,39 +454,38 @@
       loadCurrentProjectUI();
     }
 
-    // 2. GESTIÓN DE PROYECTOS (LOCALSTORAGE)
     function saveProjectsToLocalStorage() {
       if (currentProjectId && allProjects[currentProjectId]) {
         allProjects[currentProjectId].lastModified = new Date().toISOString();
       }
-      localStorage.setItem('secul_expedientes_projects', JSON.stringify(allProjects));
-      localStorage.setItem('secul_active_project_id', currentProjectId);
+      localStorage.setItem("secul_expedientes_projects", JSON.stringify(allProjects));
+      localStorage.setItem("secul_active_project_id", currentProjectId);
       
-      const indicator = document.getElementById('autosave-indicator');
+      const indicator = document.getElementById("autosave-indicator");
       if (indicator) {
         indicator.textContent = "Guardado: " + new Date().toLocaleTimeString();
       }
     }
 
     function loadProjectsFromLocalStorage() {
-      const stored = localStorage.getItem('secul_expedientes_projects');
+      const stored = localStorage.getItem("secul_expedientes_projects");
       if (stored) {
         try {
           allProjects = JSON.parse(stored);
         } catch (e) {
-          console.error("Error al cargar proyectos de localStorage:", e);
+          console.error("Error al cargar proyectos:", e);
           allProjects = {};
         }
       }
     }
 
     function updateProjectSelector() {
-      const select = document.getElementById('project-selector');
-      select.innerHTML = '';
+      const select = document.getElementById("project-selector");
+      select.innerHTML = "";
       
       Object.keys(allProjects).forEach(function(projId) {
         const proj = allProjects[projId];
-        const opt = document.createElement('option');
+        const opt = document.createElement("option");
         opt.value = proj.id;
         opt.textContent = proj.rootName + (proj.driveRootId ? " ☁️" : "");
         if (proj.id === currentProjectId) opt.selected = true;
@@ -505,7 +496,7 @@
     function onProjectSelectChanged(newProjectId) {
       if (allProjects[newProjectId]) {
         currentProjectId = newProjectId;
-        localStorage.setItem('secul_active_project_id', currentProjectId);
+        localStorage.setItem("secul_active_project_id", currentProjectId);
         loadCurrentProjectUI();
       }
     }
@@ -517,7 +508,7 @@
       const newId = "proj_" + Date.now();
       allProjects[newId] = {
         id: newId,
-        rootName: name.trim().replace(/\s+/g, '_').toUpperCase(),
+        rootName: name.trim().replace(/\s+/g, "_").toUpperCase(),
         driveRootId: null,
         driveRootUrl: null,
         lastModified: new Date().toISOString(),
@@ -536,7 +527,7 @@
       const jsonStr = JSON.stringify(proj, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = proj.rootName + "_respaldo.json";
       a.click();
@@ -573,30 +564,29 @@
       return allProjects[currentProjectId];
     }
 
-    // 3. ACTUALIZACIÓN VISUAL DEL EXPEDIENTE SELECCIONADO
     function loadCurrentProjectUI() {
       const proj = getCurrentProject();
       if (!proj) return;
 
-      document.getElementById('active-project-name').textContent = proj.rootName;
-      document.getElementById('raw-structure-input').value = generateTreeRepresentation(proj);
+      document.getElementById("active-project-name").textContent = proj.rootName;
+      document.getElementById("raw-structure-input").value = generateTreeRepresentation(proj);
 
-      const driveRootBadge = document.getElementById('drive-root-link');
-      const driveRootUrl = document.getElementById('drive-root-url');
+      const driveRootBadge = document.getElementById("drive-root-link");
+      const driveRootUrl = document.getElementById("drive-root-url");
       if (proj.driveRootId) {
-        driveRootBadge.classList.remove('hidden');
+        driveRootBadge.classList.remove("hidden");
         driveRootUrl.href = "https://drive.google.com/drive/folders/" + proj.driveRootId;
-        document.getElementById('btn-sync-all-drive').innerHTML = '<i class="fa-solid fa-cloud-check"></i><span>Sincronizar Cambios con Drive</span>';
+        document.getElementById("btn-sync-all-drive").innerHTML = '<i class="fa-solid fa-cloud-check"></i><span>Sincronizar Cambios con Drive</span>';
       } else {
-        driveRootBadge.classList.add('hidden');
-        document.getElementById('btn-sync-all-drive').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>';
+        driveRootBadge.classList.add("hidden");
+        document.getElementById("btn-sync-all-drive").innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Crear Estructura en Drive</span>';
       }
 
       renderFolderTree();
       if (proj.folders.length > 0) {
         selectFolder(proj.folders[0].id);
       } else {
-        document.getElementById('folder-detail-container').innerHTML = 
+        document.getElementById("folder-detail-container").innerHTML = 
           '<div class="text-center py-16 text-slate-400">' +
             '<i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>' +
             '<p class="text-sm font-medium">Este expediente no tiene carpetas aún.</p>' +
@@ -616,9 +606,8 @@
       return text;
     }
 
-    // 4. PARSER INTELIGENTE DE TEXTO / DIAGRAMA A ESTRUCTURA
     function parseAndBuildTree() {
-      const raw = document.getElementById('raw-structure-input').value;
+      const raw = document.getElementById("raw-structure-input").value;
       if (!raw.trim()) {
         alert("Por favor escribe o pega texto con la estructura de carpetas.");
         return;
@@ -631,23 +620,23 @@
       let detectedRoot = proj.rootName;
 
       lines.forEach(function(line, index) {
-        let clean = line.replace(/^[|\s├└─\-\+]+/g, '').trim();
-        clean = clean.replace(/^[📁📄📂📝]+\s*/g, '').trim();
+        let clean = line.replace(/^[|\s├└─\-\+]+/g, "").trim();
+        clean = clean.replace(/^[📁📄📂📝]+\s*/g, "").trim();
         if (clean.length === 0) return;
 
-        if (index === 0 && (clean.endsWith('/') || !clean.includes('.'))) {
-          detectedRoot = clean.replace(/\/$/, '').trim();
+        if (index === 0 && (clean.endsWith("/") || !clean.includes("."))) {
+          detectedRoot = clean.replace(/\/$/, "").trim();
           return;
         }
 
-        const isDoc = clean.match(/\.(pdf|docx|xlsx|xls|png|jpg|jpeg|zip|xml)$/i) || (clean.toLowerCase().includes('anexo_') && clean.includes('.'));
+        const isDoc = clean.match(/\.(pdf|docx|xlsx|xls|png|jpg|jpeg|zip|xml)$/i) || (clean.toLowerCase().includes("anexo_") && clean.includes("."));
 
-        if (!isDoc && (clean.endsWith('/') || !clean.includes('.') || clean.toLowerCase().includes('carpeta') || clean.toLowerCase().includes('anexo'))) {
-          const folderName = clean.replace(/\/$/, '').trim();
+        if (!isDoc && (clean.endsWith("/") || !clean.includes(".") || clean.toLowerCase().includes("carpeta") || clean.toLowerCase().includes("anexo"))) {
+          const folderName = clean.replace(/\/$/, "").trim();
           const existingFolder = proj.folders.find(function(f) { return f.name.toLowerCase() === folderName.toLowerCase(); });
           
           currentFolder = {
-            id: existingFolder ? existingFolder.id : ('f_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
+            id: existingFolder ? existingFolder.id : ("f_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4)),
             name: folderName,
             titleDisplay: existingFolder ? existingFolder.titleDisplay : folderName,
             driveFolderId: existingFolder ? existingFolder.driveFolderId : null,
@@ -655,11 +644,11 @@
           };
           newFolders.push(currentFolder);
         } else {
-          const isOptional = clean.toLowerCase().includes('(opcional)') || clean.toLowerCase().includes('consideración');
-          const cleanDocName = clean.replace(/\(.*?\)/g, '').trim();
+          const isOptional = clean.toLowerCase().includes("(opcional)") || clean.toLowerCase().includes("consideración");
+          const cleanDocName = clean.replace(/\(.*?\)/g, "").trim();
 
           const docObj = {
-            id: 'd_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            id: "d_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
             suggestedName: cleanDocName,
             description: "Documento anexo solicitado.",
             required: !isOptional,
@@ -678,9 +667,9 @@
             }
           } else {
             currentFolder = {
-              id: 'f_default',
-              name: '01_GENERALES',
-              titleDisplay: '01_GENERALES',
+              id: "f_default",
+              name: "01_GENERALES",
+              titleDisplay: "01_GENERALES",
               driveFolderId: null,
               docs: [docObj]
             };
@@ -697,76 +686,74 @@
       alert("¡Estructura procesada y guardada con éxito!");
     }
 
-    // 5. OCR DE IMÁGENES
     async function handleImageSelected(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      const progressContainer = document.getElementById('ocr-progress-container');
-      const progressBar = document.getElementById('ocr-progress-bar');
-      const progressLabel = document.getElementById('ocr-status-label');
-      const percentageLabel = document.getElementById('ocr-percentage');
+      const progressContainer = document.getElementById("ocr-progress-container");
+      const progressBar = document.getElementById("ocr-progress-bar");
+      const progressLabel = document.getElementById("ocr-status-label");
+      const percentageLabel = document.getElementById("ocr-percentage");
 
-      progressContainer.classList.remove('hidden');
-      progressBar.style.width = '10%';
+      progressContainer.classList.remove("hidden");
+      progressBar.style.width = "10%";
       progressLabel.textContent = "Iniciando motor de OCR...";
 
       try {
-        const worker = await Tesseract.createWorker('spa');
+        const worker = await Tesseract.createWorker("spa");
         progressLabel.textContent = "Leyendo diagrama de árbol en la imagen...";
         
         const ret = await worker.recognize(file, {
           logger: function(m) {
-            if (m.status === 'recognizing text') {
+            if (m.status === "recognizing text") {
               const p = Math.round(m.progress * 100);
-              progressBar.style.width = p + '%';
-              percentageLabel.textContent = p + '%';
+              progressBar.style.width = p + "%";
+              percentageLabel.textContent = p + "%";
             }
           }
         });
 
         await worker.terminate();
         progressLabel.textContent = "Extracción completada";
-        progressBar.style.width = '100%';
+        progressBar.style.width = "100%";
 
-        document.getElementById('raw-structure-input').value = ret.data.text;
-        switchInputTab('text');
+        document.getElementById("raw-structure-input").value = ret.data.text;
+        switchInputTab("text");
         parseAndBuildTree();
       } catch (err) {
         console.error(err);
         alert("Error al leer la imagen: " + err.message);
       } finally {
-        setTimeout(function() { progressContainer.classList.add('hidden'); }, 2000);
+        setTimeout(function() { progressContainer.classList.add("hidden"); }, 2000);
       }
     }
 
     function switchInputTab(tab) {
-      const btnText = document.getElementById('tab-btn-text');
-      const btnOcr = document.getElementById('tab-btn-ocr');
-      const tabText = document.getElementById('tab-text-content');
-      const tabOcr = document.getElementById('tab-ocr-content');
+      const btnText = document.getElementById("tab-btn-text");
+      const btnOcr = document.getElementById("tab-btn-ocr");
+      const tabText = document.getElementById("tab-text-content");
+      const tabOcr = document.getElementById("tab-ocr-content");
 
-      if (tab === 'text') {
+      if (tab === "text") {
         btnText.className = "px-3 py-1.5 rounded-md bg-white text-indigo-700 shadow-sm transition";
         btnOcr.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition";
-        tabText.classList.remove('hidden');
-        tabOcr.classList.add('hidden');
+        tabText.classList.remove("hidden");
+        tabOcr.classList.add("hidden");
       } else {
         btnOcr.className = "px-3 py-1.5 rounded-md bg-white text-indigo-700 shadow-sm transition";
         btnText.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition";
-        tabOcr.classList.remove('hidden');
-        tabText.classList.add('hidden');
+        tabOcr.classList.remove("hidden");
+        tabText.classList.add("hidden");
       }
     }
 
-    // 6. RENDERIZADO DEL ÁRBOL
     function renderFolderTree() {
       const proj = getCurrentProject();
       if (!proj) return;
 
-      const container = document.getElementById('tree-container');
-      const counter = document.getElementById('tree-items-counter');
-      const infoTotal = document.getElementById('total-anexos-info');
+      const container = document.getElementById("tree-container");
+      const counter = document.getElementById("tree-items-counter");
+      const infoTotal = document.getElementById("total-anexos-info");
 
       counter.textContent = proj.folders.length + " carpetas";
       let totalDocs = 0;
@@ -778,7 +765,7 @@
             '<i class="fa-solid fa-folder-tree text-indigo-600"></i>' +
             '<span class="truncate">' + proj.rootName + '</span>' +
           '</div>' +
-          (proj.driveRootId ? '<span title="Sincronizado en Drive" class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-cloud-check"></i></span>' : '') +
+          (proj.driveRootId ? '<span title="Sincronizado en Drive" class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-cloud-check"></i></span>' : "") +
         '</div>';
 
       proj.folders.forEach(function(folder) {
@@ -795,23 +782,23 @@
         }
 
         const isSelected = folder.id === activeFolderId;
-        const itemDiv = document.createElement('div');
+        const itemDiv = document.createElement("div");
         itemDiv.className = "p-3 rounded-xl border cursor-pointer transition flex items-center justify-between group " +
           (isSelected ? "bg-indigo-600 text-white border-indigo-600 shadow-md" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700");
         itemDiv.onclick = function() { selectFolder(folder.id); };
 
         itemDiv.innerHTML = 
           '<div class="flex items-center space-x-3 overflow-hidden">' +
-            '<i class="fa-solid fa-folder ' + (isSelected ? 'text-amber-300' : 'text-amber-500') + ' text-lg"></i>' +
+            '<i class="fa-solid fa-folder ' + (isSelected ? "text-amber-300" : "text-amber-500") + ' text-lg"></i>' +
             '<div class="truncate">' +
               '<p class="font-semibold text-xs leading-snug truncate">' + (folder.titleDisplay || folder.name) + '</p>' +
-              '<p class="text-[10px] ' + (isSelected ? 'text-indigo-200' : 'text-slate-400') + '">' + uploadedCount + '/' + folderDocsCount + ' anexos listos</p>' +
+              '<p class="text-[10px] ' + (isSelected ? "text-indigo-200" : "text-slate-400") + '">' + uploadedCount + '/' + folderDocsCount + ' anexos listos</p>' +
             '</div>' +
           '</div>' +
           '<div class="flex items-center space-x-2">' +
-            (folder.driveFolderId ? '<i class="fa-brands fa-google-drive text-[11px] text-emerald-300 mr-1" title="Carpeta sincronizada en Drive"></i>' : '') +
+            (folder.driveFolderId ? '<i class="fa-brands fa-google-drive text-[11px] text-emerald-300 mr-1" title="Carpeta sincronizada en Drive"></i>' : "") +
             statusBadge +
-            '<i class="fa-solid fa-chevron-right text-xs ' + (isSelected ? 'text-white' : 'text-slate-300 group-hover:text-slate-400') + '"></i>' +
+            '<i class="fa-solid fa-chevron-right text-xs ' + (isSelected ? "text-white" : "text-slate-300 group-hover:text-slate-400") + '"></i>' +
           '</div>';
 
         container.appendChild(itemDiv);
@@ -820,7 +807,6 @@
       infoTotal.textContent = totalUploaded + " de " + totalDocs + " archivos integrados";
     }
 
-    // 7. SELECCIONAR CARPETA Y MOSTRAR DOCUMENTOS
     function selectFolder(folderId) {
       activeFolderId = folderId;
       renderFolderTree();
@@ -829,97 +815,140 @@
       const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (!folder) return;
 
-      document.getElementById('active-folder-title').textContent = folder.titleDisplay || folder.name;
-      document.getElementById('active-folder-path').textContent = "/" + proj.rootName + "/" + folder.name;
+      document.getElementById("active-folder-title").textContent = folder.titleDisplay || folder.name;
+      document.getElementById("active-folder-path").textContent = "/" + proj.rootName + "/" + folder.name;
 
-      const driveBadge = document.getElementById('active-folder-drive-status');
+      const driveBadge = document.getElementById("active-folder-drive-status");
       if (folder.driveFolderId) {
-        driveBadge.classList.remove('hidden');
+        driveBadge.classList.remove("hidden");
       } else {
-        driveBadge.classList.add('hidden');
+        driveBadge.classList.add("hidden");
       }
 
-      const detailContainer = document.getElementById('folder-detail-container');
-      detailContainer.innerHTML = '';
+      const detailContainer = document.getElementById("folder-detail-container");
+      detailContainer.innerHTML = "";
 
       folder.docs.forEach(function(doc, idx) {
-        const docCard = document.createElement('div');
+        const docCard = document.createElement("div");
         docCard.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition space-y-3";
 
         const isReady = doc.fileBase64 || doc.uploaded;
 
-        docCard.innerHTML = 
-          '<div class="flex justify-between items-start gap-2">' +
-            '<div class="flex items-start space-x-2.5">' +
-              '<span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">' + (idx + 1) + '</span>' +
-              '<div>' +
-                '<div class="flex items-center space-x-2 flex-wrap">' +
-                  '<h4 class="font-mono text-xs font-bold text-indigo-950">' + doc.suggestedName + '</h4>' +
-                  (doc.required 
-                    ? '<span class="text-[10px] font-semibold bg-rose-100 text-rose-700 px-2 py-0.2 rounded-full">Obligatorio</span>' 
-                    : '<span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.2 rounded-full">Sugerido / Opcional</span>') +
-                  (doc.uploaded 
-                    ? '<span class="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.2 rounded-full"><i class="fa-solid fa-check mr-1"></i>En Drive</span>' 
-                    : '') +
-                '</div>' +
-                '<p class="text-xs text-slate-600 mt-1 leading-relaxed">' + doc.description + '</p>' +
-              '</div>' +
+        // Cabecera del documento
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "flex justify-between items-start gap-2";
+
+        const leftInfo = document.createElement("div");
+        leftInfo.className = "flex items-start space-x-2.5";
+        leftInfo.innerHTML = 
+          '<span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">' + (idx + 1) + '</span>' +
+          '<div>' +
+            '<div class="flex items-center space-x-2 flex-wrap">' +
+              '<h4 class="font-mono text-xs font-bold text-indigo-950">' + doc.suggestedName + '</h4>' +
+              (doc.required 
+                ? '<span class="text-[10px] font-semibold bg-rose-100 text-rose-700 px-2 py-0.2 rounded-full">Obligatorio</span>' 
+                : '<span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.2 rounded-full">Sugerido / Opcional</span>') +
+              (doc.uploaded 
+                ? '<span class="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.2 rounded-full"><i class="fa-solid fa-check mr-1"></i>En Drive</span>' 
+                : "") +
             '</div>' +
-            '<button onclick="removeDocRequirement('' + folder.id + '', '' + doc.id + '')" class="text-slate-300 hover:text-rose-500 text-xs p-1" title="Eliminar este anexo">' +
-              '<i class="fa-solid fa-trash-can"></i>' +
-            '</button>' +
-          '</div>' +
-          '<div class="mt-2">' +
-            (isReady ? (
-              '<div class="flex items-center justify-between p-3 ' + (doc.uploaded ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-indigo-50 border-indigo-200 text-indigo-900') + ' border rounded-lg">' +
-                '<div class="flex items-center space-x-2.5 truncate">' +
-                  '<i class="fa-solid ' + (doc.uploaded ? 'fa-cloud-circle-check text-emerald-600' : 'fa-file-circle-check text-indigo-600') + ' text-lg"></i>' +
-                  '<div class="truncate">' +
-                    '<p class="text-xs font-bold truncate">' + (doc.fileName || doc.suggestedName) + '</p>' +
-                    '<p class="text-[10px] ' + (doc.uploaded ? 'text-emerald-700' : 'text-indigo-600') + '">' +
-                      (doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Adjunto') + ' • ' +
-                      (doc.uploaded ? 'Guardado en Google Drive' : 'Listo para subir a Drive') +
-                    '</p>' +
-                  '</div>' +
-                '</div>' +
-                '<div class="flex items-center space-x-2">' +
-                  (!doc.uploaded ? (
-                    '<button id="btn-upload-single-' + doc.id + '" onclick="uploadSingleFileToDrive('' + folder.id + '', '' + doc.id + '')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-2.5 py-1 rounded shadow-sm transition">' +
-                      '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive' +
-                    '</button>'
-                  ) : (
-                    doc.driveFileUrl ? (
-                      '<a href="' + doc.driveFileUrl + '" target="_blank" class="text-indigo-600 hover:underline text-xs font-medium mr-1">' +
-                        '<i class="fa-solid fa-arrow-up-right-from-square"></i> Ver' +
-                      '</a>'
-                    ) : ''
-                  )) +
-                  '<button onclick="clearSelectedFile('' + folder.id + '', '' + doc.id + '')" class="text-slate-400 hover:text-rose-600 text-xs p-1" title="Reemplazar archivo">' +
-                    '<i class="fa-solid fa-arrows-rotate"></i>' +
-                  '</button>' +
-                '</div>' +
-              '</div>'
-            ) : (
-              '<div class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3.5 text-center cursor-pointer transition" onclick="document.getElementById('input_file_' + doc.id + '').click()" ondragover="event.preventDefault(); this.classList.add('border-indigo-500','bg-indigo-50');" ondragleave="this.classList.remove('border-indigo-500','bg-indigo-50');" ondrop="handleFileDrop(event, '' + folder.id + '', '' + doc.id + '')">' +
-                '<input type="file" id="input_file_' + doc.id + '" class="hidden" onchange="handleFileChosen(event, '' + folder.id + '', '' + doc.id + '')">' +
-                '<i class="fa-solid fa-cloud-arrow-up text-slate-400 text-base mb-1"></i>' +
-                '<p class="text-xs font-semibold text-slate-700">Arrastre aquí el anexo o haga clic para seleccionarlo</p>' +
-                '<p class="text-[10px] text-slate-400">PDF, Excel, Word o Imagen</p>' +
-              '</div>'
-            )) +
+            '<p class="text-xs text-slate-600 mt-1 leading-relaxed">' + doc.description + '</p>' +
           '</div>';
 
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "text-slate-300 hover:text-rose-500 text-xs p-1";
+        deleteBtn.title = "Eliminar este anexo";
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+        deleteBtn.onclick = function() { removeDocRequirement(folder.id, doc.id); };
+
+        headerDiv.appendChild(leftInfo);
+        headerDiv.appendChild(deleteBtn);
+        docCard.appendChild(headerDiv);
+
+        // Área de Archivo o Dropzone
+        const dropzoneContainer = document.createElement("div");
+        dropzoneContainer.className = "mt-2";
+
+        if (isReady) {
+          const readyDiv = document.createElement("div");
+          readyDiv.className = "flex items-center justify-between p-3 " + (doc.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-indigo-50 border-indigo-200 text-indigo-900") + " border rounded-lg";
+          
+          const fileInfoLeft = document.createElement("div");
+          fileInfoLeft.className = "flex items-center space-x-2.5 truncate";
+          fileInfoLeft.innerHTML = 
+            '<i class="fa-solid ' + (doc.uploaded ? "fa-cloud-circle-check text-emerald-600" : "fa-file-circle-check text-indigo-600") + ' text-lg"></i>' +
+            '<div class="truncate">' +
+              '<p class="text-xs font-bold truncate">' + (doc.fileName || doc.suggestedName) + '</p>' +
+              '<p class="text-[10px] ' + (doc.uploaded ? "text-emerald-700" : "text-indigo-600") + '">' +
+                (doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) + " MB" : "Adjunto") + " • " +
+                (doc.uploaded ? "Guardado en Google Drive" : "Listo para subir a Drive") +
+              '</p>' +
+            '</div>';
+
+          const actionsRight = document.createElement("div");
+          actionsRight.className = "flex items-center space-x-2";
+
+          if (!doc.uploaded) {
+            const uploadBtn = document.createElement("button");
+            uploadBtn.id = "btn-upload-single-" + doc.id;
+            uploadBtn.className = "bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-2.5 py-1 rounded shadow-sm transition";
+            uploadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Subir a Drive';
+            uploadBtn.onclick = function() { uploadSingleFileToDrive(folder.id, doc.id); };
+            actionsRight.appendChild(uploadBtn);
+          } else if (doc.driveFileUrl) {
+            const viewLink = document.createElement("a");
+            viewLink.href = doc.driveFileUrl;
+            viewLink.target = "_blank";
+            viewLink.className = "text-indigo-600 hover:underline text-xs font-medium mr-1";
+            viewLink.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i> Ver';
+            actionsRight.appendChild(viewLink);
+          }
+
+          const replaceBtn = document.createElement("button");
+          replaceBtn.className = "text-slate-400 hover:text-rose-600 text-xs p-1";
+          replaceBtn.title = "Reemplazar archivo";
+          replaceBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
+          replaceBtn.onclick = function() { clearSelectedFile(folder.id, doc.id); };
+          actionsRight.appendChild(replaceBtn);
+
+          readyDiv.appendChild(fileInfoLeft);
+          readyDiv.appendChild(actionsRight);
+          dropzoneContainer.appendChild(readyDiv);
+        } else {
+          const dropDiv = document.createElement("div");
+          dropDiv.className = "border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3.5 text-center cursor-pointer transition";
+          
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.id = "input_file_" + doc.id;
+          fileInput.className = "hidden";
+          fileInput.onchange = function(e) { handleFileChosen(e, folder.id, doc.id); };
+
+          dropDiv.onclick = function() { fileInput.click(); };
+          dropDiv.ondragover = function(e) { e.preventDefault(); dropDiv.classList.add("border-indigo-500", "bg-indigo-50"); };
+          dropDiv.ondragleave = function() { dropDiv.classList.remove("border-indigo-500", "bg-indigo-50"); };
+          dropDiv.ondrop = function(e) { handleFileDrop(e, folder.id, doc.id); };
+
+          dropDiv.innerHTML = 
+            '<i class="fa-solid fa-cloud-arrow-up text-slate-400 text-base mb-1"></i>' +
+            '<p class="text-xs font-semibold text-slate-700">Arrastre aquí el anexo o haga clic para seleccionarlo</p>' +
+            '<p class="text-[10px] text-slate-400">PDF, Excel, Word o Imagen</p>';
+
+          dropDiv.appendChild(fileInput);
+          dropzoneContainer.appendChild(dropDiv);
+        }
+
+        docCard.appendChild(dropzoneContainer);
         detailContainer.appendChild(docCard);
       });
 
-      const addDocBtn = document.createElement('button');
+      const addDocBtn = document.createElement("button");
       addDocBtn.className = "w-full py-2.5 border-2 border-dashed border-slate-300 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition";
       addDocBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
       addDocBtn.innerHTML = '<i class="fa-solid fa-plus"></i><span>Agregar documento o anexo complementario</span>';
       detailContainer.appendChild(addDocBtn);
     }
 
-    // 8. MANEJO DE ARCHIVOS Y CONVERSIÓN A BASE64
     function handleFileChosen(event, folderId, docId) {
       const file = event.target.files[0];
       if (!file) return;
@@ -936,7 +965,7 @@
     function processFileForDoc(folderId, docId, file) {
       const reader = new FileReader();
       reader.onload = function(e) {
-        const base64Data = e.target.result.split(',')[1];
+        const base64Data = e.target.result.split(",")[1];
         
         const proj = getCurrentProject();
         const folder = proj.folders.find(function(f) { return f.id === folderId; });
@@ -980,8 +1009,8 @@
 
       const proj = getCurrentProject();
       const newFolder = {
-        id: 'f_' + Date.now(),
-        name: name.trim().replace(/\s+/g, '_').toUpperCase(),
+        id: "f_" + Date.now(),
+        name: name.trim().replace(/\s+/g, "_").toUpperCase(),
         titleDisplay: name.trim(),
         driveFolderId: null,
         docs: []
@@ -1002,7 +1031,7 @@
       const folder = proj.folders.find(function(f) { return f.id === folderId; });
       if (folder) {
         folder.docs.push({
-          id: 'd_' + Date.now(),
+          id: "d_" + Date.now(),
           suggestedName: name.trim(),
           description: desc || "",
           required: true,
@@ -1029,10 +1058,6 @@
       }
     }
 
-    // ==============================================================
-    // 9. COMUNICACIÓN DIRECTA CON GOOGLE APPS SCRIPT WEB APP
-    // ==============================================================
-
     async function syncAllToDrive() {
       const proj = getCurrentProject();
       if (!proj || proj.folders.length === 0) {
@@ -1040,7 +1065,7 @@
         return;
       }
 
-      const btn = document.getElementById('btn-sync-all-drive');
+      const btn = document.getElementById("btn-sync-all-drive");
       const originalText = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>';
