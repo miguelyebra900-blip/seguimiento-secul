@@ -596,14 +596,11 @@
     }
 
     function generateTreeRepresentation(proj) {
-      let text = "📁 " + proj.rootName + "/
-";
+      let text = "📁 " + proj.rootName + "/\n";
       proj.folders.forEach(function(f) {
-        text += "|-- 📁 " + f.name + "/
-";
+        text += "|-- 📁 " + f.name + "/\n";
         f.docs.forEach(function(d) {
-          text += "|   |-- 📄 " + d.suggestedName + (!d.required ? " (Opcional)" : "") + "
-";
+          text += "|   |-- 📄 " + d.suggestedName + (!d.required ? " (Opcional)" : "") + "\n";
         });
       });
       return text;
@@ -617,9 +614,7 @@
       }
 
       const proj = getCurrentProject();
-      const lines = raw.split(/
-?
-/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+      const lines = raw.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
       let newFolders = [];
       let currentFolder = null;
       let detectedRoot = proj.rootName;
@@ -1339,8 +1334,7 @@
       if (!newName || !newName.trim()) return;
 
       const newDesc = prompt("Descripción / Sugerencia documental:", doc.description);
-      const isReq = confirm("¿Este documento es OBLIGATORIO?
-(Presiona 'Aceptar' para Obligatorio, o 'Cancelar' para Opcional)");
+      const isReq = confirm("¿Este documento es OBLIGATORIO?\n(Presiona 'Aceptar' para Obligatorio, o 'Cancelar' para Opcional)");
 
       doc.suggestedName = newName.trim();
       doc.description = (newDesc !== null ? newDesc.trim() : doc.description);
