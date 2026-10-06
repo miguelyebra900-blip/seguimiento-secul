@@ -213,7 +213,7 @@
   </footer>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8pZEo47Cg1skUMe5Ad9u4idFGkCuVis-J24Ab4FgBiX23zKx4ayx7qSfaJHZkm3SvZQ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
     let allProjects = {};
     let currentProjectId = null;
@@ -246,16 +246,13 @@
         loadCurrentProjectUI();
       }
 
-      // Traer datos frescos de la nube al iniciar
       await syncFromCloud(false);
 
-      // Sincronización periódica automática cada 15 segundos
       setInterval(function() {
         syncFromCloud(false);
       }, 15000);
     });
 
-    // SINCRONIZACIÓN CON LA NUBE (DESCARGA CAMBIOS DE OTROS USUARIOS)
     async function syncFromCloud(manual) {
       if (isSyncing) return;
       isSyncing = true;
@@ -278,7 +275,6 @@
             const cloudProj = cloudProjects[pid];
             const localProj = allProjects[pid];
 
-            // Si el proyecto en la nube es más nuevo o no existe en local, se actualiza
             if (!localProj || !localProj.lastModified || new Date(cloudProj.lastModified) > new Date(localProj.lastModified)) {
               allProjects[pid] = cloudProj;
               changed = true;
@@ -301,14 +297,13 @@
           if (manual) alert("¡Datos actualizados con éxito desde la nube!");
         }
       } catch (err) {
-        console.warn("Fallo temporal al consultar nube:", err);
+        console.warn("Fallo al consultar nube:", err);
         if (manual) alert("No se pudo conectar con la nube en este momento. Revisa tu conexión.");
       } finally {
         isSyncing = false;
       }
     }
 
-    // GUARDA EN LOCAL Y DISPARA GUARDADO EN LA NUBE PARA TODOS
     function saveProjectsToLocalStorage() {
       if (currentProjectId && allProjects[currentProjectId]) {
         allProjects[currentProjectId].lastModified = new Date().toISOString();
@@ -357,7 +352,6 @@
         localStorage.setItem("secul_expedientes_projects", JSON.stringify(projectsMetadata));
         localStorage.setItem("secul_active_project_id", currentProjectId);
 
-        // Enviar a la nube en segundo plano
         if (currentProjectId && projectsMetadata[currentProjectId]) {
           sendProjectToCloud(projectsMetadata[currentProjectId]);
         }
@@ -382,7 +376,7 @@
           })
         });
       } catch (e) {
-        console.warn("No se pudo enviar cambio a la nube en este momento:", e);
+        console.warn("No se pudo enviar cambio a la nube:", e);
       }
     }
 
@@ -762,6 +756,7 @@
       infoTotal.textContent = totalUploadedFiles + " archivos en Drive";
     }
 
+    // 7. SELECCIONAR CARPETA Y MOSTRAR CASILLAS CON SELECCIÓN MÚLTIPLE Y CARGA MASIVA
     function selectFolder(folderId) {
       activeFolderId = folderId;
       renderFolderTree();
@@ -845,22 +840,93 @@
         const filesContainer = document.createElement("div");
         filesContainer.className = "space-y-2";
 
+        // Si hay archivos en la casilla, mostrar la barra de selección masiva
         if (docFiles.length > 0) {
+          const bulkBar = document.createElement("div");
+          bulkBar.className = "flex flex-wrap items-center justify-between p-2 bg-indigo-50/60 border border-indigo-200 rounded-lg text-xs gap-2 mb-2";
+
+          const bulkLeft = document.createElement("div");
+          bulkLeft.className = "flex items-center space-x-2";
+
+          const selectAllCb = document.createElement("input");
+          selectAllCb.type = "checkbox";
+          selectAllCb.id = "cb_all_" + doc.id;
+          selectAllCb.className = "w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer";
+          
+          // Comprobar si todos los pendientes están seleccionados
+          const pendingFiles = docFiles.filter(function(fl) { return !fl.uploaded; });
+          selectAllCb.checked = pendingFiles.length > 0;
+          selectAllCb.onchange = function() {
+            const checkboxes = document.querySelectorAll(".cb-file-" + doc.id);
+            checkboxes.forEach(function(cb) { cb.checked = selectAllCb.checked; });
+            updateBulkCounter(doc.id);
+          };
+
+          const selectAllLabel = document.createElement("label");
+          selectAllLabel.htmlFor = "cb_all_" + doc.id;
+          selectAllLabel.className = "font-semibold text-indigo-950 cursor-pointer select-none text-xs";
+          selectAllLabel.textContent = "Seleccionar todos";
+
+          const counterSpan = document.createElement("span");
+          counterSpan.id = "counter_" + doc.id;
+          counterSpan.className = "text-[11px] text-slate-500 font-medium ml-1";
+          counterSpan.textContent = "(" + pendingFiles.length + " listos)";
+
+          bulkLeft.appendChild(selectAllCb);
+          bulkLeft.appendChild(selectAllLabel);
+          bulkLeft.appendChild(counterSpan);
+
+          const bulkRight = document.createElement("div");
+          bulkRight.className = "flex items-center space-x-2";
+
+          const uploadSelectedBtn = document.createElement("button");
+          uploadSelectedBtn.id = "btn_bulk_up_" + doc.id;
+          uploadSelectedBtn.className = "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1 rounded text-xs shadow-sm transition flex items-center space-x-1.5";
+          uploadSelectedBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Subir Selección a Drive</span>';
+          uploadSelectedBtn.onclick = function() { uploadSelectedFilesToDrive(folder.id, doc.id); };
+
+          const deleteSelectedBtn = document.createElement("button");
+          deleteSelectedBtn.className = "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold px-2.5 py-1 rounded text-xs transition flex items-center space-x-1";
+          deleteSelectedBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i><span>Quitar Marcados</span>';
+          deleteSelectedBtn.onclick = function() { removeSelectedFilesFromDoc(folder.id, doc.id); };
+
+          bulkRight.appendChild(uploadSelectedBtn);
+          bulkRight.appendChild(deleteSelectedBtn);
+
+          bulkBar.appendChild(bulkLeft);
+          bulkBar.appendChild(bulkRight);
+          filesContainer.appendChild(bulkBar);
+
+          // Renderizar cada archivo con su casilla de verificación
           docFiles.forEach(function(fl) {
             const fileItem = document.createElement("div");
-            fileItem.className = "flex items-center justify-between p-2.5 " + (fl.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-slate-200 text-slate-800") + " border rounded-lg text-xs";
+            fileItem.className = "flex items-center justify-between p-2.5 " + (fl.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-slate-200 text-slate-800") + " border rounded-lg text-xs hover:border-indigo-300 transition";
             
             const fileLeft = document.createElement("div");
-            fileLeft.className = "flex items-center space-x-2 truncate mr-2";
-            fileLeft.innerHTML = 
-              '<i class="fa-solid ' + (fl.uploaded ? "fa-cloud-circle-check text-emerald-600" : "fa-file-lines text-indigo-600") + ' text-base"></i>' +
-              '<div class="truncate">' +
-                '<p class="font-bold truncate">' + fl.fileName + '</p>' +
+            fileLeft.className = "flex items-center space-x-2.5 truncate mr-2 flex-1";
+
+            // Casilla de verificación individual
+            const fileCb = document.createElement("input");
+            fileCb.type = "checkbox";
+            fileCb.value = fl.id;
+            fileCb.className = "w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer cb-file-" + doc.id;
+            fileCb.checked = !fl.uploaded; // Marcado por defecto si está listo para subir
+            fileCb.onchange = function() { updateBulkCounter(doc.id); };
+
+            fileLeft.appendChild(fileCb);
+
+            const iconHtml = '<i class="fa-solid ' + (fl.uploaded ? "fa-cloud-circle-check text-emerald-600" : "fa-file-lines text-indigo-600") + ' text-base shrink-0"></i>';
+            const textHtml = 
+              '<div class="truncate flex-1">' +
+                '<p class="font-bold truncate text-slate-800">' + fl.fileName + '</p>' +
                 '<p class="text-[10px] ' + (fl.uploaded ? "text-emerald-700" : "text-slate-400") + '">' +
                   (fl.fileSize ? (fl.fileSize / 1024 / 1024).toFixed(2) + " MB" : "Documento") + " • " +
                   (fl.uploaded ? "Guardado en Google Drive" : "Listo para subir") +
                 '</p>' +
               '</div>';
+
+            fileLeft.appendChild(document.createRange().createContextualFragment(iconHtml));
+            fileLeft.appendChild(document.createRange().createContextualFragment(textHtml));
 
             const fileRight = document.createElement("div");
             fileRight.className = "flex items-center space-x-1.5 shrink-0";
@@ -868,7 +934,7 @@
             if (!fl.uploaded) {
               const uploadSingleBtn = document.createElement("button");
               uploadSingleBtn.id = "btn_up_" + fl.id;
-              uploadSingleBtn.className = "px-2 py-1 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm transition flex items-center space-x-1";
+              uploadSingleBtn.className = "px-2.5 py-1 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm transition flex items-center space-x-1";
               uploadSingleBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Subir</span>';
               uploadSingleBtn.onclick = function() { uploadFileItemToDrive(folder.id, doc.id, fl.id); };
               fileRight.appendChild(uploadSingleBtn);
@@ -882,7 +948,7 @@
             }
 
             const removeBtn = document.createElement("button");
-            removeBtn.className = "p-1 text-slate-400 hover:text-rose-600 text-xs rounded hover:bg-rose-50 transition";
+            removeBtn.className = "p-1.5 text-slate-400 hover:text-rose-600 text-xs rounded hover:bg-rose-50 transition";
             removeBtn.title = "Quitar este archivo de la casilla";
             removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
             removeBtn.onclick = function() { removeFileFromDoc(folder.id, doc.id, fl.id); };
@@ -894,6 +960,7 @@
           });
         }
 
+        // Zona de Carga (Dropzone con selección múltiple)
         const dropDiv = document.createElement("div");
         dropDiv.className = "border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 rounded-lg p-3 text-center cursor-pointer transition";
         
@@ -926,6 +993,124 @@
       addDocBtn.onclick = function() { addDocToFolderPrompt(folder.id); };
       addDocBtn.innerHTML = '<i class="fa-solid fa-plus-circle text-indigo-500"></i><span>+ Agregar otra casilla / requerimiento a este anexo</span>';
       detailContainer.appendChild(addDocBtn);
+    }
+
+    // Actualiza el contador de archivos seleccionados en la barra masiva
+    function updateBulkCounter(docId) {
+      const checkboxes = document.querySelectorAll(".cb-file-" + docId);
+      let count = 0;
+      checkboxes.forEach(function(cb) { if (cb.checked) count++; });
+      const counterSpan = document.getElementById("counter_" + docId);
+      if (counterSpan) {
+        counterSpan.textContent = "(" + count + " seleccionados)";
+      }
+    }
+
+    // SUBIDA MASIVA DE LOS ARCHIVOS SELECCIONADOS EN LA CASILLA
+    async function uploadSelectedFilesToDrive(folderId, docId) {
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (!folder) return;
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
+      if (!doc) return;
+
+      const docFiles = ensureDocFiles(doc);
+      const checkboxes = document.querySelectorAll(".cb-file-" + docId + ":checked");
+
+      if (checkboxes.length === 0) {
+        alert("Por favor marca al menos una casilla de verificación para subir.");
+        return;
+      }
+
+      const selectedIds = Array.from(checkboxes).map(function(cb) { return cb.value; });
+      const filesToUpload = docFiles.filter(function(fl) {
+        return selectedIds.includes(fl.id) && fl.fileBase64 && !fl.uploaded;
+      });
+
+      if (filesToUpload.length === 0) {
+        alert("Los archivos seleccionados ya están en Google Drive o no tienen contenido pendiente.");
+        return;
+      }
+
+      const btn = document.getElementById("btn_bulk_up_" + docId);
+      const originalText = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo selección...</span>';
+      }
+
+      try {
+        if (!folder.driveFolderId) {
+          await syncAllToDrive();
+        }
+
+        let uploadedCount = 0;
+        for (let i = 0; i < filesToUpload.length; i++) {
+          const fl = filesToUpload[i];
+          if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ' + (i + 1) + ' de ' + filesToUpload.length + '...</span>';
+          }
+
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              accion: "subirArchivo",
+              driveFolderId: folder.driveFolderId,
+              fileName: fl.fileName,
+              mimeType: fl.fileMime || "application/pdf",
+              base64Content: fl.fileBase64
+            })
+          });
+
+          const upData = await res.json();
+          if (upData.status === "success") {
+            fl.uploaded = true;
+            fl.driveFileId = upData.fileId;
+            fl.driveFileUrl = upData.fileUrl;
+            uploadedCount++;
+          }
+        }
+
+        saveProjectsToLocalStorage();
+        selectFolder(folderId);
+        alert("¡Se subieron exitosamente " + uploadedCount + " archivo(s) a Google Drive!");
+      } catch (err) {
+        console.error(err);
+        alert("Error durante la subida masiva: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
+    // QUITAR MASIVAMENTE LOS ARCHIVOS SELECCIONADOS DE LA CASILLA
+    function removeSelectedFilesFromDoc(folderId, docId) {
+      const checkboxes = document.querySelectorAll(".cb-file-" + docId + ":checked");
+      if (checkboxes.length === 0) {
+        alert("No hay archivos seleccionados para quitar.");
+        return;
+      }
+
+      if (!confirm("¿Deseas quitar los " + checkboxes.length + " archivos seleccionados de esta casilla?")) {
+        return;
+      }
+
+      const proj = getCurrentProject();
+      const folder = proj.folders.find(function(f) { return f.id === folderId; });
+      if (!folder) return;
+      const doc = folder.docs.find(function(d) { return d.id === docId; });
+      if (!doc) return;
+
+      const selectedIds = Array.from(checkboxes).map(function(cb) { return cb.value; });
+      doc.files = (doc.files || []).filter(function(fl) {
+        return !selectedIds.includes(fl.id);
+      });
+
+      saveProjectsToLocalStorage();
+      selectFolder(folderId);
     }
 
     function updateFolderHeaderActions(folder) {
