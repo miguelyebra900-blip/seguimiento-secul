@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Armado de Expediente Digital - SECUL</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Tesseract.js para OCR de imágenes en cliente -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <style>
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -70,8 +74,8 @@
 
       <div class="flex items-center space-x-4 text-slate-600">
         <div class="flex items-center space-x-1.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Nube Multiusuario Activa</span>
+          <span id="cloud-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="cloud-indicator-text">Nube Activa</span>
         </div>
         <span class="text-slate-300">|</span>
         <span id="autosave-indicator" class="text-[11px] text-slate-400 italic">Sincronizando...</span>
@@ -213,12 +217,49 @@
   </footer>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8pZEo47Cg1skUMe5Ad9u4idFGkCuVis-J24Ab4FgBiX23zKx4ayx7qSfaJHZkm3SvZQ/exec";
+    // =========================================================================
+    // PEGA AQUÍ TU URL EXACTA DE IMPLEMENTACIÓN ACTIVA DE GOOGLE APPS SCRIPT
+    // Debe terminar en '/exec' y estar implementada con acceso 'Cualquier usuario' (Anyone)
+    // =========================================================================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBTPPv4T8OSBqSiYYDT5i-NGBVoBivt9w6iBwCyNTCjtxxjonxSx5lmaMy2UZoBHC5BQ/exec";
 
     let allProjects = {};
     let currentProjectId = null;
     let activeFolderId = null;
     let isSyncing = false;
+
+    // =========================================================================
+    // FUNCIÓN SEGURA ANTI-404: LLAMADA A APPS SCRIPT SIN ERRORES DE PARSEO HTML
+    // =========================================================================
+    async function callAppsScript(payload) {
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PEGA_AQUÍ")) {
+        throw new Error("Falta configurar la URL de Google Apps Script en la constante APPS_SCRIPT_URL.");
+      }
+
+      let res;
+      try {
+        res = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+      } catch (networkErr) {
+        throw new Error("No se pudo conectar con el servidor de Google. Revisa tu conexión a internet o los permisos CORS.");
+      }
+
+      const rawText = await res.text();
+
+      // Detección anti-404: si Google devolvió una página HTML (Error 404 / 403 / 500)
+      if (rawText.trim().startsWith("<") || rawText.includes("<!DOCTYPE") || rawText.includes("<html")) {
+        throw new Error("La URL de Google Apps Script no es válida o devolvió Error 404 (Página no encontrada). Revisa que la URL termine en '/exec' y esté implementada como 'Cualquier usuario'.");
+      }
+
+      try {
+        return JSON.parse(rawText);
+      } catch (jsonErr) {
+        throw new Error("Respuesta no válida del servidor: " + rawText.slice(0, 100));
+      }
+    }
 
     function ensureDocFiles(doc) {
       if (!doc.files || !Array.isArray(doc.files)) {
@@ -246,13 +287,16 @@
         loadCurrentProjectUI();
       }
 
+      // Consulta inicial a la nube
       await syncFromCloud(false);
 
+      // Sincronización periódica cada 20 segundos
       setInterval(function() {
         syncFromCloud(false);
-      }, 15000);
+      }, 20000);
     });
 
+    // SINCRONIZACIÓN CON LA NUBE (DESCARGA CAMBIOS DE OTROS USUARIOS)
     async function syncFromCloud(manual) {
       if (isSyncing) return;
       isSyncing = true;
@@ -260,12 +304,7 @@
       if (manual && indicator) indicator.textContent = "Consultando nube...";
 
       try {
-        const res = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ accion: "obtenerProyectos" })
-        });
-        const data = await res.json();
+        const data = await callAppsScript({ accion: "obtenerProyectos" });
 
         if (data.status === "success" && data.proyectos) {
           const cloudProjects = data.proyectos;
@@ -297,8 +336,8 @@
           if (manual) alert("¡Datos actualizados con éxito desde la nube!");
         }
       } catch (err) {
-        console.warn("Fallo al consultar nube:", err);
-        if (manual) alert("No se pudo conectar con la nube en este momento. Revisa tu conexión.");
+        console.warn("Aviso nube:", err.message);
+        if (manual) alert(err.message);
       } finally {
         isSyncing = false;
       }
@@ -367,16 +406,12 @@
 
     async function sendProjectToCloud(projData) {
       try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            accion: "guardarProyecto",
-            proyecto: projData
-          })
+        await callAppsScript({
+          accion: "guardarProyecto",
+          proyecto: projData
         });
       } catch (e) {
-        console.warn("No se pudo enviar cambio a la nube:", e);
+        console.warn("No se pudo sincronizar proyecto en la nube:", e.message);
       }
     }
 
@@ -411,6 +446,59 @@
         localStorage.setItem("secul_active_project_id", currentProjectId);
         loadCurrentProjectUI();
       }
+    }
+
+    function loadDefaultTemplate(forceReset) {
+      if (forceReset && !confirm("¿Deseas reiniciar la estructura al ejemplo por defecto?")) {
+        return;
+      }
+
+      const defaultId = "proj_solventacion_035";
+      const demoData = {
+        id: defaultId,
+        rootName: "ANEXOS_SOLVENTACION_OBS_035_FORUM",
+        driveRootId: null,
+        driveRootUrl: null,
+        lastModified: new Date().toISOString(),
+        folders: [
+          {
+            id: "f_01",
+            name: "01_ANEXO_ACTA_COMITE",
+            titleDisplay: "Carpeta 01 (Acta del Comité)",
+            driveFolderId: null,
+            docs: [
+              {
+                id: "d_01_1",
+                suggestedName: "01.1_Acta_Comite_Extincion_10_Dic_2025_Firmada.pdf",
+                description: "Copia digital certificada del Acta de la Sesión del Comité de Extinción de fecha 10 de diciembre de 2025.",
+                required: true,
+                files: []
+              }
+            ]
+          },
+          {
+            id: "f_02",
+            name: "02_ANEXO_JURIDICO_Y_LABORAL",
+            titleDisplay: "Carpeta 02 (Jurídico y Laboral)",
+            driveFolderId: null,
+            docs: [
+              {
+                id: "d_02_1",
+                suggestedName: "02.1_Cedula_Analitica_Inventario_7_Litigios.pdf",
+                description: "Cédula analítica en formato PDF/Excel que desglose los expedientes.",
+                required: true,
+                files: []
+              }
+            ]
+          }
+        ]
+      };
+
+      allProjects[defaultId] = demoData;
+      currentProjectId = defaultId;
+      saveProjectsToLocalStorage();
+      updateProjectSelector();
+      loadCurrentProjectUI();
     }
 
     function createNewProjectPrompt() {
@@ -508,11 +596,14 @@
     }
 
     function generateTreeRepresentation(proj) {
-      let text = "📁 " + proj.rootName + "/\n";
+      let text = "📁 " + proj.rootName + "/
+";
       proj.folders.forEach(function(f) {
-        text += "|-- 📁 " + f.name + "/\n";
+        text += "|-- 📁 " + f.name + "/
+";
         f.docs.forEach(function(d) {
-          text += "|   |-- 📄 " + d.suggestedName + (!d.required ? " (Opcional)" : "") + "\n";
+          text += "|   |-- 📄 " + d.suggestedName + (!d.required ? " (Opcional)" : "") + "
+";
         });
       });
       return text;
@@ -526,17 +617,19 @@
       }
 
       const proj = getCurrentProject();
-      const lines = raw.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+      const lines = raw.split(/
+?
+/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
       let newFolders = [];
       let currentFolder = null;
       let detectedRoot = proj.rootName;
 
       lines.forEach(function(line, index) {
-        let clean = line.replace(/^[|/\\_\-\s├└─+•*~]+\s*/g, "").trim();
+        let clean = line.replace(/^[|/\_\-\s├└─+•*~]+\s*/g, "").trim();
         clean = clean.replace(/^[📁📄📂📝]+\s*/g, "").trim();
-        clean = clean.replace(/^[|/\\_\-\s├└─+•*~]+\s*/g, "").trim();
+        clean = clean.replace(/^[|/\_\-\s├└─+•*~]+\s*/g, "").trim();
 
-        if (clean.length === 0 || /^[|/\\_\-\s.]+$/.test(clean)) return;
+        if (clean.length === 0 || /^[|/\_\-\s.]+$/.test(clean)) return;
 
         if (index === 0 && (clean.endsWith("/") || (!clean.includes(".") && newFolders.length === 0 && clean.toUpperCase().includes("ANEXOS")))) {
           detectedRoot = clean.replace(/\/$/, "").trim();
@@ -547,7 +640,7 @@
 
         if (!isDoc && (clean.endsWith("/") || !clean.includes(".") || clean.toLowerCase().includes("carpeta") || clean.toLowerCase().includes("anexo"))) {
           const folderName = clean.replace(/\/$/, "").trim();
-          if (!folderName || /^[|/\\_\-\s.]+$/.test(folderName)) return;
+          if (!folderName || /^[|/\_\-\s.]+$/.test(folderName)) return;
 
           const existingFolder = proj.folders.find(function(f) { return f.name.toLowerCase() === folderName.toLowerCase(); });
           
@@ -562,10 +655,10 @@
         } else {
           const isOptional = clean.toLowerCase().includes("(opcional)") || clean.toLowerCase().includes("consideración");
           let cleanDocName = clean.replace(/\(.*?(opcional|consideración).*?\)/gi, "").trim();
-          cleanDocName = cleanDocName.replace(/^[|/\\_\-\s├└─+•*~]+\s*/g, "").trim();
+          cleanDocName = cleanDocName.replace(/^[|/\_\-\s├└─+•*~]+\s*/g, "").trim();
           cleanDocName = cleanDocName.replace(/^[📁📄📂📝]+\s*/g, "").trim();
 
-          if (!cleanDocName || /^[|/\\_\-\s.]+$/.test(cleanDocName)) return;
+          if (!cleanDocName || /^[|/\_\-\s.]+$/.test(cleanDocName)) return;
 
           const docObj = {
             id: "d_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
@@ -840,7 +933,7 @@
         const filesContainer = document.createElement("div");
         filesContainer.className = "space-y-2";
 
-        // Si hay archivos en la casilla, mostrar la barra de selección masiva
+        // Barra de selección masiva por casilla
         if (docFiles.length > 0) {
           const bulkBar = document.createElement("div");
           bulkBar.className = "flex flex-wrap items-center justify-between p-2 bg-indigo-50/60 border border-indigo-200 rounded-lg text-xs gap-2 mb-2";
@@ -853,7 +946,6 @@
           selectAllCb.id = "cb_all_" + doc.id;
           selectAllCb.className = "w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer";
           
-          // Comprobar si todos los pendientes están seleccionados
           const pendingFiles = docFiles.filter(function(fl) { return !fl.uploaded; });
           selectAllCb.checked = pendingFiles.length > 0;
           selectAllCb.onchange = function() {
@@ -897,7 +989,7 @@
           bulkBar.appendChild(bulkRight);
           filesContainer.appendChild(bulkBar);
 
-          // Renderizar cada archivo con su casilla de verificación
+          // Renderizar cada archivo con su checkbox individual
           docFiles.forEach(function(fl) {
             const fileItem = document.createElement("div");
             fileItem.className = "flex items-center justify-between p-2.5 " + (fl.uploaded ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-slate-200 text-slate-800") + " border rounded-lg text-xs hover:border-indigo-300 transition";
@@ -905,12 +997,11 @@
             const fileLeft = document.createElement("div");
             fileLeft.className = "flex items-center space-x-2.5 truncate mr-2 flex-1";
 
-            // Casilla de verificación individual
             const fileCb = document.createElement("input");
             fileCb.type = "checkbox";
             fileCb.value = fl.id;
             fileCb.className = "w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer cb-file-" + doc.id;
-            fileCb.checked = !fl.uploaded; // Marcado por defecto si está listo para subir
+            fileCb.checked = !fl.uploaded;
             fileCb.onchange = function() { updateBulkCounter(doc.id); };
 
             fileLeft.appendChild(fileCb);
@@ -995,7 +1086,6 @@
       detailContainer.appendChild(addDocBtn);
     }
 
-    // Actualiza el contador de archivos seleccionados en la barra masiva
     function updateBulkCounter(docId) {
       const checkboxes = document.querySelectorAll(".cb-file-" + docId);
       let count = 0;
@@ -1051,19 +1141,14 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ' + (i + 1) + ' de ' + filesToUpload.length + '...</span>';
           }
 
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              accion: "subirArchivo",
-              driveFolderId: folder.driveFolderId,
-              fileName: fl.fileName,
-              mimeType: fl.fileMime || "application/pdf",
-              base64Content: fl.fileBase64
-            })
+          const upData = await callAppsScript({
+            accion: "subirArchivo",
+            driveFolderId: folder.driveFolderId,
+            fileName: fl.fileName,
+            mimeType: fl.fileMime || "application/pdf",
+            base64Content: fl.fileBase64
           });
 
-          const upData = await res.json();
           if (upData.status === "success") {
             fl.uploaded = true;
             fl.driveFileId = upData.fileId;
@@ -1086,7 +1171,6 @@
       }
     }
 
-    // QUITAR MASIVAMENTE LOS ARCHIVOS SELECCIONADOS DE LA CASILLA
     function removeSelectedFilesFromDoc(folderId, docId) {
       const checkboxes = document.querySelectorAll(".cb-file-" + docId + ":checked");
       if (checkboxes.length === 0) {
@@ -1255,7 +1339,8 @@
       if (!newName || !newName.trim()) return;
 
       const newDesc = prompt("Descripción / Sugerencia documental:", doc.description);
-      const isReq = confirm("¿Este documento es OBLIGATORIO?\n(Presiona 'Aceptar' para Obligatorio, o 'Cancelar' para Opcional)");
+      const isReq = confirm("¿Este documento es OBLIGATORIO?
+(Presiona 'Aceptar' para Obligatorio, o 'Cancelar' para Opcional)");
 
       doc.suggestedName = newName.trim();
       doc.description = (newDesc !== null ? newDesc.trim() : doc.description);
@@ -1329,6 +1414,7 @@
       }
     }
 
+    // SINCRONIZACIÓN GLOBAL A GOOGLE DRIVE
     async function syncAllToDrive() {
       const proj = getCurrentProject();
       if (!proj || proj.folders.length === 0) {
@@ -1342,22 +1428,12 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creando en Drive...</span>';
 
       try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            accion: "crearEstructura",
-            rootName: proj.rootName,
-            existingRootId: proj.driveRootId,
-            folders: proj.folders.map(function(f) { return { id: f.id, name: f.name, driveFolderId: f.driveFolderId }; })
-          })
+        const data = await callAppsScript({
+          accion: "crearEstructura",
+          rootName: proj.rootName,
+          existingRootId: proj.driveRootId,
+          folders: proj.folders.map(function(f) { return { id: f.id, name: f.name, driveFolderId: f.driveFolderId }; })
         });
-
-        const data = await response.json();
-
-        if (data.status === "error") {
-          throw new Error(data.message || "Error al comunicarse con Google Apps Script");
-        }
 
         proj.driveRootId = data.rootFolderId;
         proj.driveRootUrl = "https://drive.google.com/drive/folders/" + data.rootFolderId;
@@ -1378,18 +1454,15 @@
             for (const fl of docFiles) {
               if (fl.fileBase64 && !fl.uploaded) {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Subiendo ' + fl.fileName + '...</span>';
-                const uploadRes = await fetch(APPS_SCRIPT_URL, {
-                  method: "POST",
-                  headers: { "Content-Type": "text/plain;charset=utf-8" },
-                  body: JSON.stringify({
-                    accion: "subirArchivo",
-                    driveFolderId: folder.driveFolderId,
-                    fileName: fl.fileName,
-                    mimeType: fl.fileMime || "application/pdf",
-                    base64Content: fl.fileBase64
-                  })
+                
+                const upData = await callAppsScript({
+                  accion: "subirArchivo",
+                  driveFolderId: folder.driveFolderId,
+                  fileName: fl.fileName,
+                  mimeType: fl.fileMime || "application/pdf",
+                  base64Content: fl.fileBase64
                 });
-                const upData = await uploadRes.json();
+
                 if (upData.status === "success") {
                   fl.uploaded = true;
                   fl.driveFileId = upData.fileId;
@@ -1434,23 +1507,17 @@
 
       try {
         if (!folder.driveFolderId) {
-          alert("Primero se asegurará la creación de las carpetas en Drive...");
           await syncAllToDrive();
         }
 
-        const res = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            accion: "subirArchivo",
-            driveFolderId: folder.driveFolderId,
-            fileName: fl.fileName,
-            mimeType: fl.fileMime || "application/pdf",
-            base64Content: fl.fileBase64
-          })
+        const upData = await callAppsScript({
+          accion: "subirArchivo",
+          driveFolderId: folder.driveFolderId,
+          fileName: fl.fileName,
+          mimeType: fl.fileMime || "application/pdf",
+          base64Content: fl.fileBase64
         });
 
-        const upData = await res.json();
         if (upData.status === "success") {
           fl.uploaded = true;
           fl.driveFileId = upData.fileId;
