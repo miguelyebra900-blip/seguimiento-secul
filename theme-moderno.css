@@ -1,163 +1,131 @@
 /* ==========================================================================
-   TEMA EJECUTIVO TECH MODERNO (IEC -> Secretaría de Cultura)
-   Aplica efectos Glassmorphism, Neón sutil y paleta Dark Tech
+   TEMA EJECUTIVO TECH CLARO (Light Neón & Glassmorphism)
+   IEC -> Secretaría de Cultura
    ========================================================================== */
 
-/* Fondo general con profundidad tecnológica */
+/* Fondo base claro con gradiente sutil de profundidad */
 body {
-    background-color: #0b1120 !important;
-    background-image: 
-        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-        radial-gradient(at 50% 100%, rgba(15, 23, 42, 0.9) 0px, transparent 70%) !important;
-    color: #e2e8f0 !important;
+    background: radial-gradient(circle at 10% 20%, rgba(238, 242, 255, 0.9) 0%, rgba(248, 250, 252, 1) 90%) !important;
+    color: #1e293b !important;
     min-height: 100vh;
 }
 
-/* Header superior con borde iluminado y efecto cristal */
+/* Header Ejecutivo con línea neón inferior */
 header {
-    background: rgba(10, 15, 30, 0.85) !important;
-    backdrop-filter: blur(16px) saturate(180%) !important;
-    border-bottom: 1px solid rgba(99, 102, 241, 0.25) !important;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.45) !important;
+    background: linear-gradient(135deg, #0b132b 0%, #1c2541 60%, #1e1b4b 100%) !important;
+    border-bottom: 2px solid #6366f1 !important;
+    box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.35) !important;
 }
 
-/* Barra de navegación de pestañas (Tab Bar) */
+/* Barra de pestañas clara con efecto flotante */
 nav.bg-white {
-    background: rgba(15, 23, 42, 0.8) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
     backdrop-filter: blur(12px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
-nav button {
-    color: #94a3b8 !important;
-    transition: all 0.25s ease !important;
-}
-
-nav button:hover {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.06) !important;
-}
-
-/* Pestaña activa brillante */
+/* Pestaña activa con Neón Índigo/Azul */
 .active-nav-tab {
     background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
     color: #ffffff !important;
-    box-shadow: 0 0 15px rgba(79, 70, 229, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.5), 0 4px 6px -1px rgba(79, 70, 229, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Tarjeta del "Status Integral de Extinción" (Glow sutil) */
+/* Contenedores y Tarjetas con Glassmorphism Claro */
+.bg-white {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03) !important;
+    border-radius: 1.25rem !important;
+}
+
+/* Tarjeta Principal "Status Integral de Extinción" (Glow tecnológico oscuro) */
 section .bg-gradient-to-r.from-slate-900.via-indigo-950 {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.9)) !important;
-    border: 1px solid rgba(129, 140, 248, 0.3) !important;
-    box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.15) !important;
-    border-radius: 1.5rem !important;
+    background: linear-gradient(135deg, #090d16 0%, #111827 50%, #1e1b4b 100%) !important;
+    border: 1px solid rgba(129, 140, 248, 0.4) !important;
+    box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.3), 0 0 25px rgba(99, 102, 241, 0.2) !important;
 }
 
-/* Tarjetas métricas/KPI clickeables */
+/* Tarjetas de KPIs (78%, 2,570, etc.) con iluminación interactiva */
 .grid > div[onclick*="mostrarDetalleKpi"] {
-    background: rgba(15, 23, 42, 0.75) !important;
+    background: rgba(15, 23, 42, 0.85) !important;
     backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .grid > div[onclick*="mostrarDetalleKpi"]:hover {
-    transform: translateY(-4px) !important;
-    box-shadow: 0 12px 25px -4px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.3) !important;
-    border-color: rgba(129, 140, 248, 0.5) !important;
+    transform: translateY(-4px) scale(1.02) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), 0 10px 20px -5px rgba(0, 0, 0, 0.4) !important;
+    border-color: #818cf8 !important;
 }
 
-/* Contenedores blancos convertidos en tarjetas Glassmorphism ejecutivas */
-.bg-white {
-    background: rgba(17, 24, 39, 0.75) !important;
-    backdrop-filter: blur(14px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
-    color: #f1f5f9 !important;
-}
-
-/* Encabezados y títulos dentro de contenedores */
-.text-slate-900, h1, h2, h3, h4 {
-    color: #f8fafc !important;
-}
-
-.text-slate-700, .text-slate-600 {
-    color: #cbd5e1 !important;
-}
-
-.text-slate-500, .text-slate-400 {
-    color: #94a3b8 !important;
-}
-
-/* Tablas ejecutivas modo oscuro */
-table thead tr {
-    background-color: rgba(30, 41, 59, 0.8) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-table thead th {
-    color: #94a3b8 !important;
-    letter-spacing: 0.05em;
-}
-
-table tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-    transition: background 0.15s ease !important;
-}
-
-table tbody tr:hover {
-    background-color: rgba(99, 102, 241, 0.08) !important;
-}
-
-/* Cuadros de gráficas / Analítica */
-.bg-slate-50 {
-    background: rgba(15, 23, 42, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-/* Tarjetas de Hitos Operativos y Críticos con hover 3D suave */
-.dash-card, .hover\:shadow-md, .hover\:shadow-xl {
+/* Resplandor Neón en Botones Principales */
+button.bg-indigo-600, a.bg-indigo-600 {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.45) !important;
     transition: all 0.25s ease !important;
 }
 
-.dash-card:hover, .hover\:shadow-md:hover, .hover\:shadow-xl:hover {
+button.bg-indigo-600:hover, a.bg-indigo-600:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.75), 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Efectos en Contenedores de Gráficas y Métricas */
+.bg-slate-50 {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    border: 1px solid #e2e8f0 !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Efecto Hover Neón sutil en las tarjetas de gráficas */
+div[onclick*="openChartZoom"]:hover {
+    transform: translateY(-3px) !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2), 0 0 15px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Tarjetas de Hitos (A - H y Críticos) con Hover Dinámico */
+.dash-card:hover {
     transform: translateY(-3px) scale(1.01) !important;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.4), 0 0 12px rgba(99, 102, 241, 0.2) !important;
+    border-color: #818cf8 !important;
+    box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.2), 0 0 10px rgba(99, 102, 241, 0.1) !important;
 }
 
-/* Modales en cristal oscuro */
-.modal-backdrop {
-    background-color: rgba(3, 7, 18, 0.8) !important;
-    backdrop-filter: blur(8px) !important;
+/* Filas de la Tabla de Riesgos con brillo hover */
+table tbody tr {
+    transition: all 0.2s ease !important;
 }
 
-.modal-backdrop .bg-white {
-    background: #0f172a !important;
-    border: 1px solid rgba(99, 102, 241, 0.25) !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 25px rgba(79, 70, 229, 0.2) !important;
+table tbody tr:hover {
+    background: rgba(238, 242, 255, 0.7) !important;
+    box-shadow: inset 4px 0 0 #4f46e5 !important;
 }
 
-/* Entradas, selects y textareas */
+/* Badges con efecto Neón suave */
+.bg-rose-50, .bg-rose-100 {
+    box-shadow: 0 0 8px rgba(244, 63, 94, 0.2) !important;
+}
+
+.bg-emerald-50, .bg-emerald-100 {
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+.bg-amber-50, .bg-amber-100 {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Inputs, Selects y Buscadores modernos */
 input, select, textarea {
-    background-color: #1e293b !important;
-    border: 1px solid #334155 !important;
-    color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    transition: all 0.2s ease !important;
 }
 
 input:focus, select:focus, textarea:focus {
     border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 0 10px rgba(99, 102, 241, 0.15) !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
-}
-
-/* Botones con sutil brillo */
-button.bg-indigo-600 {
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4) !important;
-}
-
-button.bg-indigo-600:hover {
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6) !important;
 }
