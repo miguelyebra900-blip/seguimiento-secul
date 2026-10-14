@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client Oficial (Rescatado de panel_iecg) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -100,6 +102,24 @@
                             </div>
                         </div>
                     </div>
+                    <!-- BOTÓN ADMIN & AUDITORÍA (Se activa solo si el rol es Admin) -->
+    <a href="auditoria.html" id="btnAdminAuditoriaTop" class="hidden btn-executive bg-slate-800 hover:bg-slate-900 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 shadow-xs">
+        <i class="fa-solid fa-shield-halved text-amber-400"></i> Admin & Auditoría
+    </a>
+
+    <!-- ESTADO DE SESIÓN DINÁMICO CON SUPABASE -->
+    <div id="userSessionContainer" class="bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2.5 text-xs shadow-inner">
+        <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+        <div class="text-left leading-tight">
+            <span id="userNameDisplay" class="font-bold text-slate-100 block text-[11px]">No autenticado</span>
+            <span id="userRoleDisplay" class="text-amber-400 font-semibold text-[9px] flex items-center gap-1">
+                <i class="fa-solid fa-eye text-[8px]"></i> Modo Consulta / ASEG
+            </span>
+        </div>
+        <button onclick="handleAuthClick()" id="btnAuthAction" class="text-indigo-300 hover:text-white font-bold text-[11px] border-l border-slate-700 pl-2.5 transition">
+            <i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar
+        </button>
+    </div>
                 </div>
             </div>
         </div>
@@ -207,34 +227,53 @@
                         <i class="fa-solid fa-arrows-rotate"></i> Actualizar Métricas
                     </button>
                 </div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    <!-- 1. Dona Avance Global (Clickeable con Zoom) -->
+    <div onclick="openChartZoom('global')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
+        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
+            Avance Global Ponderado <i class="fa-solid fa-expand text-[9px] text-slate-400 group-hover:text-indigo-600"></i>
+        </span>
+        <div class="relative w-40 h-40 flex items-center justify-center pointer-events-none">
+            <canvas id="chartAvanceGlobal"></canvas>
+        </div>
+        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
+    </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center">
-                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Avance Global Ponderado</span>
-                        <div class="relative w-40 h-40 flex items-center justify-center">
-                            <canvas id="chartAvanceGlobal"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center">
-                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Distribución de Estatus</span>
-                        <div class="relative h-40 w-full">
-                            <canvas id="chartEstatus"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center">
-                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Gobernanza / Dependencia</span>
-                        <div class="relative h-40 w-full">
-                            <canvas id="chartGobernanza"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center">
-                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Avance por Área (A - J)</span>
-                        <div class="relative h-40 w-full">
-                            <canvas id="chartAreas"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- 2. Dona Distribución de Estatus (Clickeable con Zoom) -->
+    <div onclick="openChartZoom('estatus')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
+        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
+            Distribución de Estatus <i class="fa-solid fa-expand text-[9px] text-slate-400 group-hover:text-indigo-600"></i>
+        </span>
+        <div class="relative h-40 w-full pointer-events-none">
+            <canvas id="chartEstatus"></canvas>
+        </div>
+        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
+    </div>
+
+    <!-- 3. Pastel Gobernanza / Dependencia (Clickeable con Zoom) -->
+    <div onclick="openChartZoom('gobernanza')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
+        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
+            Gobernanza / Dependencia <i class="fa-solid fa-expand text-[9px] text-slate-400 group-hover:text-indigo-600"></i>
+        </span>
+        <div class="relative h-40 w-full pointer-events-none">
+            <canvas id="chartGobernanza"></canvas>
+        </div>
+        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
+    </div>
+
+    <!-- 4. Barras Avance por Área (Clickeable con Zoom) -->
+    <div onclick="openChartZoom('areas')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
+        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
+            Avance por Área (A - J) <i class="fa-solid fa-expand text-[9px] text-indigo-500"></i>
+        </span>
+        <div class="relative h-40 w-full pointer-events-none">
+            <canvas id="chartAreas"></canvas>
+        </div>
+        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
+    </div>
+
+</div>
         </div>
 
         <!-- ================================================================= -->
@@ -829,6 +868,330 @@
     <!-- SCRIPT DEL MOTOR DE DATOS, GOOGLE DRIVE Y CHARTS                  -->
     <!-- ================================================================= -->
     <script>
+// =========================================================================
+// 1. CONEXIÓN A SUPABASE Y ESTADO DE SESIÓN (RESCATADO DE PANEL_IECG)
+// =========================================================================
+const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
+
+let supabaseClient = null;
+if (typeof supabase !== 'undefined') {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// Usuario activo en sesión
+let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
+let chartEnlargedInstance = null;
+
+function updateAuthUI() {
+    const dot = document.getElementById('userStatusDot');
+    const name = document.getElementById('userNameDisplay');
+    const role = document.getElementById('userRoleDisplay');
+    const btn = document.getElementById('btnAuthAction');
+    const btnAdminTop = document.getElementById('btnAdminAuditoriaTop');
+    const lblAuditoriaUser = document.getElementById('authAuditoriaUserLabel');
+
+    if (currentUser) {
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        if (name) name.innerText = currentUser.nombre;
+        if (role) role.innerHTML = `<i class="fa-solid fa-user-shield me-1"></i> ${currentUser.rol || 'Enlace Institucional'}`;
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-right-from-bracket me-1"></i>Salir';
+        if (lblAuditoriaUser) lblAuditoriaUser.innerText = `${currentUser.nombre} (${currentUser.usuario})`;
+
+        const rolStr = (currentUser.rol || '').toLowerCase();
+        if (btnAdminTop) {
+            if (rolStr.includes('admin') || rolStr.includes('super')) {
+                btnAdminTop.classList.remove('hidden');
+                btnAdminTop.classList.add('flex');
+            } else {
+                btnAdminTop.classList.add('hidden');
+            }
+        }
+    } else {
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-slate-400";
+        if (name) name.innerText = "No autenticado";
+        if (role) role.innerHTML = '<i class="fa-solid fa-eye text-[8px] me-1"></i> Modo Consulta / ASEG';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar';
+        if (lblAuditoriaUser) lblAuditoriaUser.innerText = "Modo Consulta";
+        if (btnAdminTop) btnAdminTop.classList.add('hidden');
+    }
+}
+
+function handleAuthClick() {
+    if (currentUser) {
+        if (confirm("¿Deseas cerrar tu sesión institucional?")) {
+            registrarAuditoria('Cierre de Sesión', { usuario: currentUser.usuario });
+            currentUser = null;
+            localStorage.removeItem('secul_user');
+            updateAuthUI();
+        }
+    } else {
+        openModal('modal-auth');
+    }
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const usuarioInput = document.getElementById('authUsuario').value.trim();
+    const passInput = document.getElementById('authPass').value.trim();
+    const btnSubmit = document.getElementById('btnLoginSubmit');
+
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Validando...';
+    btnSubmit.disabled = true;
+
+    try {
+        if (supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('usuarios_acceso')
+                .select('*')
+                .eq('usuario', usuarioInput)
+                .eq('password', passInput)
+                .maybeSingle();
+
+            if (error || !data) {
+                alert('Credenciales incorrectas o usuario no registrado en usuarios_acceso.');
+                btnSubmit.innerHTML = 'Ingresar';
+                btnSubmit.disabled = false;
+                return;
+            }
+
+            const esAdmin = (data.rol === 'admin');
+            currentUser = {
+                id: data.id,
+                usuario: data.usuario,
+                nombre: data.nombre,
+                esAdmin: esAdmin,
+                rol: data.rol
+            };
+        } else {
+            const esAdmin = (usuarioInput.toLowerCase() === 'admin');
+            currentUser = {
+                id: 'local-id',
+                usuario: usuarioInput,
+                nombre: usuarioInput.replace('_', ' ').toUpperCase(),
+                esAdmin: esAdmin,
+                rol: esAdmin ? 'admin' : 'enlace'
+            };
+        }
+
+        localStorage.setItem('secul_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        registrarAuditoria('Inicio de Sesión', { usuario: currentUser.usuario, rol: currentUser.rol });
+        closeModal('modal-auth');
+        alert(`¡Bienvenido/a, ${currentUser.nombre}! Acceso concedido.`);
+    } catch (err) {
+        console.error("Error al autenticar:", err);
+        alert("Error de conexión con la base de datos.");
+    } finally {
+        btnSubmit.innerHTML = 'Ingresar';
+        btnSubmit.disabled = false;
+    }
+}
+
+// BITÁCORA INMUTABLE DE AUDITORÍA
+async function registrarAuditoria(tipoAccion, detalles) {
+    const nuevoLog = {
+        fecha: new Date().toLocaleString(),
+        usuario: currentUser ? `${currentUser.nombre} (${currentUser.usuario})` : 'Anónimo',
+        accion: tipoAccion,
+        detalle: typeof detalles === 'object' ? JSON.stringify(detalles) : detalles
+    };
+
+    let logs = JSON.parse(localStorage.getItem('secul_audit_logs')) || [];
+    logs.unshift(nuevoLog);
+    localStorage.setItem('secul_audit_logs', JSON.stringify(logs));
+
+    if (supabaseClient && currentUser) {
+        try {
+            await supabaseClient.from('auditoria_trazabilidad').insert([{
+                usuario: `${currentUser.nombre} (${currentUser.usuario})`,
+                accion: tipoAccion,
+                detalles: detalles,
+                fecha_hora: new Date().toISOString()
+            }]);
+        } catch (err) {
+            console.warn("Bitácora sincronizada localmente.");
+        }
+    }
+}
+
+// =========================================================================
+// 2. ZOOM ANALÍTICO EN GRÁFICAS (MODAL CLICKEABLE)
+// =========================================================================
+function openChartZoom(tipoGrafica) {
+    const modal = document.getElementById('modal-chart-detail');
+    const titleEl = document.getElementById('modalChartTitle');
+    const descEl = document.getElementById('modalChartDescription');
+    const listEl = document.getElementById('modalChartItemsList');
+    const canvas = document.getElementById('chartModalEnlarged');
+    if (!canvas) return;
+
+    listEl.innerHTML = '';
+    const ctx = canvas.getContext('2d');
+    if (chartEnlargedInstance) chartEnlargedInstance.destroy();
+
+    const metricas = calcularMetricas();
+
+    if (tipoGrafica === 'global') {
+        titleEl.innerText = "Zoom Analítico: Avance Global Ponderado (10 Áreas)";
+        descEl.innerText = "Cálculo matemático ponderado sobre el 100% de los 30 compromisos normativos del proceso de extinción y cierre del IECG.";
+        
+        accionesDataset.forEach(act => {
+            listEl.innerHTML += `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2">
+                    <span class="truncate"><strong>• [Panel ${act.panel}]</strong> ${act.hito} - ${act.accion.slice(0, 50)}...</span>
+                    <span class="font-bold font-mono ${act.avance === 100 ? 'text-emerald-600' : 'text-indigo-600'} shrink-0">${act.avance}%</span>
+                </div>`;
+        });
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completado', 'Pendiente'],
+                datasets: [{ data: [metricas.avanceGlobal, 100 - metricas.avanceGlobal], backgroundColor: ['#4f46e5', '#e2e8f0'], borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
+        });
+
+    } else if (tipoGrafica === 'estatus') {
+        titleEl.innerText = "Zoom Analítico: Distribución de Estatus Operativo";
+        descEl.innerText = "Relación de acciones en estatus Concluido (100%), En Validación con dependencias (75%) y En Proceso de solventación.";
+
+        accionesDataset.forEach(act => {
+            listEl.innerHTML += `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2">
+                    <span class="truncate"><strong>• ${act.hito}:</strong> ${act.responsable}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${act.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${act.estatus}</span>
+                </div>`;
+        });
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Concluido', 'Validación', 'En Proceso'],
+                datasets: [{
+                    data: [metricas.conteoEstatus.Concluido || 0, metricas.conteoEstatus.Validación || 0, metricas.conteoEstatus['En Proceso'] || 0],
+                    backgroundColor: ['#10b981', '#f59e0b', '#3b82f6'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+        });
+
+    } else if (tipoGrafica === 'gobernanza') {
+        titleEl.innerText = "Zoom Analítico: Gobernanza y Salvedad Legal (Artículo 6)";
+        descEl.innerText = "Distribución de compromisos que dependen exclusivamente del equipo liquidador vs. aquellos en espera de dictamen o resolución de terceros (SAT, Banorte, AGEG, Finanzas).";
+
+        accionesDataset.filter(a => a.tercero !== "Interna").forEach(act => {
+            listEl.innerHTML += `
+                <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-2">
+                    <div>
+                        <strong class="text-amber-950 block">• ${act.hito}</strong>
+                        <span class="text-[10px] text-amber-800">Dependencia: <strong>${act.terceroNombre}</strong></span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-amber-800 border border-amber-300">Art. 6</span>
+                </div>`;
+        });
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Interna (IECG)', 'Tercero Estatal', 'Tercero Externo/SAT'],
+                datasets: [{
+                    data: [metricas.conteoGobernanza.Interna, metricas.conteoGobernanza['Tercero Estatal'], metricas.conteoGobernanza['Tercero Externo/Federal']],
+                    backgroundColor: ['#6366f1', '#f97316', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+    } else if (tipoGrafica === 'areas') {
+        titleEl.innerText = "Zoom Analítico: Rendimiento por Área Estratégica (Paneles A - J)";
+        descEl.innerText = "Porcentaje de cumplimiento promedio individual alcanzado por cada una de las 10 coordinaciones y unidades ejecutoras.";
+
+        const labels = ['A (RH)', 'B (Jur)', 'C (Inm)', 'D (Fid)', 'E (Pat)', 'F (Fin)', 'G (TI)', 'H (Arc)', 'I (ASEG)', 'J (Seg)'];
+        const data = ['A','B','C','D','E','F','G','H','I','J'].map(l => metricas.avancesPorArea[l] || 0);
+
+        labels.forEach((lbl, idx) => {
+            listEl.innerHTML += `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <strong>• Área ${lbl}</strong>
+                    <span class="font-bold text-indigo-700">${data[idx]}%</span>
+                </div>`;
+        });
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ data: data, backgroundColor: '#4f46e5', borderRadius: 4 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    }
+
+    openModal('modal-chart-detail');
+}
+
+function exportChartAsImage() {
+    const canvas = document.getElementById('chartModalEnlarged');
+    if (!canvas) return;
+    const imageURL = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = imageURL;
+    link.download = 'grafica-transicion-iecg.png';
+    link.click();
+}
+
+// =========================================================================
+// 3. ENVÍO DE SOLICITUDES Y ATAJOS DE TECLADO (CTRL + K)
+// =========================================================================
+async function enviarSolicitudModal(e) {
+    e.preventDefault();
+    const nuevaSol = {
+        id: Date.now(),
+        area: document.getElementById('modalSolArea').value,
+        tipo: document.getElementById('modalSolTipo').value,
+        titulo: document.getElementById('modalSolTitulo').value.trim(),
+        desc: document.getElementById('modalSolDesc').value.trim(),
+        solicitante: currentUser ? currentUser.usuario : 'Anónimo',
+        fecha: new Date().toLocaleDateString()
+    };
+
+    let solicitudes = JSON.parse(localStorage.getItem('secul_solicitudes')) || [];
+    solicitudes.unshift(nuevaSol);
+    localStorage.setItem('secul_solicitudes', JSON.stringify(solicitudes));
+
+    registrarAuditoria('Nueva Solicitud', nuevaSol);
+    alert('¡Solicitud registrada correctamente y turnada a la bandeja de validación!');
+    closeModal('modal-solicitud');
+    e.target.reset();
+}
+
+// Atajo Ctrl + K para abrir búsqueda rápida y Esc para cerrar modales
+window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const inputMatriz = document.getElementById('filterSearchMatriz');
+        if (inputMatriz) {
+            mostrarSeccionTab('tab-matriz');
+            inputMatriz.focus();
+        }
+    } else if (e.key === 'Escape') {
+        ['modal-auth', 'modal-chart-detail', 'modal-solicitud', 'modal-buzon-universal', 'modal-riesgos-inicio'].forEach(id => closeModal(id));
+    }
+});
+
+// Inicialización de la sesión al cargar
+window.addEventListener('DOMContentLoaded', () => {
+    updateAuthUI();
+});
+
         // CONFIGURACIÓN OFICIAL DE GOOGLE DRIVE Y APPS SCRIPT
         const URL_GOOGLE_APPS_SCRIPT = "https://script.google.com/a/macros/guanajuato.gob.mx/s/AKfycbxfB_2veB13Y-UR6_2AUm6E1kIh57FDVHBCLH_8dAjqCVwr8O8y6FtqlYIp5ILRRmB4/exec";
 
@@ -1443,5 +1806,153 @@ function renderCronogramaRoadmap() {
             openModal('modal-riesgos-inicio');
         });
     </script>
+
+    <!-- ========================================================= -->
+<!-- MODAL 1: AUTENTICACIÓN DIRECTA SUPABASE                   -->
+<!-- ========================================================= -->
+<div id="modal-auth" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+        <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-user-lock text-indigo-400"></i> Acceso Institucional IECG
+            </h3>
+            <button onclick="closeModal('modal-auth')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form onsubmit="handleLoginSubmit(event)" class="p-5 space-y-4 text-xs">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Usuario Registrado:</label>
+                <input type="text" id="authUsuario" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" placeholder="Ej. dir_general o control_patrimonial" required>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Contraseña:</label>
+                <input type="password" id="authPass" class="w-full p-2.5 border rounded-xl bg-slate-50" placeholder="••••••••" required>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-xl text-[10px] text-slate-500 border border-slate-200">
+                Validación segura contra la tabla <code class="text-indigo-600 font-bold">usuarios_acceso</code> de Supabase.
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeModal('modal-auth')" class="px-3.5 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" id="btnLoginSubmit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm">
+                    <span>Ingresar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- MODAL 2: ZOOM ANALÍTICO DE GRÁFICAS Y EXPORTACIÓN PNG     -->
+<!-- ========================================================= -->
+<div id="modal-chart-detail" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+        <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h3 id="modalChartTitle" class="font-bold text-base leading-snug">Análisis Ampliado de Gráfica</h3>
+                    <p class="text-xs text-slate-300">Desglose de datos en tiempo real</p>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-chart-detail')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative h-64 w-full flex items-center justify-center">
+                <canvas id="chartModalEnlarged"></canvas>
+            </div>
+            <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 space-y-1">
+                <h4 class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-indigo-600"></i> Parámetros y Fundamento:
+                </h4>
+                <p id="modalChartDescription" class="text-slate-600 leading-relaxed text-[11px]">--</p>
+            </div>
+            <div>
+                <h4 class="font-bold text-slate-900 text-xs mb-2">Desglose Detallado de Compromisos Asociados:</h4>
+                <div id="modalChartItemsList" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 p-4 flex justify-between items-center border-t border-slate-200">
+            <span class="text-[11px] text-slate-500 font-medium">Extinción IECG ➔ Secretaría de Cultura</span>
+            <div class="flex gap-2">
+                <button onclick="exportChartAsImage()" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Descargar PNG
+                </button>
+                <button onclick="closeModal('modal-chart-detail')" class="btn-executive px-4 py-2 bg-slate-800 text-white rounded-xl font-bold">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- MODAL 3: SOLICITAR NUEVA ACCIÓN O MODIFICACIÓN            -->
+<!-- ========================================================= -->
+<div id="modal-solicitud" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+        <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-300">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">Solicitud de Alta o Modificación de Compromiso</h3>
+                    <p class="text-[11px] text-slate-300">Petición canalizada a la bandeja de validación con auditoría</p>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-solicitud')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form onsubmit="enviarSolicitudModal(event)" class="p-5 space-y-3.5 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Área Destino:</label>
+                    <select id="modalSolArea" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold" required>
+                        <option value="A">Área A - Recursos Humanos</option>
+                        <option value="B">Área B - Jurídico & Contencioso</option>
+                        <option value="C">Área C - Inmuebles & Predios</option>
+                        <option value="D">Área D - Fideicomisos (FIARCA)</option>
+                        <option value="E">Área E - Control Patrimonial</option>
+                        <option value="F">Área F - Financiero & Fiscal</option>
+                        <option value="G">Área G - Tecnologías (TI)</option>
+                        <option value="H">Área H - Archivo & Gestión</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Tipo de Solicitud:</label>
+                    <select id="modalSolTipo" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold">
+                        <option value="Modificar Acción">Modificar Acción Existente</option>
+                        <option value="Nueva Acción">Proponer Nueva Acción</option>
+                        <option value="Alerta de Riesgo">Alerta de Vencimiento / Bloqueo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Título de la Petición:</label>
+                <input type="text" id="modalSolTitulo" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold" placeholder="Ej. Solicitud de prórroga para actas notariales..." required>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Justificación Técnica / Fundamento:</label>
+                <textarea id="modalSolDesc" rows="3" class="w-full p-2.5 border rounded-xl bg-slate-50" placeholder="Detalle el motivo, oficios involucrados o justificación según Art. 6..." required></textarea>
+            </div>
+
+            <div class="bg-indigo-50 p-2.5 rounded-xl border border-indigo-100 flex items-center gap-2 text-indigo-800 text-[11px]">
+                <i class="fa-solid fa-fingerprint text-indigo-600"></i>
+                <span>Usuario solicitante: <strong id="authAuditoriaUserLabel">Modo Consulta</strong></span>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-solicitud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Enviar a Validación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+    
 </body>
 </html>
