@@ -1070,7 +1070,55 @@
 </div>
     </main>
 
+<!-- ========================================================= -->
+    <!-- MODAL 2: GESTIÓN DETALLADA DE HITOS Y ACCIONES (A - J)     -->
+    <!-- ========================================================= -->
+    <div id="modal-hito-detailed" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
+            <div id="hitoDetailHeader" class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <span id="hitoDetailBadge" class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-bold text-amber-400">A</span>
+                    <div>
+                        <h3 id="hitoDetailTitle" class="font-bold text-base">Hito del Área</h3>
+                        <p class="text-xs text-slate-300">Detalles de compromisos y acciones operativas</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-hito-detailed')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-200">
+                        <h4 class="font-bold text-slate-900 text-sm">Compromisos Clave y Acciones Detalladas:</h4>
+                        <button type="button" onclick="abrirModalAltaAccionDesdeHitoActual()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 self-start sm:self-auto">
+                            <i class="fa-solid fa-plus-circle"></i> + Agregar Acción a este Hito
+                        </button>
+                    </div>
+                    <ul id="hitoDetailItemsList" class="space-y-4"></ul>
+                </div>
 
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Estatus del Hito:</label>
+                    <select id="hitoDetailStatusSelect" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold">
+                        <option>En Proceso - Con avance parcial (75%)</option>
+                        <option>En Validación Normativa</option>
+                        <option>Concluido al 100%</option>
+                        <option>Con Observaciones / Requiere Atención</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones Generales:</label>
+                    <textarea id="hitoDetailTextarea" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs" rows="3" placeholder="Registrar comentarios generales del avance del hito..."></textarea>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200 shrink-0">
+                <button onclick="closeModal('modal-hito-detailed')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-400 transition">Cancelar</button>
+                <button onclick="guardarHitoDetailed()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- ========================================================= -->
     <!-- MODAL: GESTIÓN DIRECTA DEL ÁREA RESPONSABLE               -->
     <!-- ========================================================= -->
@@ -1457,274 +1505,186 @@
         </div> 
     
     <!-- CIERRE DE #modal-manual-usuario -->
-    <!-- ========================================================= -->
-    <!-- MODAL: CREACIÓN / EDICIÓN DE HITO POR ADMIN (CRUD)        -->
+   <!-- ========================================================= -->
+    <!-- MODAL: GESTOR DE HITOS Y ACCIONES (CON VALIDACIÓN OBLIGATORIA) -->
     <!-- ========================================================= -->
     <div id="modal-admin-hito-crud" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
-                <h3 id="modalAdminCrudTitle" class="font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Gestor Maestro de Hitos (Admin)
-                </h3>
-                <button onclick="closeModal('modal-admin-hito-crud')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
             
-            <form onsubmit="guardarHitoAdminCrud(event)" class="p-5 space-y-4 text-xs overflow-y-auto">
-                <input type="hidden" id="crudHitoModo" value="crear">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">ID Folio:</label>
-                        <input type="text" id="crudHitoId" class="w-full p-2 border rounded-xl font-mono text-xs uppercase" placeholder="Ej. V1-11 o INF-E01" required>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Vertiente:</label>
-                        <select id="crudHitoVertiente" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
-                            <option value="INF">INF - Informes Mensuales</option>
-                            <option value="V1">V1 - Liquidación IEC</option>
-                            <option value="V2">V2 - Auditoría ASEG</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Numeral / Orden:</label>
-                        <input type="text" id="crudHitoNumeral" class="w-full p-2 border rounded-xl text-xs" placeholder="Ej. 11 o A5" required>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento:</label>
-                    <input type="text" id="crudHitoTitulo" class="w-full p-2 border rounded-xl text-xs" placeholder="Título formal del entregable u obligación..." required>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Área Responsable (SCUL):</label>
-                        <input type="text" id="crudHitoArea" class="w-full p-2 border rounded-xl text-xs" placeholder="Ej. Dirección General de Administración" required>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Fundamento Normativo / Oficio:</label>
-                        <input type="text" id="crudHitoNorma" class="w-full p-2 border rounded-xl text-xs" placeholder="Ej. Lineamientos Art. 10 / Decreto 345" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Nivel Prioridad:</label>
-                        <select id="crudHitoPrioridad" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
-                            <option value="Urgente">Urgente</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Media" selected>Media</option>
-                            <option value="Baja">Baja</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Estatus:</label>
-                        <select id="crudHitoEstatus" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
-                            <option value="En Proceso">En Proceso</option>
-                            <option value="Validación">Validación</option>
-                            <option value="Concluido">Concluido</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Avance (%):</label>
-                        <input type="number" id="crudHitoAvance" min="0" max="100" value="0" class="w-full p-2 border rounded-xl text-xs font-bold text-indigo-700">
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeModal('modal-admin-hito-crud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Guardar Hito en Matriz</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- ========================================================= -->
-    <!-- MODAL 1: DESGLOSE ANALÍTICO DEL DASHBOARD (INTERACTIVO)   -->
-    <!-- ========================================================= -->
-    <div id="modal-dashboard-detail" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div id="dashDetailHeader" class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
+            <!-- Header con Selector de Modo -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-white/10 rounded-xl text-lg"><i class="fa-solid fa-chart-line text-amber-400"></i></div>
-                    <div>
-                        <h3 id="dashDetailTitle" class="font-bold text-base">Desglose Analítico</h3>
-                        <p id="dashDetailSubtitle" class="text-xs text-slate-300">Detalle de compromisos, instancias responsables y avance</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-dashboard-detail')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-4 text-xs">
-                <div id="dashDetailContainer" class="space-y-3"></div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end border-t border-slate-200">
-                <button onclick="closeModal('modal-dashboard-detail')" class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Cerrar Detalle</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ========================================================= -->
-    <!-- MODAL 2: GESTIÓN DETALLADA DE HITOS A - F                  -->
-    <!-- ========================================================= -->
-    <div id="modal-hito-detailed" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
-            <div id="hitoDetailHeader" class="bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span id="hitoDetailBadge" class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-bold text-amber-400">A</span>
-                    <div>
-                        <h3 id="hitoDetailTitle" class="font-bold text-base">Hito: Recursos Humanos y Estructura</h3>
-                        <p class="text-xs text-slate-300">Detalles de compromisos y acciones operativas</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-hito-detailed')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-900 mb-3 text-sm">Compromisos Clave y Acciones Detalladas:</h4>
-                    <ul id="hitoDetailItemsList" class="space-y-4"></ul>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Estatus del Hito:</label>
-                    <select id="hitoDetailStatusSelect" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs">
-                        <option>En Proceso - Con avance parcial (75%)</option>
-                        <option>En Validación Normativa</option>
-                        <option>Concluido al 100%</option>
-                        <option>Con Observaciones / Requiere Atención</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Bitácora de Observaciones Generales:</label>
-                    <textarea id="hitoDetailTextarea" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs" rows="3" placeholder="Registrar comentarios generales del avance del hito..."></textarea>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-hito-detailed')" class="px-4 py-2 bg-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-400 transition">Cancelar</button>
-                <button onclick="guardarHitoDetailed()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ========================================================= -->
-    <!-- MODAL 3: EDICIÓN DE ACCIÓN INDIVIDUAL (MATRIZ RECALIBRADA)-->
-    <!-- ========================================================= -->
-    <div id="modal-edit-action" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
-            <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Editar Compromiso Institucional
-                </h3>
-                <button type="button" onclick="closeModal('modal-edit-action')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <form onsubmit="guardarEdicionAccion(event)" class="p-5 space-y-4 text-xs">
-                <input type="hidden" id="editActionId">
-
-                <!-- 1. Selector de Área Estratégica Especializada -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Área Estratégica Especializada:</label>
-                    <select id="editActionAreaSelect" onchange="actualizarSugerenciaArea(this.value)" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold focus:ring-2 focus:ring-indigo-500" required>
-                        <option value="A">Área A - Recursos Humanos & Estructura</option>
-                        <option value="B">Área B - Asuntos Jurídicos & Contencioso</option>
-                        <option value="C">Área C - Patrimonio Inmobiliario & Predios</option>
-                        <option value="D">Área D - Fideicomisos & Fondos Especiales (FIARCA)</option>
-                        <option value="E">Área E - Control Patrimonial & Bienes Muebles</option>
-                        <option value="F">Área F - Financiero, Presupuestal & Fiscal</option>
-                        <option value="G">Área G - Tecnologías de la Información (TI)</option>
-                        <option value="H">Área H - Archivo & Gestión Documental</option>
-                        <option value="I">Área I - Fiscalización & Auditorías</option>
-                        <option value="J">Área J - Asuntos Internos Líder Proyecto</option>
-                        
-                    </select>
-                </div>
-
-                <!-- 2. Compromiso / Acción (Editable con Hito/Rubro visible) -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Compromiso / Acción (Editable):</label>
-                    <input type="text" id="editActionTitle" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500" placeholder="Redacte el compromiso institucional..." required>
-                    <span class="text-[10px] text-slate-400 block mt-0.5">El prefijo del hito se mantendrá sincronizado con el área seleccionada.</span>
-                </div>
-
-                <!-- 3. Instancia Responsable (Sugerida por defecto / Modificable) y Estatus -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
-                        <input type="text" id="editActionResp" class="w-full p-2.5 border rounded-xl bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500" placeholder="Área responsable..." required>
-                        <span class="text-[9px] text-indigo-600 block mt-0.5">Sugerencia automática editable.</span>
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
+                        <i class="fa-solid fa-layer-group"></i>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Estatus Actual:</label>
-                        <select id="editActionStatus" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold focus:ring-2 focus:ring-indigo-500">
-                            <option value="En Proceso">En Proceso</option>
-                            <option value="Validación">Validación</option>
-                            <option value="Concluido">Concluido</option>
-                        </select>
+                        <h3 class="font-extrabold text-base leading-snug">Alta de Entregables</h3>
+                        <p class="text-[11px] text-slate-300">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
                     </div>
                 </div>
-
-                <!-- 4. Enlace Drive -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Enlace Repositorio Google Drive (URL):</label>
-                    <input type="url" id="editActionDriveUrl" class="w-full p-2.5 border rounded-xl bg-white" placeholder="https://drive.google.com/file/d/...">
-                </div>
-
-                <!-- 5. Justificación / Nota de Auditoría -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación del Cambio:</label>
-                    <textarea id="editActionAuditNote" rows="2" class="w-full p-2.5 border rounded-xl bg-white" placeholder="Indique el sustento técnico o número de oficio para revisión del Super Admin..." required></textarea>
-                </div>
-
-                <div class="bg-indigo-50 p-2.5 rounded-xl text-[11px] text-indigo-800 border border-indigo-200 flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-indigo-600"></i>
-                    <span>Este cambio se canalizará a la Bandeja de Validación en <strong>auditoria.html</strong>.</span>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modal-edit-action')" class="px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow">Guardar y Firmar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- MODAL 4: SUBIDA / VINCULACIÓN DRIVE                       -->
-    <!-- ========================================================= -->
-    <div id="modal-doc-upload" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
-            <div class="bg-indigo-900 p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm flex items-center gap-2">
-                    <i class="fa-brands fa-google-drive text-amber-400"></i> Repositorio Drive - <span id="doc-modal-title-span">Compromiso</span>
-                </h3>
-                <button onclick="closeModal('modal-doc-upload')" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-5 space-y-4 text-xs text-slate-700">
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Descripción del Documento:</label>
-                    <input type="text" id="doc-description" class="w-full p-2.5 border rounded-xl" placeholder="Ej. Minuta firmada de entrega de expedientes...">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Instancia Responsable:</label>
-                    <select id="doc-instance" class="w-full p-2.5 border rounded-xl bg-slate-50">
-                        <option>Instituto Estatal de la Cultura (IEC)</option>
-                        <option>Secretaría de Cultura (SC)</option>
-                        <option>Secretaría de Finanzas (SF)</option>
-                        <option>Secretaría de la Honestidad (SH)</option>
-                        <option>Comité de Extinción</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 mb-1">Enlace de Google Drive (URL):</label>
-                    <input type="url" id="doc-drive-url" class="w-full p-2.5 border rounded-xl" placeholder="https://drive.google.com/file/d/...">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Pegue aquí el enlace compartido del archivo alojado en Google Drive.</span>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-3.5 flex justify-end gap-2 border-t">
-                <button onclick="closeModal('modal-doc-upload')" class="px-3.5 py-1.5 bg-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-400 transition">Cancelar</button>
-                <button onclick="saveDocUpload()" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Vincular Enlace Drive
+                <button type="button" onclick="closeModal('modal-admin-hito-crud')" class="text-slate-400 hover:text-white text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
+            </div>
+
+            <!-- Selector de Tipo: ¿Crear Hito o Crear Acción? -->
+            <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
+                <button type="button" id="btnModoCrearHito" onclick="cambiarModoAlta('HITO')" class="flex-1 py-2 px-4 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-flag"></i> 1. Nuevo Hito (+ Acción Obligatoria)
+                </button>
+                <button type="button" id="btnModoCrearAccion" onclick="cambiarModoAlta('ACCION')" class="flex-1 py-2 px-4 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
+                    <i class="fa-solid fa-list-check"></i> 2. Nueva Acción (Asociada a Hito)
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+                
+                <!-- ========================================== -->
+                <!-- FORMULARIO 1: CREAR HITO (+ ACCIONES)       -->
+                <!-- ========================================== -->
+                <form id="formCrearHitoMaestro" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-4">
+                    <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center gap-2 text-indigo-900 text-[11px]">
+                        <i class="fa-solid fa-circle-info text-indigo-600 text-sm"></i>
+                        <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> para garantizar su cumplimiento operativo.</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Folio ID:</label>
+                            <input type="text" id="nuevoHitoId" placeholder="Ej. V1-11 o INF-E01" class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-50 font-bold" required>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Vertiente:</label>
+                            <select id="nuevoHitoVertiente" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold">
+                                <option value="INF">INF - Informes Mensuales</option>
+                                <option value="V1">V1 - Liquidación IEC</option>
+                                <option value="V2">V2 - Fiscalización ASEG</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
+                            <select id="nuevoHitoPanel" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-bold text-indigo-700">
+                                <option value="A">Panel A - Recursos Humanos & Estructura</option>
+                                <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
+                                <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
+                                <option value="D">Panel D - Fideicomisos & Fondos Especiales</option>
+                                <option value="E">Panel E - Control Patrimonial & Bienes</option>
+                                <option value="F">Panel F - Financiero, Presupuestal & Fiscal</option>
+                                <option value="G">Panel G - Tecnologías de la Información (TI)</option>
+                                <option value="H">Panel H - Archivo & Gestión Documental</option>
+                                <option value="I">Panel I - Fiscalización Auditorías</option>
+                                <option value="J">Panel J - Asuntos Internos Líder Proyecto</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento Oficial:</label>
+                        <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-slate-900" required>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Área Ejecutora / Responsable:</label>
+                            <input type="text" id="nuevoHitoArea" placeholder="Ej. Dirección General de Administración" class="w-full p-2.5 border rounded-xl bg-slate-50" required>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Fundamento Legal / Oficio:</label>
+                            <input type="text" id="nuevoHitoNorma" placeholder="Ej. Decreto No. 345 / Lineamientos Art. 10" class="w-full p-2.5 border rounded-xl bg-slate-50" required>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor Dinámico de Acciones Obligatorias para este Hito -->
+                    <div class="border-t border-slate-200 pt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-emerald-600"></i> Acciones Requeridas para este Hito:
+                            </label>
+                            <button type="button" onclick="agregarFilaAccionHito()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[11px] border border-indigo-200 transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> Añadir otra Acción
+                            </button>
+                        </div>
+                        <div id="contenedorAccionesObligatorias" class="space-y-2.5">
+                            <!-- Fila 1 obligatoria cargada por defecto -->
+                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
+                                </div>
+                                <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+                                    <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                                        <option value="En Proceso">En Proceso</option>
+                                        <option value="Validación">En Validación</option>
+                                        <option value="Concluido">Concluido al 100%</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t">
+                        <button type="button" onclick="closeModal('modal-admin-hito-crud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Hito y Acciones
+                        </button>
+                    </div>
+                </form>
+
+                <!-- ========================================== -->
+                <!-- FORMULARIO 2: CREAR ACCIÓN ASOCIADA A HITO -->
+                <!-- ========================================== -->
+                <form id="formCrearAccionUnica" onsubmit="guardarNuevaAccionAsociada(event)" class="space-y-4 hidden">
+                    <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex items-center gap-2 text-emerald-950 text-[11px]">
+                        <i class="fa-solid fa-link text-emerald-600 text-sm"></i>
+                        <span>La acción quedará <strong>asociada al Hito Padre seleccionado</strong> y alimentará en cascada su porcentaje de avance y estatus.</span>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Seleccionar Hito Padre al que pertenece:</label>
+                        <select id="selectHitoPadreAsociado" onchange="autoSeleccionarAreaPorHito(this.value)" class="w-full p-2.5 border rounded-xl bg-white font-bold text-slate-900 border-indigo-300 focus:ring-2 focus:ring-indigo-500" required>
+                            <!-- Se llena dinámicamente con los 48 hitos -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
+                        <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega de expedientes..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-slate-900" required>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
+                            <input type="text" id="nuevaAccionResp" placeholder="Ej. Control Patrimonial / Jurídico" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" required>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Estatus Operativo:</label>
+                            <select id="nuevaAccionEstatus" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold">
+                                <option value="En Proceso">En Proceso</option>
+                                <option value="Validación">En Validación</option>
+                                <option value="Concluido">Concluido al 100%</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Enlace de Evidencia Google Drive (Opcional):</label>
+                        <input type="url" id="nuevaAccionDriveUrl" placeholder="https://drive.google.com/..." class="w-full p-2.5 border rounded-xl bg-slate-50">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación Técnica:</label>
+                        <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo o número de oficio que fundamenta esta acción..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t">
+                        <button type="button" onclick="closeModal('modal-admin-hito-crud')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                        <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> Vincular Acción al Hito
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>
@@ -5575,6 +5535,238 @@ function guardarEvidenciaFiscalizacion() {
     closeModal('modal-hito-fiscalizacion');
      alert("¡Avance y evidencia guardados correctamente!");
     }
+
+        // =========================================================================
+// GESTOR DE ALTA: HITOS (CON ACCIÓN OBLIGATORIA) Y ACCIONES VINCULADAS
+// =========================================================================
+
+let hitoIdActivoParaNuevaAccion = null;
+
+// Alternar entre pestaña Crear Hito y Crear Acción
+function cambiarModoAlta(modo) {
+    const fHito = document.getElementById('formCrearHitoMaestro');
+    const fAccion = document.getElementById('formCrearAccionUnica');
+    const bHito = document.getElementById('btnModoCrearHito');
+    const bAccion = document.getElementById('btnModoCrearAccion');
+
+    if (modo === 'HITO') {
+        fHito.classList.remove('hidden');
+        fAccion.classList.add('hidden');
+        bHito.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5";
+        bAccion.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    } else {
+        fHito.classList.add('hidden');
+        fAccion.classList.remove('hidden');
+        bAccion.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition bg-emerald-600 text-white shadow-sm flex items-center justify-center gap-1.5";
+        bHito.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+        cargarSelectHitosPadre();
+    }
+}
+
+// Cargar dinámicamente los hitos existentes en el select de asociación
+function cargarSelectHitosPadre(hitoPreseleccionado = null) {
+    const sel = document.getElementById('selectHitoPadreAsociado');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Seleccione el Hito Obligatorio --</option>';
+
+    const hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || hitosFiscalizacionData || [];
+    hitos.forEach(h => {
+        const selected = (hitoPreseleccionado && h.id === hitoPreseleccionado) ? 'selected' : '';
+        sel.innerHTML += `<option value="${h.id}" ${selected}>[${h.id}] ${h.titulo} (${h.area})</option>`;
+    });
+}
+
+// Agregar dinámicamente otra fila de acción al crear un Hito
+function agregarFilaAccionHito() {
+    const cont = document.getElementById('contenedorAccionesObligatorias');
+    const idx = cont.querySelectorAll('.fila-accion-item').length + 1;
+    const div = document.createElement('div');
+    div.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item relative';
+    div.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-indigo-700">• Acción Adicional #${idx}</span>
+            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs p-1" title="Quitar acción">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+        <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="txtAccionRespHito" placeholder="Instancia responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+            <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                <option value="En Proceso">En Proceso</option>
+                <option value="Validación">En Validación</option>
+                <option value="Concluido">Concluido al 100%</option>
+            </select>
+        </div>
+    `;
+    cont.appendChild(div);
+}
+
+// 1. GUARDAR HITO CON SUS ACCIONES OBLIGATORIAS
+function guardarNuevoHitoConAcciones(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('nuevoHitoId').value.trim().toUpperCase();
+    const vertiente = document.getElementById('nuevoHitoVertiente').value;
+    const panel = document.getElementById('nuevoHitoPanel').value;
+    const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
+    const area = document.getElementById('nuevoHitoArea').value.trim();
+    const norma = document.getElementById('nuevoHitoNorma').value.trim();
+
+    // Validar duplicado
+    let hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || hitosFiscalizacionData;
+    if (hitos.some(h => h.id === id)) {
+        alert(`Error: Ya existe un hito con el folio "${id}".`);
+        return;
+    }
+
+    // Extraer las acciones obligatorias
+    const filasAcciones = document.querySelectorAll('.fila-accion-item');
+    if (filasAcciones.length === 0) {
+        alert('Error: Debe registrar como mínimo una acción para este hito.');
+        return;
+    }
+
+    let accionesGuardadas = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
+    let accionesNuevasParaHito = [];
+
+    filasAcciones.forEach((fila, i) => {
+        const tit = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
+        const resp = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
+        const est = fila.querySelector('select[name="selAccionEstatusHito"]').value;
+
+        if (tit) {
+            const nuevaAccion = {
+                id: Date.now() + i,
+                hito_padre_id: id,
+                hito: `${id} | Panel ${panel}`,
+                rubro: 'Operativo',
+                accion: `[Panel ${panel}] ${tit}`,
+                responsable: resp || area,
+                estatus: est,
+                avance: est === 'Concluido' ? '100.0%' : (est === 'Validación' ? '75.0%' : '40.0%'),
+                riesgo: 'Mitigación de Hito',
+                soporte: `Soporte ${id}`,
+                driveUrl: ''
+            };
+            accionesGuardadas.unshift(nuevaAccion);
+            accionesNuevasParaHito.push(nuevaAccion);
+        }
+    });
+
+    // Calcular avance inicial del hito a partir de sus acciones
+    const pesos = { 'Concluido': 100, 'Validación': 75, 'En Proceso': 40 };
+    const sumaPesos = accionesNuevasParaHito.reduce((acc, a) => acc + (pesos[a.estatus] || 0), 0);
+    const avanceInicial = Math.round(sumaPesos / accionesNuevasParaHito.length);
+
+    let vertNombre = "V1 - LIQUIDACIÓN IEC";
+    if (vertiente === "V2") vertNombre = "V2 - FISCALIZACIÓN ASEG";
+    if (vertiente === "INF") vertNombre = "Informes Mensuales IEC";
+
+    const nuevoHito = {
+        id: id,
+        vertiente: vertiente,
+        vertienteNombre: vertNombre,
+        numeral: id.replace(/\D/g, '') || "1",
+        titulo: titulo,
+        normativa: norma,
+        area: `${area} (Panel ${panel})`,
+        riesgo: "Medio",
+        prioridadArea: "Media",
+        estatus: avanceInicial === 100 ? "Concluido" : (avanceInicial >= 75 ? "Validación" : "En Proceso"),
+        avancePorcentaje: avanceInicial,
+        documentos: [{ id_doc: `DOC-${id}-01`, nombre: `Expediente Soporte ${id}`, subido: false, url: null }]
+    };
+
+    hitos.unshift(nuevoHito);
+    hitosFiscalizacionData = hitos;
+
+    localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitos));
+    localStorage.setItem('secul_iec_acciones', JSON.stringify(accionesGuardadas));
+
+    if (typeof registrarAuditoria === 'function') {
+        registrarAuditoria('Alta de Hito con Acciones', { hito_id: id, total_acciones: accionesNuevasParaHito.length });
+    }
+
+    alert(`¡Éxito!\nHito ${id} creado correctamente con ${accionesNuevasParaHito.length} acción(es) operativa(s).`);
+    
+    closeModal('modal-admin-hito-crud');
+    document.getElementById('formCrearHitoMaestro').reset();
+    
+    if (typeof renderTablaFiscalizacion === 'function') renderTablaFiscalizacion();
+    if (typeof renderActionsTable === 'function') renderActionsTable(accionesGuardadas);
+    if (typeof renderCharts === 'function') renderCharts(hitos);
+}
+
+// 2. GUARDAR ACCIÓN VINCULADA OBLIGATORIAMENTE A UN HITO
+function guardarNuevaAccionAsociada(e) {
+    e.preventDefault();
+
+    const hitoPadreId = document.getElementById('selectHitoPadreAsociado').value;
+    if (!hitoPadreId) {
+        alert('Error obligatorio: Toda acción debe asociarse a un Hito Padre existente.');
+        return;
+    }
+
+    const titulo = document.getElementById('nuevaAccionTitulo').value.trim();
+    const resp = document.getElementById('nuevaAccionResp').value.trim();
+    const estatus = document.getElementById('nuevaAccionEstatus').value;
+    const driveUrl = document.getElementById('nuevaAccionDriveUrl').value.trim();
+    const nota = document.getElementById('nuevaAccionNota').value.trim();
+
+    let acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || (typeof accionesMatriz !== 'undefined' ? accionesMatriz : []);
+    const idNueva = Date.now();
+
+    const nuevaAccion = {
+        id: idNueva,
+        hito_padre_id: hitoPadreId,
+        hito: `${hitoPadreId} | Compromiso`,
+        rubro: 'Operativo',
+        accion: titulo,
+        responsable: resp,
+        estatus: estatus,
+        avance: estatus === 'Concluido' ? '100.0%' : (estatus === 'Validación' ? '75.0%' : '40.0%'),
+        riesgo: 'Mitigación Activa',
+        soporte: 'Expediente Oficial',
+        driveUrl: driveUrl
+    };
+
+    acciones.unshift(nuevaAccion);
+    localStorage.setItem('secul_iec_acciones', JSON.stringify(acciones));
+
+    // Recalcular en cascada el avance del hito padre
+    if (typeof recalcularAvanceHitoPadre === 'function') {
+        recalcularAvanceHitoPadre(hitoPadreId);
+    }
+
+    if (typeof registrarAuditoria === 'function') {
+        registrarAuditoria('Alta de Acción Vinculada', { accion_id: idNueva, hito_padre: hitoPadreId, nota: nota });
+    }
+
+    alert(`¡Acción vinculada exitosamente al hito ${hitoPadreId}!`);
+    closeModal('modal-admin-hito-crud');
+    document.getElementById('formCrearAccionUnica').reset();
+
+    if (typeof renderActionsTable === 'function') renderActionsTable(acciones);
+    if (typeof renderTablaFiscalizacion === 'function') renderTablaFiscalizacion();
+}
+
+// Abre el modal de acción con el hito ya preseleccionado desde el modal detallado
+function abrirModalAltaAccionDesdeHitoActual() {
+    const badge = document.getElementById('hitoDetailBadge');
+    const panelLetra = badge ? badge.innerText.trim() : 'I';
+    
+    // Buscar el hito activo (por ejemplo el de Panel I)
+    const hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || hitosFiscalizacionData || [];
+    const hitoEncontrado = hitos.find(h => (h.area && h.area.includes(`Panel ${panelLetra}`)) || h.id.includes(panelLetra)) || hitos[0];
+
+    closeModal('modal-hito-detailed');
+    openModal('modal-admin-hito-crud');
+    cambiarModoAlta('ACCION');
+    if (hitoEncontrado) {
+        cargarSelectHitosPadre(hitoEncontrado.id);
+    }
+}
  </script>
       
    
