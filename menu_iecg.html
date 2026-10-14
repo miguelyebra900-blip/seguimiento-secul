@@ -109,17 +109,22 @@
     <nav class="bg-white/80 border-b border-slate-200 sticky top-[61px] z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div class="flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
-                <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/70">
-                    <button type="button" onclick="mostrarSeccionTab('tab-dashboard')" id="btnNavDash" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs">
-                        <i class="fa-solid fa-chart-pie me-1.5"></i> Tablero Directivo
-                    </button>
-                    <button type="button" onclick="mostrarSeccionTab('tab-areas')" id="btnNavAreas" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
-                        <i class="fa-solid fa-layer-group me-1.5 text-indigo-500"></i> Hitos por Área (8 Áreas)
-                    </button>
-                    <button type="button" onclick="mostrarSeccionTab('tab-matriz')" id="btnNavMatriz" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
-                        <i class="fa-solid fa-list-check me-1.5 text-slate-500"></i> Matriz Completa (30 Acciones)
-                    </button>
-                </div>
+              <!-- NAVEGACIÓN TABULAR CON 4 PESTAÑAS (INCLUYE CRONOGRAMA) -->
+<div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/70">
+    <button type="button" onclick="mostrarSeccionTab('tab-dashboard')" id="btnNavDash" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs">
+        <i class="fa-solid fa-chart-pie me-1.5"></i> Tablero Directivo
+    </button>
+    <button type="button" onclick="mostrarSeccionTab('tab-areas')" id="btnNavAreas" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+        <i class="fa-solid fa-layer-group me-1.5 text-indigo-500"></i> Hitos por Área (8 Áreas)
+    </button>
+    <button type="button" onclick="mostrarSeccionTab('tab-matriz')" id="btnNavMatriz" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+        <i class="fa-solid fa-list-check me-1.5 text-slate-500"></i> Matriz Completa (30 Acciones)
+    </button>
+    <!-- BOTÓN FALTANTE AGREGADO: -->
+    <button type="button" onclick="mostrarSeccionTab('tab-cronograma')" id="btnNavCrono" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-timeline text-amber-500"></i> Cronograma & Roadmap
+    </button>
+</div>
 
                 <div class="flex items-center gap-2">
                     <span id="labelGlobalStatus" class="text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-xl border border-slate-200/80 shadow-2xs">
@@ -283,6 +288,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- ================================================================= -->
+<!-- SECCIÓN 3: CRONOGRAMA & ROADMAP TEMPORAL (2024 - 2026)            -->
+<!-- ================================================================= -->
+<div id="tab-cronograma" class="space-y-6 hidden">
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-6">
+        
+        <!-- Cabecera del Cronograma -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                    Línea de Tiempo Normativa & Prórroga
+                </span>
+                <h2 class="text-lg font-black text-slate-900 mt-1 flex items-center gap-2">
+                    <i class="fa-solid fa-timeline text-indigo-600"></i> Cronograma Maestro de Extinción IECG (Decreto No. 345 & Art. 6)
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Proyección de cumplimiento por mes. Los hitos en salvedad legal (dependientes de terceros) cuentan con amparo de prórroga conforme al Artículo 6 de los Lineamientos.
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-bold">🟢 Concluido</span>
+                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-[11px] font-bold">🟡 En Espera Tercero (Art. 6)</span>
+                <span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-[11px] font-bold">🔵 En Proceso</span>
+            </div>
+        </div>
+
+        <!-- Regleta Mensual (Encabezado de Meses) -->
+        <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+            <div class="grid grid-cols-12 gap-0 border-b border-slate-200 bg-slate-100/80 text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                <div class="col-span-3 p-3 border-r border-slate-200">Área Estratégica / Responsables</div>
+                <div class="col-span-9 p-2 grid grid-cols-6 text-center divide-x divide-slate-200">
+                    <span class="p-1">Oct-Dic 2024</span>
+                    <span class="p-1">Ene-Mar 2025</span>
+                    <span class="p-1">Abr-Jun 2025</span>
+                    <span class="p-1">Jul-Sep 2025</span>
+                    <span class="p-1">Oct-Dic 2025</span>
+                    <span class="p-1 text-indigo-700 bg-indigo-50/50">2026 (Prórroga)</span>
+                </div>
+            </div>
+
+            <!-- Contenedor dinámico de carriles de Gantt -->
+            <div id="contenedorCarrilesGantt" class="divide-y divide-slate-200 bg-white">
+                <!-- Se llena automáticamente con JavaScript -->
+            </div>
+        </div>
+
+    </div>
+</div>
 
     </main>
 
@@ -652,24 +706,86 @@
             }
         }
 
-        function mostrarSeccionTab(tabId) {
-            ['tab-dashboard', 'tab-areas', 'tab-matriz'].forEach(t => {
-                const el = document.getElementById(t);
-                if (el) el.classList.toggle('hidden', t !== tabId);
-            });
+        // Alternancia de las 4 pestañas
+function mostrarSeccionTab(tabId) {
+    ['tab-dashboard', 'tab-areas', 'tab-matriz', 'tab-cronograma'].forEach(t => {
+        const el = document.getElementById(t);
+        if (el) el.classList.toggle('hidden', t !== tabId);
+    });
 
-            const btnD = document.getElementById('btnNavDash');
-            const btnA = document.getElementById('btnNavAreas');
-            const btnM = document.getElementById('btnNavMatriz');
+    const btnD = document.getElementById('btnNavDash');
+    const btnA = document.getElementById('btnNavAreas');
+    const btnM = document.getElementById('btnNavMatriz');
+    const btnC = document.getElementById('btnNavCrono');
 
-            const inactive = "btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
-            const active = "btn-executive px-4 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs";
+    const inactive = "btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
+    const active = "btn-executive px-4 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs flex items-center gap-1.5";
 
-            btnD.className = (tabId === 'tab-dashboard') ? active : inactive;
-            btnA.className = (tabId === 'tab-areas') ? active : inactive;
-            btnM.className = (tabId === 'tab-matriz') ? active : inactive;
-        }
+    if (btnD) btnD.className = (tabId === 'tab-dashboard') ? active : inactive;
+    if (btnA) btnA.className = (tabId === 'tab-areas') ? active : inactive;
+    if (btnM) btnM.className = (tabId === 'tab-matriz') ? active : inactive;
+    if (btnC) btnC.className = (tabId === 'tab-cronograma') ? active : inactive;
 
+    if (tabId === 'tab-cronograma') {
+        renderCronogramaRoadmap();
+    }
+}
+
+// Renderizado de las barras de tiempo por Área
+function renderCronogramaRoadmap() {
+    const contenedor = document.getElementById('contenedorCarrilesGantt');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+    paneles.forEach(panelLetra => {
+        const accionesArea = accionesDataset.filter(a => a.panel === panelLetra);
+        if (accionesArea.length === 0) return;
+
+        const areaNombre = accionesArea[0].area;
+        let barrasHTML = '';
+
+        accionesArea.forEach(act => {
+            let colorBarra = "bg-blue-500 text-white";
+            let labelEstado = `${act.avance}% En Proceso`;
+
+            if (act.avance === 100) {
+                colorBarra = "bg-emerald-500 text-white";
+                labelEstado = "Concluido";
+            } else if (act.tercero !== "Interna") {
+                colorBarra = "bg-amber-500 text-white";
+                labelEstado = `Art. 6: ${act.terceroNombre}`;
+            }
+
+            barrasHTML += `
+                <div class="my-1.5 p-2 rounded-xl text-xs ${colorBarra} shadow-2xs flex items-center justify-between cursor-pointer hover:opacity-95 transition"
+                     onclick="cargarAccionEnBuzonDirecto('${act.id}')" title="Clic para cargar soporte o ver detalle">
+                    <div class="truncate pr-2">
+                        <strong class="font-bold">• ${act.hito}:</strong> 
+                        <span class="text-[11px] opacity-90">${act.accion.slice(0, 45)}...</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-md bg-black/20 text-[10px] font-bold shrink-0">${labelEstado}</span>
+                </div>
+            `;
+        });
+
+        contenedor.innerHTML += `
+            <div class="grid grid-cols-12 gap-0 items-center p-3 hover:bg-slate-50/70 transition">
+                <div class="col-span-3 border-r border-slate-200 pr-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-black flex items-center justify-center text-[10px] border border-indigo-100">${panelLetra}</span>
+                        <strong class="text-slate-900 text-xs truncate">${areaNombre}</strong>
+                    </div>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">${accionesArea.length} compromisos clave</span>
+                </div>
+                <div class="col-span-9 pl-3">
+                    ${barrasHTML}
+                </div>
+            </div>
+        `;
+    });
+}
         // CÁLCULOS PONDERADOS EN CASCADA
         function calcularMetricas() {
             const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
