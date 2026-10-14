@@ -2059,6 +2059,135 @@ function guardarEvidenciaFiscalizacionModal() {
     alert(`¡Hito "${hitoActivoEnModalFiscal.hito}" actualizado exitosamente al ${nuevoAvance}%!`);
     actualizarDashboard();
 }
+
+        let cGlobal = null, cPrio = null, cEstatus = null, cAreas = null;
+
+function renderCharts(metricas) {
+    if (!metricas) metricas = calcularMetricas();
+
+    // Actualizar número grande central en la dona
+    const lblGlobal = document.getElementById('labelChartAvanceGlobal');
+    if (lblGlobal) lblGlobal.innerText = `${metricas.avanceGlobal}%`;
+
+    // 1. Dona Global
+    const ctxG = document.getElementById('chartAvanceGlobal');
+    if (ctxG) {
+        if (cGlobal) cGlobal.destroy();
+        cGlobal = new Chart(ctxG, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completado', 'Pendiente'],
+                datasets: [{
+                    data: [metricas.avanceGlobal, Math.max(0, 100 - metricas.avanceGlobal)],
+                    backgroundColor: ['#2563EB', '#E2E8F0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 2. Gráfica de Prioridades
+    const ctxP = document.getElementById('chartPrioridades');
+    if (ctxP) {
+        if (cPrio) cPrio.destroy();
+        
+        // Conteo dinámico de prioridades según peso de la acción
+        let urgentes = 0, altas = 0, medias = 0, bajas = 0;
+        accionesDataset.forEach(a => {
+            if (a.peso >= 45) urgentes++;
+            else if (a.peso >= 35) altas++;
+            else if (a.peso >= 25) medias++;
+            else bajas++;
+        });
+
+        cPrio = new Chart(ctxP, {
+            type: 'pie',
+            data: {
+                labels: ['Urgente', 'Alta', 'Media', 'Baja'],
+                datasets: [{
+                    data: [urgentes, altas, medias, bajas],
+                    backgroundColor: ['#DC2626', '#D97706', '#2563EB', '#94A3B8'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 3. Gráfica de Estatus
+    const ctxE = document.getElementById('chartEstatus');
+    if (ctxE) {
+        if (cEstatus) cEstatus.destroy();
+        cEstatus = new Chart(ctxE, {
+            type: 'doughnut',
+            data: {
+                labels: ['Concluido', 'En Proceso', 'Validación'],
+                datasets: [{
+                    data: [
+                        metricas.conteoEstatus.Concluido || 0,
+                        metricas.conteoEstatus['En Proceso'] || 0,
+                        metricas.conteoEstatus.Validación || 0
+                    ],
+                    backgroundColor: ['#16A34A', '#2563EB', '#D97706'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 4. Gráfica de Rendimiento por Área
+    const ctxA = document.getElementById('chartAreas');
+    if (ctxA) {
+        if (cAreas) cAreas.destroy();
+        const labelsPaneles = ['Patrimonio', 'Jurídico', 'Inmuebles', 'Finanzas', 'Archivo', 'Auditoría'];
+        const dataPaneles = [
+            metricas.avancesPorArea['E'] || 60,
+            metricas.avancesPorArea['B'] || 72,
+            metricas.avancesPorArea['C'] || 75,
+            metricas.avancesPorArea['F'] || 82,
+            metricas.avancesPorArea['H'] || 75,
+            metricas.avancesPorArea['I'] || 70
+        ];
+
+        cAreas = new Chart(ctxA, {
+            type: 'bar',
+            data: {
+                labels: labelsPaneles,
+                datasets: [{
+                    data: dataPaneles,
+                    backgroundColor: '#1E3A8A',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { min: 0, max: 100, ticks: { font: { size: 9 } } },
+                    y: { ticks: { font: { size: 9 } } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+}
         
     </script>
 
