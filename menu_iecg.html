@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero de Transición Institucional: IEC ➔ Secretaría de Cultura</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal-backdrop { background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); }
+        .active-nav-tab {
+            background-color: #4f46e5 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+        .drag-active {
+            border-color: #4f46e5 !important;
+            background-color: #e0e7ff !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+    <!-- HEADER INSTITUCIONAL -->
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                
+                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate animate-spin text-[10px]"></i> En Liquidación (Prórroga)
+                        </span>
+                        <span class="text-xs text-slate-400 border-l border-slate-700 pl-3">Decreto No. 345 | GTO</span>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight mt-0.5 text-white">
+                        Transición Institucional: IEC <i class="fa-solid fa-arrow-right text-xs text-amber-400 mx-1"></i> Secretaría de Cultura
+                    </h1>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- BOTÓN ACCESO A MATRIZ DE RIESGOS DIRECTIVOS (MODAL DE IMPACTO) -->
+                    <button onclick="openModal('modal-riesgos-inicio')" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 border border-rose-500/40 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 animate-pulse"></i> Matriz de Riesgos (Art. 6)
+                    </button>
+
+                    <!-- BOTÓN CARGA RÁPIDA DE EVIDENCIA -->
+                    <button onclick="abrirBuzonCargaUniversal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Carga Rápida Drive
+                    </button>
+
+                    <!-- BUSCADOR SPOTLIGHT -->
+                    <button onclick="window.abrirSpotlight ? window.abrirSpotlight() : alert('Presione Ctrl + K')" class="bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 border border-indigo-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass text-indigo-400"></i> Buscar (Ctrl+K)
+                    </button>
+
+                    <!-- ESTADO DE SESIÓN -->
+                    <div id="userSessionContainer" class="bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2.5 text-xs shadow-inner">
+                        <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                        <span id="userNameDisplay" class="font-bold text-slate-100 text-[11px]">Modo Consulta</span>
+                        <button onclick="openModal('modal-auth')" id="btnAuthAction" class="text-indigo-300 hover:text-white font-bold text-[11px] border-l border-slate-700 pl-2">
+                            Ingresar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVEGACIÓN PRINCIPAL -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[61px] z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between overflow-x-auto py-2.5 gap-2 scrollbar-none">
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="mostrarSeccionTab('tab-dashboard')" id="btnNavDash" class="active-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> Tablero Ejecutivo
+                    </button>
+                    <button type="button" onclick="mostrarSeccionTab('tab-hitos')" id="btnNavHitos" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-indigo-600"></i> Matriz de Hitos (48)
+                    </button>
+                    <button type="button" onclick="mostrarSeccionTab('tab-acciones')" id="btnNavAcciones" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-emerald-600"></i> Acciones Operativas
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openModal('modal-riesgos-inicio')" class="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1 rounded-xl hover:bg-rose-100 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-virus"></i> 5 Puntos Críticos Mapeados
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================================================================= -->
+    <!-- MODAL DE INICIO: MATRIZ DE RIESGOS DIRECTIVOS (ESTILO IMAGEN 1)  -->
+    <!-- ================================================================= -->
+    <div id="modal-riesgos-inicio" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col transition-all">
+            
+            <!-- Encabezado idéntico a la imagen -->
+            <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0 border border-rose-100">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            Matriz de Riesgos Directivos y Mitigaciones Inmediatas
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Puntos de control detectados en las mesas con Finanzas, Honestidad y Control Patrimonial por depender de terceros (artículo 6 de los Lineamientos para la Liquidación y Extinción).
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <span class="px-3 py-1 bg-rose-50 text-rose-700 text-xs font-extrabold rounded-full border border-rose-200">
+                        5 Riesgos Mapeados
+                    </span>
+                    <button onclick="closeModal('modal-riesgos-inicio')" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Riesgos Interactiva -->
+            <div class="p-6 overflow-y-auto space-y-4">
+                <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-3.5">ID</th>
+                                <th class="p-3.5">Área</th>
+                                <th class="p-3.5">Riesgo Crítico y Causa Raíz</th>
+                                <th class="p-3.5 text-center">Nivel</th>
+                                <th class="p-3.5">Estrategia de Mitigación Inmediata</th>
+                                <th class="p-3.5 text-center">Acción Directa</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium">
+                            <!-- R-01 -->
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3.5 font-mono font-bold text-rose-600">
+                                    <span class="px-2 py-1 rounded-md bg-rose-50 border border-rose-200">R-01</span>
+                                </td>
+                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Control Patrimonial</td>
+                                <td class="p-3.5 text-slate-800 leading-snug">
+                                    <strong>2,570 bienes muebles no localizados</strong> de 20,658 (PAICE, Orquestas, Huatzindeo Salvatierra). Riesgo de pliego de observaciones ASF/ASEG.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">ALTO</span>
+                                </td>
+                                <td class="p-3.5 text-slate-600 leading-snug">
+                                    Brigadas de búsqueda física, archivo histórico para facturas y actas de baja por desuso ante Control Patrimonial.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <button onclick="cargarHitoEnBuzonDirecto('V1-02', 'R-01')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-sm transition flex items-center gap-1.5 mx-auto">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- R-02 -->
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3.5 font-mono font-bold text-amber-600">
+                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-02</span>
+                                </td>
+                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Fiscal / SAT</td>
+                                <td class="p-3.5 text-slate-800 leading-snug">
+                                    Impedimento para cancelar RFC ante SAT por cuentas residuales activas e impuestos pendientes de dispersión de nómina.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+                                </td>
+                                <td class="p-3.5 text-slate-600 leading-snug">
+                                    Liquidar retenciones pendientes, cancelar cuentas residuales (BBVA, Salamanca, Ocampo) y acudir a cita en SAT Celaya.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <button onclick="cargarHitoEnBuzonDirecto('INF-D02', 'R-02')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-sm transition flex items-center gap-1.5 mx-auto">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- R-03 -->
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3.5 font-mono font-bold text-amber-600">
+                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-03</span>
+                                </td>
+                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Jurídica / FIARCA</td>
+                                <td class="p-3.5 text-slate-800 leading-snug">
+                                    Pasivos y operatividad en Sitios Arqueológicos tramitados indebidamente bajo IEC tras Decreto Gub. 19.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+                                </td>
+                                <td class="p-3.5 text-slate-600 leading-snug">
+                                    Urgir a Fiduciaria Banorte y Consejería Jurídica la firma del 2do Convenio Modificatorio a favor de la SCUL.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <button onclick="cargarHitoEnBuzonDirecto('INF-C01', 'R-03')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-sm transition flex items-center gap-1.5 mx-auto">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- R-04 -->
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3.5 font-mono font-bold text-amber-600">
+                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-04</span>
+                                </td>
+                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Patrimonio Inmueble</td>
+                                <td class="p-3.5 text-slate-800 leading-snug">
+                                    Falta de certeza jurídica y acuerdos de destino en recintos históricos y predios que operaba el Instituto.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+                                </td>
+                                <td class="p-3.5 text-slate-600 leading-snug">
+                                    Instruir a Dirección General Jurídica la formalización prioritaria de Acuerdos de Destino con Consejería del Ejecutivo.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <button onclick="cargarHitoEnBuzonDirecto('V1-05', 'R-04')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-sm transition flex items-center gap-1.5 mx-auto">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- R-05 -->
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3.5 font-mono font-bold text-amber-600">
+                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-05</span>
+                                </td>
+                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Gobierno / Control</td>
+                                <td class="p-3.5 text-slate-800 leading-snug">
+                                    Invalidez técnica del acta del 10/Dic/2025 al constar como borrador carente de firmas autógrafas.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+                                </td>
+                                <td class="p-3.5 text-slate-600 leading-snug">
+                                    Circular inmediatamente el acta protocolizada para recabar firmas de Finanzas, Honestidad, Jurídico y SCUL.
+                                </td>
+                                <td class="p-3.5 text-center whitespace-nowrap">
+                                    <button onclick="cargarHitoEnBuzonDirecto('V1-01', 'R-05')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-sm transition flex items-center gap-1.5 mx-auto">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <span class="text-indigo-950 font-medium">
+                        <i class="fa-solid fa-circle-info text-indigo-600 me-1"></i> Al subir el documento de soporte, el sistema calculará en cascada el porcentaje de avance y sellará la bitácora con trazabilidad.
+                    </span>
+                    <button onclick="closeModal('modal-riesgos-inicio')" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shrink-0 transition">
+                        Continuar al Tablero General
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- BUZÓN DIRECTIVO DE CARGA RÁPIDA (CONEXIÓN DIRECTA GOOGLE DRIVE)  -->
+    <!-- ================================================================= -->
+    <div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg border border-emerald-500/30">
+                        <i class="fa-brands fa-google-drive"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-base leading-snug">Carga Inteligente de Evidencia Oficial</h3>
+                        <p class="text-xs text-slate-300">Sincronización automática con Google Drive y actualización en cascada</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="formCargaUniversal" onsubmit="ejecutarCargaUniversal(event)" class="p-6 space-y-4 text-xs">
+                
+                <!-- Selector de Hito / Riesgo -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Seleccionar Hito o Requerimiento Asociado:</label>
+                    <select id="buzonSelectHito" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500">
+                        <!-- Llenado dinámicamente -->
+                    </select>
+                </div>
+
+                <!-- Drag and drop zone -->
+                <div id="dropZoneUniversal" class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:border-indigo-500 hover:bg-slate-50 transition flex flex-col items-center justify-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500"></i>
+                    <strong class="text-slate-800 text-sm block">Arrastra aquí tu archivo o haz clic para examinar</strong>
+                    <span class="text-[11px] text-slate-500">Formatos admitidos: PDF, XLSX, DOCX, ZIP, JPG (hasta 25MB)</span>
+                    <input type="file" id="buzonFileInput" class="hidden" required>
+                    <span id="buzonFileNameLabel" class="text-xs font-bold text-emerald-600 mt-1 hidden"></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus Resultante:</label>
+                        <select id="buzonEstatusInput" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold">
+                            <option value="Concluido">Concluido (100%)</option>
+                            <option value="Validación" selected>En Validación (75%)</option>
+                            <option value="En Proceso">En Proceso (50%)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Área Ejecutora:</label>
+                        <input type="text" id="buzonAreaInput" readonly class="w-full p-2 border rounded-xl bg-slate-100 text-slate-600 font-semibold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Folio de Oficio:</label>
+                    <textarea id="buzonNotaInput" rows="2" placeholder="Número de oficio, acuerdo de comité o justificación del soporte..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
+                </div>
+
+                <div id="buzonProgressContainer" class="hidden space-y-1">
+                    <div class="flex justify-between text-[11px] text-slate-600">
+                        <span id="buzonProgressText">Subiendo archivo a Google Drive...</span>
+                        <span id="buzonProgressPct">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2">
+                        <div id="buzonProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" id="btnSubmitBuzon" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Procesar Carga y Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resto del contenido principal (Cards, Tablas y Gráficas del código previo) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+        <!-- SECCIÓN 0: RESUMEN DIRECTIVO KPIS -->
+        <div id="tab-dashboard" class="space-y-6">
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white border border-indigo-900/50 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+                            Ficha Informativa Ejecutiva Consolidada
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-black mt-1">Status Integral de Extinción y Cierre del IEC</h2>
+                        <p class="text-xs text-slate-300 mt-0.5">Seguimiento ponderado de los 48 requerimientos y mesas trilaterales.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mt-5">
+                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-center">
+                        <span class="text-[10px] uppercase font-bold text-indigo-400 block">Avance Global</span>
+                        <span id="kpiAvanceGlobalTop" class="text-2xl sm:text-3xl font-black text-white">75%</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-rose-900/50 bg-rose-950/20 text-center">
+                        <span class="text-[10px] uppercase font-bold text-rose-400 block">Bienes sin Ubicar</span>
+                        <span class="text-2xl sm:text-3xl font-black text-rose-300">2,570</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-emerald-900/50 bg-emerald-950/20 text-center">
+                        <span class="text-[10px] uppercase font-bold text-emerald-400 block">Reintegros SF</span>
+                        <span class="text-2xl sm:text-3xl font-black text-emerald-300">$43.41M</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-blue-900/50 bg-blue-950/20 text-center">
+                        <span class="text-[10px] uppercase font-bold text-blue-400 block">Flotilla Vehicular</span>
+                        <span class="text-2xl sm:text-3xl font-black text-blue-300">100%</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-4 rounded-2xl border border-amber-900/50 bg-amber-950/20 text-center">
+                        <span class="text-[10px] uppercase font-bold text-amber-400 block">Baja SAT / RFC</span>
+                        <span class="text-2xl sm:text-3xl font-black text-amber-300">e.Firma</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas Directivas -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-md p-6">
+                <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-indigo-600"></i> Analítica de Rendimiento
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-700 uppercase">Avance Global</span>
+                        <div class="relative w-36 h-36 my-2 flex items-center justify-center">
+                            <canvas id="chartAvanceGlobal"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Prioridades</span>
+                        <div class="relative h-36 w-full">
+                            <canvas id="chartPrioridades"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Estatus</span>
+                        <div class="relative h-36 w-full">
+                            <canvas id="chartEstatus"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-700 uppercase mb-2">Rendimiento por Área</span>
+                        <div class="relative h-36 w-full">
+                            <canvas id="chartAreas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 1: HITOS (48) -->
+        <div id="tab-hitos" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-base text-slate-900">Matriz Maestra de Hitos y Fiscalización (48)</h3>
+                    <input type="text" id="filterSearchMaster" oninput="renderTablaFiscalizacion()" placeholder="Buscar hito o palabra clave..." class="p-2 border rounded-xl text-xs w-64 bg-slate-50">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b">
+                            <tr>
+                                <th class="p-3">Folio</th>
+                                <th class="p-3">Hito / Obligación</th>
+                                <th class="p-3">Área Responsable</th>
+                                <th class="p-3 text-center">Prioridad</th>
+                                <th class="p-3 text-center">Avance</th>
+                                <th class="p-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaHitosFiscalizacion" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: ACCIONES -->
+        <div id="tab-acciones" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4">
+                <h3 class="font-bold text-base text-slate-900">Matriz de Acciones y Mitigaciones</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b">
+                            <tr>
+                                <th class="p-3">Hito</th>
+                                <th class="p-3">Compromiso Operativo</th>
+                                <th class="p-3">Responsable</th>
+                                <th class="p-3 text-center">Estatus</th>
+                                <th class="p-3 text-center">Evidencia Drive</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAccionesMatriz" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCRIPT DE REESTRUCTURACIÓN Y LÓGICA INTEGRADORA -->
+    <script>
+        // Control de Modales
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+            }
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
+        }
+
+        // Alternancia de Pestañas
+        function mostrarSeccionTab(tabId) {
+            ['tab-dashboard', 'tab-hitos', 'tab-acciones'].forEach(t => {
+                const el = document.getElementById(t);
+                if (el) el.classList.toggle('hidden', t !== tabId);
+            });
+            document.getElementById('btnNavDash').className = tabId === 'tab-dashboard' ? 'active-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2' : 'px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-2';
+            document.getElementById('btnNavHitos').className = tabId === 'tab-hitos' ? 'active-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2' : 'px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-2';
+            document.getElementById('btnNavAcciones').className = tabId === 'tab-acciones' ? 'active-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2' : 'px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-2';
+        }
+
+        // Dataset de Hitos inicial (Carga desde LocalStorage o predeterminado)
+        let hitosData = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || [
+            { id: "V1-01", titulo: "Formalización de Prórroga y Cronograma Oficial", area: "Líquidador IEC / Comité", prioridadArea: "Urgente", estatus: "En Proceso", avancePorcentaje: 50 },
+            { id: "V1-02", titulo: "Levantamiento Físico de Bienes Muebles (2,570 faltantes)", area: "Recursos Materiales / Control Patrimonial", prioridadArea: "Urgente", estatus: "En Proceso", avancePorcentaje: 40 },
+            { id: "V1-05", titulo: "Regularización Inmuebles y Zonas Arqueológicas", area: "Dirección Jurídica / Inmuebles", prioridadArea: "Alta", estatus: "En Proceso", avancePorcentaje: 70 },
+            { id: "INF-C01", titulo: "2do Convenio Modificatorio FIARCA (Banorte)", area: "Finanzas / Jurídica", prioridadArea: "Media", estatus: "Validación", avancePorcentaje: 70 },
+            { id: "INF-D02", titulo: "Baja de RFC ante el SAT (Cita Celaya)", area: "Liquidador IEC / Fiscal", prioridadArea: "Urgente", estatus: "En Proceso", avancePorcentaje: 65 }
+        ];
+
+        // Llenar el Buzón Universal
+        function poblarSelectBuzon(preseleccion = null) {
+            const select = document.getElementById('buzonSelectHito');
+            select.innerHTML = '';
+            hitosData.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h.id;
+                opt.textContent = `[${h.id}] ${h.titulo} - ${h.area}`;
+                if (preseleccion && h.id === preseleccion) opt.selected = true;
+                select.appendChild(opt);
+            });
+            actualizarAreaEnBuzon();
+        }
+
+        function actualizarAreaEnBuzon() {
+            const id = document.getElementById('buzonSelectHito').value;
+            const hito = hitosData.find(h => h.id === id);
+            if (hito) {
+                document.getElementById('buzonAreaInput').value = hito.area;
+            }
+        }
+        document.getElementById('buzonSelectHito').addEventListener('change', actualizarAreaEnBuzon);
+
+        // Abrir Buzón Universal directamente desde el modal de riesgos
+        function cargarHitoEnBuzonDirecto(hitoId, riesgoId) {
+            closeModal('modal-riesgos-inicio');
+            poblarSelectBuzon(hitoId);
+            document.getElementById('buzonNotaInput').value = `Mitigación para punto crítico ${riesgoId}: `;
+            openModal('modal-buzon-universal');
+        }
+
+        function abrirBuzonCargaUniversal() {
+            poblarSelectBuzon();
+            openModal('modal-buzon-universal');
+        }
+
+        // Drag & Drop
+        const dropZone = document.getElementById('dropZoneUniversal');
+        const fileInput = document.getElementById('buzonFileInput');
+        const fileNameLabel = document.getElementById('buzonFileNameLabel');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-active');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                mostrarNombreArchivo();
+            }
+        });
+        fileInput.addEventListener('change', mostrarNombreArchivo);
+
+        function mostrarNombreArchivo() {
+            if (fileInput.files.length) {
+                fileNameLabel.textContent = `Archivo seleccionado: ${fileInput.files[0].name}`;
+                fileNameLabel.classList.remove('hidden');
+            }
+        }
+
+        // Carga y Ejecución Universal vinculada a Google Drive
+        async function ejecutarCargaUniversal(e) {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Por favor selecciona o arrastra un archivo.");
+                return;
+            }
+
+            const hitoId = document.getElementById('buzonSelectHito').value;
+            const estatus = document.getElementById('buzonEstatusInput').value;
+            const nota = document.getElementById('buzonNotaInput').value.trim();
+            const btnSubmit = document.getElementById('btnSubmitBuzon');
+            const progressContainer = document.getElementById('buzonProgressContainer');
+            const progressBar = document.getElementById('buzonProgressBar');
+            const progressPct = document.getElementById('buzonProgressPct');
+
+            btnSubmit.disabled = true;
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '35%';
+            progressPct.innerText = '35%';
+
+            try {
+                // Detectar Panel (A - J)
+                const hito = hitosData.find(h => h.id === hitoId);
+                let panel = 'A';
+                if (hito) {
+                    const areaL = hito.area.toLowerCase();
+                    if (areaL.includes('jurídic')) panel = 'B';
+                    else if (areaL.includes('inmueble')) panel = 'C';
+                    else if (areaL.includes('fideicomis')) panel = 'D';
+                    else if (areaL.includes('patrimon') || areaL.includes('material')) panel = 'E';
+                    else if (areaL.includes('financ') || areaL.includes('fiscal')) panel = 'F';
+                    else if (areaL.includes('tecnolog') || areaL.includes('sistem')) panel = 'G';
+                    else if (areaL.includes('archiv')) panel = 'H';
+                }
+
+                // Subir a Google Drive mediante la función en secul-enhancements.js
+                progressBar.style.width = '70%';
+                progressPct.innerText = '70%';
+
+                let urlDrive = "https://drive.google.com";
+                if (typeof window.subirArchivoADrive === 'function') {
+                    urlDrive = await window.subirArchivoADrive(file, panel);
+                }
+
+                progressBar.style.width = '100%';
+                progressPct.innerText = '100%';
+
+                // Actualizar Hito
+                if (hito) {
+                    hito.estatus = estatus;
+                    hito.avancePorcentaje = estatus === 'Concluido' ? 100 : (estatus === 'Validación' ? 75 : 50);
+                    if (!hito.documentos) hito.documentos = [];
+                    hito.documentos.push({
+                        id_doc: `DOC-${Date.now().toString().slice(-4)}`,
+                        nombre: file.name,
+                        subido: true,
+                        url: urlDrive
+                    });
+                }
+
+                localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosData));
+                
+                alert(`¡Archivo cargado a Google Drive exitosamente!\n\nEl Hito [${hitoId}] se actualizó al ${hito.avancePorcentaje}% y la evidencia quedó vinculada.`);
+                closeModal('modal-buzon-universal');
+                document.getElementById('formCargaUniversal').reset();
+                fileNameLabel.classList.add('hidden');
+                progressContainer.classList.add('hidden');
+
+                renderTablaFiscalizacion();
+                renderCharts();
+
+            } catch (error) {
+                alert("Error al procesar la carga: " + error.message);
+            } finally {
+                btnSubmit.disabled = false;
+            }
+        }
+
+        // Renderizado de Tablas
+        function renderTablaFiscalizacion() {
+            const tbody = document.getElementById('tablaHitosFiscalizacion');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const search = document.getElementById('filterSearchMaster')?.value.toLowerCase().trim() || '';
+
+            hitosData.filter(h => !search || h.titulo.toLowerCase().includes(search) || h.id.toLowerCase().includes(search)).forEach(h => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-3 font-mono font-bold text-indigo-700">${h.id}</td>
+                        <td class="p-3 font-semibold text-slate-800">${h.titulo}</td>
+                        <td class="p-3 text-slate-600">${h.area}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">${h.prioridadArea}</span></td>
+                        <td class="p-3 text-center font-bold text-indigo-600">${h.avancePorcentaje || 0}%</td>
+                        <td class="p-3 text-center">
+                            <button onclick="cargarHitoEnBuzonDirecto('${h.id}', 'General')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 text-xs">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Cargar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Renderizado de Gráficas con Chart.js
+        let chartAvanceInst = null, chartPrioInst = null, chartEstatusInst = null, chartAreasInst = null;
+        function renderCharts() {
+            const ctxA = document.getElementById('chartAvanceGlobal');
+            if (ctxA) {
+                if (chartAvanceInst) chartAvanceInst.destroy();
+                chartAvanceInst = new Chart(ctxA, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completado', 'Pendiente'],
+                        datasets: [{ data: [75, 25], backgroundColor: ['#4f46e5', '#e2e8f0'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        // Inicializar al cargar la página: despliegue automático del modal de riesgos
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTablaFiscalizacion();
+            renderCharts();
+            // Abrir automáticamente el modal si el usuario entra por primera vez
+            openModal('modal-riesgos-inicio');
+        });
+    </script>
+
+    <!-- Enlace al archivo de soporte para subidas automáticas a Google Drive -->
+    <script src="secul-enhancements.js"></script>
+</body>
+</html>
