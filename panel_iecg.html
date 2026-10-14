@@ -5000,14 +5000,7 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
         }
         
 
-      function handleSolicitarClick() {
-            if (!currentUser) {
-                alert('Debe identificarse para enviar solicitudes.');
-                openModal('modal-auth');
-                return;
-            }
-            openModal('modal-solicitud');
-        }
+  
 
         async function handleLoginSubmit(e) {
             e.preventDefault();
@@ -5400,14 +5393,16 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
             }
         }
 
-        function imprimirCronogramaRoadmap() {
+       function imprimirCronogramaRoadmap() {
             const area = document.getElementById('areaImpresionRoadmap');
             if (!area) return;
 
             const ventana = window.open('', '_blank');
             ventana.document.write(`
+                <!DOCTYPE html>
                 <html>
                 <head>
+                    <meta charset="UTF-8">
                     <title>Master Roadmap Cronograma de Extinción IEC</title>
                     <script src="https://cdn.tailwindcss.com"><\/script>
                     <style>
@@ -5426,10 +5421,9 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                         <span class="text-xs font-mono font-bold text-slate-500">${new Date().toLocaleDateString()}</span>
                     </div>
                     ${area.innerHTML}
-
-                    <script src="secul-enhancements.js"></script>
-                </body>
-                </html>
+                    <script src="secul-enhancements.js"><\/script>
+                <\/body>
+                <\/html>
             `);
             ventana.document.close();
             setTimeout(() => {
@@ -5437,7 +5431,6 @@ const accionesListaActual = JSON.parse(localStorage.getItem('secul_iec_acciones'
                 ventana.print();
             }, 600);
         }
-
    // =========================================================================
 // GESTIÓN DE MODAL DE FISCALIZACIÓN Y GUARDADO DE EVIDENCIAS (CORREGIDO)
 // =========================================================================
