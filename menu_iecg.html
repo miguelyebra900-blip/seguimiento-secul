@@ -227,54 +227,6 @@
                         <i class="fa-solid fa-arrows-rotate"></i> Actualizar Métricas
                     </button>
                 </div>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    
-    <!-- 1. Dona Avance Global (Clickeable con Zoom) -->
-    <div onclick="openChartZoom('global')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
-        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
-            Avance Global Ponderado <i class="fa-solid fa-expand text-[9px] text-slate-400 group-hover:text-indigo-600"></i>
-        </span>
-        <div class="relative w-40 h-40 flex items-center justify-center pointer-events-none">
-            <canvas id="chartAvanceGlobal"></canvas>
-        </div>
-        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
-    </div>
-
-    <!-- 2. Dona Distribución de Estatus (Clickeable con Zoom) -->
-    <div onclick="openChartZoom('estatus')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
-        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
-            Distribución de Estatus <i class="fa-solid fa-expand text-[9px] text-slate-400 group-hover:text-indigo-600"></i>
-        </span>
-        <div class="relative h-40 w-full pointer-events-none">
-            <canvas id="chartEstatus"></canvas>
-        </div>
-        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
-    </div>
-
-    <!-- 3. Pastel Gobernanza / Dependencia (Clickeable con Zoom) -->
-    <div onclick="openChartZoom('gobernanza')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
-        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
-            Gobernanza / Dependencia <i class="fa-solid fa-expand text-[9px] text-slate-400 group-hover:text-indigo-600"></i>
-        </span>
-        <div class="relative h-40 w-full pointer-events-none">
-            <canvas id="chartGobernanza"></canvas>
-        </div>
-        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
-    </div>
-
-    <!-- 4. Barras Avance por Área (Clickeable con Zoom) -->
-    <div onclick="openChartZoom('areas')" class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 flex flex-col items-center cursor-pointer hover:border-indigo-500 hover:shadow-md transition group">
-        <span class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1 group-hover:text-indigo-600 transition">
-            Avance por Área (A - J) <i class="fa-solid fa-expand text-[9px] text-indigo-500"></i>
-        </span>
-        <div class="relative h-40 w-full pointer-events-none">
-            <canvas id="chartAreas"></canvas>
-        </div>
-        <span class="text-[10px] text-slate-400 font-semibold mt-1">Clic para ver desglose</span>
-    </div>
-
-</div>
-        </div>
 
         <!-- ================================================================= -->
         <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (8 ÁREAS A - H)  -->
@@ -1805,6 +1757,243 @@ function renderCronogramaRoadmap() {
             // Despliega automáticamente la Matriz de Riesgos Inicial (Art. 6)
             openModal('modal-riesgos-inicio');
         });
+
+// =========================================================================
+// 1. EFECTO DE CONTORNO AZUL TENUE AL SELECCIONAR (IMAGEN 1)
+// =========================================================================
+function seleccionarTarjetaGrafica(elemento, tipoGrafica) {
+    // Remover contorno activo de todas las tarjetas
+    document.querySelectorAll('.card-chart-box').forEach(card => {
+        card.classList.remove('border-indigo-400', 'ring-4', 'ring-indigo-100/70', 'shadow-md');
+        card.classList.add('border-slate-200');
+    });
+
+    // Activar contorno azul tenue en la tarjeta clickeada (como en Imagen 1)
+    elemento.classList.remove('border-slate-200');
+    elemento.classList.add('border-indigo-400', 'ring-4', 'ring-indigo-100/70', 'shadow-md');
+
+    // Abrir el Modal Ampliado (Imagen 2)
+    openChartZoom(tipoGrafica);
+}
+
+// =========================================================================
+// 2. MODAL AMPLIADO DE GRÁFICA CON BOTÓN "👁 VER" (IMAGEN 2)
+// =========================================================================
+function openChartZoom(tipoGrafica) {
+    const titleEl = document.getElementById('modalChartTitle');
+    const descEl = document.getElementById('modalChartDescription');
+    const listEl = document.getElementById('modalChartItemsList');
+    const canvas = document.getElementById('chartModalEnlarged');
+    if (!canvas) return;
+
+    listEl.innerHTML = '';
+    const ctx = canvas.getContext('2d');
+    if (chartEnlargedInstance) chartEnlargedInstance.destroy();
+
+    const metricas = calcularMetricas();
+
+    // Configuración según el tipo de gráfica
+    if (tipoGrafica === 'global' || tipoGrafica === 'prioridades') {
+        titleEl.innerText = "Análisis Ampliado: Avance Ponderado Global (30 Compromisos)";
+        descEl.innerText = "Muestra el listado completo de los requerimientos y compromisos normativos consolidados en el proceso de liquidación y cierre del IECG.";
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completado', 'Pendiente'],
+                datasets: [{
+                    data: [metricas.avanceGlobal, Math.max(0, 100 - metricas.avanceGlobal)],
+                    backgroundColor: ['#2563EB', '#E2E8F0'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
+        });
+    } else if (tipoGrafica === 'estatus') {
+        titleEl.innerText = "Análisis Ampliado: Estatus de Compromisos";
+        descEl.innerText = "Desglose operativo clasificado en Concluido, En Proceso y En Validación normativa.";
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Concluido', 'Validación', 'En Proceso'],
+                datasets: [{
+                    data: [metricas.conteoEstatus.Concluido || 0, metricas.conteoEstatus.Validación || 0, metricas.conteoEstatus['En Proceso'] || 0],
+                    backgroundColor: ['#16A34A', '#D97706', '#2563EB'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+        });
+    } else {
+        titleEl.innerText = "Análisis Ampliado: Rendimiento por Área Estratégica";
+        descEl.innerText = "Porcentaje promedio de cumplimiento ponderado por área ejecutora.";
+
+        const labelsPaneles = ['A (RH)', 'B (Jur)', 'C (Inm)', 'D (Fid)', 'E (Pat)', 'F (Fin)', 'G (TI)', 'H (Arc)', 'I (ASEG)', 'J (Seg)'];
+        const dataPaneles = ['A','B','C','D','E','F','G','H','I','J'].map(l => metricas.avancesPorArea[l] || 0);
+
+        chartEnlargedInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labelsPaneles,
+                datasets: [{ data: dataPaneles, backgroundColor: '#1E3A8A', borderRadius: 4 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+        });
+    }
+
+    // Inyectar la lista con el diseño idéntico a la Imagen 2
+    accionesDataset.forEach(act => {
+        let badgeEst = act.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (act.estatus === 'Validación' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800');
+        let prio = act.peso >= 40 ? 'Urgente' : (act.peso >= 30 ? 'Media' : 'Baja');
+
+        listEl.innerHTML += `
+            <div class="p-3 bg-slate-50/90 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 hover:bg-slate-100 transition shadow-2xs">
+                <div class="overflow-hidden">
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="px-2 py-0.5 rounded font-mono font-bold text-[9px] bg-slate-200 text-slate-700">${act.panel}</span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-bold ${badgeEst}">${act.estatus}</span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">${prio}</span>
+                    </div>
+                    <strong class="text-slate-900 block text-xs truncate" title="${act.hito}">${act.hito}</strong>
+                    <span class="text-slate-500 text-[10px] block truncate mt-0.5"><i class="fa-solid fa-building-user me-1 text-slate-400"></i>${act.area}</span>
+                </div>
+                <!-- BOTÓN "👁 VER" QUE ABRE EL MODAL DE LA IMAGEN 3 -->
+                <button onclick="abrirModalDesdeGrafica('${act.id}')" 
+                        class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-eye"></i> Ver
+                </button>
+            </div>
+        `;
+    });
+
+    openModal('modal-chart-detail');
+}
+
+// =========================================================================
+// 3. APERTURA DEL MODAL DE DETALLE (IMAGEN 3) AL DAR CLIC EN "👁 VER"
+// =========================================================================
+let hitoActivoEnModalFiscal = null;
+
+function abrirModalDesdeGrafica(idAccion) {
+    // Cerrar el modal amplio de la gráfica
+    closeModal('modal-chart-detail');
+
+    const act = accionesDataset.find(a => a.id === idAccion);
+    if (!act) return;
+
+    hitoActivoEnModalFiscal = act;
+
+    // Rellenar campos del modal de Imagen 3
+    document.getElementById('uploadHitoId').value = act.id;
+    document.getElementById('modalFiscalTag').innerText = `FOLIO: ${act.id} (PANEL ${act.panel} - ${act.area.toUpperCase()})`;
+    document.getElementById('modalFiscalTitle').innerText = act.hito;
+    document.getElementById('modalFiscalArea').innerText = `${act.area} (Panel ${act.panel})`;
+    document.getElementById('modalFiscalNorma').innerText = act.docRequerido || "Lineamientos de Extinción IECG";
+
+    document.getElementById('modalFiscalPrioridad').value = act.peso >= 40 ? "Urgente" : "Media";
+    document.getElementById('modalFiscalEstatus').value = act.estatus;
+
+    const slider = document.getElementById('modalFiscalAvance');
+    slider.value = act.avance;
+    document.getElementById('modalFiscalAvanceLabel').innerText = act.avance + '%';
+
+    document.getElementById('uploadDocUrl').value = act.driveUrl || '';
+    document.getElementById('modalFiscalObs').value = '';
+
+    renderListaDocumentosFiscal(act);
+
+    // Abrir el modal de la Imagen 3
+    openModal('modal-hito-fiscalizacion');
+}
+
+function renderListaDocumentosFiscal(act) {
+    const contenedor = document.getElementById('modalFiscalDocsList');
+    const selectDoc = document.getElementById('uploadSelectDoc');
+    contenedor.innerHTML = '';
+    selectDoc.innerHTML = '';
+
+    const nombreDoc = act.docRequerido || `Expediente Soporte ${act.panel}`;
+    selectDoc.innerHTML = `<option value="DOC-01">${nombreDoc} ${act.driveUrl ? '(Vinculado)' : '(Pendiente)'}</option>`;
+
+    contenedor.innerHTML = `
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+                    <i class="fa-solid fa-folder"></i>
+                </div>
+                <div class="truncate">
+                    <strong class="text-slate-900 block text-xs truncate">${nombreDoc}</strong>
+                    <span class="text-[10px] ${act.driveUrl ? 'text-emerald-600 font-bold' : 'text-slate-400'}">
+                        ${act.driveUrl ? '✓ Enlace oficial vinculado en Drive' : 'Sin enlace Drive'}
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                ${act.driveUrl ? `<a href="${act.driveUrl}" target="_blank" class="text-indigo-600 hover:text-indigo-800 p-1" title="Ver en Drive"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                <button type="button" onclick="this.closest('.flex').remove()" class="text-slate-400 hover:text-rose-600 p-1" title="Quitar expediente"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+        </div>
+    `;
+}
+
+function agregarDocumentoAlHitoActual() {
+    const input = document.getElementById('nuevoDocNombreInput');
+    const nombre = input.value.trim();
+    if (!nombre) return;
+
+    const contenedor = document.getElementById('modalFiscalDocsList');
+    contenedor.innerHTML += `
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+                    <i class="fa-solid fa-folder"></i>
+                </div>
+                <div class="truncate">
+                    <strong class="text-slate-900 block text-xs truncate">${nombre}</strong>
+                    <span class="text-[10px] text-slate-400">Sin enlace Drive</span>
+                </div>
+            </div>
+            <button type="button" onclick="this.closest('.flex').remove()" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+    `;
+    input.value = '';
+}
+
+function abrirCarpetaDriveDesdeModalFiscal() {
+    if (hitoActivoEnModalFiscal) {
+        window.abrirCarpetaDrivePanel(hitoActivoEnModalFiscal.panel);
+    }
+}
+
+function guardarEvidenciaFiscalizacionModal() {
+    if (!hitoActivoEnModalFiscal) return;
+
+    const nuevoEstatus = document.getElementById('modalFiscalEstatus').value;
+    const nuevoAvance = parseInt(document.getElementById('modalFiscalAvance').value) || 0;
+    const urlDrive = document.getElementById('uploadDocUrl').value.trim();
+    const obs = document.getElementById('modalFiscalObs').value.trim();
+
+    hitoActivoEnModalFiscal.estatus = nuevoEstatus;
+    hitoActivoEnModalFiscal.avance = nuevoAvance;
+    if (urlDrive) hitoActivoEnModalFiscal.driveUrl = urlDrive;
+
+    guardarDataset();
+
+    if (typeof registrarAuditoria === 'function') {
+        registrarAuditoria('Actualización Directa de Hito', {
+            id: hitoActivoEnModalFiscal.id,
+            avance: nuevoAvance,
+            estatus: nuevoEstatus,
+            obs: obs
+        });
+    }
+
+    closeModal('modal-hito-fiscalizacion');
+    alert(`¡Hito "${hitoActivoEnModalFiscal.hito}" actualizado exitosamente al ${nuevoAvance}%!`);
+    actualizarDashboard();
+}
+        
     </script>
 
     <!-- ========================================================= -->
@@ -1953,6 +2142,183 @@ function renderCronogramaRoadmap() {
         </form>
     </div>
 </div>
-    
+
+<!-- ========================================================================= -->
+<!-- MODAL AMPLIO DE GRÁFICA (IMAGEN 2 ADJUNTA)                                -->
+<!-- ========================================================================= -->
+<div id="modal-chart-detail" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+        
+        <!-- Header Oscuro con Icono Amarillo -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-lg border border-amber-400/30">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h3 id="modalChartTitle" class="font-bold text-base leading-snug">Análisis Ampliado: Avance Ponderado Global</h3>
+                    <p class="text-xs text-slate-300">Visualización ejecutiva de alto detalle y desglose de hitos</p>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-chart-detail')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+            <!-- Gráfica ampliada -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative h-60 w-full flex items-center justify-center">
+                <canvas id="chartModalEnlarged"></canvas>
+            </div>
+
+            <!-- Caja Composición y Parámetros -->
+            <div class="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-1">
+                <h4 class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-indigo-600"></i> Composición y Parámetros
+                </h4>
+                <p id="modalChartDescription" class="text-slate-600 leading-relaxed text-[11px]">--</p>
+            </div>
+
+            <!-- Desglose de Hitos con botón "👁 Ver" -->
+            <div>
+                <h4 class="font-bold text-slate-900 text-xs mb-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i> Desglose de Hitos y Requerimientos Asociados
+                </h4>
+                <div id="modalChartItemsList" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                    <!-- Se llena dinámicamente con las tarjetas y botón "👁 Ver" -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-50 p-4 flex justify-between items-center border-t border-slate-200">
+            <span class="text-[11px] text-slate-500 font-medium">IEC ➔ Secretaría de Cultura</span>
+            <div class="flex gap-2">
+                <button onclick="exportChartAsImage()" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Descargar PNG
+                </button>
+                <button onclick="closeModal('modal-chart-detail')" class="btn-executive px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL DE GESTIÓN DIRECTA AL DAR CLIC A "VER" (IMAGEN 3 ADJUNTA)           -->
+<!-- ========================================================================= -->
+<div id="modal-hito-fiscalizacion" class="fixed inset-0 z-[60] hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
+        
+        <!-- Header Oscuro idéntico a Imagen 3 -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
+                    <i class="fa-solid fa-folder-tree"></i>
+                </div>
+                <div>
+                    <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">FOLIO: V2 (V2 - FISCALIZACIÓN ASEG)</span>
+                    <h3 id="modalFiscalTitle" class="font-bold text-base leading-snug">Detalle del Hito</h3>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-hito-fiscalizacion')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+            <!-- Fila 1: Área y Referencia Legal -->
+            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div>
+                    <span class="text-slate-500 font-bold block text-[10px]">Área Responsable:</span>
+                    <span id="modalFiscalArea" class="font-bold text-slate-800 text-xs">--</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 font-bold block text-[10px]">Referencia Legal / Oficio:</span>
+                    <span id="modalFiscalNorma" class="font-bold text-slate-800 text-xs">--</span>
+                </div>
+            </div>
+
+            <!-- Fila 2: Prioridad, Estatus y Slider de Avance con % Grande -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Prioridad del Área:</label>
+                    <select id="modalFiscalPrioridad" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
+                        <option value="Urgente">🔴 Urgente</option>
+                        <option value="Alta">🟠 Alta</option>
+                        <option value="Media" selected>🔵 Media</option>
+                        <option value="Baja">⚪ Baja</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Estatus Operativo:</label>
+                    <select id="modalFiscalEstatus" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="En Validación" selected>En Validación</option>
+                        <option value="Concluido">Concluido al 100%</option>
+                    </select>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-bold text-slate-700">Avance (%):</label>
+                        <span id="modalFiscalAvanceLabel" class="font-black text-indigo-700 text-sm">80%</span>
+                    </div>
+                    <input type="range" id="modalFiscalAvance" min="0" max="100" step="5" value="80" 
+                           oninput="document.getElementById('modalFiscalAvanceLabel').innerText = this.value + '%'" 
+                           class="w-full accent-indigo-600 cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Sección: Expedientes y Documentales Requeridas -->
+            <div>
+                <h4 class="font-bold text-slate-900 text-xs mb-2">Expedientes y Documentales Requeridas:</h4>
+                <div id="modalFiscalDocsList" class="space-y-2 mb-2.5">
+                    <!-- Se inyectan las filas con folder amarillo y papelera -->
+                </div>
+
+                <!-- Agregar nuevo expediente al vuelo -->
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex gap-2 items-center">
+                    <input type="text" id="nuevoDocNombreInput" placeholder="Nombre del nuevo expediente o documento requerido..." class="w-full p-2 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-indigo-500">
+                    <button type="button" onclick="agregarDocumentoAlHitoActual()" class="btn-executive px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shrink-0 flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Agregar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sección: Vinculación Google Drive -->
+            <div class="border-t border-slate-200 pt-3 space-y-3">
+                <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Vincular Enlace de Google Drive Institucional
+                </h4>
+                <input type="hidden" id="uploadHitoId">
+                <select id="uploadSelectDoc" class="w-full p-2 border rounded-xl bg-slate-50 text-xs font-semibold"></select>
+                <input type="url" id="uploadDocUrl" placeholder="URL Google Drive (https://drive.google.com/...)" class="w-full p-2.5 border rounded-xl text-xs bg-white">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Observaciones / Folio del Oficio:</label>
+                    <textarea id="modalFiscalObs" rows="2" placeholder="Número de oficio, observaciones del enlace o justificación..." class="w-full p-2 border rounded-xl text-xs bg-slate-50"></textarea>
+                </div>
+            </div>
+
+            <!-- Subida directa con Apps Script -->
+            <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-brands fa-google-drive text-amber-500 text-base"></i>
+                    <span class="text-[11px] font-bold text-indigo-950">Carga Automática a Google Drive</span>
+                </div>
+                <button type="button" onclick="abrirCarpetaDriveDesdeModalFiscal()" class="text-[11px] text-indigo-700 hover:underline font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-folder-open"></i> Ver Carpeta en Drive
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
+            <button onclick="closeModal('modal-hito-fiscalizacion')" class="btn-executive px-5 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300">
+                Cancelar
+            </button>
+            <button onclick="guardarEvidenciaFiscalizacionModal()" class="btn-executive px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md flex items-center gap-1.5">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Avance y Evidencia
+            </button>
+        </div>
+    </div>
+</div>
+                
 </body>
 </html>
