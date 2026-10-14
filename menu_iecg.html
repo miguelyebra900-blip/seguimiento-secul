@@ -109,20 +109,24 @@
     <nav class="bg-white/80 border-b border-slate-200 sticky top-[61px] z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div class="flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
-              <!-- NAVEGACIÓN TABULAR CON 4 PESTAÑAS (INCLUYE CRONOGRAMA) -->
+   
+<!-- NAVEGACIÓN TABULAR CON 5 PESTAÑAS (INCLUYE LÍNEA DE TIEMPO LEGAL) -->
 <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/70">
-    <button type="button" onclick="mostrarSeccionTab('tab-dashboard')" id="btnNavDash" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs">
+    <button type="button" onclick="mostrarSeccionTab('tab-dashboard')" id="btnNavDash" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs">
         <i class="fa-solid fa-chart-pie me-1.5"></i> Tablero Directivo
     </button>
-    <button type="button" onclick="mostrarSeccionTab('tab-areas')" id="btnNavAreas" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+    <button type="button" onclick="mostrarSeccionTab('tab-areas')" id="btnNavAreas" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
         <i class="fa-solid fa-layer-group me-1.5 text-indigo-500"></i> Hitos por Área (8 Áreas)
     </button>
-    <button type="button" onclick="mostrarSeccionTab('tab-matriz')" id="btnNavMatriz" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+    <button type="button" onclick="mostrarSeccionTab('tab-matriz')" id="btnNavMatriz" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
         <i class="fa-solid fa-list-check me-1.5 text-slate-500"></i> Matriz Completa (30 Acciones)
     </button>
-    <!-- BOTÓN FALTANTE AGREGADO: -->
-    <button type="button" onclick="mostrarSeccionTab('tab-cronograma')" id="btnNavCrono" class="btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+    <button type="button" onclick="mostrarSeccionTab('tab-cronograma')" id="btnNavCrono" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
         <i class="fa-solid fa-timeline text-amber-500"></i> Cronograma & Roadmap
+    </button>
+    <!-- BOTÓN NUEVO: LÍNEA DE TIEMPO MAESTRA (T-01 A T-10) -->
+    <button type="button" onclick="mostrarSeccionTab('tab-linea-tiempo')" id="btnNavLineaTiempo" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-clock-rotate-left text-rose-500"></i> Línea de Tiempo Legal
     </button>
 </div>
 
@@ -333,6 +337,244 @@
             <div id="contenedorCarrilesGantt" class="divide-y divide-slate-200 bg-white">
                 <!-- Se llena automáticamente con JavaScript -->
             </div>
+        </div>
+
+    </div>
+</div>
+
+        <!-- ================================================================= -->
+<!-- SECCIÓN 4: LÍNEA DE TIEMPO LEGAL MAESTRA (T-01 A T-10)            -->
+<!-- ================================================================= -->
+<div id="tab-linea-tiempo" class="space-y-6 hidden">
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-7 space-y-6">
+        
+        <!-- Cabecera -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
+                    Marco Jurídico Inamovible (Decreto No. 345 & Lineamientos)
+                </span>
+                <h2 class="text-lg font-black text-slate-900 mt-1 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-rose-600"></i> Línea de Tiempo Maestra de Obligaciones y Fechas Fatales
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Hitos rectores que alimentan el cálculo del semáforo legal, vencimientos formales y la justificación de prórroga por terceros (Art. 6).
+                </p>
+            </div>
+            <button onclick="window.print()" class="btn-executive px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-print"></i> Imprimir Ficha Legal
+            </button>
+        </div>
+
+        <!-- Timeline Visual Estructurado (T-01 a T-10) -->
+        <div class="relative border-l-2 border-indigo-200 ml-4 sm:ml-6 space-y-6 py-2">
+
+            <!-- T-01 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 hover:bg-white p-4 rounded-2xl border border-slate-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">T-01</span>
+                            <span class="text-xs font-bold text-slate-900">06 de octubre de 2024 (Primeros 10 días)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Cumplido</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Nombramiento de Liquidador, Instalación de Comité de Extinción y Comité de Estructura Administrativa</h3>
+                    <p class="text-xs text-slate-600 mt-1">Designación formal ante órgano de gobierno, ratificación por SECUL y conformación de los comités de seguimiento y derechos laborales.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Decreto 345, Art. 5° Transitorio</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Instalación y Gobernanza</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-02 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 hover:bg-white p-4 rounded-2xl border border-slate-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">T-02</span>
+                            <span class="text-xs font-bold text-slate-900">15 de octubre de 2024</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Cumplido</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Emisión y Entrada en Vigor de los Lineamientos de Extinción</h3>
+                    <p class="text-xs text-slate-600 mt-1">Autorización formal y emisión por el Comité de Extinción de la norma rectora adjetiva que rige el proceso de liquidación.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Lineamientos, Art. Único Transitorio</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Marco Normativo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-03 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 hover:bg-white p-4 rounded-2xl border border-slate-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">T-03</span>
+                            <span class="text-xs font-bold text-slate-900">25 de diciembre de 2024 (90 días naturales)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Cumplido</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Emisión de Reglamentación de la Secretaría de Cultura (Órgano Receptor)</h3>
+                    <p class="text-xs text-slate-600 mt-1">Fecha fatal legal para la expedición y adecuación de reglamentos orgánicos por el Poder Ejecutivo.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Decreto 345, Art. 2° Transitorio</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Estructura Orgánica</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-04 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 hover:bg-white p-4 rounded-2xl border border-slate-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">T-04</span>
+                            <span class="text-xs font-bold text-slate-900">30 de diciembre de 2024 (Cierre Anual)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Cumplido</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Depuración y Cancelación de CFDI / Recibos Oficiales no Ministrados</h3>
+                    <p class="text-xs text-slate-600 mt-1">Hito fiscal obligatorio para cancelar comprobantes y evitar inconsistencias tributarias al cierre del ejercicio en que inició la extinción.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Lineamientos, Art. 22 párrafo 2</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Fiscal / Cierre Anual</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-05 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 hover:bg-white p-4 rounded-2xl border border-slate-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">T-05</span>
+                            <span class="text-xs font-bold text-slate-900">24 de enero de 2025 (120 días naturales)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Cumplido</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Armonización Legislativa Secundaria por el Congreso del Estado</h3>
+                    <p class="text-xs text-slate-600 mt-1">Plazo fatal del Congreso del Estado para adecuar las leyes secundarias a la reforma de la Ley Orgánica del Poder Ejecutivo.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Decreto 345, Art. 10° Transitorio</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Certeza Jurídica</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-06 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 hover:bg-white p-4 rounded-2xl border border-slate-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">T-06</span>
+                            <span class="text-xs font-bold text-slate-900">Julio de 2025</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Cumplido</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Captura y Cierre Definitivo en Plataforma SRFT (SHCP)</h3>
+                    <p class="text-xs text-slate-600 mt-1">Registro del informe definitivo del ejercicio de recursos federales transferidos; coordinado con Finanzas y la federación.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Lineamientos, Art. 29 párrafo 2</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Rendición Federal</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-08 (Prórroga) -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-amber-500 border-4 border-white shadow-xs animate-pulse"></div>
+                <div class="card-executive bg-amber-50/60 p-4 rounded-2xl border-2 border-amber-300 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md">T-08</span>
+                            <span class="text-xs font-bold text-amber-950">10 de diciembre de 2025 (Punto de Inflexión)</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                            Estatus Vigente: Prórroga Aprobada
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-black text-slate-900">Solicitud y Autorización de Prórroga por Trámites con Terceros (Art. 6)</h3>
+                    <p class="text-xs text-slate-700 mt-1">El Comité de Extinción autorizó la prórroga temporal sin término fijo al acreditarse trámites en curso dependientes de Finanzas, SAT, Fiduciaria Banorte y Control Patrimonial.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-600 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-amber-700 me-1"></i><strong>Fundamento:</strong> Lineamientos, Art. 6</span>
+                        <span><i class="fa-solid fa-tag text-slate-500 me-1"></i><strong>Tipo:</strong> Salvedad Jurídica Vigente</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-07 (Vencimiento Ordinario) -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-slate-400 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-slate-50/80 p-4 rounded-2xl border border-slate-200 opacity-90 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">T-07</span>
+                            <span class="text-xs font-bold text-slate-900">26 de diciembre de 2025 (Plazo Ordinario de 15 Meses)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 border border-slate-300">
+                            Amparado por T-08 (Prórroga)
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Vencimiento del Plazo Legal Ordinario Original</h3>
+                    <p class="text-xs text-slate-600 mt-1">Término de 15 meses fijado originalmente por el Art. 6 de los Lineamientos; actualmente superado y justificado legalmente bajo el acuerdo de prórroga.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-500 me-1"></i><strong>Fundamento:</strong> Lineamientos, Art. 6</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Vencimiento Ordinario</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-09 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow-xs"></div>
+                <div class="card-executive bg-blue-50/40 p-4 rounded-2xl border border-blue-200 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">T-09</span>
+                            <span class="text-xs font-bold text-slate-900">Ciclo Continuo (Mensual y Trimestral)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">En Operación Activa</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Reportes Mensuales al Comité e Informes Trimestrales (PbR-SED / MIR)</h3>
+                    <p class="text-xs text-slate-600 mt-1">Emisión de 14 informes mensuales consolidados y seguimiento trimestral de metas presupuestales e indicadores de desempeño.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-blue-700 me-1"></i><strong>Fundamento:</strong> Decreto 345, Art. 5° / Lineamientos, Art. 12, 13 y 34</span>
+                        <span><i class="fa-solid fa-tag text-slate-400 me-1"></i><strong>Tipo:</strong> Control, Monitoreo y Rendición</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T-10 -->
+            <div class="relative pl-6 sm:pl-8 group">
+                <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-indigo-600 border-4 border-white shadow-xs animate-ping"></div>
+                <div class="card-executive bg-indigo-50/60 p-4 rounded-2xl border-2 border-indigo-300 transition">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-xs bg-indigo-200 text-indigo-900 px-2 py-0.5 rounded-md">T-10</span>
+                            <span class="text-xs font-bold text-indigo-950">Fase de Extinción y Cierre Final (2026)</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-xs">
+                            Meta de Cierre Definitivo
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-black text-slate-900">Cierre Contable, Entrega-Recepción, AGEG, Informe Final y Cancelación de RFC ante el SAT</h3>
+                    <p class="text-xs text-slate-700 mt-1">Conclusión de los 5 hitos terminales: cancelación bancaria con saldos cero, suscripción de actas con Secretaría de la Honestidad, transferencia histórica al AGEG, presentación del Informe Final y baja fiscal del RFC.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-600 font-medium">
+                        <span><i class="fa-solid fa-book-bookmark text-indigo-700 me-1"></i><strong>Fundamento:</strong> Lineamientos, Art. 5, 10, 16, 19, 30 y 37</span>
+                        <span><i class="fa-solid fa-tag text-slate-500 me-1"></i><strong>Tipo:</strong> Extinción Institucional y Fiscal Total</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -706,9 +948,11 @@
             }
         }
 
-        // Alternancia de las 4 pestañas
+// Alternancia de las 5 pestañas (Dashboard, Áreas, Matriz, Cronograma y Línea de Tiempo)
 function mostrarSeccionTab(tabId) {
-    ['tab-dashboard', 'tab-areas', 'tab-matriz', 'tab-cronograma'].forEach(t => {
+    const tabs = ['tab-dashboard', 'tab-areas', 'tab-matriz', 'tab-cronograma', 'tab-linea-tiempo'];
+    
+    tabs.forEach(t => {
         const el = document.getElementById(t);
         if (el) el.classList.toggle('hidden', t !== tabId);
     });
@@ -717,16 +961,18 @@ function mostrarSeccionTab(tabId) {
     const btnA = document.getElementById('btnNavAreas');
     const btnM = document.getElementById('btnNavMatriz');
     const btnC = document.getElementById('btnNavCrono');
+    const btnL = document.getElementById('btnNavLineaTiempo');
 
-    const inactive = "btn-executive px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
-    const active = "btn-executive px-4 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs flex items-center gap-1.5";
+    const inactive = "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
+    const active = "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs flex items-center gap-1.5";
 
     if (btnD) btnD.className = (tabId === 'tab-dashboard') ? active : inactive;
     if (btnA) btnA.className = (tabId === 'tab-areas') ? active : inactive;
     if (btnM) btnM.className = (tabId === 'tab-matriz') ? active : inactive;
     if (btnC) btnC.className = (tabId === 'tab-cronograma') ? active : inactive;
+    if (btnL) btnL.className = (tabId === 'tab-linea-tiempo') ? active : inactive;
 
-    if (tabId === 'tab-cronograma') {
+    if (tabId === 'tab-cronograma' && typeof renderCronogramaRoadmap === 'function') {
         renderCronogramaRoadmap();
     }
 }
