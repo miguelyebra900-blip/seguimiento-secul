@@ -2357,6 +2357,31 @@ function abrirModalAltaAccionVinculada() {
         }
     }
 }
+
+        function abrirModalAltaAccionVinculadaDesdeDetalle() {
+    // 1. Cerrar el modal de detalle limpio
+    closeModal('modal-hito-fiscalizacion');
+
+    // 2. Abrir el Modal Universal de Alta de Entregables
+    openModal('modal-buzon-universal');
+
+    // 3. Posicionarse en la pestaña de nueva acción asociada
+    if (typeof cambiarTabModalUniversal === 'function') {
+        cambiarTabModalUniversal('tab-accion');
+    }
+
+    // 4. Autoseleccionar el hito activo en el combobox del modal universal
+    const selectPadre = document.getElementById('buzonSelectAccion');
+    if (selectPadre) {
+        selectPadre.innerHTML = accionesDataset.map(a => 
+            `<option value="${a.id}">[${a.id}] ${a.hito} (${a.area})</option>`
+        ).join('');
+
+        if (window.hitoActivoEnModalFiscal) {
+            selectPadre.value = window.hitoActivoEnModalFiscal.id;
+        }
+    }
+}
         
     </script>
 </body>
