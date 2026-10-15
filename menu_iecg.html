@@ -1382,6 +1382,20 @@
             }
         };
 
+// Función de respaldo para el efecto neón en KPIs
+function activarKpiNeon(elemento, tipoKpi) {
+    document.querySelectorAll('.card-kpi-box').forEach(card => {
+        card.classList.remove('neon-glow-active');
+        const num = card.querySelector('.kpi-num');
+        if (num) num.classList.remove('neon-text-active');
+    });
+    if (elemento) {
+        elemento.classList.add('neon-glow-active');
+        const numActual = elemento.querySelector('.kpi-num');
+        if (numActual) numActual.classList.add('neon-text-active');
+    }
+}
+        
         window.abrirCarpetaDrivePanel = function(letraPanel) {
             const idFolder = GOOGLE_DRIVE_PARENTS[(letraPanel || 'A').toUpperCase()] || GOOGLE_DRIVE_PARENTS["GENERAL"];
             window.open(`https://drive.google.com/drive/folders/${idFolder}`, '_blank');
