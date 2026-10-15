@@ -934,10 +934,166 @@
             </form>
         </div>
     </div>
+    
+    // =========================================================================
+// CONFIGURACIÓN DE ENDPOINT Y DICCIONARIO DE CARPETAS GOOGLE DRIVE (A-J)
+// =========================================================================
+const APPS_SCRIPT_DRIVE_URL = "https://script.google.com/a/macros/guanajuato.gob.mx/s/AKfycbxmZIIayb6JL2MYoCpqf8zkebd_y60fGUw7eu9Mz-5qrETXh6wxS_u4n5q7SNs0vFaD/exec";
 
-    <!-- ================================================================= -->
-    <!-- SCRIPT DEL MOTOR DE DATOS, GOOGLE DRIVE Y CHARTS                  -->
-    <!-- ================================================================= -->
+const GOOGLE_DRIVE_PARENTS = {
+    "GENERAL": "1mUFs_lZvM8sndqbh5wV7OaZM5UV40LHP",
+    "A": "141ND05zMzxXTGFG6DNbkDhxBiLOpm7QA",
+    "B": "175HlCsI3a7UpGLZT2eyoKEfPYN8Edb8l",
+    "C": "1li-_rQXR2D6TBXpc7USuqJuvei1uGamw",
+    "D": "1IqG8rOUqqKCgDCnwVdRsGy2O9ZrsoOzD",
+    "E": "1mXRkPTOEom5gQH1_r2sNUmI6y1-lYFs8",
+    "F": "1g920TIAvEnLUMtLK7Dv-A7kxJbSCW0EL",
+    "G": "1mgAyvyAcYRcv-tv-uW9T39FZloigGS3S",
+    "H": "1VkJ97bZJTc1hmPZjtFT1P0LfixM9LQ3h",
+    "I": "1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9",
+    "J": "1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas"
+};
+
+// =========================================================================
+// CONTROLADOR DEL BUZÓN UNIVERSAL DRAG & DROP
+// =========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('dropZoneUniversal');
+    const fileInput = document.getElementById('buzonFileInput');
+    const fileNameLabel = document.getElementById('buzonFileNameLabel');
+
+    if (dropZone && fileInput) {
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameLabel.innerText = "✓ Archivo seleccionado: " + fileInput.files[0].name;
+                fileNameLabel.classList.remove('hidden');
+            }
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-indigo-600', 'bg-indigo-50/50');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-indigo-600', 'bg-indigo-50/50');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                fileNameLabel.innerText = "✓ Archivo adjunto: " + fileInput.files[0].name;
+                fileNameLabel.classList.remove('hidden');
+            }
+        });
+    }
+});
+
+// Función que ejecuta la subida al enviar el formulario del Buzón Universal
+async function ejecutarCargaUniversal(event) {
+    event.preventDefault();
+
+    const selectAccion = document.getElementById('buzonSelectAccion');
+    const fileInput = document.getElementById('buzonFileInput');
+    const estatusInput = document.getElementById('buzonEstatusInput').value;
+    const avanceInput = parseInt(document.getElementById('buzonAvanceInput').value) || 100;
+    
+    const progressContainer = document.getElementById('buzonProgressContainer');
+    const progressBar = document.getElementById('buzonProgressBar');
+    const progressText = document.getElementById('buzonProgressText');
+    const progressPct = document.getElementById('buzonProgressPct');
+    const btnSubmit = document.getElementById('btnSubmitBuzon');
+
+    if (!fileInput || fileInput.files.length === 0) {
+        alert("Por favor seleccione o arrastre un archivo de respaldo válido.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const accionId = selectAccion.value;
+    const accionObj = accionesDataset.find(a => a.id === accionId);
+    const panelLetra = accionObj ? accionObj.panel : 'GENERAL';
+
+    progressContainer.classList.remove('hidden');
+    btnSubmit.disabled = true;
+    progressText.innerText = "Preparando archivo para Google Drive...";
+    progressBar.style.width = "20%";
+    progressPct.innerText = "20%";
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const base64Data = e.target.result;
+
+        try {
+            progressBar.style.width = "60%";
+            progressPct.innerText = "60%";
+            progressText.innerText = `Subiendo al Panel ${panelLetra} en Drive...`;
+
+            const response = await fetch(APPS_SCRIPT_DRIVE_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    accion: 'subirArchivo',
+                    panel: panelLetra,
+                    fileData: base64Data,
+                    mimeType: file.type,
+                    fileName: file.name
+                })
+            });
+
+            const resJson = await response.json();
+            
+            if (resJson.status === 'success') {
+                progressBar.style.width = "100%";
+                progressPct.innerText = "100%";
+                progressText.innerText = "¡Subida y acreditación exitosa!";
+
+                // Actualizar mediante el Motor Central de Cascada
+                motorCentralGuardarEntidad('ACCION', accionId, {
+                    estatus: estatusInput,
+                    avance: avanceInput,
+                    driveUrl: resJson.fileUrl
+                });
+
+                setTimeout(() => {
+                    closeModal('modal-buzon-universal');
+                    alert(`¡Evidencia vinculada correctamente en la carpeta de Drive del Panel ${panelLetra}!`);
+                    fileInput.value = '';
+                    document.getElementById('buzonFileNameLabel').classList.add('hidden');
+                    progressContainer.classList.add('hidden');
+                    btnSubmit.disabled = false;
+                }, 600);
+
+            } else {
+                throw new Error(resJson.message || "Error desconocido en el servidor de Drive.");
+            }
+
+        } catch (error) {
+            console.error("Error en subida:", error);
+            alert("Ocurrió un error al subir el archivo: " + error.message);
+            btnSubmit.disabled = false;
+            progressContainer.classList.add('hidden');
+        }
+    };
+
+    reader.readAsDataURL(file);
+}
+
+function abrirCarpetaActualDesdeBuzon() {
+    const selectAccion = document.getElementById('buzonSelectAccion');
+    const accionId = selectAccion.value;
+    const accionObj = accionesDataset.find(a => a.id === accionId);
+    const panelLetra = accionObj ? accionObj.panel : 'GENERAL';
+
+    const urlCarpeta = GOOGLE_DRIVE_PARENTS[panelLetra] || GOOGLE_DRIVE_PARENTS["GENERAL"];
+    window.open(`https://drive.google.com/drive/folders/${urlCarpeta}`, '_blank');
+}
     <script>
 
         // Funciones globales de apertura y cierre de modales
@@ -1288,23 +1444,22 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-        // CONFIGURACIÓN OFICIAL DE GOOGLE DRIVE Y APPS SCRIPT
-        const URL_GOOGLE_APPS_SCRIPT = "https://script.google.com/a/macros/guanajuato.gob.mx/s/AKfycbxfB_2veB13Y-UR6_2AUm6E1kIh57FDVHBCLH_8dAjqCVwr8O8y6FtqlYIp5ILRRmB4/exec";
+        // DICCIONARIO MAESTRO DE CARPETAS DE GOOGLE DRIVE (PANELES A - J)
+const GOOGLE_DRIVE_PARENTS = {
+    "GENERAL": "1mUFs_lZvM8sndqbh5wV7OaZM5UV40LHP",
+    "A": "141ND05zMzxXTGFG6DNbkDhxBiLOpm7QA",
+    "B": "175HlCsI3a7UpGLZT2eyoKEfPYN8Edb8l",
+    "C": "1li-_rQXR2D6TBXpc7USuqJuvei1uGamw",
+    "D": "1IqG8rOUqqKCgDCnwVdRsGy2O9ZrsoOzD",
+    "E": "1mXRkPTOEom5gQH1_r2sNUmI6y1-lYFs8",
+    "F": "1g920TIAvEnLUMtLK7Dv-A7kxJbSCW0EL",
+    "G": "1mgAyvyAcYRcv-tv-uW9T39FZloigGS3S",
+    "H": "1VkJ97bZJTc1hmPZjtFT1P0LfixM9LQ3h",
+    "I": "1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9",
+    "J": "1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas"
+};
 
-        window.SECUL_DRIVE_CONFIG = {
-            carpetas: {
-                'A': 'https://drive.google.com/drive/folders/141ND05zMzxXTGFG6DNbkDhxBiLOpm7QA',
-                'B': 'https://drive.google.com/drive/folders/175HlCsI3a7UpGLZT2eyoKEfPYN8Edb8l',
-                'C': 'https://drive.google.com/drive/folders/1li-_rQXR2D6TBXpc7USuqJuvei1uGamw',
-                'D': 'https://drive.google.com/drive/folders/1IqG8rOUqqKCgDCnwVdRsGy2O9ZrsoOzD',
-                'E': 'https://drive.google.com/drive/folders/1mXRkPTOEom5gQH1_r2sNUmI6y1-lYFs8',
-                'F': 'https://drive.google.com/drive/folders/1g920TIAvEnLUMtLK7Dv-A7kxJbSCW0EL',
-                'G': 'https://drive.google.com/drive/folders/1mgAyvyAcYRcv-tv-uW9T39FZloigGS3S',
-                'H': 'https://drive.google.com/drive/folders/1VkJ97bZJTc1hmPZjtFT1P0LfixM9LQ3h',
-                'I': 'https://drive.google.com/drive/folders/1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9',
-                'J': 'https://drive.google.com/drive/folders/1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas'
-            }
-        };
+const APPS_SCRIPT_DRIVE_URL = "https://script.google.com/a/macros/guanajuato.gob.mx/s/AKfycbxmZIIayb6JL2MYoCpqf8zkebd_y60fGUw7eu9Mz-5qrETXh6wxS_u4n5q7SNs0vFaD/exec";
 
         window.abrirCarpetaDrivePanel = function(letraPanel) {
             const url = window.SECUL_DRIVE_CONFIG.carpetas[(letraPanel || 'A').toUpperCase()] || 'https://drive.google.com';
@@ -2157,31 +2312,80 @@ function abrirCarpetaDriveDesdeModalFiscal() {
 }
 
 // A. Guardado unificado para el Modal de Gestión de Hitos/Fiscalización (Imagen 3)
-function guardarEvidenciaFiscalizacionModal() {
-    if (!hitoActivoEnModalFiscal) return;
+// =========================================================================
+// NUEVO MOTOR UNIVERSAL DE CARGA AUTOMÁTICA A GOOGLE DRIVE
+// =========================================================================
 
-    const nuevoEstatus = document.getElementById('modalFiscalEstatus').value;
-    const nuevoAvance = parseInt(document.getElementById('modalFiscalAvance').value) || 0;
-    const urlDrive = document.getElementById('uploadDocUrl').value.trim();
-    const obs = document.getElementById('modalFiscalObs').value.trim();
-    const prioridad = document.getElementById('modalFiscalPrioridad').value;
+// Endpoint de tu Web App de Google Apps Script (Sustituye 'TU_ENDPOINT_AQUI' por tu URL real de Apps Script)
+const APPS_SCRIPT_DRIVE_URL = "https://script.google.com/macros/s/TU_ENDPOINT_AQUI/exec";
 
-    // Llamada directa al Motor Central de Cascada
-    motorCentralGuardarEntidad('HITO', hitoActivoEnModalFiscal.id, {
-        estatus: nuevoEstatus,
-        avancePorcentaje: nuevoAvance,
-        prioridadArea: prioridad,
-        observacionesArea: obs
-    });
-
-    if (urlDrive && hitoActivoEnModalFiscal.documentos && hitoActivoEnModalFiscal.documentos.length > 0) {
-        hitoActivoEnModalFiscal.documentos[0].url = urlDrive;
-        hitoActivoEnModalFiscal.documentos[0].subido = true;
-        localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
+// 1. Función que sube el archivo seleccionado de forma 100% automatizada a la carpeta del Panel A-J
+async function ejecutarSubidaAutomaticaDrive(fileInputId, panelLetra, callbackExito) {
+    const fileInput = document.getElementById(fileInputId);
+    if (!fileInput || fileInput.files.length === 0) {
+        alert("Por favor seleccione un archivo oficial válido para respaldar.");
+        return;
     }
 
-    closeModal('modal-hito-fiscalizacion');
-    alert(`¡Hito "${hitoActivoEnModalFiscal.id}" actualizado y sincronizado en todo el sistema!`);
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    // Mostrar indicador visual de carga
+    alert("Subiendo documento de forma segura a Google Drive institucional... Espere un momento.");
+
+    reader.onload = async function(e) {
+        const base64Data = e.target.result;
+
+        try {
+            const response = await fetch(APPS_SCRIPT_DRIVE_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    accion: 'subirArchivo',
+                    panel: panelLetra,
+                    fileData: base64Data,
+                    mimeType: file.type,
+                    fileName: file.name
+                })
+            });
+
+            const resJson = await response.json();
+            if (resJson.status === 'success') {
+                alert(`¡Documento subido y acreditado correctamente en la carpeta del Panel ${panelLetra}!`);
+                if (typeof callbackExito === 'function') {
+                    callbackExito(resJson.fileUrl);
+                }
+            } else {
+                alert("Error al subir archivo a Drive: " + (resJson.message || "Desconocido"));
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
+            alert("Error de comunicación con Google Apps Script.");
+        }
+    };
+
+    reader.readAsDataURL(file);
+}
+
+// 2. Función auxiliar para crear subcarpetas automáticas al dar de alta un nuevo hito
+async function crearSubcarpetaParaNuevoHito(panelLetra, nombreHitoId) {
+    try {
+        const respuesta = await fetch(APPS_SCRIPT_DRIVE_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                accion: 'crearCarpetaHito',
+                panel: panelLetra,
+                nombreHito: nombreHitoId
+            })
+        });
+        const resultado = await respuesta.json();
+        if (resultado.status === 'success') {
+            console.log(`[Drive] Subcarpeta creada para ${nombreHitoId}:`, resultado.folderUrl);
+            return resultado.folderUrl;
+        }
+    } catch (err) {
+        console.warn("No se pudo conectar con la API de Drive para crear la subcarpeta:", err);
+    }
+    return null;
 }
 
 // B. Recálculo en cascada automático de Hijos a Padre
@@ -2555,6 +2759,28 @@ function motorCentralGuardarEntidad(tipoEntidad, idEntidad, nuevosDatos) {
 
         console.log(`[Motor Central] Sincronización exitosa para ${tipoEntidad} [${idEntidad}]`);
     }
+}
+
+        
+async function crearSubcarpetaParaNuevoHito(panelLetra, nombreHitoId) {
+    try {
+        const respuesta = await fetch(APPS_SCRIPT_DRIVE_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                accion: 'crearCarpetaHito',
+                panel: panelLetra,
+                nombreHito: nombreHitoId
+            })
+        });
+        const resultado = await respuesta.json();
+        if (resultado.status === 'success') {
+            console.log(`[Drive] Subcarpeta creada con éxito para ${nombreHitoId}:`, resultado.folderUrl);
+            return resultado.folderUrl;
+        }
+    } catch (err) {
+        console.warn("No se pudo conectar con la API de Drive para crear subcarpeta:", err);
+    }
+    return null;
 }
         
     </script>
