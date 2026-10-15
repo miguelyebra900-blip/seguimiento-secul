@@ -859,82 +859,114 @@
     <!-- ================================================================= -->
     <!-- BUZÓN DE CARGA DRAG & DROP DIRECTO A GOOGLE DRIVE                 -->
     <!-- ================================================================= -->
-    <div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
-            <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg border border-indigo-500/30">
-                        <i class="fa-brands fa-google-drive"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-base leading-snug">Carga de Soporte a Google Drive</h3>
-                        <p class="text-xs text-slate-300">Conexión directa con Google Apps Script y carpetas oficiales A - J</p>
-                    </div>
+   <div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+        <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg border border-indigo-500/30">
+                    <i class="fa-solid fa-folder-tree"></i>
                 </div>
-                <button onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <form id="formCargaUniversal" onsubmit="ejecutarCargaUniversal(event)" class="p-6 space-y-4 text-xs">
-                
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Acción / Compromiso a Acreditar:</label>
-                    <select id="buzonSelectAccion" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500">
+                    <h3 class="font-extrabold text-base leading-snug">Alta de Entregables</h3>
+                    <p class="text-xs text-slate-300">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Pestañas de Interacción (Wizard) -->
+        <div class="flex p-2 bg-slate-100 border-b border-slate-200 gap-2">
+            <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" id="btnTabHito" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs transition">
+                <i class="fa-solid fa-flag me-1"></i> 1. Nuevo Hito (+ Acción)
+            </button>
+            <button type="button" onclick="cambiarTabModalUniversal('tab-accion')" id="btnTabAccion" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-200 transition">
+                <i class="fa-solid fa-list-check me-1"></i> 2. Nueva Acción (Asociada)
+            </button>
+        </div>
+
+        <!-- Contenido Pestaña 1: Nuevo Hito -->
+        <div id="tab-hitos" class="p-6 space-y-4 text-xs overflow-y-auto max-h-[65vh]">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento Oficial:</label>
+                <input type="text" id="inputNuevoHitoTitulo" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" placeholder="Redacte el requerimiento oficial...">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
+                    <select id="inputNuevoHitoPanel" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold">
+                        <option value="A">Panel A - Recursos Humanos</option>
+                        <option value="B">Panel B - Jurídico</option>
+                        <option value="C">Panel C - Inmuebles</option>
+                        <option value="D">Panel D - Fideicomisos</option>
+                        <option value="E">Panel E - Patrimonio</option>
+                        <option value="F">Panel F - Financiero</option>
+                        <option value="G">Panel G - TI</option>
+                        <option value="H">Panel H - Archivo</option>
+                        <option value="I">Panel I - Fiscalización</option>
+                        <option value="J">Panel J - Seguimiento</option>
                     </select>
                 </div>
-
-                <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 text-[11px] text-indigo-950 space-y-1">
-                    <div class="flex items-center justify-between">
-                        <span><strong>Carpeta Destino en Drive:</strong> <span id="labelBuzonPanel" class="font-bold text-indigo-700">Panel --</span></span>
-                        <button type="button" onclick="abrirCarpetaActualDesdeBuzon()" class="text-indigo-600 hover:underline font-bold flex items-center gap-1">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Carpeta
-                        </button>
-                    </div>
-                    <div class="text-slate-600"><strong>Documental Requerida:</strong> <span id="labelBuzonDocReq">--</span></div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Estatus Inicial:</label>
+                    <select id="inputNuevoHitoEstatus" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold">
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Validación">En Validación</option>
+                        <option value="Concluido">Concluido</option>
+                    </select>
                 </div>
-
-                <div id="dropZoneUniversal" class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:border-indigo-500 hover:bg-slate-50 transition flex flex-col items-center justify-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500"></i>
-                    <strong class="text-slate-800 text-sm block">Arrastra aquí el archivo oficial o haz clic para examinar</strong>
-                    <span class="text-[11px] text-slate-500">Admite PDF, XLSX, DOCX o actas escaneadas</span>
-                    <input type="file" id="buzonFileInput" class="hidden" required>
-                    <span id="buzonFileNameLabel" class="text-xs font-bold text-emerald-600 mt-1 hidden"></span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Nuevo Estatus:</label>
-                        <select id="buzonEstatusInput" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold">
-                            <option value="Concluido">Concluido (100%)</option>
-                            <option value="Validación" selected>En Validación (75%)</option>
-                            <option value="En Proceso">En Proceso (40% - 60%)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Avance Asignado (%):</label>
-                        <input type="number" id="buzonAvanceInput" min="0" max="100" value="100" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold">
-                    </div>
-                </div>
-
-                <div id="buzonProgressContainer" class="hidden space-y-1">
-                    <div class="flex justify-between text-[11px] text-slate-600 font-semibold">
-                        <span id="buzonProgressText">Subiendo a Google Drive...</span>
-                        <span id="buzonProgressPct">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-200 rounded-full h-2">
-                        <div id="buzonProgressBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modal-buzon-universal')" class="btn-executive px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                    <button type="submit" id="btnSubmitBuzon" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Subir a Drive y Acreditar
-                    </button>
-                </div>
-            </form>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-buzon-universal')" class="btn-executive px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="button" onclick="guardarNuevoHitoDesdeModal()" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm">
+                    Guardar Hito
+                </button>
+            </div>
         </div>
-    </div>
 
+        <!-- Contenido Pestaña 2: Nueva Acción Asociada y Carga de Evidencia -->
+        <form id="tab-accion" onsubmit="ejecutarCargaUniversal(event)" class="p-6 space-y-4 text-xs overflow-y-auto max-h-[65vh] hidden">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Acción / Compromiso a Acreditar:</label>
+                <select id="buzonSelectAccion" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900"></select>
+            </div>
+
+            <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 text-[11px] text-indigo-950 flex justify-between items-center">
+                <span><strong>Carpeta Destino en Drive:</strong> <span id="labelBuzonPanel" class="font-bold text-indigo-700">Panel --</span></span>
+                <button type="button" onclick="abrirCarpetaActualDesdeBuzon()" class="text-indigo-600 hover:underline font-bold">Abrir Carpeta</button>
+            </div>
+
+            <div id="dropZoneUniversal" class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:border-indigo-500 hover:bg-slate-50 transition flex flex-col items-center justify-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500"></i>
+                <strong class="text-slate-800 text-sm block">Arrastra aquí el archivo oficial o haz clic para examinar</strong>
+                <input type="file" id="buzonFileInput" class="hidden" required>
+                <span id="buzonFileNameLabel" class="text-xs font-bold text-emerald-600 mt-1 hidden"></span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nuevo Estatus:</label>
+                    <select id="buzonEstatusInput" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold">
+                        <option value="Concluido">Concluido (100%)</option>
+                        <option value="Validación" selected>En Validación (75%)</option>
+                        <option value="En Proceso">En Proceso (40% - 60%)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Avance (%):</label>
+                    <input type="number" id="buzonAvanceInput" min="0" max="100" value="100" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-buzon-universal')" class="btn-executive px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" id="btnSubmitBuzon" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm">
+                    Subir a Drive y Vincular
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+    
     <!-- ========================================================= -->
     <!-- MODAL 1: AUTENTICACIÓN DIRECTA SUPABASE                   -->
     <!-- ========================================================= -->
@@ -1673,10 +1705,15 @@
                 if (act.estatus === 'Validación') badgeEst = 'bg-amber-50 text-amber-700 border-amber-200';
                 if (act.estatus === 'En Proceso') badgeEst = 'bg-blue-50 text-blue-700 border-blue-200';
 
-                const driveBtn = (act.driveUrl && act.driveUrl.trim() !== '')
-                    ? `<a href="${act.driveUrl}" target="_blank" class="btn-executive px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold border border-emerald-200 inline-flex items-center gap-1 text-[11px]"><i class="fa-brands fa-google-drive text-emerald-600"></i> Ver Drive</a>`
-                    : `<button onclick="cargarAccionEnBuzonDirecto('${act.id}')" class="btn-executive px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 inline-flex items-center gap-1 text-[11px]"><i class="fa-solid fa-cloud-arrow-up"></i> Cargar</button>`;
-
+              const driveBtn = (act.driveUrl && act.driveUrl.trim() !== '')
+    ? `<div class="flex items-center justify-center gap-1.5">
+         <a href="${act.driveUrl}" target="_blank" class="btn-executive px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold border border-emerald-200 inline-flex items-center gap-1 text-[10px]"><i class="fa-brands fa-google-drive"></i> Ver</a>
+         <button onclick="cargarAccionEnBuzonDirecto('${act.id}')" class="btn-executive px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 inline-flex items-center gap-1 text-[10px]"><i class="fa-solid fa-cloud-arrow-up"></i> Incluir</button>
+       </div>`
+    : `<button onclick="cargarAccionEnBuzonDirecto('${act.id}')" class="btn-executive px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 inline-flex items-center gap-1 text-[11px]">
+         <i class="fa-solid fa-cloud-arrow-up"></i> Cargar
+       </button>`;
+                
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
                         <td class="p-3 font-bold text-slate-800 whitespace-nowrap"><span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] me-1 border border-indigo-100">${act.panel}</span> ${act.area}</td>
@@ -2032,6 +2069,24 @@
             mostrarSeccionTab('tab-dashboard');
             actualizarDashboard();
         });
+
+        function cambiarTabModalUniversal(tabId) {
+    const isHito = (tabId === 'tab-hitos');
+    document.getElementById('tab-hitos').classList.toggle('hidden', !isHito);
+    document.getElementById('tab-accion').classList.toggle('hidden', isHito);
+
+    const btnHito = document.getElementById('btnTabHito');
+    const btnAccion = document.getElementById('btnTabAccion');
+
+    if (isHito) {
+        btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs transition";
+        btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-200 transition";
+    } else {
+        btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs transition";
+        btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-200 transition";
+    }
+}
+        
     </script>
 </body>
 </html>
