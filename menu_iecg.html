@@ -1055,8 +1055,8 @@
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
                     <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrow-left"></i> Regresar
-                    </button>
+    <i class="fa-solid fa-arrow-left"></i> Regresar
+</button>
                     <div class="flex gap-2">
                         <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
                         <button type="submit" id="btnSubmitBuzon" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
@@ -2393,6 +2393,47 @@ function abrirModalAltaAccionVinculada() {
         if (window.hitoActivoEnModalFiscal) {
             selectPadre.value = window.hitoActivoEnModalFiscal.id;
         }
+    }
+}
+
+        // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
+function agregarFilaAccionHito() {
+    const contenedor = document.getElementById('contenedorAccionesObligatorias');
+    if (!contenedor) return;
+    const numFila = contenedor.querySelectorAll('.fila-accion-item').length + 1;
+    
+    const div = document.createElement('div');
+    div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item relative";
+    div.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-indigo-700">• Acción Adicional #${numFila}</span>
+            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+        <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+            <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                <option value="En Proceso">En Proceso</option>
+                <option value="Validación">En Validación</option>
+                <option value="Concluido">Concluido al 100%</option>
+            </select>
+        </div>
+    `;
+    contenedor.appendChild(div);
+}
+
+// Función para enlazar la subida de evidencias desde la vista de detalle
+function subirEvidenciaDesdeDetalle(idAccion) {
+    const act = accionesDataset.find(a => a.id === idAccion);
+    if (!act) return;
+    window.hitoActivoEnModalFiscal = act;
+    closeModal('modal-hito-fiscalizacion');
+    if (typeof poblarSelectBuzon === 'function') {
+        poblarSelectBuzon(act.id);
+    }
+    openModal('modal-buzon-universal');
+    if (typeof cambiarTabModalUniversal === 'function') {
+        cambiarTabModalUniversal('tab-accion');
     }
 }
         
