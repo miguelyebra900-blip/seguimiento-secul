@@ -1232,8 +1232,12 @@
             <!-- VISTA A: DETALLE, ESTATUS Y CARGA DRIVE -->
             <div id="tab-detalle-info" class="space-y-4">
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                    <div class="flex items-center justify-between border-b pb-2">
-                        <strong class="text-slate-900 text-sm">Compromisos Clave y Acciones Detalladas:</strong>
+                   <div class="flex items-center justify-between border-b pb-2">
+    <strong class="text-slate-900 text-sm">Compromisos Clave y Acciones Detalladas:</strong>
+    <button type="button" onclick="abrirModalAltaAccionVinculada()" class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-plus"></i> + Agregar Acción a este Hito
+    </button>
+</div>
                     </div>
                     <div id="modalFiscalDocsList" class="space-y-2"></div>
                 </div>
@@ -2059,71 +2063,67 @@ function activarKpiNeon(elemento, tipoKpi) {
         // GESTIÓN DEL MODAL DE DETALLE / HITO FISCALIZACIÓN
         let hitoActivoEnModalFiscal = null;
 
-        function abrirModalDesdeGrafica(idAccion) {
-    // 1. Cerrar el modal de la gráfica ampliada
+     window.hitoActivoEnModalFiscal = null;
+
+function abrirModalDesdeGrafica(idAccion) {
+    // 1. Cerrar el modal de análisis ampliado
     closeModal('modal-chart-detail');
 
     const act = accionesDataset.find(a => a.id === idAccion);
     if (!act) return;
 
-    // 2. Guardar referencia activa
+    // Guardar la referencia exacta del hito activo para los siguientes modales
     window.hitoActivoEnModalFiscal = act;
 
-    // 3. Poblar el selector del Modal Universal y posicionarlo en esta acción
-    if (typeof poblarSelectBuzon === 'function') {
-        poblarSelectBuzon(act.id);
+    // 2. Poblar los textos del Modal de Detalle (Imagen 2)
+    const tagEl = document.getElementById('modalFiscalTag');
+    const titleEl = document.getElementById('modalFiscalTitle');
+    const areaEl = document.getElementById('modalFiscalArea');
+    const normaEl = document.getElementById('modalFiscalNorma');
+    const estatusEl = document.getElementById('modalFiscalEstatus');
+    const avanceEl = document.getElementById('modalFiscalAvance');
+    const avanceLbl = document.getElementById('modalFiscalAvanceLabel');
+
+    if (tagEl) tagEl.innerText = `FOLIO: ${act.id} (PANEL ${act.panel} - ${act.area.toUpperCase()})`;
+    if (titleEl) titleEl.innerText = act.hito;
+    if (areaEl) areaEl.innerText = `${act.area} (Panel ${act.panel})`;
+    if (normaEl) normaEl.innerText = act.docRequerido || "Lineamientos de Extinción IECG";
+    if (estatusEl) estatusEl.value = act.estatus;
+    if (avanceEl) {
+        avanceEl.value = act.avance;
+        if (avanceLbl) avanceLbl.innerText = act.avance + '%';
     }
 
-    // 4. Sincronizar los campos visuales del Modal Universal con los datos reales
-    const estatusInput = document.getElementById('buzonEstatusInput');
-    const avanceInput = document.getElementById('buzonAvanceInput');
-    const avanceLabel = document.getElementById('buzonAvanceLabel');
-    const prioridadInput = document.getElementById('buzonPrioridadInput');
+    // Renderizar la lista de compromisos y acciones detalladas dentro de la Imagen 2
+    renderListaCompromisosDetalle(act);
 
-    if (estatusInput) estatusInput.value = act.estatus;
-    if (avanceInput) {
-        avanceInput.value = act.avance;
-        if (avanceLabel) avanceLabel.innerText = act.avance + '%';
-    }
-    if (prioridadInput) {
-        prioridadInput.value = act.peso >= 40 ? "Urgente" : (act.peso >= 30 ? "Alta" : "Media");
-    }
-
-    // Actualizar las etiquetas de Área y Referencia Legal
-    const lblPanel = document.getElementById('labelBuzonPanel');
-    const lblDocReq = document.getElementById('labelBuzonDocReq');
-    if (lblPanel) lblPanel.innerText = `Panel ${act.panel} (${act.area})`;
-    if (lblDocReq) lblDocReq.innerText = act.docRequerido || "Documento oficial requerido";
-
-    // 5. Forzar la vista a la pestaña de "Editar & Acreditar" del Modal Maestro
-    if (typeof cambiarTabModalMaestro === 'function') {
-        cambiarTabModalMaestro('tab-gestion');
-    }
-
-    // 6. Abrir el Modal Maestro Universal
-    openModal('modal-buzon-universal');
+    // 3. Abrir el Modal de Detalle del Hito (Imagen 2)
+    openModal('modal-hito-fiscalizacion');
 }
 
-        function renderListaDocumentosFiscal(act) {
-            const contenedor = document.getElementById('modalFiscalDocsList');
-            if(!contenedor) return;
-            contenedor.innerHTML = `
-                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs">
-                    <div class="flex items-center gap-2.5 overflow-hidden">
-                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
-                            <i class="fa-solid fa-folder"></i>
-                        </div>
-                        <div class="truncate">
-                            <strong class="text-slate-900 block text-xs truncate">${act.docRequerido || 'Expediente Soporte'}</strong>
-                            <span class="text-[10px] ${act.driveUrl ? 'text-emerald-600 font-bold' : 'text-slate-400'}">
-                                ${act.driveUrl ? '✓ Enlace oficial vinculado en Drive' : 'Sin enlace Drive'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+function renderListaCompromisosDetalle(act) {
+    const contenedor = document.getElementById('modalFiscalDocsList');
+    if (!contenedor) return;
 
+    // Buscar acciones hermanas del mismo panel o hito
+    const accionesHermanas = accionesDataset.filter(a => a.panel === act.panel);
+
+    contenedor.innerHTML = accionesHermanas.map(item => `
+        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+            <div class="flex justify-between items-start">
+                <strong class="text-slate-900 text-xs">• ${item.hito}</strong>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${item.estatus}</span>
+            </div>
+            <p class="text-[11px] text-slate-600"><strong>Acción a realizar:</strong> ${item.accion}</p>
+            <div class="flex justify-end pt-1">
+                <button type="button" onclick="subirEvidenciaDesdeDetalle('${item.id}')" class="btn-executive px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg font-bold border border-amber-200 text-[10px] inline-flex items-center gap-1">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Subir Documentos Drive
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+        
         function agregarDocumentoAlHitoActual() {
             const input = document.getElementById('nuevoDocNombreInput');
             if(!input) return;
@@ -2371,6 +2371,33 @@ function guardarAccionDesdeModalHito(e) {
     alert("¡Nueva acción vinculada exitosamente al hito y propagada al sistema!");
     closeModal('modal-hito-fiscalizacion');
     actualizarDashboard();
+}
+
+function abrirModalAltaAccionVinculada() {
+    // 1. Cerrar el modal de detalle del hito (Imagen 2)
+    closeModal('modal-hito-fiscalizacion');
+
+    // 2. Abrir el Modal Universal de Alta / Entregables (Imagen 3)
+    openModal('modal-buzon-universal');
+
+    // 3. Cambiar a la pestaña de "2. Nueva Acción Asociada a Hito"
+    if (typeof cambiarTabModalUniversal === 'function') {
+        cambiarTabModalUniversal('tab-accion');
+    }
+
+    // 4. Poblar dinámicamente el combobox de Hito Padre y autoseleccionar el actual
+    const selectPadre = document.getElementById('buzonSelectAccion');
+    if (selectPadre) {
+        // Llenar el combobox con todas las acciones/hitos disponibles en el dataset
+        selectPadre.innerHTML = accionesDataset.map(a => 
+            `<option value="${a.id}">[${a.id}] ${a.hito} (${a.area})</option>`
+        ).join('');
+
+        // Si tenemos un hito activo seleccionado previamente, lo autoseleccionamos en el combobox
+        if (window.hitoActivoEnModalFiscal) {
+            selectPadre.value = window.hitoActivoEnModalFiscal.id;
+        }
+    }
 }
         
     </script>
