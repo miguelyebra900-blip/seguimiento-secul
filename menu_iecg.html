@@ -887,6 +887,23 @@
     <!-- SCRIPT DEL MOTOR DE DATOS, GOOGLE DRIVE Y CHARTS                  -->
     <!-- ================================================================= -->
     <script>
+
+        // Funciones globales de apertura y cierre de modales
+window.openModal = function(id) {
+    const m = document.getElementById(id);
+    if (m) {
+        m.classList.remove('hidden');
+        m.style.display = 'flex';
+    }
+};
+
+window.closeModal = function(id) {
+    const m = document.getElementById(id);
+    if (m) {
+        m.classList.add('hidden');
+        m.style.display = 'none';
+    }
+};
 // =========================================================================
 // 1. CONEXIÓN A SUPABASE Y ESTADO DE SESIÓN (RESCATADO DE PANEL_IECG)
 // =========================================================================
@@ -2060,7 +2077,6 @@ function guardarEvidenciaFiscalizacionModal() {
     actualizarDashboard();
 }
 
-        let cGlobal = null, cPrio = null, cEstatus = null, cAreas = null;
 
 function renderCharts(metricas) {
     if (!metricas) metricas = calcularMetricas();
