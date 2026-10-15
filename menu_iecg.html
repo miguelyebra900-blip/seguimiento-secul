@@ -856,11 +856,11 @@
         </div>
     </div>
 
-    <!-- ================================================================= -->
-    <!-- BUZÓN DE CARGA DRAG & DROP DIRECTO A GOOGLE DRIVE                 -->
-    <!-- ================================================================= -->
   <!-- ========================================================= -->
 <!-- MODAL MAESTRO UNIVERSAL: GESTIÓN, ALTA Y ACREDITACIÓN DRIVE -->
+<!-- ========================================================= -->
+<!-- ========================================================= -->
+<!-- MODAL MAESTRO UNIVERSAL: GESTIÓN Y ALTA DE ENTREGABLES    -->
 <!-- ========================================================= -->
 <div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
@@ -869,11 +869,11 @@
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
-                    <i class="fa-solid fa-folder-tree"></i>
+                    <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-base leading-snug">Gestión y Alta de Entregables</h3>
-                    <p class="text-[11px] text-slate-300">Motor Central de Control e Integración Institucional (IECG)</p>
+                    <h3 class="font-extrabold text-base leading-snug">Alta de Entregables</h3>
+                    <p class="text-[11px] text-slate-300">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
                 </div>
             </div>
             <button type="button" onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg transition">
@@ -881,40 +881,96 @@
             </button>
         </div>
 
-        <!-- Pestañas de Navegación del Modal (Wizard) -->
+        <!-- Selector de Pestañas (Wizard idéntico a tus capturas 3 y 4) -->
         <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
-            <button type="button" id="btnTabGestion" onclick="cambiarTabModalMaestro('tab-gestion')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-sliders"></i> 1. Editar, Acreditar y Subir a Drive
+            <button type="button" id="btnTabHito" onclick="cambiarTabModalUniversal('tab-hitos')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-flag"></i> 1. Nuevo Hito (+ Acción Obligatoria)
             </button>
-            <button type="button" id="btnTabNuevo" onclick="cambiarTabModalMaestro('tab-nuevo')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
-                <i class="fa-solid fa-plus-circle"></i> 2. Alta de Nuevo Hito o Acción
+            <button type="button" id="btnTabAccion" onclick="cambiarTabModalUniversal('tab-accion')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-list-check"></i> 2. Nueva Acción (Asociada a Hito)
             </button>
         </div>
 
         <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
             
-            <!-- ================================================= -->
-            <!-- VISTA 1: GESTIÓN, EDICIÓN Y CARGA DRIVE (CON SLIDER)-->
-            <!-- ================================================= -->
-            <div id="tab-gestion" class="space-y-4">
+            <!-- ========================================== -->
+            <!-- PESTAÑA 1: NUEVO HITO (+ ACCIONES)         -->
+            <!-- ========================================== -->
+            <form id="tab-hitos" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-4">
+                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center gap-2 text-indigo-900 text-[11px]">
+                    <i class="fa-solid fa-circle-info text-indigo-600 text-sm"></i>
+                    <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> para garantizar su cumplimiento operativo.</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Folio ID:</label>
+                        <input type="text" id="nuevoHitoId" placeholder="Ej. V1-11 o INF-E01" class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-50 font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Vertiente:</label>
+                        <select id="nuevoHitoVertiente" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold">
+                            <option value="INF">INF - Informes Mensuales</option>
+                            <option value="V1">V1 - Liquidación IEC</option>
+                            <option value="V2">V2 - Fiscalización ASEG</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
+                        <select id="nuevoHitoPanel" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-bold text-indigo-700">
+                            <option value="A">Panel A - Recursos Humanos</option>
+                            <option value="B">Panel B - Jurídico</option>
+                            <option value="C">Panel C - Inmuebles</option>
+                            <option value="D">Panel D - Fideicomisos</option>
+                            <option value="E">Panel E - Patrimonio</option>
+                            <option value="F">Panel F - Financiero</option>
+                            <option value="G">Panel G - TI</option>
+                            <option value="H">Panel H - Archivo</option>
+                            <option value="I">Panel I - Fiscalización</option>
+                            <option value="J">Panel J - Seguimiento</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Seleccionar Acción / Compromiso Existente:</label>
-                    <select id="buzonSelectAccion" onchange="actualizarInfoAccionBuzon()" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 border-indigo-200"></select>
+                    <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento Oficial:</label>
+                    <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-slate-900" required>
                 </div>
 
-                <!-- Bloque Estilo Imagen de Referencia (Área y Referencia Legal) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <span class="text-slate-400 font-bold block text-[10px] uppercase">Área Responsable:</span>
-                        <span id="labelBuzonPanel" class="font-bold text-slate-800 text-xs">Panel --</span>
+                        <label class="block font-bold text-slate-700 mb-1">Área Ejecutora / Responsable:</label>
+                        <input type="text" id="nuevoHitoArea" placeholder="Ej. Dirección General de Administración" class="w-full p-2.5 border rounded-xl bg-slate-50" required>
                     </div>
                     <div>
-                        <span class="text-slate-400 font-bold block text-[10px] uppercase">Referencia Legal / Oficio:</span>
-                        <span id="labelBuzonDocReq" class="font-bold text-slate-800 text-xs truncate block">--</span>
+                        <label class="block font-bold text-slate-700 mb-1">Fundamento Legal / Oficio:</label>
+                        <input type="text" id="nuevoHitoNorma" placeholder="Ej. Decreto No. 345 / Lineamientos Art. 10" class="w-full p-2.5 border rounded-xl bg-slate-50" required>
                     </div>
                 </div>
 
-                <!-- Bloque Estilo Imagen de Referencia (Prioridad, Estatus y Slider de Avance) -->
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Hito y Acciones
+                    </button>
+                </div>
+            </form>
+
+            <!-- ========================================== -->
+            <!-- PESTAÑA 2: NUEVA ACCIÓN ASOCIADA + DRIVE   -->
+            <!-- ========================================== -->
+            <form id="tab-accion" onsubmit="ejecutarCargaUniversal(event)" class="space-y-4 hidden">
+                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex items-center gap-2 text-emerald-950 text-[11px]">
+                    <i class="fa-solid fa-link text-emerald-600 text-sm"></i>
+                    <span>La acción quedará <strong>asociada al Hito seleccionado</strong> y alimentará en cascada su porcentaje de avance, estatus y subida a Google Drive.</span>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Acción / Compromiso a Acreditar:</label>
+                    <select id="buzonSelectAccion" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 border-indigo-200"></select>
+                </div>
+
+                <!-- Bloque Prioridad, Estatus y Slider de Avance -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Prioridad del Área:</label>
@@ -944,7 +1000,6 @@
                     </div>
                 </div>
 
-                <!-- Zona de Carga a Google Drive -->
                 <div class="border-t border-slate-200 pt-3 space-y-3">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
@@ -971,72 +1026,16 @@
                     </div>
                 </div>
 
-                <!-- Botones de Acción (Incluye Opción de Eliminar) -->
                 <div class="flex items-center justify-between pt-3 border-t border-slate-100">
                     <button type="button" onclick="eliminarAccionActual()" class="btn-executive px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs flex items-center gap-1.5 border border-rose-200">
                         <i class="fa-solid fa-trash-can"></i> Eliminar Registro
                     </button>
                     <div class="flex gap-2">
                         <button type="button" onclick="closeModal('modal-buzon-universal')" class="btn-executive px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                        <button type="button" onclick="ejecutarGuardadoYSubidaMaestra(event)" id="btnSubmitBuzon" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
+                        <button type="submit" id="btnSubmitBuzon" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar y Propagar Cambios
                         </button>
                     </div>
-                </div>
-            </div>
-
-            <!-- ================================================= -->
-            <!-- VISTA 2: ALTA DE NUEVO HITO O ACCIÓN              -->
-            <!-- ================================================= -->
-            <form id="tab-nuevo" onsubmit="guardarNuevoElementoMaestro(event)" class="space-y-4 hidden">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Folio ID:</label>
-                        <input type="text" id="masterNuevoId" placeholder="Ej. ACT-K1" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
-                        <select id="masterNuevoPanel" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-indigo-700">
-                            <option value="A">Panel A - Recursos Humanos</option>
-                            <option value="B">Panel B - Jurídico</option>
-                            <option value="C">Panel C - Inmuebles</option>
-                            <option value="D">Panel D - Fideicomisos</option>
-                            <option value="E">Panel E - Patrimonio</option>
-                            <option value="F">Panel F - Financiero</option>
-                            <option value="G">Panel G - TI</option>
-                            <option value="H">Panel H - Archivo</option>
-                            <option value="I">Panel I - Fiscalización</option>
-                            <option value="J">Panel J - Seguimiento</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Título del Hito / Compromiso:</label>
-                    <input type="text" id="masterNuevoHito" placeholder="Descripción general del requerimiento..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Acción Específica a Realizar:</label>
-                    <input type="text" id="masterNuevoAccion" placeholder="Detalle la tarea operativa..." class="w-full p-2.5 border rounded-xl bg-slate-50" required>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Responsable:</label>
-                        <input type="text" id="masterNuevoResp" placeholder="Área o custodio..." class="w-full p-2.5 border rounded-xl bg-slate-50" required>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Peso Ponderado (%):</label>
-                        <input type="number" id="masterNuevoPeso" min="1" max="100" value="25" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-plus-circle"></i> Registrar y Sincronizar Sistema
-                    </button>
                 </div>
             </form>
 
@@ -2260,6 +2259,25 @@ function guardarNuevoHitoDesdeModal() {
     }
 }
 
+        function cambiarTabModalUniversal(tabId) {
+    const isHito = (tabId === 'tab-hitos');
+    const tabHitos = document.getElementById('tab-hitos');
+    const tabAccion = document.getElementById('tab-accion');
+    
+    if (tabHitos) tabHitos.classList.toggle('hidden', !isHito);
+    if (tabAccion) tabAccion.classList.toggle('hidden', isHito);
+
+    const btnHito = document.getElementById('btnTabHito');
+    const btnAccion = document.getElementById('btnTabAccion');
+
+    if (isHito) {
+        if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    } else {
+        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+        if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    }
+}
         
     </script>
 </body>
