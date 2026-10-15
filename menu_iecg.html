@@ -1743,16 +1743,25 @@
             actualizarInfoAccionBuzon();
         }
 
-        function actualizarInfoAccionBuzon() {
-            const select = document.getElementById('buzonSelectAccion');
-            if(!select) return;
-            const act = accionesDataset.find(a => a.id === select.value);
-            if (act) {
-                document.getElementById('labelBuzonPanel').innerText = `Panel ${act.panel} (${act.area})`;
-                document.getElementById('labelBuzonDocReq').innerText = act.docRequerido;
-                document.getElementById('buzonAvanceInput').value = act.avance;
-                document.getElementById('buzonEstatusInput').value = act.estatus;
-            }
+      function actualizarInfoAccionBuzon() {
+    const select = document.getElementById('buzonSelectAccion');
+    if (!select) return;
+
+    const id = select.value;
+    const act = accionesDataset.find(a => a.id === id);
+    if (!act) return;
+
+    // Blindaje contra elementos nulos en el DOM
+    const lblPanel = document.getElementById('labelBuzonPanel');
+    const lblDocReq = document.getElementById('labelBuzonDocReq');
+    const inputAvance = document.getElementById('buzonAvanceInput');
+    const inputEstatus = document.getElementById('buzonEstatusInput');
+
+    if (lblPanel) lblPanel.innerText = `Panel ${act.panel} (${act.area})`;
+    if (lblDocReq) lblDocReq.innerText = act.docRequerido || "Documento oficial requerido";
+    if (inputAvance) inputAvance.value = act.avance;
+    if (inputEstatus) inputEstatus.value = act.estatus;
+}
         }
 
         function abrirBuzonCargaUniversal() { poblarSelectBuzon(); openModal('modal-buzon-universal'); }
