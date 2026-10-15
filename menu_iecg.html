@@ -166,170 +166,163 @@
         <!-- ================================================================= -->
         <!-- SECCIÓN 0: TABLERO EJECUTIVO & KPIS DIRECTIVOS                    -->
         <!-- ================================================================= -->
-        <div id="tab-dashboard" class="space-y-7">
-            
-            <!-- TARJETAS EJECUTIVAS KPIS -->
-            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="card-executive bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600">Avance Global Ponderado</span>
-                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                    </div>
-                    <span id="kpiAvanceGlobalTop" class="text-3xl font-black text-slate-900">--%</span>
-                    <span class="text-[11px] text-slate-400 font-semibold mt-1">Calculado sobre 10 áreas estratégicas</span>
-                </div>
-
-                <div class="card-executive bg-white p-5 rounded-3xl border border-emerald-100 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600">Soportes Acreditados Drive</span>
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-file-circle-check"></i>
-                        </div>
-                    </div>
-                    <span id="kpiDocsAcreditadosTop" class="text-3xl font-black text-emerald-600">-- / 30</span>
-                    <span class="text-[11px] text-emerald-600/80 font-semibold mt-1">Con expediente oficial vinculado</span>
-                </div>
-
-                <div class="card-executive bg-white p-5 rounded-3xl border border-amber-100 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-600">En Espera de Tercero (Art. 6)</span>
-                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
-                    </div>
-                    <span id="kpiTercerosTop" class="text-3xl font-black text-amber-600">--</span>
-                    <span class="text-[11px] text-amber-600/80 font-semibold mt-1">Prórroga legal por trámites externos</span>
-                </div>
-
-                <div class="card-executive bg-white p-5 rounded-3xl border border-rose-100 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-600">Puntos Críticos Mapeados</span>
-                        <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                    </div>
-                    <span class="text-3xl font-black text-rose-600">5 Puntos</span>
-                    <span class="text-[11px] text-rose-500 font-semibold mt-1">R-01 a R-05 (Art. 6 Lineamientos)</span>
-                </div>
-            </div>
-
-            <!-- ANALÍTICA Y GRÁFICAS EJECUTIVAS -->
-            <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
-                            Analítica de Cumplimiento
-                        </span>
-                        <h2 class="text-lg font-black text-slate-900 mt-1">Métricas de Transición, Fiscalización y Terceros (Chart.js)</h2>
-                    </div>
-<!-- CONTENEDOR DE LAS 4 GRÁFICAS -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6" id="gridCardsGraficas">
+      <div id="tab-dashboard" class="space-y-7">
     
-    <!-- 1. Dona Avance Ponderado Global -->
-    <div onclick="seleccionarTarjetaGrafica(this, 'global')" 
-         class="card-chart-box bg-slate-50 p-4 rounded-2xl border-2 border-slate-200 flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-lg">
-        <span class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
-            AVANCE PONDERADO GLOBAL <i class="fa-solid fa-expand text-[10px] text-indigo-600"></i>
-        </span>
-        <div class="relative w-40 h-40 my-2 flex items-center justify-center pointer-events-none">
-            <canvas id="chartAvanceGlobal"></canvas>
-           <!-- TARJETA EJECUTIVA: MÉTRICAS Y GRÁFICAS AMPLIADAS -->
-<div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
-    
-    <!-- 1. CABECERA: TÍTULO A LA IZQUIERDA Y BOTÓN A LA DERECHA -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-        <div>
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
-                Analítica de Cumplimiento
-            </span>
-            <h2 class="text-xl font-black text-slate-900 mt-1.5 flex items-center gap-2">
-                <i class="fa-solid fa-chart-pie text-indigo-600"></i> Métricas de Transición, Fiscalización y Terceros (Chart.js)
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-                Supervisión cuantitativa de los 30 compromisos normativos y dependencias del Artículo 6.
-            </p>
-        </div>
-        <button onclick="actualizarDashboard()" class="btn-executive px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 self-start sm:self-auto shadow-2xs">
-            <i class="fa-solid fa-arrows-rotate text-indigo-600"></i> Actualizar Métricas
-        </button>
-    </div>
-
-    <!-- 2. GRID COMPLETO DE LAS 4 GRÁFICAS GRANDES (OCUPA EL 100% DEL ANCHO) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="gridCardsGraficas">
+    <!-- ================================================================= -->
+    <!-- 1. FILA DE LAS 4 TARJETAS KPIS SUPERIORES (GRID CORECTO Y CERRADO) -->
+    <!-- ================================================================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <!-- Gráfica 1: Avance Ponderado Global -->
-        <div onclick="seleccionarTarjetaGrafica(this, 'global')" 
-             class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-indigo-400 ring-4 ring-indigo-100/70 shadow-md flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:shadow-xl">
-            <div class="flex items-center justify-between w-full mb-1">
-                <span class="text-xs font-black text-slate-700 uppercase tracking-wide">AVANCE PONDERADO GLOBAL</span>
-                <i class="fa-solid fa-expand text-[11px] text-indigo-600"></i>
-            </div>
-            <div class="relative w-48 h-48 my-3 flex items-center justify-center pointer-events-none">
-                <canvas id="chartAvanceGlobal"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span id="labelChartAvanceGlobal" class="text-3xl font-black text-slate-900 leading-none">77%</span>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Cumplimiento</span>
+        <!-- KPI 1: Avance Global -->
+        <div class="card-executive bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600">Avance Global Ponderado</span>
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-chart-line"></i>
                 </div>
             </div>
-            <span class="text-xs text-slate-500 font-semibold bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
-                30 Acciones Consolidadas
-            </span>
+            <span id="kpiAvanceGlobalTop" class="text-3xl font-black text-slate-900">77%</span>
+            <span class="text-[11px] text-slate-400 font-semibold mt-1">Calculado sobre 10 áreas estratégicas</span>
         </div>
 
-        <!-- Gráfica 2: Distribución por Prioridad -->
-        <div onclick="seleccionarTarjetaGrafica(this, 'prioridades')" 
-             class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
-            <div class="flex items-center justify-between w-full mb-1">
-                <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">DISTRIBUCIÓN POR PRIORIDAD</span>
-                <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
+        <!-- KPI 2: Soportes Drive -->
+        <div class="card-executive bg-white p-5 rounded-3xl border border-emerald-100 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600">Soportes Acreditados Drive</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                </div>
             </div>
-            <div class="relative h-48 w-full my-3 pointer-events-none">
-                <canvas id="chartPrioridades"></canvas>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-2.5 text-[10px] font-extrabold bg-white p-1.5 rounded-xl border border-slate-200">
-                <span class="text-rose-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-600"></span> Urgente</span>
-                <span class="text-amber-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Alta</span>
-                <span class="text-blue-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> Media</span>
-                <span class="text-slate-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Baja</span>
-            </div>
+            <span id="kpiDocsAcreditadosTop" class="text-3xl font-black text-emerald-600">15 / 30</span>
+            <span class="text-[11px] text-emerald-600/80 font-semibold mt-1">Con expediente oficial vinculado</span>
         </div>
 
-        <!-- Gráfica 3: Estatus de Compromisos -->
-        <div onclick="seleccionarTarjetaGrafica(this, 'estatus')" 
-             class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
-            <div class="flex items-center justify-between w-full mb-1">
-                <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">ESTATUS DE COMPROMISOS</span>
-                <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
+        <!-- KPI 3: Espera de Tercero -->
+        <div class="card-executive bg-white p-5 rounded-3xl border border-amber-100 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-600">En Espera de Tercero (Art. 6)</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
             </div>
-            <div class="relative h-48 w-full my-3 pointer-events-none">
-                <canvas id="chartEstatus"></canvas>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-2.5 text-[10px] font-extrabold bg-white p-1.5 rounded-xl border border-slate-200">
-                <span class="text-emerald-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Concluido</span>
-                <span class="text-blue-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> En Proceso</span>
-                <span class="text-amber-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Validación</span>
-            </div>
+            <span id="kpiTercerosTop" class="text-3xl font-black text-amber-600">14 Acciones</span>
+            <span class="text-[11px] text-amber-600/80 font-semibold mt-1">Prórroga legal por trámites externos</span>
         </div>
 
-        <!-- Gráfica 4: Rendimiento por Área -->
-        <div onclick="seleccionarTarjetaGrafica(this, 'areas')" 
-             class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
-            <div class="flex items-center justify-between w-full mb-1">
-                <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">RENDIMIENTO POR ÁREA (SCUL)</span>
-                <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
+        <!-- KPI 4: Puntos Críticos -->
+        <div class="card-executive bg-white p-5 rounded-3xl border border-rose-100 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-rose-600">Puntos Críticos Mapeados</span>
+                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
             </div>
-            <div class="relative h-48 w-full my-3 pointer-events-none">
-                <canvas id="chartAreas"></canvas>
-            </div>
-            <span class="text-xs text-slate-500 text-center font-semibold bg-white px-3 py-1 rounded-full border border-slate-200">
-                % promedio de avance
-            </span>
+            <span class="text-3xl font-black text-rose-600">5 Puntos</span>
+            <span class="text-[11px] text-rose-500 font-semibold mt-1">R-01 a R-05 (Art. 6 Lineamientos)</span>
         </div>
 
-    </div>
-</div>
+    </div> <!-- FIN DEL GRID DE LOS 4 KPIS -->
+
+    <!-- ================================================================= -->
+    <!-- 2. TARJETA COMPLETA DE ANALÍTICA Y GRÁFICAS (OCUPA EL 100% DE ANCHO) -->
+    <!-- ================================================================= -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+        
+        <!-- Cabecera de la sección -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                    Analítica de Cumplimiento
+                </span>
+                <h2 class="text-xl font-black text-slate-900 mt-1.5 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-indigo-600"></i> Métricas de Transición, Fiscalización y Terceros (Chart.js)
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Supervisión cuantitativa de los 30 compromisos normativos y dependencias del Artículo 6.
+                </p>
+            </div>
+            <button onclick="actualizarDashboard()" class="btn-executive px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 self-start sm:self-auto shadow-2xs">
+                <i class="fa-solid fa-arrows-rotate text-indigo-600"></i> Actualizar Métricas
+            </button>
+        </div>
+
+        <!-- Grid de las 4 Gráficas Grandes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="gridCardsGraficas">
+            
+            <!-- Gráfica 1: Avance Ponderado Global -->
+            <div onclick="seleccionarTarjetaGrafica(this, 'global')" 
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-indigo-400 ring-4 ring-indigo-100/70 shadow-md flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:shadow-xl">
+                <div class="flex items-center justify-between w-full mb-1">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wide">AVANCE PONDERADO GLOBAL</span>
+                    <i class="fa-solid fa-expand text-[11px] text-indigo-600"></i>
+                </div>
+                <div class="relative w-48 h-48 my-3 flex items-center justify-center pointer-events-none">
+                    <canvas id="chartAvanceGlobal"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span id="labelChartAvanceGlobal" class="text-3xl font-black text-slate-900 leading-none">77%</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Cumplimiento</span>
+                    </div>
+                </div>
+                <span class="text-xs text-slate-500 font-semibold bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
+                    30 Acciones Consolidadas
+                </span>
+            </div>
+
+            <!-- Gráfica 2: Distribución por Prioridad -->
+            <div onclick="seleccionarTarjetaGrafica(this, 'prioridades')" 
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
+                <div class="flex items-center justify-between w-full mb-1">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">DISTRIBUCIÓN POR PRIORIDAD</span>
+                    <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
+                </div>
+                <div class="relative h-48 w-full my-3 pointer-events-none">
+                    <canvas id="chartPrioridades"></canvas>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-2.5 text-[10px] font-extrabold bg-white p-1.5 rounded-xl border border-slate-200">
+                    <span class="text-rose-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-600"></span> Urgente</span>
+                    <span class="text-amber-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Alta</span>
+                    <span class="text-blue-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> Media</span>
+                    <span class="text-slate-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Baja</span>
+                </div>
+            </div>
+
+            <!-- Gráfica 3: Estatus de Compromisos -->
+            <div onclick="seleccionarTarjetaGrafica(this, 'estatus')" 
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
+                <div class="flex items-center justify-between w-full mb-1">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">ESTATUS DE COMPROMISOS</span>
+                    <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
+                </div>
+                <div class="relative h-48 w-full my-3 pointer-events-none">
+                    <canvas id="chartEstatus"></canvas>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-2.5 text-[10px] font-extrabold bg-white p-1.5 rounded-xl border border-slate-200">
+                    <span class="text-emerald-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Concluido</span>
+                    <span class="text-blue-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> En Proceso</span>
+                    <span class="text-amber-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Validación</span>
+                </div>
+            </div>
+
+            <!-- Gráfica 4: Rendimiento por Área -->
+            <div onclick="seleccionarTarjetaGrafica(this, 'areas')" 
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
+                <div class="flex items-center justify-between w-full mb-1">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">RENDIMIENTO POR ÁREA (SCUL)</span>
+                    <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
+                </div>
+                <div class="relative h-48 w-full my-3 pointer-events-none">
+                    <canvas id="chartAreas"></canvas>
+                </div>
+                <span class="text-xs text-slate-500 text-center font-semibold bg-white px-3 py-1 rounded-full border border-slate-200">
+                    % promedio de avance
+                </span>
+            </div>
+
+        </div> <!-- FIN DEL GRID DE LAS 4 GRÁFICAS -->
+
+    </div> <!-- FIN DE LA TARJETA DE ANALÍTICA -->
+
+</div> <!-- FIN DE TAB-DASHBOARD -->
         <!-- ================================================================= -->
         <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (8 ÁREAS A - H)  -->
         <!-- ================================================================= -->
