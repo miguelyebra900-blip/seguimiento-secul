@@ -2057,24 +2057,49 @@ function activarKpiNeon(elemento, tipoKpi) {
         let hitoActivoEnModalFiscal = null;
 
         function abrirModalDesdeGrafica(idAccion) {
-            closeModal('modal-chart-detail');
-            const act = accionesDataset.find(a => a.id === idAccion);
-            if (!act) return;
-            window.hitoActivoEnModalFiscal = act;
+    // 1. Cerrar el modal de la gráfica ampliada
+    closeModal('modal-chart-detail');
 
-            document.getElementById('uploadHitoId').value = act.id;
-            document.getElementById('modalFiscalTag').innerText = `FOLIO: ${act.id} (PANEL ${act.panel} - ${act.area.toUpperCase()})`;
-            document.getElementById('modalFiscalTitle').innerText = act.hito;
-            document.getElementById('modalFiscalArea').innerText = `${act.area} (Panel ${act.panel})`;
-            document.getElementById('modalFiscalNorma').innerText = act.docRequerido || "Lineamientos de Extinción IECG";
-            document.getElementById('modalFiscalEstatus').value = act.estatus;
-            document.getElementById('modalFiscalAvance').value = act.avance;
-            document.getElementById('modalFiscalAvanceLabel').innerText = act.avance + '%';
-            document.getElementById('modalFiscalObs').value = '';
+    const act = accionesDataset.find(a => a.id === idAccion);
+    if (!act) return;
 
-            renderListaDocumentosFiscal(act);
-            openModal('modal-hito-fiscalizacion');
-        }
+    // 2. Guardar referencia activa
+    window.hitoActivoEnModalFiscal = act;
+
+    // 3. Poblar el selector del Modal Universal y posicionarlo en esta acción
+    if (typeof poblarSelectBuzon === 'function') {
+        poblarSelectBuzon(act.id);
+    }
+
+    // 4. Sincronizar los campos visuales del Modal Universal con los datos reales
+    const estatusInput = document.getElementById('buzonEstatusInput');
+    const avanceInput = document.getElementById('buzonAvanceInput');
+    const avanceLabel = document.getElementById('buzonAvanceLabel');
+    const prioridadInput = document.getElementById('buzonPrioridadInput');
+
+    if (estatusInput) estatusInput.value = act.estatus;
+    if (avanceInput) {
+        avanceInput.value = act.avance;
+        if (avanceLabel) avanceLabel.innerText = act.avance + '%';
+    }
+    if (prioridadInput) {
+        prioridadInput.value = act.peso >= 40 ? "Urgente" : (act.peso >= 30 ? "Alta" : "Media");
+    }
+
+    // Actualizar las etiquetas de Área y Referencia Legal
+    const lblPanel = document.getElementById('labelBuzonPanel');
+    const lblDocReq = document.getElementById('labelBuzonDocReq');
+    if (lblPanel) lblPanel.innerText = `Panel ${act.panel} (${act.area})`;
+    if (lblDocReq) lblDocReq.innerText = act.docRequerido || "Documento oficial requerido";
+
+    // 5. Forzar la vista a la pestaña de "Editar & Acreditar" del Modal Maestro
+    if (typeof cambiarTabModalMaestro === 'function') {
+        cambiarTabModalMaestro('tab-gestion');
+    }
+
+    // 6. Abrir el Modal Maestro Universal
+    openModal('modal-buzon-universal');
+}
 
         function renderListaDocumentosFiscal(act) {
             const contenedor = document.getElementById('modalFiscalDocsList');
