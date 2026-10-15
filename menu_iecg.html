@@ -2351,7 +2351,6 @@ function activarKpiNeon(elemento, tipoKpi) {
             const nombreArea = accionesPanel[0] ? accionesPanel[0].area : `Área ${p}`;
             const avanceArea = metricas.avancesPorArea[p] || 0;
 
-            // Construir el desglose de los hitos y acciones de esta área específica
             let accionesHTML = '';
             accionesPanel.forEach(act => {
                 let badgeEst = act.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (act.estatus === 'Validación' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800');
@@ -2377,10 +2376,8 @@ function activarKpiNeon(elemento, tipoKpi) {
                 `;
             });
 
-            // Tarjeta contenedora del Área con barra de progreso y sus acciones
             listContentEl.innerHTML += `
                 <div class="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5 shadow-2xs">
-                    <!-- Cabecera del Área -->
                     <div class="flex items-center justify-between border-b border-slate-200/70 pb-2">
                         <div class="flex items-center gap-2.5">
                             <span class="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-700 font-black flex items-center justify-center text-xs border border-indigo-100 shadow-2xs">
@@ -2388,7 +2385,7 @@ function activarKpiNeon(elemento, tipoKpi) {
                             </span>
                             <div>
                                 <strong class="text-slate-900 text-xs block leading-tight">${nombreArea}</strong>
-                                <span class="text-[10px] text-slate-400 font-medium">3 Hitos / Acciones Ponderadas</span>
+                                <span class="text-[10px] text-slate-400 font-medium">Hitos / Acciones Ponderadas</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -2398,13 +2395,9 @@ function activarKpiNeon(elemento, tipoKpi) {
                             <span class="text-[9px] text-slate-400 block font-semibold">Aporte al Proyecto</span>
                         </div>
                     </div>
-
-                    <!-- Barra de progreso visual del Área -->
                     <div class="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
                         <div class="h-1.5 rounded-full transition-all duration-500 ${avanceArea === 100 ? 'bg-emerald-500' : 'bg-indigo-600'}" style="width: ${avanceArea}%"></div>
                     </div>
-
-                    <!-- Desglose de Acciones del Área -->
                     <div class="space-y-1.5 pt-1">
                         ${accionesHTML}
                     </div>
@@ -2412,7 +2405,48 @@ function activarKpiNeon(elemento, tipoKpi) {
             `;
         });
 
-    }
+    } else if (tipoKpi === 'docs') {
+        iconEl.className = "fa-solid fa-file-circle-check text-emerald-400";
+        titleEl.innerText = `Composición de Soportes: ${metricas.docsAcreditados} / 30 Vinculados`;
+        formulaEl.innerText = "Tasa de Acreditación = (Acciones con Enlace Drive Válido / 30) * 100";
+        expEl.innerText = "Indica la cantidad de compromisos que ya cuentan con expediente oficial digitalizado y alojado en las subcarpetas institucionales de Google Drive.";
+        listTitleEl.innerText = "Estado de vinculación en Google Drive:";
+
+        accionesDataset.forEach(a => {
+            const tieneUrl = a.driveUrl && a.driveUrl.trim() !== '';
+            listContentEl.innerHTML += `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 shadow-2xs">
+                    <div class="truncate">
+                        <strong class="text-slate-800 text-xs block truncate">• [Panel ${a.panel}] ${a.hito}</strong>
+                        <span class="text-[10px] text-slate-400 block truncate">${a.docRequerido}</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${tieneUrl ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'} shrink-0">
+                        ${tieneUrl ? '✓ Acreditado Drive' : 'Pendiente'}
+                    </span>
+                </div>
+            `;
+        });
+
+    } else if (tipoKpi === 'terceros') {
+        iconEl.className = "fa-solid fa-clock-rotate-left text-amber-400";
+        titleEl.innerText = `Salvedad Legal Art. 6: ${metricas.enEsperaTerceros} Acciones en Espera`;
+        formulaEl.innerText = "Salvedad Art. 6 = Acciones pendientes dependientes de Instancia Externa";
+        expEl.innerText = "Acciones cuyo retraso no es atribuible a la liquidación del IECG, sino que están condicionadas a resoluciones del SAT, Fiduciaria Banorte, Finanzas, AGEG o Tribunales.";
+        listTitleEl.innerText = "Relación de trámites radicados ante Terceros:";
+
+        accionesDataset.filter(a => a.tercero !== "Interna" && a.estatus !== "Concluido").forEach(a => {
+            listContentEl.innerHTML += `
+                <div class="p-2.5 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-2 shadow-2xs">
+                    <div>
+                        <strong class="text-amber-950 text-xs block">• [Panel ${a.panel}] ${a.hito}</strong>
+                        <span class="text-[10px] text-amber-800 block">Dependencia: <strong>${a.terceroNombre}</strong></span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-amber-800 border border-amber-300 shrink-0">
+                        Art. 6
+                    </span>
+                </div>
+            `;
+        });
 
     } else if (tipoKpi === 'criticos') {
         iconEl.className = "fa-solid fa-triangle-exclamation text-rose-400";
@@ -2439,19 +2473,13 @@ function activarKpiNeon(elemento, tipoKpi) {
                         </div>
                         <span class="text-[10px] text-slate-600 block mt-0.5">${r.desc}</span>
                     </div>
-                    <button onclick="closeModal('modal-kpi-detalle'); cargarAccionEnBuzonDirecto('${r.hito}', '${r.id}')" 
-                            class="btn-executive px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shrink-0">
-                        Atender
-                    </button>
                 </div>
             `;
         });
     }
 
-    // 4. Abrir la ventana modal
     openModal('modal-kpi-detalle');
 }
-        
     </script>
 
     <!-- ========================================================= -->
