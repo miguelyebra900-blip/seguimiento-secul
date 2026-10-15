@@ -2094,6 +2094,57 @@
         btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-200 transition";
     }
 }
+// =========================================================================
+// 1. GUARDAR NUEVO HITO / ACCIÓN DESDE EL MODAL MAESTRO (CON PONDERACIÓN)
+// =========================================================================
+function guardarNuevoHitoDesdeModal() {
+    const titulo = document.getElementById('inputNuevoHitoTitulo')?.value.trim();
+    const panel = document.getElementById('inputNuevoHitoPanel')?.value || 'A';
+    const estatus = document.getElementById('inputNuevoHitoEstatus')?.value || 'En Proceso';
+
+    if (!titulo) {
+        alert("Por favor redacte el título del hito o requerimiento oficial.");
+        return;
+    }
+
+    // Generar ID único basado en el panel
+    const nuevoId = `ACT-${panel}${accionesDataset.filter(a => a.panel === panel).length + 1}`;
+    
+    // Crear el nuevo registro respetando el esquema de pesos y ponderación del sistema
+    const nuevoRegistro = {
+        id: nuevoId,
+        panel: panel,
+        area: "Área Estratégica Panel " + panel,
+        hito: titulo,
+        accion: "Acción inicial requerida para cumplimiento de hito normativo",
+        responsable: "Enlace Institucional Panel " + panel,
+        peso: 33.33, // Peso ponderado estándar equilibrado para mantener la suma del panel
+        estatus: estatus,
+        avance: estatus === 'Concluido' ? 100 : (estatus === 'Validación' ? 75 : 40),
+        tercero: "Interna",
+        terceroNombre: "Equipo Liquidador IECG",
+        docRequerido: "Expediente probatorio oficial de hito",
+        driveUrl: ""
+    };
+
+    // Agregar al dataset general
+    accionesDataset.push(nuevoRegistro);
+    guardarDataset();
+
+    alert(`¡Hito "${titulo}" registrado con éxito!\n\n• Se ha integrado al Panel ${panel}\n• Las estadísticas y ponderaciones se han recalculado.`);
+    
+    closeModal('modal-buzon-universal');
+    
+    // Limpiar input
+    document.getElementById('inputNuevoHitoTitulo').value = '';
+
+    // Refrescar toda la interfaz al unísono (Tablero, Matriz, Cronograma, etc.)
+    actualizarDashboard();
+    if (typeof renderCronogramaRoadmap === 'function') {
+        renderCronogramaRoadmap();
+    }
+}
+
         
     </script>
 </body>
