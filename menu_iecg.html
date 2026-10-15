@@ -1196,54 +1196,60 @@
     <!-- ========================================================================= -->
     <!-- MODAL DE GESTIÓN DIRECTA AL DAR CLIC A "VER"                              -->
     <!-- ========================================================================= -->
-    <div id="modal-hito-fiscalizacion" class="fixed inset-0 z-[60] hidden modal-glass flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
-                        <i class="fa-solid fa-folder-tree"></i>
-                    </div>
-                    <div>
-                        <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">FOLIO: V2 (V2 - FISCALIZACIÓN ASEG)</span>
-                        <h3 id="modalFiscalTitle" class="font-bold text-base leading-snug">Detalle del Hito</h3>
-                    </div>
+
+<!-- ========================================================= -->
+<!-- MODAL MAESTRO UNIFICADO: DETALLE DE HITO Y ALTA DE ACCIONES -->
+<!-- ========================================================= -->
+<div id="modal-hito-fiscalizacion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
+        
+        <!-- Header Oscuro -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
+                    <i class="fa-solid fa-folder-tree"></i>
                 </div>
-                <button onclick="closeModal('modal-hito-fiscalizacion')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <div>
+                    <span id="modalFiscalTag" class="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">DETALLE DEL HITO</span>
+                    <h3 id="modalFiscalTitle" class="font-bold text-base leading-snug">Compromisos y Acciones Operativas</h3>
+                </div>
             </div>
+            <button onclick="closeModal('modal-hito-fiscalizacion')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <!-- Selector de Pestañas (Wizard interno para alternar entre Detalle y Alta de Acciones) -->
+        <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
+            <button type="button" id="btnTabDetalleHito" onclick="cambiarTabModalDetalle('tab-detalle-info')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-folder-open"></i> 1. Detalle del Hito & Evidencias
+            </button>
+            <button type="button" id="btnTabNuevaAccionHito" onclick="cambiarTabModalDetalle('tab-nueva-accion-h')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-plus-circle"></i> 2. + Agregar Acción a este Hito
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
             
-            <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
-                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                    <div>
-                        <span class="text-slate-500 font-bold block text-[10px]">Área Responsable:</span>
-                        <span id="modalFiscalArea" class="font-bold text-slate-800 text-xs">--</span>
+            <!-- VISTA A: DETALLE, ESTATUS Y CARGA DRIVE -->
+            <div id="tab-detalle-info" class="space-y-4">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <strong class="text-slate-900 text-sm">Compromisos Clave y Acciones Detalladas:</strong>
                     </div>
-                    <div>
-                        <span class="text-slate-500 font-bold block text-[10px]">Referencia Legal / Oficio:</span>
-                        <span id="modalFiscalNorma" class="font-bold text-slate-800 text-xs">--</span>
-                    </div>
+                    <div id="modalFiscalDocsList" class="space-y-2"></div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Prioridad del Área:</label>
-                        <select id="modalFiscalPrioridad" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
-                            <option value="Urgente">🔴 Urgente</option>
-                            <option value="Alta">🟠 Alta</option>
-                            <option value="Media" selected>🔵 Media</option>
-                            <option value="Baja">⚪ Baja</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Estatus Operativo:</label>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus del Hito:</label>
                         <select id="modalFiscalEstatus" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
                             <option value="En Proceso">En Proceso</option>
-                            <option value="Validación" selected>En Validación</option>
+                            <option value="Validación">En Validación</option>
                             <option value="Concluido">Concluido al 100%</option>
                         </select>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="font-bold text-slate-700">Avance (%):</label>
+                            <label class="font-bold text-slate-700">Avance General (%):</label>
                             <span id="modalFiscalAvanceLabel" class="font-black text-indigo-700 text-sm">80%</span>
                         </div>
                         <input type="range" id="modalFiscalAvance" min="0" max="100" step="5" value="80" 
@@ -1252,58 +1258,56 @@
                     </div>
                 </div>
 
+                <!-- Subida directa con Apps Script -->
+                <div class="border-t border-slate-200 pt-3 space-y-2">
+                    <label class="block font-bold text-slate-700 text-[11px]">Subir archivo oficial de respaldo (PDF, Excel, Word):</label>
+                    <input type="file" id="inputArchivoLocalModal" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700">
+                </div>
+
                 <div>
-                    <h4 class="font-bold text-slate-900 text-xs mb-2">Expedientes y Documentales Requeridas:</h4>
-                    <div id="modalFiscalDocsList" class="space-y-2 mb-2.5"></div>
-                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex gap-2 items-center">
-                        <input type="text" id="nuevoDocNombreInput" placeholder="Nombre del nuevo expediente o documento requerido..." class="w-full p-2 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-indigo-500">
-                        <button type="button" onclick="agregarDocumentoAlHitoActual()" class="btn-executive px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shrink-0 flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> Agregar
-                        </button>
-                    </div>
+                    <label class="block font-bold text-slate-700 mb-1">Bitácora de Observaciones Generales:</label>
+                    <textarea id="modalFiscalObs" rows="2" placeholder="Registrar comentarios generales del avance del hito..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs"></textarea>
                 </div>
+            </div>
 
-                <!-- SUBIDA AUTOMÁTICA A GOOGLE DRIVE (LOCAL FILE) -->
-                <div class="border-t border-slate-200 pt-3 space-y-3">
-                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Subir Soporte a Google Drive (Automático)
-                    </h4>
-                    <input type="hidden" id="uploadHitoId">
-                    <select id="uploadSelectDoc" class="w-full p-2 border rounded-xl bg-slate-50 text-xs font-semibold"></select>
-                    
-                    <div class="space-y-1">
-                        <label class="block font-bold text-slate-700 text-[11px]">Seleccionar archivo oficial (PDF, Excel, Word):</label>
-                        <input type="file" id="inputArchivoLocalModal" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    </div>
-
+            <!-- VISTA B: FORMULARIO PARA AGREGAR ACCIÓN DIRECTAMENTE A ESTE HITO -->
+            <form id="tab-nueva-accion-h" onsubmit="guardarAccionDesdeModalHito(event)" class="space-y-4 hidden">
+                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 text-emerald-950 text-[11px]">
+                    <i class="fa-solid fa-link text-emerald-600 me-1"></i> La nueva acción quedará vinculada a este hito y actualizará el avance global en cascada.
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
+                    <input type="text" id="inputAccionHitoExtra" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Observaciones / Folio del Oficio:</label>
-                        <textarea id="modalFiscalObs" rows="2" placeholder="Número de oficio, observaciones del enlace o justificación..." class="w-full p-2 border rounded-xl text-xs bg-white"></textarea>
+                        <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
+                        <input type="text" id="inputRespAccionExtra" placeholder="Ej. Control Patrimonial / Jurídico" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus:</label>
+                        <select id="inputEstatusAccionExtra" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold">
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Validación">En Validación</option>
+                            <option value="Concluido">Concluido al 100%</option>
+                        </select>
                     </div>
                 </div>
-                
-                <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-brands fa-google-drive text-amber-500 text-base"></i>
-                        <span class="text-[11px] font-bold text-indigo-950">Carga Automática a Google Drive</span>
-                    </div>
-                    <button type="button" onclick="abrirCarpetaDriveDesdeModalFiscal()" class="text-[11px] text-indigo-700 hover:underline font-bold flex items-center gap-1">
-                        <i class="fa-solid fa-folder-open"></i> Ver Carpeta en Drive
-                    </button>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="cambiarTabModalDetalle('tab-detalle-info')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Regresar</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm">Vincular Acción a este Hito</button>
                 </div>
-            </div>
+            </form>
 
-            <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-                <button onclick="closeModal('modal-hito-fiscalizacion')" class="btn-executive px-5 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300">
-                    Cancelar
-                </button>
-                <button onclick="guardarEvidenciaFiscalizacionModal()" class="btn-executive px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Avance y Evidencia
-                </button>
-            </div>
+        </div>
+
+        <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
+            <button onclick="closeModal('modal-hito-fiscalizacion')" class="btn-executive px-5 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+            <button onclick="guardarEvidenciaFiscalizacionModal()" class="btn-executive px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md">Guardar Cambios</button>
         </div>
     </div>
-
+</div>
+    
     <!-- ========================================================================= -->
     <!-- MODAL EXPLICATIVO: COMPOSICIÓN Y ORIGEN DEL DATO KPI                      -->
     <!-- ========================================================================= -->
@@ -2277,6 +2281,96 @@ function guardarNuevoHitoDesdeModal() {
         if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
         if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
     }
+}
+
+        function abrirPestañaAccionDesdeHito() {
+    // 1. Cerrar el modal actual de detalle de hito
+    closeModal('modal-hito-fiscalizacion');
+
+    // 2. Abrir el modal universal de alta de entregables
+    openModal('modal-buzon-universal');
+
+    // 3. Forzar la vista a la pestaña "2. Nueva Acción Asociada"
+    cambiarTabModalUniversal('tab-accion');
+
+    // 4. Si hay un hito activo, seleccionarlo automáticamente en el desplegable
+    if (window.hitoActivoEnModalFiscal && typeof poblarSelectBuzon === 'function') {
+        poblarSelectBuzon(window.hitoActivoEnModalFiscal.id);
+    }
+}
+
+function cambiarTabModalUniversal(tabId) {
+    const isHito = (tabId === 'tab-hitos');
+    const tabHitos = document.getElementById('tab-hitos');
+    const tabAccion = document.getElementById('tab-accion');
+    
+    if (tabHitos) tabHitos.classList.toggle('hidden', !isHito);
+    if (tabAccion) tabAccion.classList.toggle('hidden', isHito);
+
+    const btnHito = document.getElementById('btnTabHito');
+    const btnAccion = document.getElementById('btnTabAccion');
+
+    if (isHito) {
+        if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    } else {
+        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+        if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    }
+}
+
+function cambiarTabModalDetalle(tabId) {
+    const isDetalle = (tabId === 'tab-detalle-info');
+    document.getElementById('tab-detalle-info').classList.toggle('hidden', !isDetalle);
+    document.getElementById('tab-nueva-accion-h').classList.toggle('hidden', isDetalle);
+
+    const btnDetalle = document.getElementById('btnTabDetalleHito');
+    const btnAccion = document.getElementById('btnTabNuevaAccionHito');
+
+    if (isDetalle) {
+        if (btnDetalle) btnDetalle.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    } else {
+        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+        if (btnDetalle) btnDetalle.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+    }
+}
+
+function abrirPestañaAccionDesdeHito() {
+    cambiarTabModalDetalle('tab-nueva-accion-h');
+}
+
+function guardarAccionDesdeModalHito(e) {
+    e.preventDefault();
+    if (!window.hitoActivoEnModalFiscal) return;
+
+    const titulo = document.getElementById('inputAccionHitoExtra').value.trim();
+    const resp = document.getElementById('inputRespAccionExtra').value.trim();
+    const estatus = document.getElementById('inputEstatusAccionExtra').value;
+    const avance = estatus === 'Concluido' ? 100 : (estatus === 'Validación' ? 75 : 40);
+
+    const nuevaAccion = {
+        id: `ACT-${window.hitoActivoEnModalFiscal.panel}-${Date.now().toString().slice(-3)}`,
+        panel: window.hitoActivoEnModalFiscal.panel,
+        area: window.hitoActivoEnModalFiscal.area,
+        hito: window.hitoActivoEnModalFiscal.hito,
+        accion: titulo,
+        responsable: resp,
+        peso: 25,
+        estatus: estatus,
+        avance: avance,
+        tercero: "Interna",
+        terceroNombre: "Comité Interno",
+        docRequerido: "Soporte operativo asociado",
+        driveUrl: ""
+    };
+
+    accionesDataset.push(nuevaAccion);
+    guardarDataset();
+
+    alert("¡Nueva acción vinculada exitosamente al hito y propagada al sistema!");
+    closeModal('modal-hito-fiscalizacion');
+    actualizarDashboard();
 }
         
     </script>
