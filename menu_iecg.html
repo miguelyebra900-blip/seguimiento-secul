@@ -1225,7 +1225,15 @@ window.addEventListener('keydown', (e) => {
 
 // Inicialización de la sesión al cargar
 window.addEventListener('DOMContentLoaded', () => {
-    updateAuthUI();
+    // 1. Mostrar la pestaña del Tablero Directivo por defecto
+    if (typeof mostrarSeccionTab === 'function') {
+        mostrarSeccionTab('tab-dashboard');
+    }
+    
+    // 2. Calcular métricas y dibujar componentes
+    if (typeof actualizarDashboard === 'function') {
+        actualizarDashboard();
+    }
 });
 
         // CONFIGURACIÓN OFICIAL DE GOOGLE DRIVE Y APPS SCRIPT
