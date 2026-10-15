@@ -2156,6 +2156,7 @@ function abrirCarpetaDriveDesdeModalFiscal() {
     }
 }
 
+// A. Guardado unificado para el Modal de Gestión de Hitos/Fiscalización (Imagen 3)
 function guardarEvidenciaFiscalizacionModal() {
     if (!hitoActivoEnModalFiscal) return;
 
@@ -2163,28 +2164,48 @@ function guardarEvidenciaFiscalizacionModal() {
     const nuevoAvance = parseInt(document.getElementById('modalFiscalAvance').value) || 0;
     const urlDrive = document.getElementById('uploadDocUrl').value.trim();
     const obs = document.getElementById('modalFiscalObs').value.trim();
+    const prioridad = document.getElementById('modalFiscalPrioridad').value;
 
-    hitoActivoEnModalFiscal.estatus = nuevoEstatus;
-    hitoActivoEnModalFiscal.avance = nuevoAvance;
-    if (urlDrive) hitoActivoEnModalFiscal.driveUrl = urlDrive;
+    // Llamada directa al Motor Central de Cascada
+    motorCentralGuardarEntidad('HITO', hitoActivoEnModalFiscal.id, {
+        estatus: nuevoEstatus,
+        avancePorcentaje: nuevoAvance,
+        prioridadArea: prioridad,
+        observacionesArea: obs
+    });
 
-    guardarDataset();
-
-    if (typeof registrarAuditoria === 'function') {
-        registrarAuditoria('Actualización Directa de Hito', {
-            id: hitoActivoEnModalFiscal.id,
-            avance: nuevoAvance,
-            estatus: nuevoEstatus,
-            obs: obs
-        });
+    if (urlDrive && hitoActivoEnModalFiscal.documentos && hitoActivoEnModalFiscal.documentos.length > 0) {
+        hitoActivoEnModalFiscal.documentos[0].url = urlDrive;
+        hitoActivoEnModalFiscal.documentos[0].subido = true;
+        localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitosFiscalizacionData));
     }
 
     closeModal('modal-hito-fiscalizacion');
-    alert(`¡Hito "${hitoActivoEnModalFiscal.hito}" actualizado exitosamente al ${nuevoAvance}%!`);
-    actualizarDashboard();
+    alert(`¡Hito "${hitoActivoEnModalFiscal.id}" actualizado y sincronizado en todo el sistema!`);
 }
 
+// B. Recálculo en cascada automático de Hijos a Padre
+function recalcularAvanceHitoPadre(hitoId) {
+    let hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || hitosFiscalizacionData;
+    let acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || accionesMatriz;
 
+    const hijas = acciones.filter(a => a.hito_padre_id === hitoId);
+    if (hijas.length === 0) return;
+
+    const pesosEstatus = { 'Concluido': 100, 'Validación': 75, 'En Proceso': 40 };
+    const sumaTotal = hijas.reduce((acc, a) => acc + (pesosEstatus[a.estatus] || 0), 0);
+    const nuevoPorcentaje = Math.round(sumaTotal / hijas.length);
+
+    const hitoIdx = hitos.findIndex(h => h.id === hitoId);
+    if (hitoIdx !== -1) {
+        hitos[hitoIdx].avancePorcentaje = nuevoPorcentaje;
+        hitos[hitoIdx].estatus = nuevoPorcentaje === 100 ? 'Concluido' : (nuevoPorcentaje >= 75 ? 'Validación' : 'En Proceso');
+        
+        hitosFiscalizacionData = hitos;
+        localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitos));
+    }
+}
+        
 function renderCharts(metricas) {
     if (!metricas) metricas = calcularMetricas();
 
@@ -2480,6 +2501,62 @@ function activarKpiNeon(elemento, tipoKpi) {
 
     openModal('modal-kpi-detalle');
 }
+
+
+// =========================================================================
+// MOTOR CENTRAL DE PROPAGACIÓN EN CASCADA (ÚNICA FUENTE DE VERDAD)
+// =========================================================================
+function motorCentralGuardarEntidad(tipoEntidad, idEntidad, nuevosDatos) {
+    let datosModificados = false;
+
+    // 1. Si es un HITO maestro
+    if (tipoEntidad === 'HITO') {
+        let hitos = JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || hitosFiscalizacionData;
+        const index = hitos.findIndex(h => h.id === idEntidad);
+        if (index !== -1) {
+            hitos[index] = { ...hitos[index], ...nuevosDatos };
+            hitosFiscalizacionData = hitos;
+            localStorage.setItem('secul_hitos_fiscalizacion', JSON.stringify(hitos));
+            datosModificados = true;
+        }
+    } 
+    // 2. Si es una ACCIÓN operativa específica
+    else if (tipoEntidad === 'ACCION') {
+        let acciones = JSON.parse(localStorage.getItem('secul_iec_acciones')) || accionesMatriz;
+        const index = acciones.findIndex(a => a.id === idEntidad);
+        if (index !== -1) {
+            acciones[index] = { ...acciones[index], ...nuevosDatos };
+            accionesMatriz = acciones;
+            localStorage.setItem('secul_iec_acciones', JSON.stringify(acciones));
+            
+            // Cascada automática: recalcular el porcentaje del Hito Padre asociado
+            if (acciones[index].hito_padre_id) {
+                recalcularAvanceHitoPadre(acciones[index].hito_padre_id);
+            }
+            datosModificados = true;
+        }
+    }
+
+    if (datosModificados) {
+        // 3. Registrar de forma inmutable en la bitácora de auditoría de Supabase / Local
+        if (typeof registrarAuditoria === 'function') {
+            registrarAuditoria(`Propagación Central (${tipoEntidad})`, {
+                id: idEntidad,
+                cambios: nuevosDatos,
+                usuario: currentUser ? currentUser.usuario : 'Institucional'
+            });
+        }
+
+        // 4. Refrescar instantáneamente toda la interfaz visual en un solo ciclo
+        if (typeof renderTablaFiscalizacion === 'function') renderTablaFiscalizacion();
+        if (typeof renderActionsTable === 'function') renderActionsTable(accionesMatriz);
+        if (typeof renderCharts === 'function') renderCharts();
+        if (typeof actualizarKPIsGlobales === 'function') actualizarKPIsGlobales();
+
+        console.log(`[Motor Central] Sincronización exitosa para ${tipoEntidad} [${idEntidad}]`);
+    }
+}
+        
     </script>
 
     <!-- ========================================================= -->
