@@ -1200,10 +1200,13 @@
 <!-- ========================================================= -->
 <!-- MODAL MAESTRO UNIFICADO: DETALLE DE HITO Y ALTA DE ACCIONES -->
 <!-- ========================================================= -->
+<!-- ========================================================= -->
+<!-- MODAL DE DETALLE DEL HITO (VISTA LIMPIA Y PROPORCIONADA)  -->
+<!-- ========================================================= -->
 <div id="modal-hito-fiscalizacion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
         
-        <!-- Header Oscuro -->
+        <!-- Header del Hito -->
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
@@ -1214,100 +1217,55 @@
                     <h3 id="modalFiscalTitle" class="font-bold text-base leading-snug">Compromisos y Acciones Operativas</h3>
                 </div>
             </div>
-            <button onclick="closeModal('modal-hito-fiscalizacion')" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" onclick="closeModal('modal-hito-fiscalizacion')" class="text-slate-300 hover:text-white text-lg transition"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
-        <!-- Selector de Pestañas (Wizard interno para alternar entre Detalle y Alta de Acciones) -->
-        <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
-            <button type="button" id="btnTabDetalleHito" onclick="cambiarTabModalDetalle('tab-detalle-info')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-folder-open"></i> 1. Detalle del Hito & Evidencias
-            </button>
-            <button type="button" id="btnTabNuevaAccionHito" onclick="cambiarTabModalDetalle('tab-nueva-accion-h')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
-                <i class="fa-solid fa-plus-circle"></i> 2. + Agregar Acción a este Hito
-            </button>
-        </div>
-
+        <!-- Contenido Desplazable -->
         <div class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
             
-            <!-- VISTA A: DETALLE, ESTATUS Y CARGA DRIVE -->
-            <div id="tab-detalle-info" class="space-y-4">
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                   <div class="flex items-center justify-between border-b pb-2">
-    <strong class="text-slate-900 text-sm">Compromisos Clave y Acciones Detalladas:</strong>
-    <button type="button" onclick="abrirModalAltaAccionVinculada()" class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
-        <i class="fa-solid fa-plus"></i> + Agregar Acción a este Hito
-    </button>
-</div>
-                    </div>
-                    <div id="modalFiscalDocsList" class="space-y-2"></div>
+            <!-- Tarjeta de Compromisos y Botón Puente hacia el Modal Universal -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <strong class="text-slate-900 text-sm">Compromisos Clave y Acciones Detalladas:</strong>
+                    <button type="button" onclick="abrirModalAltaAccionVinculadaDesdeDetalle()" class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition">
+                        <i class="fa-solid fa-plus"></i> + Agregar Acción a este Hito
+                    </button>
                 </div>
+                <div id="modalFiscalDocsList" class="space-y-2"></div>
+            </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Estatus del Hito:</label>
-                        <select id="modalFiscalEstatus" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
-                            <option value="En Proceso">En Proceso</option>
-                            <option value="Validación">En Validación</option>
-                            <option value="Concluido">Concluido al 100%</option>
-                        </select>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="font-bold text-slate-700">Avance General (%):</label>
-                            <span id="modalFiscalAvanceLabel" class="font-black text-indigo-700 text-sm">80%</span>
-                        </div>
-                        <input type="range" id="modalFiscalAvance" min="0" max="100" step="5" value="80" 
-                               oninput="document.getElementById('modalFiscalAvanceLabel').innerText = this.value + '%'" 
-                               class="w-full accent-indigo-600 cursor-pointer">
-                    </div>
-                </div>
-
-                <!-- Subida directa con Apps Script -->
-                <div class="border-t border-slate-200 pt-3 space-y-2">
-                    <label class="block font-bold text-slate-700 text-[11px]">Subir archivo oficial de respaldo (PDF, Excel, Word):</label>
-                    <input type="file" id="inputArchivoLocalModal" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700">
-                </div>
-
+            <!-- Controles de Estatus y Avance (Slider) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Bitácora de Observaciones Generales:</label>
-                    <textarea id="modalFiscalObs" rows="2" placeholder="Registrar comentarios generales del avance del hito..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs"></textarea>
+                    <label class="block font-bold text-slate-700 mb-1">Estatus del Hito:</label>
+                    <select id="modalFiscalEstatus" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Validación">En Validación</option>
+                        <option value="Concluido">Concluido al 100%</option>
+                    </select>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-bold text-slate-700">Avance General (%):</label>
+                        <span id="modalFiscalAvanceLabel" class="font-black text-indigo-700 text-sm">80%</span>
+                    </div>
+                    <input type="range" id="modalFiscalAvance" min="0" max="100" step="5" value="80" 
+                           oninput="document.getElementById('modalFiscalAvanceLabel').innerText = this.value + '%'" 
+                           class="w-full accent-indigo-600 cursor-pointer">
                 </div>
             </div>
 
-            <!-- VISTA B: FORMULARIO PARA AGREGAR ACCIÓN DIRECTAMENTE A ESTE HITO -->
-            <form id="tab-nueva-accion-h" onsubmit="guardarAccionDesdeModalHito(event)" class="space-y-4 hidden">
-                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 text-emerald-950 text-[11px]">
-                    <i class="fa-solid fa-link text-emerald-600 me-1"></i> La nueva acción quedará vinculada a este hito y actualizará el avance global en cascada.
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
-                    <input type="text" id="inputAccionHitoExtra" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
-                        <input type="text" id="inputRespAccionExtra" placeholder="Ej. Control Patrimonial / Jurídico" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" required>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Estatus:</label>
-                        <select id="inputEstatusAccionExtra" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold">
-                            <option value="En Proceso">En Proceso</option>
-                            <option value="Validación">En Validación</option>
-                            <option value="Concluido">Concluido al 100%</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" onclick="cambiarTabModalDetalle('tab-detalle-info')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Regresar</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm">Vincular Acción a este Hito</button>
-                </div>
-            </form>
-
+            <!-- Bitácora de Observaciones -->
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Bitácora de Observaciones Generales:</label>
+                <textarea id="modalFiscalObs" rows="2" placeholder="Registrar comentarios generales del avance del hito..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs"></textarea>
+            </div>
         </div>
 
-        <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t border-slate-200">
-            <button onclick="closeModal('modal-hito-fiscalizacion')" class="btn-executive px-5 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-            <button onclick="guardarEvidenciaFiscalizacionModal()" class="btn-executive px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md">Guardar Cambios</button>
+        <!-- Footer Proporcionado y Limpio -->
+        <div class="bg-slate-50 p-4 flex justify-end gap-3 border-t border-slate-200 shrink-0">
+            <button type="button" onclick="closeModal('modal-hito-fiscalizacion')" class="btn-executive px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">Cancelar</button>
+            <button type="button" onclick="guardarEvidenciaFiscalizacionModal()" class="btn-executive px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition">Guardar Cambios</button>
         </div>
     </div>
 </div>
