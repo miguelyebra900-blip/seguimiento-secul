@@ -1883,20 +1883,21 @@ function activarKpiNeon(elemento, tipoKpi) {
         }
 
 function renderTarjetas10Areas(avancesPorArea) {
-    // Alias de respaldo para evitar cualquier error de referencia
-window.renderTarjetas8Areas = renderTarjetas10Areas;
+            // Alias de respaldo para compatibilidad
+            window.renderTarjetas8Areas = renderTarjetas10Areas;
+
             const container = document.getElementById('contenedorTarjetas8Areas');
             if (!container) return;
             container.innerHTML = '';
             
-            // AHORA INCLUYE LOS 10 PANELES COMPLETOS (A HASTA J)
+            // LOS 10 PANELES COMPLETOS (A HASTA J)
             const paneles10 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
             paneles10.forEach(letra => {
                 const accionesArea = accionesDataset.filter(a => a.panel === letra);
                 if (accionesArea.length === 0) return;
                 const areaNombre = accionesArea[0].area;
-                const avance = avancesPorArea[letra] || 0;
+                const avance = (avancesPorArea && avancesPorArea[letra]) ? avancesPorArea[letra] : 0;
 
                 let badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
                 let badgeTexto = "En Desarrollo";
@@ -1918,13 +1919,29 @@ window.renderTarjetas8Areas = renderTarjetas10Areas;
                     badgeColor = "bg-purple-50 text-purple-700 border-purple-200";
                 }
 
+                // 1. Acumular los items de compromisos del área
                 let itemsHTML = '';
                 accionesArea.forEach(act => {
                     const iconDrive = (act.driveUrl && act.driveUrl.trim() !== '')
                         ? `<a href="${act.driveUrl}" target="_blank" class="text-emerald-600 hover:text-emerald-700 p-0.5" title="Ver en Drive"><i class="fa-brands fa-google-drive"></i></a>`
                         : `<span class="text-slate-300 p-0.5" title="Sin soporte vinculado"><i class="fa-solid fa-cloud-arrow-up"></i></span>`;
 
-                  container.innerHTML += `
+                    itemsHTML += `
+                        <div class="p-2.5 bg-slate-50/70 border border-slate-200/60 rounded-xl space-y-1">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <strong class="text-slate-800 truncate">• ${act.hito} (${act.peso}%)</strong>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <span class="font-bold ${act.avance === 100 ? 'text-emerald-600' : 'text-indigo-600'}">${act.avance}%</span>
+                                    ${iconDrive}
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500 block truncate">${act.accion}</span>
+                        </div>
+                    `;
+                });
+
+                // 2. Inyectar la tarjeta completa (una sola por área, con scroll y neón amarillo)
+                container.innerHTML += `
                     <div class="card-executive card-neon-yellow-hover bg-white rounded-3xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between">
                         <div>
                             <!-- Header de la Tarjeta -->
@@ -1954,9 +1971,8 @@ window.renderTarjetas8Areas = renderTarjetas10Areas;
                         </div>
                     </div>
                 `;
-                });
-
-              
+            }); // Cierre del paneles10.forEach
+        } // Cierre de renderTarjetas10Areas
         
        // =========================================================================
         // FILTROS Y RENDER DE MATRIZ CON SEMÁFORO DE RIESGOS (R-01 A R-05)
