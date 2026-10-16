@@ -358,9 +358,15 @@
                     Supervisión cuantitativa de los 30 compromisos normativos y dependencias del Artículo 6.
                 </p>
             </div>
-            <button onclick="actualizarDashboard()" class="btn-executive px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 self-start sm:self-auto shadow-2xs">
-                <i class="fa-solid fa-arrows-rotate text-indigo-600"></i> Actualizar Métricas
-            </button>
+           <!-- Controles de Analítica: Memoria de Cálculo y Actualizar -->
+            <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button type="button" onclick="abrirModalMemoriaCalculo()" class="btn-executive px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
+                    <i class="fa-solid fa-calculator text-indigo-600"></i> Memoria de Cálculo & Fórmulas
+                </button>
+                <button type="button" onclick="actualizarDashboard()" class="btn-executive px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
+                    <i class="fa-solid fa-arrows-rotate text-indigo-600"></i> Actualizar Métricas
+                </button>
+            </div>
         </div>
 
         <!-- Grid de las 4 Gráficas Grandes -->
@@ -833,6 +839,167 @@
 </div>
 
     </main>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL DIRECTIVO: MEMORIA DE CÁLCULO, METODOLOGÍA Y PONDERACIONES (ASEG)  -->
+    <!-- ========================================================================= -->
+    <div id="modal-memoria-calculo" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
+            
+            <!-- Header Directivo -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                Marco Metodológico Oficial
+                            </span>
+                            <span class="text-[11px] text-slate-400">Decreto No. 345 | Art. 6 Lineamientos</span>
+                        </div>
+                        <h3 class="font-extrabold text-base leading-snug mt-0.5">Memoria de Cálculo y Criterios de Ponderación</h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-memoria-calculo')" class="text-slate-400 hover:text-white text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Desplazable con las 4 Secciones Técnicas -->
+            <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+                
+                <!-- 1. RESUMEN EJECUTIVO PARA DIRECCIÓN GENERAL Y TITULAR -->
+                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4.5 space-y-2">
+                    <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-landmark text-indigo-600"></i> Propósito del Modelo Cuantitativo
+                    </h4>
+                    <p class="text-slate-600 leading-relaxed text-[11px]">
+                        Este modelo fue diseñado para brindar certeza técnica, legal y auditable durante el proceso de extinción y liquidación del IECG. Las cifras reflejadas en el Tablero Directivo no son estimaciones subjetivas; se derivan de una <strong>ponderación matemática nominal</strong> sobre las <strong>30 acciones oficiales</strong> distribuidas simétricamente en <strong>10 paneles estratégicos (A - J)</strong>.
+                    </p>
+                </div>
+
+                <!-- 2. FÓRMULA 1: AVANCE PONDERADO POR ÁREA -->
+                <div class="border border-slate-200 rounded-2xl p-4.5 space-y-3 bg-white shadow-2xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                            Fórmula 1
+                        </span>
+                        <span class="text-slate-400 text-[11px] font-semibold">Nivel Operativo por Panel</span>
+                    </div>
+                    <h5 class="text-xs font-black text-slate-900">Avance de Cumplimiento por Área Estratégica (Paneles A al J)</h5>
+                    <p class="text-[11px] text-slate-600">
+                        Cada área estratégica cuenta con un conjunto de compromisos clave tasados con un <strong>peso porcentual ($\% W_i$)</strong> cuya suma exacta dentro del área siempre es igual al <strong>100%</strong>:
+                    </p>
+                    
+                    <!-- Tarjeta de Fórmula Matemática -->
+                    <div class="bg-slate-900 text-indigo-200 p-3.5 rounded-xl font-mono-code text-xs text-center border border-slate-800">
+                        Avance Área (%) = ∑ [ Avance de la Acción (i) × ( Ponderación de la Acción (i) / 100 ) ]
+                    </div>
+
+                    <div class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-100 text-[11px] text-indigo-950 space-y-1">
+                        <strong>Ejemplo práctico (Panel B - Asuntos Jurídicos & Contencioso):</strong>
+                        <ul class="list-disc list-inside space-y-0.5 text-slate-700 text-[10px] pl-1">
+                            <li>JUR_C-H-0001 (Acta Sesión): 75% avance × 40.00% peso = <strong>30.00%</strong></li>
+                            <li>JUR_C-H-0002 (Sustitución Procesal): 40% avance × 30.00% peso = <strong>12.00%</strong></li>
+                            <li>JUR_C-H-0003 (Marco Legal ASEG): 100% avance × 30.00% peso = <strong>30.00%</strong></li>
+                            <li class="font-bold text-indigo-900 mt-1">Avance Consolidado del Panel B = 30.00 + 12.00 + 30.00 = <strong>72%</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 3. FÓRMULA 2: AVANCE GLOBAL INSTITUCIONAL -->
+                <div class="border border-slate-200 rounded-2xl p-4.5 space-y-3 bg-white shadow-2xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                            Fórmula 2
+                        </span>
+                        <span class="text-slate-400 text-[11px] font-semibold">Nivel Institucional Gob. del Estado</span>
+                    </div>
+                    <h5 class="text-xs font-black text-slate-900">Avance Ponderado Global de la Extinción Institucional (KPI 1)</h5>
+                    <p class="text-[11px] text-slate-600">
+                        Para salvaguardar la equidad interinstitucional y que ningún área disfrace el rezago de otra, las <strong>10 áreas estratégicas (A a la J)</strong> tienen exactamente la misma representatividad directiva ($10\%$ de la liquidación global cada una):
+                    </p>
+
+                    <!-- Tarjeta de Fórmula Global -->
+                    <div class="bg-slate-900 text-emerald-300 p-3.5 rounded-xl font-mono-code text-xs text-center border border-slate-800">
+                        Avance Global (%) = ( Avance Panel A + Avance Panel B + ... + Avance Panel J ) / 10
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 italic">
+                        Esto asegura que un área concluida al 100% no sobreestime el avance si subsisten contingencias críticas en áreas patrimoniales o fiscales.
+                    </p>
+                </div>
+
+                <!-- 4. GOBERNANZA ARTÍCULO 6 Y CRITERIO DE SALVEDAD LEGAL -->
+                <div class="border border-slate-200 rounded-2xl p-4.5 space-y-3 bg-amber-50/40 border-amber-200/80">
+                    <h5 class="text-xs font-black text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-amber-600"></i>
+                        Criterio de Justificación Legal: Artículo 6 de los Lineamientos
+                    </h5>
+                    <p class="text-[11px] text-amber-900 leading-relaxed">
+                        En las auditorías de la ASEG o revisiones de Gabinete, las acciones en estatus de <strong>«Validación»</strong> o <strong>«En Proceso»</strong> que dependen de entidades externas (SAT, Fiduciaria Banorte, Finanzas, Consejería del Ejecutivo) están tipificadas como <strong>Salvedad por Tercero (Art. 6)</strong>. Esto demuestra que la falta de conclusión no obedece a inacción del organismo liquidador, sino al tiempo de respuesta del tercero formalmente notificado.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-[10px]">
+                        <div class="bg-white p-2.5 rounded-xl border border-amber-200">
+                            <strong class="text-slate-800 block mb-0.5">🟢 Interna (100% Control):</strong>
+                            <span class="text-slate-500">Bajo control técnico directo del liquidador y enlaces.</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-xl border border-amber-200">
+                            <strong class="text-indigo-900 block mb-0.5">🏛️ Tercero Estatal:</strong>
+                            <span class="text-slate-500">Trámites radicados en Finanzas, DGRH, DGTIT, AGEG.</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-xl border border-amber-200">
+                            <strong class="text-rose-900 block mb-0.5">⚖️ Tercero Externo / Federal:</strong>
+                            <span class="text-slate-500">Baja SAT Celaya, Adenda Banorte, Juzgados Civiles.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TABLA RESUMEN DE PONDERACIONES ACTUALES POR PANEL -->
+                <div>
+                    <h5 class="text-xs font-black text-slate-900 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-indigo-600"></i>
+                        Matriz de Ponderación Vigente por Panel (10 Áreas)
+                    </h5>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-[11px] text-slate-700">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[9px] tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5 text-center">Panel</th>
+                                    <th class="p-2.5">Área Estratégica</th>
+                                    <th class="p-2.5 text-center">No. Acciones</th>
+                                    <th class="p-2.5 text-center">Ponderación Interna</th>
+                                    <th class="p-2.5 text-center">Aporte al Global</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyMemoriaAreas" class="divide-y divide-slate-100 font-medium">
+                                <!-- Poblado automáticamente por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer con Botones de Cierre e Impresión -->
+            <div class="bg-slate-50 p-4 flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-slate-200 shrink-0">
+                <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved text-indigo-600"></i> Metodología validada para informes ante ASEG y SECUL
+                </span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="window.print()" class="btn-executive px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-print"></i> Imprimir Ficha Metodológica
+                    </button>
+                    <button type="button" onclick="closeModal('modal-memoria-calculo')" class="btn-executive px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs">
+                        Entendido / Cerrar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <!-- MODAL DE INICIO: MATRIZ DE RIESGOS DIRECTIVOS -->
     <div id="modal-riesgos-inicio" class="fixed inset-0 z-50 modal-glass flex items-center justify-center p-4">
@@ -3064,6 +3231,38 @@ window.addEventListener('DOMContentLoaded', () => {
 
             // Duplicamos el contenido (2x) para crear un loop de desplazamiento infinito perfecto
             track.innerHTML = htmlItems + htmlItems;
+        }
+
+// =========================================================================
+        // APERTURA Y RENDER DINÁMICO DE LA MEMORIA DE CÁLCULO DIRECTIVA
+        // =========================================================================
+        function abrirModalMemoriaCalculo() {
+            const tbody = document.getElementById('tbodyMemoriaAreas');
+            if (tbody) {
+                const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+                tbody.innerHTML = '';
+
+                paneles.forEach(p => {
+                    const acciones = accionesDataset.filter(a => a.panel === p);
+                    if (acciones.length === 0) return;
+                    const nombreArea = acciones[0].area;
+                    
+                    // Suma nominal de ponderaciones de las acciones del panel
+                    const sumaPesos = acciones.reduce((acc, curr) => acc + (Number(curr.peso) || 0), 0);
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="p-2.5 text-center font-bold text-indigo-700">${p}</td>
+                            <td class="p-2.5 font-semibold text-slate-900">${nombreArea}</td>
+                            <td class="p-2.5 text-center font-mono">${acciones.length}</td>
+                            <td class="p-2.5 text-center font-mono font-bold text-slate-700">${Math.round(sumaPesos)}%</td>
+                            <td class="p-2.5 text-center font-mono font-bold text-indigo-600">10.0%</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            openModal('modal-memoria-calculo');
         }
         
 </script>
