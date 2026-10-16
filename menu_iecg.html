@@ -2131,6 +2131,7 @@ window.renderTarjetas8Areas = renderTarjetas10Areas;
                 `;
             });
         }
+                
         function poblarSelectBuzon(idSeleccionado = null) {
             const select = document.getElementById('buzonSelectAccion');
             if(!select) return;
@@ -2162,10 +2163,9 @@ window.renderTarjetas8Areas = renderTarjetas10Areas;
     if (lblDocReq) lblDocReq.innerText = act.docRequerido || "Documento oficial requerido";
     if (inputAvance) inputAvance.value = act.avance;
     if (inputEstatus) inputEstatus.value = act.estatus;
- 
         }
 
-        function abrirBuzonCargaUniversal() { poblarSelectBuzon(); openModal('modal-buzon-universal'); }
+function abrirBuzonCargaUniversal() { poblarSelectBuzon(); openModal('modal-buzon-universal'); }
 
 // =========================================================================
 // ABRIR MODAL UNIVERSAL DIRECTO EN PESTAÑA 2 FILTRADO POR EL PANEL SELECCIONADO
@@ -2204,7 +2204,6 @@ function abrirBuzonRapidoArea(letraPanel) {
     openModal('modal-buzon-universal');
 }
         
-
         function cargarAccionEnBuzonDirecto(accionId, riesgoId = null) {
     // Si viene de un modal previo, lo cerramos
     if (document.getElementById('modal-riesgos-inicio')) closeModal('modal-riesgos-inicio');
@@ -2926,7 +2925,7 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
                            claveHito.includes('FIN_P') ? 'F' :
                            claveHito.includes('FID_F') ? 'D' :
                            claveHito.includes('PTR_I') ? 'C' : 'B';
-        const itemPanel = accionesDataset.find(a => a.panel === panelLetra);
+      const itemPanel = accionesDataset.find(a => a.panel === panelLetra);
         if (itemPanel) {
             abrirModalDesdeGrafica(itemPanel.id);
         } else {
@@ -2934,7 +2933,12 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
         }
     }
 }
-        
-    </script>
+
+// INICIALIZACIÓN COMPLETA DEL DASHBOARD AL CARGAR EL DOM
+window.addEventListener('DOMContentLoaded', () => {
+    mostrarSeccionTab('tab-dashboard');
+    actualizarDashboard();
+});
+</script>
 </body>
 </html>
