@@ -1778,8 +1778,8 @@ function activarKpiNeon(elemento, tipoKpi) {
             window.open(`https://drive.google.com/drive/folders/${idFolder}`, '_blank');
         };
 
-        // SUBIDA ASÍNCRONA A GOOGLE DRIVE VÍA APPS SCRIPT
-        window.subirArchivoADrive = async function(file, panelLetra) {
+    // SUBIDA ASÍNCRONA A GOOGLE DRIVE CON NOMENCLATURA CANÓNICA
+        window.subirArchivoADrive = async function(file, panelLetra, nombrePersonalizado = null) {
             if (!file) throw new Error("No se ha seleccionado ningún archivo.");
 
             const base64 = await new Promise((resolve, reject) => {
@@ -1789,9 +1789,12 @@ function activarKpiNeon(elemento, tipoKpi) {
                 reader.readAsDataURL(file);
             });
 
+            // Si viene un nombre con clave oficial se usa ese, sino el nombre original
+            const nombreArchivoFinal = nombrePersonalizado ? nombrePersonalizado : file.name;
+
             const payload = {
                 accion: 'subirArchivo',
-                fileName: file.name,
+                fileName: nombreArchivoFinal,
                 mimeType: file.type || 'application/octet-stream',
                 fileData: 'data:' + (file.type || 'application/octet-stream') + ';base64,' + base64,
                 panel: (panelLetra || 'A').toUpperCase()
@@ -1808,7 +1811,6 @@ function activarKpiNeon(elemento, tipoKpi) {
             }
             return data.fileUrl;
         };
-
         // 1. CONEXIÓN A SUPABASE Y ESTADO DE SESIÓN
         const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
@@ -2396,17 +2398,26 @@ function renderTarjetas10Areas(avancesPorArea) {
             });
         }
                 
+// =========================================================================
+        // POBLAR SELECTOR Y DISPARAR CÁLCULO DE FOLIO DE ACCIÓN DE INMEDIATO
+        // =========================================================================
         function poblarSelectBuzon(idSeleccionado = null) {
             const select = document.getElementById('buzonSelectAccion');
-            if(!select) return;
+            if (!select) return;
             select.innerHTML = '';
+            
             accionesDataset.forEach(a => {
                 const opt = document.createElement('option');
-                opt.value = a.id;
-                opt.textContent = `[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 50)}...`;
-                if (idSeleccionado && a.id === idSeleccionado) opt.selected = true;
+                opt.value = a.clave_accion || a.id;
+                opt.textContent = `[${a.clave_accion || a.id}] ${a.hito} - ${a.accion.slice(0, 45)}...`;
+                if (idSeleccionado && (a.id === idSeleccionado || a.clave_accion === idSeleccionado)) {
+                    opt.selected = true;
+                }
                 select.appendChild(opt);
             });
+
+            // Dispara de inmediato la previsualización de la clave
+            actualizarFolioAccionSugerido();
             actualizarInfoAccionBuzon();
         }
 
@@ -2429,12 +2440,15 @@ function renderTarjetas10Areas(avancesPorArea) {
     if (inputEstatus) inputEstatus.value = act.estatus;
         }
 
-function abrirBuzonCargaUniversal() {
-    if (typeof poblarSelectBuzon === 'function') poblarSelectBuzon();
-    actualizarFolioSiguienteSugerido(); // Escribe el folio de Hito (Pestaña 1)
-    actualizarFolioAccionSugerido();    // Escribe el folio de Acción (Pestaña 2)
-    openModal('modal-buzon-universal');
-}
+// =========================================================================
+        // APERTURA DEL MODAL UNIVERSAL CON ASIGNACIÓN DE FOLIOS FORZADA
+        // =========================================================================
+        function abrirBuzonCargaUniversal() {
+            poblarSelectBuzon();
+            actualizarFolioSiguienteSugerido(); // Llena el Folio Hito (Pestaña 1)
+            actualizarFolioAccionSugerido();    // Llena el Folio Acción (Pestaña 2)
+            openModal('modal-buzon-universal');
+        }
 // =========================================================================
 // ABRIR MODAL UNIVERSAL DIRECTO EN PESTAÑA 2 FILTRADO POR EL PANEL SELECCIONADO
 // =========================================================================
@@ -2506,57 +2520,65 @@ function abrirBuzonRapidoArea(letraPanel) {
         function abrirCarpetaActualDesdeBuzon() { const act = accionesDataset.find(a => a.id === document.getElementById('buzonSelectAccion').value); if (act) window.abrirCarpetaDrivePanel(act.panel); }
 
         // CONTROLADOR DE SUBIDA AUTOMÁTICA DESDE EL BUZÓN UNIVERSAL
-    async function ejecutarCargaUniversal(e) {
-    e.preventDefault();
-    
-    const accionId = document.getElementById('buzonSelectAccion').value;
-    const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
-    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value) || 100;
-    const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
-    const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
-    const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
+   // =========================================================================
+        // GUARDAR ACCIÓN Y SUBIR A DRIVE CON NOMBRE NOMINAL OFICIAL
+        // =========================================================================
+        async function ejecutarCargaUniversal(e) {
+            e.preventDefault();
+            
+            const accionId = document.getElementById('buzonSelectAccion').value;
+            const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || accionId;
+            const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
+            const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
+            const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
+            const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
+            const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
-    const act = accionesDataset.find(a => a.id === accionId);
-    if (!act) return;
+            const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
+            if (!act) return;
 
-    let driveUrlFinal = act.driveUrl || '';
-    const fileInput = document.getElementById('buzonFileInputAccion');
-    
-    const btnSubmit = document.getElementById('btnSubmitBuzon');
-    if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive...';
-    }
+            let driveUrlFinal = act.driveUrl || '';
+            const fileInput = document.getElementById('buzonFileInputAccion');
+            
+            const btnSubmit = document.getElementById('btnSubmitBuzon');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo con Clave a Drive...';
+            }
 
-    try {
-        // Si el usuario adjuntó un archivo físico, se sube automáticamente a la carpeta de Drive del Panel
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            driveUrlFinal = await window.subirArchivoADrive(fileInput.files[0], act.panel);
+            try {
+                // Subir a Drive anteponiendo la clave del sistema al nombre del archivo
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    const archivoFisico = fileInput.files[0];
+                    // Formato institucional: [CLAVE_ACCION] Nombre_Original.pdf
+                    const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
+                    
+                    driveUrlFinal = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
+                }
+
+                // Actualizar o insertar la acción en el dataset
+                act.estatus = nuevoEstatus;
+                act.avance = nuevoAvance;
+                act.driveUrl = driveUrlFinal;
+                if (tituloAccion) act.accion = tituloAccion;
+                if (respAccion) act.responsable = respAccion;
+                if (notaAuditoria) act.observaciones = notaAuditoria;
+                
+                guardarDataset();
+
+                alert(`¡Acción guardada y respaldada en Google Drive exitosamente!\n\n• Clave: ${claveAccionFinal}\n• Archivo: [${claveAccionFinal}] ${fileInput?.files[0]?.name || ''}`);
+                closeModal('modal-buzon-universal');
+                
+                actualizarDashboard();
+            } catch (err) {
+                alert("Error al procesar la subida a Google Drive: " + err.message);
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Propagar Cambios';
+                }
+            }
         }
-
-        // Actualizar el registro en el dataset
-        act.estatus = nuevoEstatus;
-        act.avance = nuevoAvance;
-        act.driveUrl = driveUrlFinal;
-        if (tituloAccion) act.accion = tituloAccion;
-        if (respAccion) act.responsable = respAccion;
-        if (notaAuditoria) act.observaciones = notaAuditoria;
-        
-        guardarDataset();
-
-        alert(`¡Acción guardada, documento respaldado en Google Drive y cambios propagados exitosamente!`);
-        closeModal('modal-buzon-universal');
-        
-        actualizarDashboard();
-    } catch (err) {
-        alert("Error al procesar la subida a Google Drive: " + err.message);
-    } finally {
-        if (btnSubmit) {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Propagar Cambios';
-        }
-    }
-}
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
         const fileInput = document.getElementById('buzonFileInput');
@@ -2843,26 +2865,32 @@ function renderListaCompromisosDetalle(act) {
             actualizarDashboard();
         });
 
-     function cambiarTabModalUniversal(tabId) {
-    const isHito = (tabId === 'tab-hitos');
-    const tabHitos = document.getElementById('tab-hitos');
-    const tabAccion = document.getElementById('tab-accion');
-    
-    if (tabHitos) tabHitos.classList.toggle('hidden', !isHito);
-    if (tabAccion) tabAccion.classList.toggle('hidden', isHito);
+     // =========================================================================
+        // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
+        // =========================================================================
+        function cambiarTabModalUniversal(tabId) {
+            const isHito = (tabId === 'tab-hitos');
+            const tabHitos = document.getElementById('tab-hitos');
+            const tabAccion = document.getElementById('tab-accion');
+            
+            if (tabHitos) tabHitos.classList.toggle('hidden', !isHito);
+            if (tabAccion) tabAccion.classList.toggle('hidden', isHito);
 
-    const btnHito = document.getElementById('btnTabHito');
-    const btnAccion = document.getElementById('btnTabAccion');
+            const btnHito = document.getElementById('btnTabHito');
+            const btnAccion = document.getElementById('btnTabAccion');
 
-    if (isHito) {
-        if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
-        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
-    } else {
-        if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
-        if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
-    }
-}
-        
+            if (isHito) {
+                if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+                if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+                // Calcula el folio del hito para que no se quede colgado
+                actualizarFolioSiguienteSugerido();
+            } else {
+                if (btnAccion) btnAccion.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5";
+                if (btnHito) btnHito.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300";
+                // Calcula el folio de la acción asociada de inmediato
+                actualizarFolioAccionSugerido();
+            }
+        }
 // =========================================================================
 // 1. GUARDAR NUEVO HITO / ACCIÓN DESDE EL MODAL MAESTRO (CON PONDERACIÓN)
 // =========================================================================
@@ -3326,15 +3354,27 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-function actualizarFolioAccionSugerido() {
-    const selectPadre = document.getElementById('buzonSelectAccion');
-    const inputAccion = document.getElementById('nuevaAccionClavePreview');
-    if (selectPadre && inputAccion) {
-        const val = selectPadre.value;
-        const act = accionesDataset.find(a => (a.clave_accion === val) || (a.id === val));
-        const claveHito = act ? (act.clave_hito || act.id.split('-A-')[0]) : val;
-        inputAccion.value = obtenerSiguienteClaveAccion(claveHito);
-    }
+// =========================================================================
+        // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
+        // =========================================================================
+        function actualizarFolioAccionSugerido() {
+            const selectPadre = document.getElementById('buzonSelectAccion');
+            const inputAccion = document.getElementById('nuevaAccionClavePreview');
+            if (!selectPadre || !inputAccion) return;
+
+            const valSeleccionado = selectPadre.value;
+            if (!valSeleccionado) {
+                inputAccion.value = "SELECCIONA UN HITO...";
+                return;
+            }
+
+            // Encontrar el registro o extraer el hito base
+            const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
+            const claveHitoBase = act ? (act.clave_hito || act.id.split('-A-')[0]) : valSeleccionado.split('-A-')[0];
+
+            // Generar la siguiente acción para ese hito específico
+            inputAccion.value = obtenerSiguienteClaveAccion(claveHitoBase);
+        }
 }
         
 </script>
