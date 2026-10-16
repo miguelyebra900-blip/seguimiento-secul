@@ -148,7 +148,7 @@
         <i class="fa-solid fa-chart-pie me-1.5"></i> Tablero Directivo
     </button>
     <button type="button" onclick="mostrarSeccionTab('tab-areas')" id="btnNavAreas" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
-        <i class="fa-solid fa-layer-group me-1.5 text-indigo-500"></i> Hitos por Área (8 Áreas)
+        <i class="fa-solid fa-layer-group me-1.5 text-indigo-500"></i> Hitos por Área (10 Áreas)
     </button>
     <button type="button" onclick="mostrarSeccionTab('tab-matriz')" id="btnNavMatriz" class="btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
         <i class="fa-solid fa-list-check me-1.5 text-slate-500"></i> Matriz Completa (30 Acciones)
@@ -354,16 +354,18 @@
         <div id="tab-areas" class="space-y-6 hidden">
             <div class="border-b border-slate-200/80 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-indigo-600"></i> Hitos Operativos y Compromisos por Área Estratégica (8 Áreas)
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                        Monitoreo focalizado de los Paneles A al H. Cada tarjeta despliega sus acciones ponderadas y permite cargar evidencias directamente a su carpeta de Drive.
-                    </p>
-                </div>
-                <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl self-start sm:self-auto">
-                    Conexión Drive A - H Activa
-                </span>
+                <!-- Donde dice (8 Áreas) cámbialo a (10 Áreas): -->
+            <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-indigo-600"></i> Hitos Operativos y Compromisos por Área Estratégica (10 Áreas)
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+    Monitoreo focalizado de los Paneles A al J. Cada tarjeta despliega sus acciones ponderadas y permite cargar evidencias directamente a su carpeta de Drive.
+</p>
+
+<!-- Y el badge de la derecha cámbialo a: -->
+<span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl self-start sm:self-auto">
+    Conexión Drive A - J Activa
+</span>
 
             </div>
 
@@ -376,9 +378,7 @@
         <!-- ================================================================= -->
         <!-- SECCIÓN 2: MATRIZ MAESTRA COMPLETA (30 ACCIONES)                  -->
         <!-- ================================================================= -->
-        <!-- ================================================================= -->
-        <!-- SECCIÓN 2: MATRIZ MAESTRA COMPLETA (30 ACCIONES)                  -->
-        <!-- ================================================================= -->
+
         <div id="tab-matriz" class="space-y-6 hidden">
             <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-7 space-y-5">
                 
@@ -1842,18 +1842,20 @@ function activarKpiNeon(elemento, tipoKpi) {
             document.getElementById('kpiDocsAcreditadosTop').innerText = `${metricas.docsAcreditados} / 30`;
             document.getElementById('kpiTercerosTop').innerText = `${metricas.enEsperaTerceros} Acciones`;
 
-            renderTarjetas8Areas(metricas.avancesPorArea);
+            renderTarjetas10Areas(metricas.avancesPorArea);
             renderTablaMatriz();
             renderCharts(metricas);
         }
 
-        function renderTarjetas8Areas(avancesPorArea) {
+function renderTarjetas8Areas(avancesPorArea) {
             const container = document.getElementById('contenedorTarjetas8Areas');
             if (!container) return;
             container.innerHTML = '';
-            const paneles8 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            
+            // AHORA INCLUYE LOS 10 PANELES COMPLETOS (A HASTA J)
+            const paneles10 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
-            paneles8.forEach(letra => {
+            paneles10.forEach(letra => {
                 const accionesArea = accionesDataset.filter(a => a.panel === letra);
                 if (accionesArea.length === 0) return;
                 const areaNombre = accionesArea[0].area;
@@ -1861,6 +1863,7 @@ function activarKpiNeon(elemento, tipoKpi) {
 
                 let badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
                 let badgeTexto = "En Desarrollo";
+                
                 if (avance === 100) {
                     badgeTexto = "Concluido";
                     badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
@@ -1870,6 +1873,12 @@ function activarKpiNeon(elemento, tipoKpi) {
                 } else if (letra === 'F') {
                     badgeTexto = "Cierre SAT (R-02)";
                     badgeColor = "bg-amber-50 text-amber-700 border-amber-200";
+                } else if (letra === 'I') {
+                    badgeTexto = "Fiscalización (ASEG)";
+                    badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-200";
+                } else if (letra === 'J') {
+                    badgeTexto = "Gobernanza";
+                    badgeColor = "bg-purple-50 text-purple-700 border-purple-200";
                 }
 
                 let itemsHTML = '';
@@ -1896,7 +1905,7 @@ function activarKpiNeon(elemento, tipoKpi) {
                     <div class="card-executive bg-white rounded-3xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-3">
-                                <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 font-black flex items-center justify-center text-xs border border-indigo-100">${letra}</span>
+                                <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 font-black flex items-center justify-center text-xs border border-indigo-100">${letra}</span>
                                 <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}">${badgeTexto}</span>
                             </div>
                             <h3 class="font-bold text-slate-900 text-sm leading-snug">${areaNombre}</h3>
@@ -1914,7 +1923,7 @@ function activarKpiNeon(elemento, tipoKpi) {
                 `;
             });
         }
-
+        
        // =========================================================================
         // FILTROS Y RENDER DE MATRIZ CON SEMÁFORO DE RIESGOS (R-01 A R-05)
         // =========================================================================
