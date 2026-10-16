@@ -725,123 +725,174 @@
             <div class="p-6 overflow-y-auto space-y-4">
                 <div class="overflow-x-auto border border-slate-200/80 rounded-2xl shadow-2xs">
                     <table class="w-full text-left text-xs text-slate-700">
-                        <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-200">
-                            <tr>
-                                <th class="p-3.5">ID</th>
-                                <th class="p-3.5">Área</th>
-                                <th class="p-3.5">Riesgo Crítico y Causa Raíz</th>
-                                <th class="p-3.5 text-center">Nivel</th>
-                                <th class="p-3.5">Estrategia de Mitigación Inmediata</th>
-                                <th class="p-3.5 text-center">Acción Directa</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-medium">
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="p-3.5 font-mono font-bold text-rose-600">
-                                    <span class="px-2 py-1 rounded-md bg-rose-50 border border-rose-200">R-01</span>
-                                </td>
-                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Control Patrimonial</td>
-                                <td class="p-3.5 text-slate-800 leading-snug">
-                                    <strong>2,570 bienes muebles no localizados</strong> de 20,658 (PAICE, Orquestas, Huatzindeo Salvatierra). Riesgo de pliego de observaciones ASF/ASEG.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">ALTO</span>
-                                </td>
-                                <td class="p-3.5 text-slate-600 leading-snug">
-                                    Brigadas de búsqueda física, archivo histórico para facturas y actas de baja por desuso ante Control Patrimonial.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <button onclick="cargarAccionEnBuzonDirecto('PTR_M-H-0001-A-0001', 'R-01')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
-                                    </button>
-                                </td>
-                            </tr>
+    <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-200">
+        <tr>
+            <th class="p-3.5 text-center whitespace-nowrap">ID Riesgo</th>
+            <th class="p-3.5 whitespace-nowrap">Hito Rector Vinculado</th>
+            <th class="p-3.5 whitespace-nowrap">Área / Panel</th>
+            <th class="p-3.5 min-w-[260px]">Riesgo Crítico y Causa Raíz</th>
+            <th class="p-3.5 text-center whitespace-nowrap">Nivel</th>
+            <th class="p-3.5 min-w-[240px]">Estrategia de Mitigación Inmediata</th>
+            <th class="p-3.5 text-center whitespace-nowrap">Gestión & Evidencia</th>
+        </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 font-medium">
+        <!-- R-01 -->
+        <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 font-mono font-bold text-rose-700 text-xs shadow-2xs">
+                    R-01
+                </span>
+            </td>
+            <td class="p-3.5 whitespace-nowrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] border border-indigo-100">E</span>
+                    <span class="font-mono font-bold text-indigo-900 text-xs">PTR_M-H-0001</span>
+                </div>
+                <span class="text-[10px] text-slate-500 block mt-0.5">Búsqueda de 2,570 Faltantes</span>
+            </td>
+            <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Control Patrimonial</td>
+            <td class="p-3.5 text-slate-800 leading-snug">
+                <strong>2,570 bienes muebles no localizados</strong> de 20,658 (PAICE, Orquestas, Huatzindeo Salvatierra). Riesgo de pliego de observaciones ASF/ASEG.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">ALTO</span>
+            </td>
+            <td class="p-3.5 text-slate-600 leading-snug">
+                Brigadas de búsqueda física, archivo histórico para facturas y actas de baja por desuso ante Control Patrimonial.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <button type="button" onclick="gestionarRiesgoDesdeHito('PTR_M-H-0001', 'R-01')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Hito & Acciones
+                </button>
+            </td>
+        </tr>
 
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="p-3.5 font-mono font-bold text-amber-600">
-                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-02</span>
-                                </td>
-                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Fiscal / SAT</td>
-                                <td class="p-3.5 text-slate-800 leading-snug">
-                                    Impedimento para cancelar RFC ante SAT por cuentas residuales activas e impuestos pendientes de dispersión de nómina.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
-                                </td>
-                                <td class="p-3.5 text-slate-600 leading-snug">
-                                    Liquidar retenciones pendientes, cancelar cuentas residuales (BBVA, Salamanca, Ocampo) y acudir a cita en SAT Celaya.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <button onclick="cargarAccionEnBuzonDirecto('FIN_P-H-0003-A-0001', 'R-02')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
-                                    </button>
-                                </td>
-                            </tr>
+        <!-- R-02 -->
+        <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 font-mono font-bold text-amber-700 text-xs shadow-2xs">
+                    R-02
+                </span>
+            </td>
+            <td class="p-3.5 whitespace-nowrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] border border-indigo-100">F</span>
+                    <span class="font-mono font-bold text-indigo-900 text-xs">FIN_P-H-0003</span>
+                </div>
+                <span class="text-[10px] text-slate-500 block mt-0.5">Baja de RFC ante el SAT</span>
+            </td>
+            <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Fiscal / SAT</td>
+            <td class="p-3.5 text-slate-800 leading-snug">
+                Impedimento para cancelar RFC ante SAT por cuentas residuales activas e impuestos pendientes de dispersión de nómina.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+            </td>
+            <td class="p-3.5 text-slate-600 leading-snug">
+                Liquidar retenciones pendientes, cancelar cuentas residuales (BBVA, Salamanca, Ocampo) y acudir a cita en SAT Celaya.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <button type="button" onclick="gestionarRiesgoDesdeHito('FIN_P-H-0003', 'R-02')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Hito & Acciones
+                </button>
+            </td>
+        </tr>
 
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="p-3.5 font-mono font-bold text-amber-600">
-                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-03</span>
-                                </td>
-                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Jurídica / FIARCA</td>
-                                <td class="p-3.5 text-slate-800 leading-snug">
-                                    Pasivos y operatividad en Sitios Arqueológicos tramitados indebidamente bajo IEC tras Decreto Gub. 19.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
-                                </td>
-                                <td class="p-3.5 text-slate-600 leading-snug">
-                                    Urgir a Fiduciaria Banorte y Consejería Jurídica la firma del 2do Convenio Modificatorio a favor de la SCUL.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <button onclick="cargarAccionEnBuzonDirecto('FID_F-H-0001-A-0001', 'R-03')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
-                                    </button>
-                                </td>
-                            </tr>
+        <!-- R-03 -->
+        <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 font-mono font-bold text-amber-700 text-xs shadow-2xs">
+                    R-03
+                </span>
+            </td>
+            <td class="p-3.5 whitespace-nowrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] border border-indigo-100">D</span>
+                    <span class="font-mono font-bold text-indigo-900 text-xs">FID_F-H-0001</span>
+                </div>
+                <span class="text-[10px] text-slate-500 block mt-0.5">Convenio Modificatorio Banorte</span>
+            </td>
+            <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Jurídica / FIARCA</td>
+            <td class="p-3.5 text-slate-800 leading-snug">
+                Pasivos y operatividad en Sitios Arqueológicos tramitados indebidamente bajo IEC tras Decreto Gub. 19.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+            </td>
+            <td class="p-3.5 text-slate-600 leading-snug">
+                Urgir a Fiduciaria Banorte y Consejería Jurídica la firma del 2do Convenio Modificatorio a favor de la SCUL.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <button type="button" onclick="gestionarRiesgoDesdeHito('FID_F-H-0001', 'R-03')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Hito & Acciones
+                </button>
+            </td>
+        </tr>
 
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="p-3.5 font-mono font-bold text-amber-600">
-                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-04</span>
-                                </td>
-                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Patrimonio Inmueble</td>
-                                <td class="p-3.5 text-slate-800 leading-snug">
-                                    Falta de certeza jurídica y acuerdos de destino en recintos históricos y predios que operaba el Instituto.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
-                                </td>
-                                <td class="p-3.5 text-slate-600 leading-snug">
-                                    Instruir a Dirección General Jurídica la formalización prioritaria de Acuerdos de Destino con Consejería del Ejecutivo.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <button onclick="cargarAccionEnBuzonDirecto('PTR_I-H-0002-A-0001', 'R-04')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
-                                    </button>
-                                </td>
-                            </tr>
+        <!-- R-04 -->
+        <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 font-mono font-bold text-amber-700 text-xs shadow-2xs">
+                    R-04
+                </span>
+            </td>
+            <td class="p-3.5 whitespace-nowrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] border border-indigo-100">C</span>
+                    <span class="font-mono font-bold text-indigo-900 text-xs">PTR_I-H-0002</span>
+                </div>
+                <span class="text-[10px] text-slate-500 block mt-0.5">Acuerdos de Destino</span>
+            </td>
+            <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Patrimonio Inmueble</td>
+            <td class="p-3.5 text-slate-800 leading-snug">
+                Falta de certeza jurídica y acuerdos de destino en recintos históricos y predios que operaba el Instituto.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+            </td>
+            <td class="p-3.5 text-slate-600 leading-snug">
+                Instruir a Dirección General Jurídica la formalización prioritaria de Acuerdos de Destino con Consejería del Ejecutivo.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <button type="button" onclick="gestionarRiesgoDesdeHito('PTR_I-H-0002', 'R-04')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Hito & Acciones
+                </button>
+            </td>
+        </tr>
 
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="p-3.5 font-mono font-bold text-amber-600">
-                                    <span class="px-2 py-1 rounded-md bg-amber-50 border border-amber-200">R-05</span>
-                                </td>
-                                <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Gobierno / Control</td>
-                                <td class="p-3.5 text-slate-800 leading-snug">
-                                    Invalidez técnica del acta del 10/Dic/2025 al constar como borrador carente de firmas autógrafas.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
-                                </td>
-                                <td class="p-3.5 text-slate-600 leading-snug">
-                                    Circular inmediatamente el acta protocolizada para recabar firmas de Finanzas, Honestidad, Jurídico y SCUL.
-                                </td>
-                                <td class="p-3.5 text-center whitespace-nowrap">
-                                    <button onclick="cargarAccionEnBuzonDirecto('JUR_C-H-0001-A-0001', 'R-05')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Soporte
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <!-- R-05 -->
+        <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 font-mono font-bold text-amber-700 text-xs shadow-2xs">
+                    R-05
+                </span>
+            </td>
+            <td class="p-3.5 whitespace-nowrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] border border-indigo-100">B</span>
+                    <span class="font-mono font-bold text-indigo-900 text-xs">JUR_C-H-0001</span>
+                </div>
+                <span class="text-[10px] text-slate-500 block mt-0.5">Acta de Sesión de Prórroga</span>
+            </td>
+            <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">Gobierno / Control</td>
+            <td class="p-3.5 text-slate-800 leading-snug">
+                Invalidez técnica del acta del 10/Dic/2025 al constar como borrador carente de firmas autógrafas.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">MEDIO</span>
+            </td>
+            <td class="p-3.5 text-slate-600 leading-snug">
+                Circular inmediatamente el acta protocolizada para recabar firmas de Finanzas, Honestidad, Jurídico y SCUL.
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+                <button type="button" onclick="gestionarRiesgoDesdeHito('JUR_C-H-0001', 'R-05')" class="btn-executive px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[11px] shadow-2xs flex items-center gap-1.5 mx-auto">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Hito & Acciones
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
                 </div>
 
                 <div class="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
@@ -2564,6 +2615,34 @@ function subirEvidenciaDesdeDetalle(idAccion) {
     openModal('modal-buzon-universal');
     if (typeof cambiarTabModalUniversal === 'function') {
         cambiarTabModalUniversal('tab-accion');
+    }
+}
+
+// =========================================================================
+// FUNCIÓN PUENTE: VINCULAR MATRIZ DE RIESGOS CON SU HITO RECTOR Y ACCIONES
+// =========================================================================
+function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
+    // 1. Cerrar el modal inicial de riesgos
+    closeModal('modal-riesgos-inicio');
+
+    // 2. Localizar el registro del hito en el dataset oficial
+    const registro = accionesDataset.find(a => (a.clave_hito === claveHito) || (a.id === claveHito) || (a.id.startsWith(claveHito)));
+    
+    if (registro) {
+        // Abre el modal de detalle del hito con sus acciones y botón + Agregar Acción
+        abrirModalDesdeGrafica(registro.id);
+    } else {
+        // En caso de que no exista localmente, busca por panel
+        const panelLetra = claveHito.includes('PTR_M') ? 'E' :
+                           claveHito.includes('FIN_P') ? 'F' :
+                           claveHito.includes('FID_F') ? 'D' :
+                           claveHito.includes('PTR_I') ? 'C' : 'B';
+        const itemPanel = accionesDataset.find(a => a.panel === panelLetra);
+        if (itemPanel) {
+            abrirModalDesdeGrafica(itemPanel.id);
+        } else {
+            abrirBuzonRapidoArea(panelLetra);
+        }
     }
 }
         
