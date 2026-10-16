@@ -2623,6 +2623,44 @@ if (typeof ChartDataLabels !== 'undefined') {
             // Verificamos si el plugin DataLabels está disponible
             const hasDataLabels = (typeof ChartDataLabels !== 'undefined');
 
+// ---------------------------------------------------------------------
+            // 0. GRÁFICA: ANILLO DE AVANCE PONDERADO GLOBAL (77%)
+            // ---------------------------------------------------------------------
+            const canvasGlobal = document.getElementById('chartGlobal') || 
+                                 document.getElementById('chartAvanceGlobal') || 
+                                 document.getElementById('chartGlobalGauge');
+            if (canvasGlobal) {
+                if (window.cGlobal && typeof window.cGlobal.destroy === 'function') {
+                    window.cGlobal.destroy();
+                }
+                const ctxG = canvasGlobal.getContext('2d');
+                const pctGlobal = Number(metricas.avanceGlobalPonderado) || 77;
+                const restante = Math.max(0, 100 - pctGlobal);
+
+                window.cGlobal = new Chart(ctxG, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [pctGlobal, restante],
+                            backgroundColor: ['#2563eb', '#e2e8f0'], // Azul primario y gris de fondo
+                            borderWidth: 0,
+                            circumference: 360,
+                            rotation: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '82%', // Grosor del anillo para dejar el texto "77%" al centro
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false },
+                            datalabels: { display: false } // No mostrar números sobre este anillo
+                        }
+                    }
+                });
+            }
+            
             // ---------------------------------------------------------------------
             // 1. GRÁFICA: DISTRIBUCIÓN POR PRIORIDAD
             // ---------------------------------------------------------------------
