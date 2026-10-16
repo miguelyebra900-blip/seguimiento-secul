@@ -3357,26 +3357,26 @@ window.addEventListener('DOMContentLoaded', () => {
 // =========================================================================
         // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
         // =========================================================================
-        function actualizarFolioAccionSugerido() {
+       function actualizarFolioAccionSugerido() {
             const selectPadre = document.getElementById('buzonSelectAccion');
             const inputAccion = document.getElementById('nuevaAccionClavePreview');
-            if (!selectPadre || !inputAccion) return;
+            if (selectPadre && inputAccion) {
+                const valSeleccionado = selectPadre.value;
+                if (!valSeleccionado) {
+                    inputAccion.value = "SELECCIONA UN HITO...";
+                    return;
+                }
 
-            const valSeleccionado = selectPadre.value;
-            if (!valSeleccionado) {
-                inputAccion.value = "SELECCIONA UN HITO...";
-                return;
+                // Encontrar el registro o extraer el hito base
+                const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
+                const claveHitoBase = act ? (act.clave_hito || act.id.split('-A-')[0]) : valSeleccionado.split('-A-')[0];
+
+                // Generar la siguiente acción para ese hito específico
+                inputAccion.value = obtenerSiguienteClaveAccion(claveHitoBase);
             }
-
-            // Encontrar el registro o extraer el hito base
-            const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
-            const claveHitoBase = act ? (act.clave_hito || act.id.split('-A-')[0]) : valSeleccionado.split('-A-')[0];
-
-            // Generar la siguiente acción para ese hito específico
-            inputAccion.value = obtenerSiguienteClaveAccion(claveHitoBase);
         }
-}
         
+    </script>
 </script>
 <!-- ========================================================================= -->
     <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
