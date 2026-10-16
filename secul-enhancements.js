@@ -32,35 +32,45 @@
     };
 
     // Subida asíncrona a Google Drive mediante Apps Script
-    window.subirArchivoADrive = async function(file, panelLetra) {
-        if (!file) throw new Error("No se ha seleccionado ningún archivo.");
+   window.subirArchivoADrive = async function(file, panelLetra) {
+    if (!file) throw new Error("No se ha seleccionado ningún archivo.");
 
-        const base64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
-            reader.readAsDataURL(file);
-        });
+    // Convertir archivo a Base64
+    const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
 
-        const payload = {
-            fileName: file.name,
-            mimeType: file.type || 'application/octet-stream',
-            base64Content: base64,
-            panel: (panelLetra || 'A').toUpperCase()
-        };
-
-        const res = await fetch(URL_GOOGLE_APPS_SCRIPT, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (data.status !== 'success') {
-            throw new Error(data.message || "Error al subir a Google Drive");
-        }
-        return data.fileUrl;
+    const payload = {
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        base64Content: base64,
+        panel: (panelLetra || 'A').toUpperCase()
     };
 
+    // Usar text/plain en el POST evita que el navegador envíe el preflight OPTIONS
+    // que Google Apps Script suele rechazar por CORS
+    const res = await fetch(URL_GOOGLE_APPS_SCRIPT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!res.ok && res.type !== 'opaque') {
+        throw new Error("No se pudo conectar con el servicio de Google Drive.");
+    }
+
+    const data = await res.json();
+    if (data.status !== 'success') {
+        throw new Error(data.message || "Error al depositar el archivo en Google Drive.");
+    }
+
+    return data.fileUrl;
+};
     // -------------------------------------------------------------------------
     // SISTEMA DE NOTIFICACIONES TOAST (ELEGANTE)
     // -------------------------------------------------------------------------
