@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PLUGIN DATALABELS (NUEVO) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <!-- Supabase JS Client Oficial (Rescatado de panel_iecg) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -2610,58 +2612,112 @@ function abrirBuzonRapidoArea(letraPanel) {
         window.cEstatus = window.cEstatus || null;
         window.cAreas = window.cAreas || null;
 
-        function renderCharts(metricas) {
-            if (!metricas) metricas = calcularMetricas();
-            const lblGlobal = document.getElementById('labelChartAvanceGlobal');
-            if (lblGlobal) lblGlobal.innerText = `${metricas.avanceGlobal}%`;
+// Activar plugin de etiquetas numéricas directas en Chart.js
+if (typeof ChartDataLabels !== 'undefined') {
+    Chart.register(ChartDataLabels);
+}
+        
+       function renderCharts(metricas) {
+    // ---------------------------------------------------------
+    // 1. GRÁFICA DE DONA: DISTRIBUCIÓN POR ESTATUS
+    // ---------------------------------------------------------
+    const ctxDona = document.getElementById('chartEstatusDona');
+    if (ctxDona) {
+        if (window.chartDonaInstancia) window.chartDonaInstancia.destroy();
 
-            const ctxG = document.getElementById('chartAvanceGlobal');
-            if (ctxG) {
-                if (cGlobal) cGlobal.destroy();
-                cGlobal = new Chart(ctxG, {
-                    type: 'doughnut',
-                    data: { labels: ['Completado', 'Pendiente'], datasets: [{ data: [metricas.avanceGlobal, Math.max(0, 100 - metricas.avanceGlobal)], backgroundColor: ['#2563EB', '#E2E8F0'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
-                });
+        window.chartDonaInstancia = new Chart(ctxDona, {
+            type: 'doughnut',
+            data: {
+                labels: ['Concluido', 'Validación', 'En Proceso', 'Pendiente'],
+                datasets: [{
+                    data: [
+                        metricas.conteoEstatus['Concluido'] || 0,
+                        metricas.conteoEstatus['Validación'] || 0,
+                        metricas.conteoEstatus['En Proceso'] || 0,
+                        metricas.conteoEstatus['Pendiente'] || 0
+                    ],
+                    backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#94a3b8'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } }
+                    },
+                    // ETIQUETAS NUMÉRICAS DIRECTAS
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: 'bold', size: 12 },
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ''; // Ocultar si es cero
+                            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const porcentaje = ((value * 100) / sum).toFixed(0) + '%';
+                            return `${value}\n(${porcentaje})`; // Muestra cantidad y porcentaje
+                        },
+                        textAlign: 'center'
+                    }
+                }
             }
+        });
+    }
 
-            const ctxP = document.getElementById('chartPrioridades');
-            if (ctxP) {
-                if (cPrio) cPrio.destroy();
-                let urgentes = 0, altas = 0, medias = 0, bajas = 0;
-                accionesDataset.forEach(a => {
-                    if (a.peso >= 45) urgentes++;
-                    else if (a.peso >= 35) altas++;
-                    else if (a.peso >= 25) medias++;
-                    else bajas++;
-                });
-                cPrio = new Chart(ctxP, {
-                    type: 'pie',
-                    data: { labels: ['Urgente', 'Alta', 'Media', 'Baja'], datasets: [{ data: [urgentes, altas, medias, bajas], backgroundColor: ['#DC2626', '#D97706', '#2563EB', '#94A3B8'], borderWidth: 1 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-                });
-            }
+    // ---------------------------------------------------------
+    // 2. GRÁFICA DE BARRAS: AVANCE PONDERADO POR ÁREA (PANELES A - J)
+    // ---------------------------------------------------------
+    const ctxBarras = document.getElementById('chartAvanceAreasBarras');
+    if (ctxBarras) {
+        if (window.chartBarrasInstancia) window.chartBarrasInstancia.destroy();
 
-            const ctxE = document.getElementById('chartEstatus');
-            if (ctxE) {
-                if (cEstatus) cEstatus.destroy();
-                cEstatus = new Chart(ctxE, {
-                    type: 'doughnut',
-                    data: { labels: ['Concluido', 'En Proceso', 'Validación'], datasets: [{ data: [metricas.conteoEstatus.Concluido || 0, metricas.conteoEstatus['En Proceso'] || 0, metricas.conteoEstatus.Validación || 0], backgroundColor: ['#16A34A', '#2563EB', '#D97706'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-                });
-            }
+        const labelsPaneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        const dataValores = labelsPaneles.map(p => metricas.avancesPorArea[p] || 0);
 
-            const ctxA = document.getElementById('chartAreas');
-            if (ctxA) {
-                if (cAreas) cAreas.destroy();
-                cAreas = new Chart(ctxA, {
-                    type: 'bar',
-                    data: { labels: ['Patrimonio', 'Jurídico', 'Inmuebles', 'Finanzas', 'Archivo', 'Auditoría'], datasets: [{ data: [metricas.avancesPorArea['E'] || 60, metricas.avancesPorArea['B'] || 72, metricas.avancesPorArea['C'] || 75, metricas.avancesPorArea['F'] || 82, metricas.avancesPorArea['H'] || 75, metricas.avancesPorArea['I'] || 70], backgroundColor: '#1E3A8A', borderRadius: 4 }] },
-                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { min: 0, max: 100 } }, plugins: { legend: { display: false } } }
-                });
+        window.chartBarrasInstancia = new Chart(ctxBarras, {
+            type: 'bar',
+            data: {
+                labels: labelsPaneles.map(p => `Panel ${p}`),
+                datasets: [{
+                    label: 'Avance Ponderado (%)',
+                    data: dataValores,
+                    backgroundColor: dataValores.map(v => v === 100 ? '#10b981' : (v >= 70 ? '#6366f1' : '#f59e0b')),
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: value => `${value}%`,
+                            font: { size: 10 }
+                        }
+                    },
+                    x: {
+                        ticks: { font: { weight: 'bold', size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    // ETIQUETAS NUMÉRICAS DIRECTAS EN LA CIMA DE CADA BARRA
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#1e293b',
+                        font: { weight: 'bold', size: 11 },
+                        formatter: (val) => `${val}%`
+                    }
+                }
             }
-        }
+        });
+    }
+}
 
         // ZOOM Y DETALLE EN MODAL DE GRÁFICA
         function seleccionarTarjetaGrafica(elemento, tipoGrafica) {
