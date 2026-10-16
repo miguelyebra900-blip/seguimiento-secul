@@ -376,35 +376,81 @@
         <!-- ================================================================= -->
         <!-- SECCIÓN 2: MATRIZ MAESTRA COMPLETA (30 ACCIONES)                  -->
         <!-- ================================================================= -->
+        <!-- ================================================================= -->
+        <!-- SECCIÓN 2: MATRIZ MAESTRA COMPLETA (30 ACCIONES)                  -->
+        <!-- ================================================================= -->
         <div id="tab-matriz" class="space-y-6 hidden">
-            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-7 space-y-5">
+                
+                <!-- Encabezado con Controles y Filtros Rápidos -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                     <div>
-                        <h3 class="font-bold text-base text-slate-900">Matriz Consolidada de Acciones y Compromisos (30 Registros)</h3>
-                        <p class="text-xs text-slate-500">Control de ponderaciones, acreditación de soportes en Drive y dependencias del Art. 6.</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                                Registro Maestro Consolidado
+                            </span>
+                            <span class="text-xs text-slate-400">• Decreto No. 345 & Art. 6</span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-900 mt-1 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i> Matriz de Acciones, Compromisos y Mitigación de Riesgos
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Control nominal de las 30 acciones oficiales con claves canónicas de 4 dígitos, ponderaciones y expedientes en Google Drive.
+                        </p>
                     </div>
-                    <input type="text" id="filterSearchMatriz" oninput="renderTablaMatriz()" placeholder="Buscar hito, acción, área o responsable..." class="p-2 border rounded-xl text-xs w-72 bg-slate-50">
+
+                    <!-- Botón Universal de Alta -->
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="abrirBuzonCargaUniversal()" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> + Nuevo Entregable / Acción
+                        </button>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
+
+                <!-- Barra de Filtrado Inteligente -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/70 text-xs">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button type="button" onclick="filtrarMatrizPorTipo('ALL')" id="btnFiltroMatriz_ALL" class="px-3 py-1.5 rounded-xl font-bold transition bg-indigo-600 text-white shadow-2xs">
+                            Todos (30)
+                        </button>
+                        <button type="button" onclick="filtrarMatrizPorTipo('RIESGOS')" id="btnFiltroMatriz_RIESGOS" class="px-3 py-1.5 rounded-xl font-bold transition bg-white text-rose-700 hover:bg-rose-50 border border-slate-200 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span> Solo Riesgos Críticos (5)
+                        </button>
+                        <button type="button" onclick="filtrarMatrizPorTipo('CONCLUIDOS')" id="btnFiltroMatriz_CONCLUIDOS" class="px-3 py-1.5 rounded-xl font-bold transition bg-white text-emerald-700 hover:bg-emerald-50 border border-slate-200 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Concluidos
+                        </button>
+                        <button type="button" onclick="filtrarMatrizPorTipo('PROCESO')" id="btnFiltroMatriz_PROCESO" class="px-3 py-1.5 rounded-xl font-bold transition bg-white text-amber-700 hover:bg-amber-50 border border-slate-200 flex items-center gap-1">
+                            <i class="fa-solid fa-clock"></i> En Proceso / Validación
+                        </button>
+                    </div>
+
+                    <div class="relative w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterSearchMatriz" oninput="renderTablaMatriz()" placeholder="Buscar por clave, tema o área..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Tabla Reactiva Homologada -->
+                <div class="overflow-x-auto border border-slate-200/80 rounded-2xl shadow-2xs bg-white">
                     <table class="w-full text-left text-xs text-slate-700">
                         <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-200">
                             <tr>
-                                <th class="p-3">Área / Panel</th>
-                                <th class="p-3">Hito / Compromiso</th>
-                                <th class="p-3">Acción Específica</th>
-                                <th class="p-3">Responsable</th>
-                                <th class="p-3 text-center">Peso</th>
-                                <th class="p-3 text-center">Estatus</th>
-                                <th class="p-3 text-center">Gobernanza (Art. 6)</th>
-                                <th class="p-3 text-center">Evidencia Drive</th>
+                                <th class="p-3.5 whitespace-nowrap">Clave Acción & Panel</th>
+                                <th class="p-3.5 min-w-[200px]">Hito Rector / Alerta de Riesgo</th>
+                                <th class="p-3.5 min-w-[260px]">Acción Específica & Entregable</th>
+                                <th class="p-3.5 whitespace-nowrap">Instancia Responsable</th>
+                                <th class="p-3.5 text-center whitespace-nowrap">Ponderación</th>
+                                <th class="p-3.5 text-center whitespace-nowrap">Estatus</th>
+                                <th class="p-3.5 text-center whitespace-nowrap">Gobernanza (Art. 6)</th>
+                                <th class="p-3.5 text-center whitespace-nowrap">Gestión & Drive</th>
                             </tr>
                         </thead>
-                        <tbody id="tbodyMatrizAcciones" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="tbodyMatrizAcciones" class="divide-y divide-slate-100 font-medium"></tbody>
                     </table>
                 </div>
+
             </div>
         </div>
-
         <!-- ================================================================= -->
 <!-- SECCIÓN 3: CRONOGRAMA & ROADMAP TEMPORAL (2024 - 2026)            -->
 <!-- ================================================================= -->
@@ -1869,47 +1915,179 @@ function activarKpiNeon(elemento, tipoKpi) {
             });
         }
 
+       // =========================================================================
+        // FILTROS Y RENDER DE MATRIZ CON SEMÁFORO DE RIESGOS (R-01 A R-05)
+        // =========================================================================
+        let filtroRapidoMatriz = 'ALL';
+
+        function filtrarMatrizPorTipo(tipo) {
+            filtroRapidoMatriz = tipo;
+            const botones = ['ALL', 'RIESGOS', 'CONCLUIDOS', 'PROCESO'];
+            
+            botones.forEach(b => {
+                const btn = document.getElementById(`btnFiltroMatriz_${b}`);
+                if (!btn) return;
+                if (b === tipo) {
+                    btn.className = "px-3 py-1.5 rounded-xl font-bold transition bg-indigo-600 text-white shadow-2xs";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl font-bold transition bg-white text-slate-600 hover:bg-slate-100 border border-slate-200";
+                }
+            });
+            renderTablaMatriz();
+        }
+
+        // Mapeo oficial de los 5 Riesgos Directivos con su nivel y color
+        const MAPA_RIESGOS_ACCIONES = {
+            'PTR_M-H-0001-A-0001': { id: 'R-01', nivel: 'ALTO', colorBadge: 'bg-rose-100 text-rose-800 border-rose-300' },
+            'FIN_P-H-0003-A-0001': { id: 'R-02', nivel: 'MEDIO', colorBadge: 'bg-amber-100 text-amber-800 border-amber-300' },
+            'FID_F-H-0001-A-0001': { id: 'R-03', nivel: 'MEDIO', colorBadge: 'bg-amber-100 text-amber-800 border-amber-300' },
+            'PTR_I-H-0002-A-0001': { id: 'R-04', nivel: 'MEDIO', colorBadge: 'bg-amber-100 text-amber-800 border-amber-300' },
+            'JUR_C-H-0001-A-0001': { id: 'R-05', nivel: 'MEDIO', colorBadge: 'bg-amber-100 text-amber-800 border-amber-300' }
+        };
+
         function renderTablaMatriz() {
             const tbody = document.getElementById('tbodyMatrizAcciones');
             if (!tbody) return;
             tbody.innerHTML = '';
+
             const q = (document.getElementById('filterSearchMatriz')?.value || '').toLowerCase().trim();
 
-            accionesDataset.filter(a => !q || a.area.toLowerCase().includes(q) || a.hito.toLowerCase().includes(q) || a.accion.toLowerCase().includes(q) || a.responsable.toLowerCase().includes(q)).forEach(act => {
+            let datasetFiltrado = accionesDataset.filter(act => {
+                const idClave = act.clave_accion || act.id;
+                const matchTexto = !q || 
+                    idClave.toLowerCase().includes(q) ||
+                    act.area.toLowerCase().includes(q) || 
+                    act.hito.toLowerCase().includes(q) || 
+                    act.accion.toLowerCase().includes(q) || 
+                    act.responsable.toLowerCase().includes(q);
+
+                if (!matchTexto) return false;
+
+                if (filtroRapidoMatriz === 'RIESGOS') {
+                    return Boolean(MAPA_RIESGOS_ACCIONES[idClave]);
+                }
+                if (filtroRapidoMatriz === 'CONCLUIDOS') {
+                    return act.estatus === 'Concluido';
+                }
+                if (filtroRapidoMatriz === 'PROCESO') {
+                    return act.estatus !== 'Concluido';
+                }
+                return true;
+            });
+
+            if (datasetFiltrado.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-slate-400 italic text-xs">
+                            No se encontraron acciones bajo el criterio de búsqueda seleccionado.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            datasetFiltrado.forEach(act => {
+                const idClave = act.clave_accion || act.id;
+                const infoRiesgo = MAPA_RIESGOS_ACCIONES[idClave];
+
+                // Estatus Operativo
                 let badgeEst = 'bg-slate-100 text-slate-700 border-slate-200';
                 if (act.estatus === 'Concluido') badgeEst = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                if (act.estatus === 'Validación') badgeEst = 'bg-amber-50 text-amber-700 border-amber-200';
-                if (act.estatus === 'En Proceso') badgeEst = 'bg-blue-50 text-blue-700 border-blue-200';
+                else if (act.estatus === 'Validación') badgeEst = 'bg-amber-50 text-amber-700 border-amber-200';
+                else if (act.estatus === 'En Proceso') badgeEst = 'bg-blue-50 text-blue-700 border-blue-200';
 
-              const driveBtn = (act.driveUrl && act.driveUrl.trim() !== '')
-    ? `<div class="flex items-center justify-center gap-1.5">
-         <a href="${act.driveUrl}" target="_blank" class="btn-executive px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold border border-emerald-200 inline-flex items-center gap-1 text-[10px]"><i class="fa-brands fa-google-drive"></i> Ver</a>
-         <button onclick="cargarAccionEnBuzonDirecto('${act.id}')" class="btn-executive px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 inline-flex items-center gap-1 text-[10px]"><i class="fa-solid fa-cloud-arrow-up"></i> Incluir</button>
-       </div>`
-    : `<button onclick="cargarAccionEnBuzonDirecto('${act.id}')" class="btn-executive px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold border border-indigo-200 inline-flex items-center gap-1 text-[11px]">
-         <i class="fa-solid fa-cloud-arrow-up"></i> Cargar
-       </button>`;
-                
+                // Gobernanza Artículo 6
+                let badgeGob = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Interna</span>';
+                if (act.tercero === 'Tercero Estatal') {
+                    badgeGob = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">🏛️ Tercero Estatal</span>';
+                } else if (act.tercero === 'Tercero Externo' || act.tercero === 'Tercero Federal') {
+                    badgeGob = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">⚖️ Art. 6 Externo</span>';
+                }
+
+                // Badge de Riesgo si aplica
+                let riesgoHTML = '';
+                if (infoRiesgo) {
+                    riesgoHTML = `
+                        <div class="mt-1 flex items-center gap-1">
+                            <span class="px-1.5 py-0.5 rounded font-mono font-black text-[9px] border ${infoRiesgo.colorBadge} flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full ${infoRiesgo.nivel === 'ALTO' ? 'bg-rose-600 animate-ping' : 'bg-amber-500'}"></span>
+                                ${infoRiesgo.id} (${infoRiesgo.nivel})
+                            </span>
+                        </div>
+                    `;
+                }
+
+                // Botón Unificado de Drive / Gestión
+                const tieneDrive = Boolean(act.driveUrl && act.driveUrl.trim() !== '');
+                const driveButton = tieneDrive
+                    ? `
+                        <div class="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <a href="${act.driveUrl}" target="_blank" class="btn-executive px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold border border-emerald-200 inline-flex items-center gap-1 text-[10px]" title="Abrir soporte en Drive">
+                                <i class="fa-brands fa-google-drive text-emerald-600"></i> Ver
+                            </a>
+                            <button type="button" onclick="cargarAccionEnBuzonDirecto('${idClave}')" class="btn-executive px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold border border-slate-200 inline-flex items-center gap-1 text-[10px]" title="Gestionar / Actualizar">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </div>
+                    `
+                    : `
+                        <button type="button" onclick="cargarAccionEnBuzonDirecto('${idClave}')" class="btn-executive px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold border border-indigo-200 inline-flex items-center gap-1.5 text-[11px] shadow-2xs mx-auto">
+                            <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i> Cargar Soporte
+                        </button>
+                    `;
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
-                      <td class="p-3 font-bold text-slate-800 whitespace-nowrap">
-    <div class="flex items-center gap-1.5">
-        <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold inline-flex items-center justify-center text-[10px] border border-indigo-100">${act.panel}</span>
-        <span class="font-mono text-xs text-indigo-900 font-black">${act.clave_accion || act.id}</span>
-    </div>
-    <span class="text-[10px] text-slate-400 font-normal block pl-7">${act.area}</span>
-</td>
-                        <td class="p-3 max-w-xs leading-snug">${act.accion}</td>
-                        <td class="p-3 text-slate-500">${act.responsable}</td>
-                        <td class="p-3 text-center font-mono font-bold text-slate-700">${act.peso}%</td>
-                        <td class="p-3 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeEst}">${act.estatus} (${act.avance}%)</span></td>
-                        <td class="p-3 text-center whitespace-nowrap"><span class="text-[10px] font-semibold text-slate-500 block">${act.tercero}</span></td>
-                        <td class="p-3 text-center whitespace-nowrap">${driveBtn}</td>
+                        <td class="p-3.5 whitespace-nowrap">
+                            <div class="flex items-center gap-2">
+                                <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 font-black flex items-center justify-center text-xs border border-indigo-100 shrink-0">
+                                    ${act.panel}
+                                </span>
+                                <div>
+                                    <span class="font-mono-code font-bold text-xs text-indigo-950 block">${idClave}</span>
+                                    <span class="text-[10px] text-slate-400 block">${act.area}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="p-3.5">
+                            <strong class="text-slate-900 block text-xs leading-tight">${act.hito}</strong>
+                            <span class="text-[10px] font-mono text-slate-400 block mt-0.5">${act.clave_hito || 'Hito Rector'}</span>
+                            ${riesgoHTML}
+                        </td>
+
+                        <td class="p-3.5 leading-snug">
+                            <span class="text-slate-800 block text-xs font-semibold">${act.accion}</span>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">
+                                <i class="fa-solid fa-file-lines me-1"></i>${act.docRequerido || 'Expediente oficial normativo'}
+                            </span>
+                        </td>
+
+                        <td class="p-3.5 text-slate-600 whitespace-nowrap">
+                            <span class="text-[11px] font-medium block">${act.responsable}</span>
+                        </td>
+
+                        <td class="p-3.5 text-center whitespace-nowrap">
+                            <span class="font-mono-code font-bold text-xs text-slate-800">${act.peso}%</span>
+                        </td>
+
+                        <td class="p-3.5 text-center whitespace-nowrap">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeEst}">
+                                ${act.estatus} (${act.avance}%)
+                            </span>
+                        </td>
+
+                        <td class="p-3.5 text-center whitespace-nowrap">
+                            ${badgeGob}
+                        </td>
+
+                        <td class="p-3.5 text-center whitespace-nowrap">
+                            ${driveButton}
+                        </td>
                     </tr>
                 `;
             });
         }
-
         function poblarSelectBuzon(idSeleccionado = null) {
             const select = document.getElementById('buzonSelectAccion');
             if(!select) return;
