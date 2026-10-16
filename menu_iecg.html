@@ -2909,23 +2909,24 @@ function subirEvidenciaDesdeDetalle(idAccion) {
 // =========================================================================
 // FUNCIÓN PUENTE: VINCULAR MATRIZ DE RIESGOS CON SU HITO RECTOR Y ACCIONES
 // =========================================================================
+// =========================================================================
+// FUNCIÓN PUENTE: VINCULAR MATRIZ DE RIESGOS CON SU HITO RECTOR Y ACCIONES
+// =========================================================================
 function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
-    // 1. Cerrar el modal inicial de riesgos
-    closeModal('modal-riesgos-inicio');
+    if (typeof closeModal === 'function') {
+        closeModal('modal-riesgos-inicio');
+    }
 
-    // 2. Localizar el registro del hito en el dataset oficial
     const registro = accionesDataset.find(a => (a.clave_hito === claveHito) || (a.id === claveHito) || (a.id.startsWith(claveHito)));
     
     if (registro) {
-        // Abre el modal de detalle del hito con sus acciones y botón + Agregar Acción
         abrirModalDesdeGrafica(registro.id);
     } else {
-        // En caso de que no exista localmente, busca por panel
         const panelLetra = claveHito.includes('PTR_M') ? 'E' :
                            claveHito.includes('FIN_P') ? 'F' :
                            claveHito.includes('FID_F') ? 'D' :
                            claveHito.includes('PTR_I') ? 'C' : 'B';
-      const itemPanel = accionesDataset.find(a => a.panel === panelLetra);
+        const itemPanel = accionesDataset.find(a => a.panel === panelLetra);
         if (itemPanel) {
             abrirModalDesdeGrafica(itemPanel.id);
         } else {
@@ -2936,8 +2937,12 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
 
 // INICIALIZACIÓN COMPLETA DEL DASHBOARD AL CARGAR EL DOM
 window.addEventListener('DOMContentLoaded', () => {
-    mostrarSeccionTab('tab-dashboard');
-    actualizarDashboard();
+    if (typeof mostrarSeccionTab === 'function') {
+        mostrarSeccionTab('tab-dashboard');
+    }
+    if (typeof actualizarDashboard === 'function') {
+        actualizarDashboard();
+    }
 });
 </script>
 </body>
