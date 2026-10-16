@@ -1852,50 +1852,64 @@ function activarKpiNeon(elemento, tipoKpi) {
         function abrirCarpetaActualDesdeBuzon() { const act = accionesDataset.find(a => a.id === document.getElementById('buzonSelectAccion').value); if (act) window.abrirCarpetaDrivePanel(act.panel); }
 
         // CONTROLADOR DE SUBIDA AUTOMÁTICA DESDE EL BUZÓN UNIVERSAL
-        async function ejecutarCargaUniversal(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('buzonFileInput');
-            const file = fileInput.files[0];
-            if (!file) { alert("Por favor selecciona un archivo."); return; }
+       async function ejecutarCargaUniversal(e) {
+    e.preventDefault();
+    
+    const accionId = document.getElementById('buzonSelectAccion').value;
+    const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
+    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value) || 100;
+    const nuevaDriveUrl = document.getElementById('nuevaAccionDriveUrl')?.value.trim() || '';
+    const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
+    const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
+    const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
-            const accionId = document.getElementById('buzonSelectAccion').value;
-            const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
-            const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value) || 100;
-            const act = accionesDataset.find(a => a.id === accionId);
-            if (!act) return;
+    const act = accionesDataset.find(a => a.id === accionId);
+    if (!act) return;
 
-            const btnSubmit = document.getElementById('btnSubmitBuzon');
-            const progressContainer = document.getElementById('buzonProgressContainer');
-            const progressBar = document.getElementById('buzonProgressBar');
-            const progressPct = document.getElementById('buzonProgressPct');
+    let driveUrlFinal = nuevaDriveUrl || act.driveUrl || '';
+    const fileInput = document.getElementById('buzonFileInput');
+    
+    const btnSubmit = document.getElementById('btnSubmitBuzon');
+    const progressContainer = document.getElementById('buzonProgressContainer');
+    const progressBar = document.getElementById('buzonProgressBar');
+    const progressPct = document.getElementById('buzonProgressPct');
 
-            btnSubmit.disabled = true;
-            progressContainer.classList.remove('hidden');
-            progressBar.style.width = '40%';
-            progressPct.innerText = '40%';
+    if (btnSubmit) btnSubmit.disabled = true;
 
-            try {
-                const driveUrl = await window.subirArchivoADrive(file, act.panel);
-                progressBar.style.width = '100%';
-                progressPct.innerText = '100%';
+    try {
+        // Si el usuario seleccionó un archivo físico y existe el contenedor de progreso
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            if (progressBar) progressBar.style.width = '40%';
+            if (progressPct) progressPct.innerText = '40%';
 
-                act.estatus = nuevoEstatus;
-                act.avance = nuevoAvance;
-                act.driveUrl = driveUrl;
-                guardarDataset();
-
-                alert(`¡Archivo alojado en Google Drive y acción actualizada al ${nuevoAvance}%!`);
-                closeModal('modal-buzon-universal');
-                document.getElementById('formCargaUniversal').reset();
-                progressContainer.classList.add('hidden');
-                actualizarDashboard();
-            } catch (err) {
-                alert("Error al subir archivo: " + err.message);
-            } finally {
-                btnSubmit.disabled = false;
-            }
+            driveUrlFinal = await window.subirArchivoADrive(fileInput.files[0], act.panel);
+            
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressPct) progressPct.innerText = '100%';
         }
 
+        // Actualizar el registro en el dataset
+        act.estatus = nuevoEstatus;
+        act.avance = nuevoAvance;
+        act.driveUrl = driveUrlFinal;
+        if (tituloAccion) act.accion = tituloAccion;
+        if (respAccion) act.responsable = respAccion;
+        if (notaAuditoria) act.observaciones = notaAuditoria;
+        
+        guardarDataset();
+
+        alert(`¡Acción guardada y propagada al sistema exitosamente!`);
+        closeModal('modal-buzon-universal');
+        
+        if (progressContainer) progressContainer.classList.add('hidden');
+        actualizarDashboard();
+    } catch (err) {
+        alert("Error al procesar la carga: " + err.message);
+    } finally {
+        if (btnSubmit) btnSubmit.disabled = false;
+    }
+}
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
         const fileInput = document.getElementById('buzonFileInput');
