@@ -2217,55 +2217,131 @@ function renderListaCompromisosDetalle(act) {
 // =========================================================================
 // 1. GUARDAR NUEVO HITO / ACCIÓN DESDE EL MODAL MAESTRO (CON PONDERACIÓN)
 // =========================================================================
-function guardarNuevoHitoDesdeModal() {
-    const titulo = document.getElementById('inputNuevoHitoTitulo')?.value.trim();
-    const panel = document.getElementById('inputNuevoHitoPanel')?.value || 'A';
-    const estatus = document.getElementById('inputNuevoHitoEstatus')?.value || 'En Proceso';
+// =========================================================================
+// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CLAVES ATÓMICAS EN SUPABASE)
+// =========================================================================
+async function guardarNuevoHitoConAcciones(e) {
+    e.preventDefault();
 
-    if (!titulo) {
-        alert("Por favor redacte el título del hito o requerimiento oficial.");
+    const panel = document.getElementById('nuevoHitoPanel').value; // 'A', 'B', ... 'J'
+    const vertiente = document.getElementById('nuevoHitoVertiente').value;
+    const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
+    const area = document.getElementById('nuevoHitoArea').value.trim();
+    const norma = document.getElementById('nuevoHitoNorma').value.trim();
+
+    // 1. Mapeo de Panel a Clave Oficial de Área
+    const mapaClavesArea = {
+        'A': 'RH_E',  'B': 'JUR_C', 'C': 'PTR_I', 'D': 'FID_F', 'E': 'PTR_M',
+        'F': 'FIN_P', 'G': 'TIT_S', 'H': 'ACH_D', 'I': 'AUD_F', 'J': 'ASI_P'
+    };
+    const claveArea = mapaClavesArea[panel] || 'RH_E';
+
+    // 2. Extraer las acciones dinámicas (mínimo 1 obligatoria)
+    const contenedor = document.getElementById('contenedorAccionesObligatorias');
+    const filasAcciones = contenedor ? contenedor.querySelectorAll('.fila-accion-item') : [];
+    
+    if (filasAcciones.length === 0) {
+        alert("Error: Todo hito requiere definir al menos una acción obligatoria.");
         return;
     }
 
-    // Generar ID único basado en el panel
-    const nuevoId = `ACT-${panel}${accionesDataset.filter(a => a.panel === panel).length + 1}`;
-    
-    // Crear el nuevo registro respetando el esquema de pesos y ponderación del sistema
-    const nuevoRegistro = {
-        id: nuevoId,
-        panel: panel,
-        area: "Área Estratégica Panel " + panel,
-        hito: titulo,
-        accion: "Acción inicial requerida para cumplimiento de hito normativo",
-        responsable: "Enlace Institucional Panel " + panel,
-        peso: 33.33, // Peso ponderado estándar equilibrado para mantener la suma del panel
-        estatus: estatus,
-        avance: estatus === 'Concluido' ? 100 : (estatus === 'Validación' ? 75 : 40),
-        tercero: "Interna",
-        terceroNombre: "Equipo Liquidador IECG",
-        docRequerido: "Expediente probatorio oficial de hito",
-        driveUrl: ""
-    };
+    // 3. Reserva atómica en Supabase con bloqueo (SELECT FOR UPDATE)
+    let claveHitoGenerada = null;
+    let claveAccionGenerada = null;
 
-    // Agregar al dataset general
-    accionesDataset.push(nuevoRegistro);
+    try {
+        if (supabaseClient) {
+            // Reserva atómica de Clave de Hito (ej. RH_E-H-0004)
+            const { data: resHito, error: errHito } = await supabaseClient.rpc('reservar_clave_hito', {
+                p_clave_area: claveArea
+            });
+            if (errHito || !resHito || resHito.status !== 'success') {
+                throw new Error(errHito ? errHito.message : "No se pudo reservar el consecutivo de hito");
+            }
+            claveHitoGenerada = resHito.clave_hito;
+
+            // Reserva atómica de Clave de Acción (ej. RH_E-H-0004-A-0001)
+            const { data: resAccion, error: errAccion } = await supabaseClient.rpc('reservar_clave_accion', {
+                p_clave_hito: claveHitoGenerada
+            });
+            if (errAccion || !resAccion || resAccion.status !== 'success') {
+                throw new Error(errAccion ? errAccion.message : "No se pudo reservar el consecutivo de acción");
+            }
+            claveAccionGenerada = resAccion.clave_accion;
+        } else {
+            // Respaldo local
+            const totalHitosPanel = accionesDataset.filter(a => a.panel === panel).length + 1;
+            claveHitoGenerada = `${claveArea}-H-${String(totalHitosPanel).padStart(4, '0')}`;
+            claveAccionGenerada = `${claveHitoGenerada}-A-0001`;
+        }
+    } catch (err) {
+        alert("Error en reserva de claves de Supabase: " + err.message);
+        return;
+    }
+
+    // 4. Armar registros en memoria
+    filasAcciones.forEach((fila, idx) => {
+        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
+        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
+        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
+
+        const cAccion = (idx === 0) 
+            ? claveAccionGenerada 
+            : `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
+
+        const nuevoRegistro = {
+            id: cAccion,
+            clave_accion: cAccion,
+            clave_hito: claveHitoGenerada,
+            panel: panel,
+            area: `${area} (Panel ${panel})`,
+            hito: titulo,
+            accion: titAccion,
+            responsable: respAccion || area,
+            peso: 33.33,
+            estatus: estatusAccion,
+            avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
+            tercero: "Interna",
+            terceroNombre: "Comité de Transición IECG",
+            docRequerido: `Soporte Oficial ${cAccion}`,
+            driveUrl: ""
+        };
+
+        accionesDataset.push(nuevoRegistro);
+    });
+
+    // 5. Inserción en la tabla hitos_transicion de Supabase
+    if (supabaseClient) {
+        try {
+            await supabaseClient.from('hitos_transicion').insert([{
+                clave_hito: claveHitoGenerada,
+                clave_area: claveArea,
+                panel: panel,
+                consecutivo_num: parseInt(claveHitoGenerada.slice(-4)),
+                titulo: titulo,
+                normativa: norma,
+                detalle_operativo: `Registrado desde Tablero en Panel ${panel}`,
+                estatus: 'En Proceso',
+                avance_porcentaje: 40
+            }]);
+        } catch (e) {
+            console.warn("Sincronización en hitos_transicion completada localmente.", e);
+        }
+    }
+
     guardarDataset();
 
-    alert(`¡Hito "${titulo}" registrado con éxito!\n\n• Se ha integrado al Panel ${panel}\n• Las estadísticas y ponderaciones se han recalculado.`);
-    
-    closeModal('modal-buzon-universal');
-    
-    // Limpiar input
-    document.getElementById('inputNuevoHitoTitulo').value = '';
+    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Clave Acción Principal: ${claveAccionGenerada}`);
 
-    // Refrescar toda la interfaz al unísono (Tablero, Matriz, Cronograma, etc.)
+    document.getElementById('tab-hitos').reset();
+    closeModal('modal-buzon-universal');
+
     actualizarDashboard();
     if (typeof renderCronogramaRoadmap === 'function') {
         renderCronogramaRoadmap();
     }
 }
-
-
+        
         function abrirPestañaAccionDesdeHito() {
     // 1. Cerrar el modal actual de detalle de hito
     closeModal('modal-hito-fiscalizacion');
