@@ -1258,15 +1258,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Columna 1: Folio ID Automático -->
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block font-bold text-slate-700">Folio Hito (Automático):</label>
-                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                                 <i class="fa-solid fa-lock text-[8px]"></i> Clave Canónica
                             </span>
                         </div>
-                        <input type="text" id="nuevoHitoId" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-900 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando folio..." required>
+                        <input type="text" id="nuevoHitoId" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando folio..." required>
                     </div>
+
+                    <!-- Columna 2: Vertiente Institucional -->
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Vertiente Institucional:</label>
                         <select id="nuevoHitoVertiente" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold">
@@ -1275,32 +1278,11 @@
                             <option value="INF">INF - Informes Mensuales</option>
                         </select>
                     </div>
+
+                    <!-- Columna 3: Panel Asignado (A - J) con cálculo reactivo -->
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
                         <select id="nuevoHitoPanel" onchange="actualizarFolioSiguienteSugerido()" class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-700 border-indigo-300 shadow-2xs">
-                            <option value="A">Panel A - Recursos Humanos & Estructura</option>
-                            <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
-                            <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
-                            <option value="D">Panel D - Fideicomisos & Fondos Especiales</option>
-                            <option value="E">Panel E - Control Patrimonial & Bienes</option>
-                            <option value="F">Panel F - Financiero, Presupuestal & Fiscal</option>
-                            <option value="G">Panel G - Tecnologías de la Información (TI)</option>
-                            <option value="H">Panel H - Archivo & Gestión Documental</option>
-                            <option value="I">Panel I - Fiscalización Auditorías</option>
-                            <option value="J">Panel J - Asuntos Internos Líder Proyecto</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Vertiente:</label>
-                        <select id="nuevoHitoVertiente" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold">
-                            <option value="INF">INF - Informes Mensuales</option>
-                            <option value="V1">V1 - Liquidación IEC</option>
-                            <option value="V2">V2 - Fiscalización ASEG</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
-                        <select id="nuevoHitoPanel" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-bold text-indigo-700">
                             <option value="A">Panel A - Recursos Humanos & Estructura</option>
                             <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
                             <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
