@@ -4,14 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso al Portal Cultural</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans & Cinzel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                        cinzel: ['"Cinzel"', 'serif'],
+                    },
                     colors: {
+                        gov: {
+                            950: '#070b14',
+                            900: '#0c1324',
+                            800: '#14203d',
+                            700: '#1d2e54',
+                            600: '#273f70',
+                            500: '#355594',
+                        },
+                        gold: {
+                            400: '#f1c40f',
+                            500: '#d4af37',
+                            600: '#b8942b',
+                        },
                         skycustom: {
                             50: '#f0f9ff',
                             100: '#e0f2fe',
@@ -26,107 +51,187 @@
             }
         }
     </script>
+
     <style>
-        /* Fondo con degradado suave en tonos azul cielo */
         body {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            background-color: #080d1a;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.4) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.25) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.9) 0px, transparent 100%);
             min-height: 100vh;
         }
-        /* Animación suave para la tarjeta de login */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+
+        .ambient-mesh {
+            position: absolute;
+            inset: 0;
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: radial-gradient(ellipse 65% 55% at 50% 50%, #000 40%, transparent 100%);
         }
-        /* Transición suave para el mensaje motivacional */
+
+        .executive-glass {
+            background: rgba(13, 21, 38, 0.78);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.65),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .input-glass {
+            background: rgba(9, 15, 28, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.25s ease;
+        }
+
+        .input-glass:focus-within {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+            background: rgba(12, 20, 37, 0.85);
+        }
+
         .toast-msg {
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4 relative overflow-hidden">
+<body class="flex items-center justify-center p-4 relative overflow-hidden font-sans text-slate-100">
 
-    <!-- Componente de Mensajes Motivacionales en la esquina superior izquierda -->
-    <div id="motivationalToast" class="fixed top-6 left-6 z-50 max-w-sm glass-card p-4 rounded-2xl shadow-xl border border-white/80 flex items-center space-x-3 toast-msg opacity-0 -translate-y-2 pointer-events-none">
-        <div class="w-10 h-10 rounded-full bg-skycustom-500 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
-            <i class="fa-solid fa-users text-sm"></i>
-        </div>
-        <div>
-            <p id="motivationalText" class="text-xs font-semibold text-gray-800 leading-snug"></p>
-        </div>
-    </div>
+    <!-- Patrón geométrico sutil de fondo -->
+    <div class="ambient-mesh pointer-events-none"></div>
 
-    <div class="absolute top-10 left-10 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform -rotate-12">
+    <!-- Luces decorativas atmosféricas de fondo -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Iconos temáticos culturales con estética minimalista corporativa -->
+    <div class="absolute top-12 left-14 text-white/[0.04] text-7xl pointer-events-none transform -rotate-12 transition-transform duration-700">
         <i class="fa-solid fa-masks-theater"></i>
     </div>
-    <div class="absolute bottom-12 left-16 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform rotate-12">
+    <div class="absolute bottom-12 left-16 text-white/[0.04] text-7xl pointer-events-none transform rotate-12 transition-transform duration-700">
         <i class="fa-solid fa-palette"></i>
     </div>
-    <div class="absolute top-16 right-16 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform rotate-45">
+    <div class="absolute top-16 right-16 text-white/[0.04] text-7xl pointer-events-none transform rotate-45 transition-transform duration-700">
         <i class="fa-solid fa-music"></i>
     </div>
-    <div class="absolute bottom-10 right-10 text-skycustom-300 opacity-40 text-6xl pointer-events-none transform -rotate-6">
-        <i class="fa-solid fa-person-dancing"></i>
+    <div class="absolute bottom-14 right-14 text-white/[0.04] text-7xl pointer-events-none transform -rotate-6 transition-transform duration-700">
+        <i class="fa-solid fa-landmark"></i>
     </div>
 
-    <div class="w-full max-w-md glass-card rounded-3xl shadow-2xl p-8 z-10 relative">
-        
+    <!-- Componente de Mensajes Motivacionales (Top Left) -->
+    <div id="motivationalToast" class="fixed top-5 left-5 z-50 max-w-sm executive-glass px-4 py-3 rounded-2xl flex items-center space-x-3 toast-msg opacity-0 -translate-y-2 pointer-events-none shadow-2xl">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-sky-500/25 shrink-0 text-sm">
+            <i class="fa-solid fa-quote-left"></i>
+        </div>
+        <div class="pr-1">
+            <span class="block text-[10px] font-bold text-sky-400 uppercase tracking-widest leading-none mb-1">Cultura Institucional</span>
+            <p id="motivationalText" class="text-xs font-medium text-slate-200 leading-snug"></p>
+        </div>
+    </div>
+
+    <!-- Tarjeta Principal de Login -->
+    <div class="w-full max-w-md executive-glass rounded-3xl p-8 sm:p-9 z-10 relative">
+
+        <!-- Encabezado con insignia y tipografía ejecutiva -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skycustom-100 text-skycustom-600 mb-3 shadow-inner font-extrabold text-2xl tracking-tighter">
-                SeCu
+            <div class="inline-flex relative mb-4">
+                <div class="absolute inset-0 bg-sky-500/20 rounded-2xl blur-lg"></div>
+                <div class="relative w-16 h-16 rounded-2xl bg-gradient-to-b from-gov-700 to-gov-900 border border-sky-400/30 flex items-center justify-center shadow-2xl">
+                    <span class="font-cinzel text-xl font-bold tracking-tight text-white flex items-center">
+                        Se<span class="text-sky-400">Cu</span>
+                    </span>
+                </div>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800 tracking-wide">Portal Seguimiento</h1>
-            <p class="text-xs text-skycustom-600 font-medium tracking-widest uppercase mt-1">
-                <i class="fa-solid fa-pen-nib mr-1"></i> Administración &bull; Finanzas &bull; Estrategia
+
+            <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-sky-300 text-[11px] font-semibold tracking-wider uppercase mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Portal de Gestión y Seguimiento</span>
+            </div>
+
+            <h1 class="text-2xl font-bold tracking-tight text-white">Gobierno del Estado</h1>
+            <p class="text-xs text-slate-400 font-medium tracking-wide mt-1.5 flex items-center justify-center space-x-1.5">
+                <i class="fa-solid fa-scale-balanced text-sky-400/70 text-[10px]"></i>
+                <span>Administración &bull; Finanzas &bull; Estrategia</span>
             </p>
         </div>
 
-        <div id="errorMessage" class="hidden mb-4 p-3 rounded-xl bg-red-100 border border-red-200 text-red-700 text-sm text-center">
-            Credenciales incorrectas. Por favor, verifica tus datos.
+        <!-- Mensaje de Error -->
+        <div id="errorMessage" class="hidden mb-5 p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center space-x-2.5">
+            <i class="fa-solid fa-circle-exclamation text-rose-400 shrink-0"></i>
+            <span>Credenciales incorrectas. Por favor, verifica tus datos.</span>
         </div>
 
+        <!-- Formulario de Acceso -->
         <form id="loginForm" onsubmit="validarAcceso(event)" class="space-y-5">
+            <!-- Campo Usuario -->
             <div>
-                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1 tracking-wider">Usuario</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-skycustom-500">
-                        <i class="fa-solid fa-user"></i>
-                    </span>
-                    <input type="text" id="username" required placeholder="Ingresa tu usuario"
-                        class="w-full pl-10 pr-4 py-3 bg-white/80 border border-skycustom-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-skycustom-400 text-gray-700 text-sm transition-all duration-200 placeholder-gray-400">
+                <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1.5 tracking-wider">
+                    Usuario Institucional
+                </label>
+                <div class="input-glass rounded-xl flex items-center px-3.5 py-3">
+                    <i class="fa-regular fa-user text-sky-400/80 w-5 text-sm"></i>
+                    <input type="text" id="username" required placeholder="nombre.apellido o clave"
+                        class="w-full bg-transparent pl-2 pr-1 text-sm text-slate-100 placeholder-slate-500 focus:outline-none">
                 </div>
             </div>
 
+            <!-- Campo Contraseña -->
             <div>
-                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1 tracking-wider">Contraseña</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-skycustom-500">
-                        <i class="fa-solid fa-key"></i>
-                    </span>
-                    <input type="password" id="password" required placeholder="••••••••"
-                        class="w-full pl-10 pr-4 py-3 bg-white/80 border border-skycustom-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-skycustom-400 text-gray-700 text-sm transition-all duration-200 placeholder-gray-400">
+                <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1.5 tracking-wider">
+                    Clave de Acceso
+                </label>
+                <div class="input-glass rounded-xl flex items-center px-3.5 py-3">
+                    <i class="fa-solid fa-lock text-sky-400/80 w-5 text-sm"></i>
+                    <input type="password" id="password" required placeholder="••••••••••••"
+                        class="w-full bg-transparent pl-2 pr-1 text-sm text-slate-100 placeholder-slate-500 focus:outline-none">
+                    <button type="button" onclick="togglePasswordVisibility()" class="text-slate-500 hover:text-slate-300 transition-colors px-1" title="Mostrar/Ocultar">
+                        <i id="togglePassIcon" class="fa-regular fa-eye-slash text-xs"></i>
+                    </button>
                 </div>
             </div>
 
+            <!-- Botón de Entrada -->
             <button type="submit" id="btnSubmit"
-                class="w-full py-3.5 px-4 bg-gradient-to-r from-skycustom-400 to-skycustom-600 hover:from-skycustom-500 hover:to-skycustom-600 text-white font-semibold rounded-xl shadow-lg shadow-skycustom-300/50 hover:shadow-xl transition duration-300 flex items-center justify-center space-x-2">
+                class="w-full py-3.5 px-4 bg-gradient-to-r from-sky-500 via-sky-600 to-blue-700 hover:from-sky-400 hover:via-sky-500 hover:to-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg shadow-sky-500/25 hover:shadow-sky-500/35 transition-all duration-300 flex items-center justify-center space-x-2.5 active:scale-[0.99] border border-sky-400/30 cursor-pointer">
                 <span>Ingresar al Sistema</span>
-                <i class="fa-solid fa-arrow-right text-sm"></i>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
             </button>
         </form>
 
-        <div class="mt-8 text-center border-t border-skycustom-100 pt-4">
-            <p class="text-xs text-gray-500 flex items-center justify-center space-x-3">
-                <span><i class="fa-solid fa-guitar mr-1"></i>Decreto 345</span>
-                <span>&bull;</span>
-                <span><i class="fa-solid fa-theater-masks mr-1"></i>IEC & Fórum</span>
-                <span>&bull;</span>
-                <span><i class="fa-solid fa-paintbrush mr-1"></i>Secretaría de Cultura</span>
-            </p>
+        <!-- Pie Institucional -->
+        <div class="mt-8 pt-5 border-t border-slate-800/80 text-center">
+            <div class="flex items-center justify-center space-x-2 text-[11px] text-slate-400 font-medium">
+                <span class="inline-flex items-center"><i class="fa-solid fa-scroll mr-1.5 text-sky-400/70"></i>Decreto 345</span>
+                <span class="text-slate-600">&bull;</span>
+                <span class="inline-flex items-center"><i class="fa-solid fa-landmark mr-1.5 text-sky-400/70"></i>IEC & Fórum</span>
+                <span class="text-slate-600">&bull;</span>
+                <span class="inline-flex items-center"><i class="fa-solid fa-shield-halved mr-1.5 text-sky-400/70"></i>Sec. Cultura</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-2 font-mono">v2.4 &bull; Acceso Seguro y Encriptado</p>
         </div>
     </div>
 
     <script>
+        // Utilidad visual: conmutador para ver u ocultar contraseña
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('password');
+            const icon = document.getElementById('togglePassIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                passInput.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+
         // Mensajes Motivacionales
         const frasesMotivacionales = [
             "¡Juntos alcanzamos la meta!",
@@ -173,7 +278,7 @@
 
             errorDiv.classList.add('hidden');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span> Verificando...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-sm"></i><span>Verificando credenciales...</span>';
 
             try {
                 const { data, error } = await _supabase
@@ -184,9 +289,10 @@
                     .single();
 
                 if (error || !data) {
+                    errorDiv.innerText = "Credenciales incorrectas. Por favor, verifica tus datos.";
                     errorDiv.classList.remove('hidden');
                     btn.disabled = false;
-                    btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
+                    btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-xs"></i>';
                 } else {
                     // REGLAS DE NEGOCIO Y PERMISOS POR ROL / USUARIO
                     let rolStr = (data.rol || '').toLowerCase();
@@ -238,7 +344,7 @@
                 errorDiv.innerText = "Ocurrió un error en la conexión.";
                 errorDiv.classList.remove('hidden');
                 btn.disabled = false;
-                btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
+                btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-xs"></i>';
             }
         }
 
@@ -246,34 +352,48 @@
         function mostrarSelectorVertientes(user) {
             const btn = document.getElementById('btnSubmit');
             btn.disabled = false;
-            btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-sm"></i>';
+            btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-xs"></i>';
 
             const modalHtml = `
-            <div id="modalSelector" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 space-y-5 border border-white">
-                    <div class="text-center space-y-1">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-skycustom-100 text-skycustom-600 uppercase tracking-wider">
-                            Bienvenido/a, ${user.nombre}
+            <div id="modalSelector" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+                <div class="executive-glass rounded-3xl max-w-lg w-full shadow-2xl p-7 space-y-6 border border-slate-700/60">
+                    <div class="text-center space-y-2">
+                        <span class="px-3.5 py-1.5 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-400/20 uppercase tracking-widest inline-block">
+                            <i class="fa-solid fa-user-shield mr-1.5"></i>Sesión Autenticada
                         </span>
-                        <h3 class="text-xl font-bold text-gray-800 mt-2">Seleccione el Módulo de Transición</h3>
-                        <p class="text-xs text-gray-500">Decreto 345: Elija la vertiente a administrar.</p>
+                        <h3 class="text-xl font-bold text-white tracking-tight">Bienvenido/a, ${user.nombre || user.usuario}</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mx-auto">Decreto 345: Seleccione el módulo o vertiente operativa que desea gestionar.</p>
                     </div>
                     
-                    <div class="space-y-3 pt-2">
-                        <button onclick="irAVertiente('IEC')" class="w-full p-4 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-2xl text-left transition flex items-center justify-between group">
-                            <div>
-                                <strong class="block text-gray-900 text-xs font-bold">Opción 1: Instituto Estatal de la Cultura (IEC)</strong>
-                                <span class="text-[10px] text-gray-500">Liquidación, bienes muebles y ASEG</span>
+                    <div class="space-y-3.5 pt-1">
+                        <button onclick="irAVertiente('IEC')" class="w-full p-4 rounded-2xl text-left transition-all duration-200 flex items-center justify-between group bg-slate-900/60 hover:bg-sky-950/50 border border-slate-800 hover:border-sky-500/40">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0 text-base group-hover:scale-105 transition-transform">
+                                    <i class="fa-solid fa-landmark"></i>
+                                </div>
+                                <div>
+                                    <strong class="block text-slate-100 text-xs font-bold tracking-wide group-hover:text-sky-300 transition-colors">
+                                        Opción 1: Instituto Estatal de la Cultura (IEC)
+                                    </strong>
+                                    <span class="text-[11px] text-slate-400">Liquidación, bienes muebles y ASEG</span>
+                                </div>
                             </div>
-                            <i class="fa-solid fa-arrow-right text-sky-500 group-hover:translate-x-1 transition-transform"></i>
+                            <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-sky-400 group-hover:translate-x-1 transition-all text-xs"></i>
                         </button>
 
-                        <button onclick="irAVertiente('FORUM')" class="w-full p-4 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-2xl text-left transition flex items-center justify-between group">
-                            <div>
-                                <strong class="block text-gray-900 text-xs font-bold">Opción 2: Fórum Cultural Guanajuato</strong>
-                                <span class="text-[10px] text-gray-500">Extinción, personal y subrogación</span>
+                        <button onclick="irAVertiente('FORUM')" class="w-full p-4 rounded-2xl text-left transition-all duration-200 flex items-center justify-between group bg-slate-900/60 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-500/40">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-400/20 text-indigo-400 flex items-center justify-center shrink-0 text-base group-hover:scale-105 transition-transform">
+                                    <i class="fa-solid fa-masks-theater"></i>
+                                </div>
+                                <div>
+                                    <strong class="block text-slate-100 text-xs font-bold tracking-wide group-hover:text-indigo-300 transition-colors">
+                                        Opción 2: Fórum Cultural Guanajuato
+                                    </strong>
+                                    <span class="text-[11px] text-slate-400">Extinción, personal y subrogación</span>
+                                </div>
                             </div>
-                            <i class="fa-solid fa-arrow-right text-indigo-500 group-hover:translate-x-1 transition-transform"></i>
+                            <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all text-xs"></i>
                         </button>
                     </div>
                 </div>
