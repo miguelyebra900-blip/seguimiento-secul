@@ -84,6 +84,65 @@
 .scroll-tarjeta-compromisos:hover::-webkit-scrollbar-thumb {
     background-color: #facc15; /* El scroll también se tiñe de amarillo al interactuar */
 }
+
+/* =========================================================================
+   CINTILLO INFORMATIVO INFERIOR TIPO TICKER BURSÁTIL / NOTICIARIO
+   ========================================================================= */
+.ticker-footer-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(99, 102, 241, 0.25);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.ticker-track {
+    display: flex;
+    white-space: nowrap;
+    will-change: transform;
+    animation: marquee-smooth 70s linear infinite;
+}
+
+.ticker-track:hover {
+    animation-play-state: paused;
+}
+
+@keyframes marquee-smooth {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+.ticker-pill-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    margin: 0 8px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    font-size: 11px;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ticker-pill-item:hover {
+    background: rgba(79, 70, 229, 0.35);
+    border-color: rgba(129, 140, 248, 0.5);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+        
     </style>
 
 
@@ -1871,7 +1930,7 @@ function activarKpiNeon(elemento, tipoKpi) {
             };
         }
 
-        function actualizarDashboard() {
+      function actualizarDashboard() {
             const metricas = calcularMetricas();
             document.getElementById('kpiAvanceGlobalTop').innerText = `${metricas.avanceGlobal}%`;
             document.getElementById('kpiDocsAcreditadosTop').innerText = `${metricas.docsAcreditados} / 30`;
@@ -1880,6 +1939,7 @@ function activarKpiNeon(elemento, tipoKpi) {
             renderTarjetas10Areas(metricas.avancesPorArea);
             renderTablaMatriz();
             renderCharts(metricas);
+            renderCintilloNoticioso(); // <-- AQUÍ
         }
 
 function renderTarjetas10Areas(avancesPorArea) {
@@ -2963,6 +3023,68 @@ window.addEventListener('DOMContentLoaded', () => {
         actualizarDashboard();
     }
 });
+
+// =========================================================================
+        // RENDER DINÁMICO DEL CINTILLO TIPO NOTICIARIO (HITOS CANÓNICOS 30+)
+        // =========================================================================
+        function renderCintilloNoticioso() {
+            const track = document.getElementById('tickerTrack');
+            if (!track) return;
+
+            // Diccionario de Iconos representativos por Panel / Área
+            const iconMap = {
+                'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },       // Recursos Humanos
+                'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },     // Jurídico
+                'C': { icon: 'fa-landmark', color: 'text-cyan-400' },           // Inmuebles
+                'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },      // FIARCA Banorte
+                'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },       // Bienes Muebles (R-01)
+                'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},// SAT / Finanzas
+                'G': { icon: 'fa-server', color: 'text-blue-400' },             // TI / Servidores
+                'H': { icon: 'fa-box-archive', color: 'text-teal-400' },        // Archivo AGEG
+                'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },     // ASEG / Fiscalización
+                'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }    // Gobernanza Líder
+            };
+
+            const htmlItems = accionesDataset.map(act => {
+                const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
+                const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
+                const idClave = act.clave_accion || act.id;
+
+                return `
+                    <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
+                        <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
+                        <i class="fa-solid ${conf.icon} ${conf.color} text-xs"></i>
+                        <span class="font-mono text-[10px] font-bold text-indigo-300">[${idClave}]</span>
+                        <strong class="font-semibold text-slate-100">${act.hito}:</strong>
+                        <span class="text-slate-300 text-[11px] truncate max-w-xs">${act.accion.slice(0, 48)}...</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-white/10 text-white">${act.avance}%</span>
+                    </div>
+                `;
+            }).join('');
+
+            // Duplicamos el contenido (2x) para crear un loop de desplazamiento infinito perfecto
+            track.innerHTML = htmlItems + htmlItems;
+        }
+        
 </script>
+<!-- ========================================================================= -->
+    <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
+    <!-- ========================================================================= -->
+    <footer class="ticker-footer-container">
+        <!-- Badge fijo a la izquierda -->
+        <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <i class="fa-solid fa-bullhorn text-amber-400"></i>
+            <span class="hidden sm:inline">Hitos & Acciones IECG</span>
+        </div>
+
+        <!-- Pista de desplazamiento continuo -->
+        <div class="overflow-hidden w-full flex">
+            <div id="tickerTrack" class="ticker-track">
+                <!-- Se inyecta dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </footer>
+    
 </body>
 </html>
