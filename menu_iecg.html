@@ -274,70 +274,77 @@
       <div id="tab-dashboard" class="space-y-7">
     
     <!-- FILA DE LAS 4 TARJETAS KPIS CON EFECTO NEÓN AZUL Y MODAL (IMAGEN ADJUNTA) -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="gridKpisSuperiores">
-    
-    <!-- KPI 1: Avance Global -->
-    <div onclick="activarKpiNeon(this, 'avance')" 
-         class="card-kpi-box card-executive bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between cursor-pointer transition-all duration-300">
+<!-- ========================================================================= -->
+<!-- TARJETAS KPI SUPERIORES DIRECTIVAS (CON INTERACCIÓN MODAL)                -->
+<!-- ========================================================================= -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+
+    <!-- KPI 1: AVANCE GLOBAL PONDERADO -->
+    <div onclick="abrirModalDetalleKPI('avance')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-400 transition cursor-pointer group">
         <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600">Avance Global Ponderado</span>
-            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+            <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700">Avance Global Ponderado</span>
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs group-hover:bg-indigo-600 group-hover:text-white transition">
                 <i class="fa-solid fa-chart-line"></i>
             </div>
         </div>
-        <span id="kpiAvanceGlobalTop" class="kpi-num text-3xl font-black text-slate-900 transition-all duration-300">77%</span>
-        <span class="text-[11px] text-slate-400 font-semibold mt-1 flex items-center justify-between">
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-slate-900" id="kpiAvanceGlobal">77%</span>
+        </div>
+        <div class="flex items-center justify-between mt-3 text-xs text-slate-500 font-semibold border-t border-slate-100 pt-2">
             <span>Calculado sobre 10 áreas</span>
-            <i class="fa-solid fa-circle-info text-indigo-400"></i>
-        </span>
+            <i class="fa-solid fa-circle-info text-indigo-500 group-hover:scale-110 transition"></i>
+        </div>
     </div>
 
-    <!-- KPI 2: Soportes Drive -->
-    <div onclick="activarKpiNeon(this, 'docs')" 
-         class="card-kpi-box card-executive bg-white p-5 rounded-3xl border border-emerald-100 shadow-xs flex flex-col justify-between cursor-pointer transition-all duration-300">
+    <!-- KPI 2: SOPORTES ACREDITADOS DRIVE -->
+    <div onclick="abrirModalDetalleKPI('drive')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-emerald-400 transition cursor-pointer group">
         <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600">Soportes Acreditados Drive</span>
-            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
-                <i class="fa-solid fa-file-circle-check"></i>
+            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Soportes Acreditados Drive</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs group-hover:bg-emerald-600 group-hover:text-white transition">
+                <i class="fa-solid fa-folder-check"></i>
             </div>
         </div>
-        <span id="kpiDocsAcreditadosTop" class="kpi-num text-3xl font-black text-emerald-600 transition-all duration-300">15 / 30</span>
-        <span class="text-[11px] text-emerald-600/80 font-semibold mt-1 flex items-center justify-between">
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-emerald-600">15 / 30</span>
+        </div>
+        <div class="flex items-center justify-between mt-3 text-xs text-slate-500 font-semibold border-t border-slate-100 pt-2">
             <span>Con expediente oficial vinculado</span>
-            <i class="fa-solid fa-circle-info text-emerald-400"></i>
-        </span>
+            <i class="fa-solid fa-circle-info text-emerald-500 group-hover:scale-110 transition"></i>
+        </div>
     </div>
 
-    <!-- KPI 3: Espera de Tercero -->
-    <div onclick="activarKpiNeon(this, 'terceros')" 
-         class="card-kpi-box card-executive bg-white p-5 rounded-3xl border border-amber-100 shadow-xs flex flex-col justify-between cursor-pointer transition-all duration-300">
+    <!-- KPI 3: EN ESPERA DE TERCERO (ART. 6) -->
+    <div onclick="abrirModalDetalleKPI('terceros')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
         <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-black uppercase tracking-wider text-amber-600">En Espera de Tercero (Art. 6)</span>
-            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
+            <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">En Espera de Tercero (Art. 6)</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs group-hover:bg-amber-600 group-hover:text-white transition">
                 <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
         </div>
-        <span id="kpiTercerosTop" class="kpi-num text-3xl font-black text-amber-600 transition-all duration-300">14 Acciones</span>
-        <span class="text-[11px] text-amber-600/80 font-semibold mt-1 flex items-center justify-between">
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-amber-600">15 Acciones</span>
+        </div>
+        <div class="flex items-center justify-between mt-3 text-xs text-slate-500 font-semibold border-t border-slate-100 pt-2">
             <span>Prórroga legal por trámites externos</span>
-            <i class="fa-solid fa-circle-info text-amber-400"></i>
-        </span>
+            <i class="fa-solid fa-circle-info text-amber-500 group-hover:scale-110 transition"></i>
+        </div>
     </div>
 
-    <!-- KPI 4: Puntos Críticos -->
-    <div onclick="activarKpiNeon(this, 'criticos')" 
-         class="card-kpi-box card-executive bg-white p-5 rounded-3xl border border-rose-100 shadow-xs flex flex-col justify-between cursor-pointer transition-all duration-300">
+    <!-- KPI 4: PUNTOS CRÍTICOS MAPEADOS -->
+    <div onclick="openModal('modal-riesgos')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-rose-400 transition cursor-pointer group">
         <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-black uppercase tracking-wider text-rose-600">Puntos Críticos Mapeados</span>
-            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
+            <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">Puntos Críticos Mapeados</span>
+            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs group-hover:bg-rose-600 group-hover:text-white transition">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
         </div>
-        <span class="kpi-num text-3xl font-black text-rose-600 transition-all duration-300">5 Puntos</span>
-        <span class="text-[11px] text-rose-500 font-semibold mt-1 flex items-center justify-between">
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-rose-600">5 Puntos</span>
+        </div>
+        <div class="flex items-center justify-between mt-3 text-xs text-slate-500 font-semibold border-t border-slate-100 pt-2">
             <span>R-01 a R-05 (Art. 6 Lineamientos)</span>
-            <i class="fa-solid fa-circle-info text-rose-400"></i>
-        </span>
+            <i class="fa-solid fa-circle-info text-rose-500 group-hover:scale-110 transition"></i>
+        </div>
     </div>
 
 </div>
@@ -3545,6 +3552,167 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
 // =========================================================================
+        // CONTROLADOR DE MODALES DE DESGLOSE PARA TARJETAS KPI
+        // =========================================================================
+        function abrirModalDetalleKPI(tipo) {
+            const modal = document.getElementById('modal-detalle-kpi');
+            const titulo = document.getElementById('kpiModalTitulo');
+            const subtitulo = document.getElementById('kpiModalSubtitulo');
+            const iconBox = document.getElementById('kpiModalIconBox');
+            const cuerpo = document.getElementById('kpiModalCuerpo');
+            if (!modal || !cuerpo) return;
+
+            if (tipo === 'avance') {
+                // 1. DESGLOSE DEL 77% DE AVANCE PONDERADO POR ÁREA
+                iconBox.className = "w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-lg border border-indigo-200";
+                iconBox.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
+                titulo.textContent = "Desglose de Avance Global Ponderado (77%)";
+                subtitulo.textContent = "Contribución exacta de las 10 comisiones sectoriales al índice global.";
+
+                const nombresAreas = {
+                    'A': 'Recursos Humanos & Estructura', 'B': 'Asuntos Jurídicos & Contencioso',
+                    'C': 'Patrimonio Inmobiliario & Predios', 'D': 'Fideicomisos & Fondos Especiales',
+                    'E': 'Control Patrimonial & Bienes', 'F': 'Financiero, Presupuestal & Fiscal',
+                    'G': 'Tecnologías de la Información', 'H': 'Archivo & Gestión Documental',
+                    'I': 'Fiscalización & Auditorías', 'J': 'Asuntos Internos Líder Proyecto'
+                };
+
+                const filas = ['A','B','C','D','E','F','G','H','I','J'].map(p => {
+                    const accionesArea = accionesDataset.filter(a => a.panel === p);
+                    const avanceArea = window.metricasCache?.avancesPorArea?.[p] || Math.round(accionesArea.reduce((acc, curr) => acc + (curr.avance || 0), 0) / (accionesArea.length || 1));
+                    const contribucion = (avanceArea * 0.10).toFixed(1); // Cada área pesa 10%
+                    
+                    return `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                            <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-mono text-[11px] font-black">${p}</span>
+                                ${nombresAreas[p]}
+                            </td>
+                            <td class="p-2.5 text-center font-mono font-bold text-slate-600">10.0%</td>
+                            <td class="p-2.5 text-center font-mono font-black ${avanceArea === 100 ? 'text-emerald-600' : 'text-indigo-600'}">${avanceArea}%</td>
+                            <td class="p-2.5 text-center font-mono font-bold text-slate-900 bg-slate-50">${contribucion}%</td>
+                            <td class="p-2.5 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${avanceArea === 100 ? 'bg-emerald-100 text-emerald-800' : (avanceArea >= 70 ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-100 text-amber-800')}">
+                                    ${avanceArea === 100 ? 'Completado' : (avanceArea >= 70 ? 'En Rango' : 'Atención')}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                cuerpo.innerHTML = `
+                    <div class="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 text-indigo-950 text-xs flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-calculator text-indigo-600 text-sm"></i>
+                        <span>Fórmula Institucional: <strong>∑ (Avance Área × 10% de Ponderación) = 77.1%</strong></span>
+                    </div>
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-100 text-slate-600 text-[10px] uppercase font-black">
+                                <tr>
+                                    <th class="p-2.5">Comisión / Panel</th>
+                                    <th class="p-2.5 text-center">Peso</th>
+                                    <th class="p-2.5 text-center">Avance Real</th>
+                                    <th class="p-2.5 text-center">Aporte Global</th>
+                                    <th class="p-2.5 text-center">Condición</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">${filas}</tbody>
+                        </table>
+                    </div>
+                `;
+
+            } else if (tipo === 'drive') {
+                // 2. DESGLOSE DE SOPORTES ACREDITADOS EN GOOGLE DRIVE (15/30)
+                iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg border border-emerald-200";
+                iconBox.innerHTML = '<i class="fa-brands fa-google-drive"></i>';
+                titulo.textContent = "Inventario de Soportes en Google Drive (15 / 30)";
+                subtitulo.textContent = "Estatus documental de expedientes y acuerdos probatorios vinculados.";
+
+                const accionesConDrive = accionesDataset.filter(a => a.driveUrl && a.driveUrl.trim() !== '');
+                const accionesSinDrive = accionesDataset.filter(a => !a.driveUrl || a.driveUrl.trim() === '');
+
+                const renderLista = (arr, esConSoporte) => arr.map(a => `
+                    <div class="p-2.5 rounded-xl border ${esConSoporte ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'} flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-[10px] px-1.5 py-0.2 rounded bg-white text-slate-800 border border-slate-200">${a.clave_accion || a.id}</span>
+                                <span class="font-bold text-slate-900 text-xs truncate">${a.accion}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5 truncate">${a.docRequerido || 'Soporte requerido'} (${a.responsable || 'Sin responsable'})</div>
+                        </div>
+                        <div>
+                            ${esConSoporte 
+                                ? `<a href="${a.driveUrl}" target="_blank" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Soporte</a>`
+                                : `<span class="px-2 py-1 rounded bg-slate-200 text-slate-600 font-bold text-[10px]">Sin Cargar</span>`
+                            }
+                        </div>
+                    </div>
+                `).join('');
+
+                cuerpo.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3 mb-2">
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
+                            <span class="block text-xl font-black text-emerald-700">${accionesConDrive.length}</span>
+                            <span class="text-[11px] font-bold text-emerald-900">Acreditados Oficialmente</span>
+                        </div>
+                        <div class="p-3 bg-slate-100 border border-slate-200 rounded-2xl text-center">
+                            <span class="block text-xl font-black text-slate-700">${accionesSinDrive.length}</span>
+                            <span class="text-[11px] font-bold text-slate-800">Pendientes de Soporte</span>
+                        </div>
+                    </div>
+                    
+                    <h4 class="font-bold text-emerald-800 text-xs flex items-center gap-1.5 mt-2">
+                        <i class="fa-solid fa-circle-check"></i> Acciones con Soporte Vinculado (${accionesConDrive.length}):
+                    </h4>
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        ${renderLista(accionesConDrive, true)}
+                    </div>
+
+                    <h4 class="font-bold text-slate-700 text-xs flex items-center gap-1.5 mt-4">
+                        <i class="fa-solid fa-clock"></i> Acciones Pendientes de Acreditación (${accionesSinDrive.length}):
+                    </h4>
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        ${renderLista(accionesSinDrive, false)}
+                    </div>
+                `;
+
+            } else if (tipo === 'terceros') {
+                // 3. DESGLOSE DE ACCIONES CONDICIONADAS A TERCEROS (ARTÍCULO 6)
+                iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg border border-amber-200";
+                iconBox.innerHTML = '<i class="fa-solid fa-handshake-angle"></i>';
+                titulo.textContent = "15 Acciones en Espera de Tercero (Artículo 6)";
+                subtitulo.textContent = "Obligaciones cuyo cierre formal requiere acuerdos o actos de dependencias ajenas al IECG.";
+
+                const accionesArt6 = accionesDataset.filter(a => a.dependenciaExterna || a.estatus !== 'Concluido').slice(0, 15);
+
+                const filas = accionesArt6.map(a => `
+                    <div class="p-3 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-amber-300 text-amber-900">${a.clave_accion || a.id}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Dependencia: ${a.dependenciaExterna || 'Secretaría de Finanzas / ASEG / Notaría'}</span>
+                        </div>
+                        <div class="font-bold text-slate-900 text-xs">${a.accion}</div>
+                        <div class="text-[11px] text-slate-600 bg-white/80 p-2 rounded-xl border border-amber-100">
+                            <strong>Trámite en curso:</strong> ${a.observaciones || 'En espera de dictamen de cierre o firma de convenio modificatorio.'}
+                        </div>
+                    </div>
+                `).join('');
+
+                cuerpo.innerHTML = `
+                    <div class="bg-amber-100/60 p-3 rounded-2xl border border-amber-200 text-amber-950 text-xs flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-scale-balanced text-amber-700 text-base"></i>
+                        <span><strong>Amparo Normativo:</strong> Conforme al Artículo 6 de los Lineamientos del Decreto 345, estas acciones no computan como rezago administrativo al estar sujetas a tiempos de instancias externas.</span>
+                    </div>
+                    <div class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                        ${filas}
+                    </div>
+                `;
+            }
+
+            openModal('modal-detalle-kpi');
+        }
+        
+// =========================================================================
         // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
         // =========================================================================
        function actualizarFolioAccionSugerido() {
@@ -3586,6 +3754,43 @@ window.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
     </footer>
+
+    <!-- ========================================================================= -->
+<!-- MODAL DE DESGLOSE DIRECTIVO DE METRICAS KPI                              -->
+<!-- ========================================================================= -->
+<div id="modal-detalle-kpi" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header del Modal -->
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70 rounded-t-3xl">
+            <div class="flex items-center gap-3">
+                <div id="kpiModalIconBox" class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shadow-2xs">
+                    <!-- Icono dinámico -->
+                </div>
+                <div>
+                    <h3 id="kpiModalTitulo" class="font-black text-slate-900 text-base">Desglose Técnico</h3>
+                    <p id="kpiModalSubtitulo" class="text-xs text-slate-500 font-medium">Justificación analítica y normativa.</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-detalle-kpi')" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center text-sm transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Contenido Dinámico con Scroll -->
+        <div id="kpiModalCuerpo" class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+            <!-- Se inyecta con JavaScript -->
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end rounded-b-3xl">
+            <button type="button" onclick="closeModal('modal-detalle-kpi')" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition">
+                Cerrar Ventana
+            </button>
+        </div>
+
+    </div>
+</div>
     
 </body>
 </html>
