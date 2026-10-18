@@ -686,6 +686,31 @@
 
     </div>
 
+<!-- CINTILLO DE FECHAS CRÍTICAS Y FATALES INSTITUCIONALES -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+    <div class="p-2.5 rounded-xl bg-white border border-indigo-200 shadow-2xs">
+        <span class="block text-[10px] font-extrabold uppercase text-indigo-700">1. Revisión de Avance</span>
+        <span class="block text-sm font-black text-slate-900 mt-0.5">30-Oct</span>
+        <span class="block text-[10px] text-slate-500 font-semibold">Despacho Secretaria de Cultura</span>
+    </div>
+    <div class="p-2.5 rounded-xl bg-white border border-blue-200 shadow-2xs">
+        <span class="block text-[10px] font-extrabold uppercase text-blue-700">2. Sesión Extraordinaria</span>
+        <span class="block text-sm font-black text-slate-900 mt-0.5">30-Nov</span>
+        <span class="block text-[10px] text-slate-500 font-semibold">Comité de Extinción IECG</span>
+    </div>
+    <div class="p-2.5 rounded-xl bg-white border border-amber-200 shadow-2xs">
+        <span class="block text-[10px] font-extrabold uppercase text-amber-700">3. Cierre Interno</span>
+        <span class="block text-sm font-black text-slate-900 mt-0.5">26-Feb</span>
+        <span class="block text-[10px] text-slate-500 font-semibold">Entrega Operativa SECUL</span>
+    </div>
+    <div class="p-2.5 rounded-xl bg-white border border-rose-200 shadow-2xs">
+        <span class="block text-[10px] font-extrabold uppercase text-rose-700">4. Cierre General</span>
+        <span class="block text-sm font-black text-slate-900 mt-0.5">05-Abr</span>
+        <span class="block text-[10px] text-slate-500 font-semibold">Extinción Legal y Dictamen ASEG</span>
+    </div>
+</div>
+
+        
         <!-- ================================================================= -->
 <!-- SECCIÓN 4: LÍNEA DE TIEMPO LEGAL MAESTRA (T-01 A T-10)            -->
 <!-- ================================================================= -->
@@ -3835,139 +3860,290 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        function renderTableroGanttEjecutivo() {
-            const hitosData = [
-                { label: 'Task 01 (RH)', inicio: 0, duracion: 15, estatus: 'Complete', color: '#c59b27' },
-                { label: 'Task 02 (Jurídico)', inicio: 10, duracion: 20, estatus: 'In Progress', color: '#b6d76a' },
-                { label: 'Task 03 (Inmuebles)', inicio: 25, duracion: 45, estatus: 'In Progress', color: '#f59e0b' },
-                { label: 'Task 04 (FIARCA)', inicio: 45, duracion: 25, estatus: 'In Progress', color: '#a3c82d' },
-                { label: 'Task 05 (Bienes)', inicio: 65, duracion: 50, estatus: 'Not Started', color: '#044c37' },
-                { label: 'Task 06 (Fiscal/SAT)', inicio: 95, duracion: 15, estatus: 'Overdue', color: '#7a3127' },
-                { label: 'Task 07 (TI)', inicio: 88, duracion: 32, estatus: 'Complete', color: '#29b6f6' },
-                { label: 'Task 08 (Archivo)', inicio: 100, duracion: 75, estatus: 'In Progress', color: '#3bb77e' },
-                { label: 'Task 09 (ASEG)', inicio: 170, duracion: 30, estatus: 'Not Started', color: '#78716c' },
-                { label: 'Task 10 (Gobernanza)', inicio: 190, duracion: 40, estatus: 'In Progress', color: '#d97706' }
-            ];
-
-            // 1. Task Timeline (Gantt flotante)
-            const ctxTimeline = document.getElementById('chartGanttTimeline');
-            if (ctxTimeline) {
-                if (window.ganttTimelineInstancia) window.ganttTimelineInstancia.destroy();
-                window.ganttTimelineInstancia = new Chart(ctxTimeline.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: hitosData.map(h => h.label),
-                        datasets: [{
-                            data: hitosData.map(h => [h.inicio, h.inicio + h.duracion]),
-                            backgroundColor: hitosData.map(h => h.color),
-                            borderRadius: 4,
-                            borderSkipped: false,
-                            barPercentage: 0.55
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                min: 0,
-                                max: 240,
-                                grid: { color: '#e2e8f0', lineWidth: 1 },
-                                ticks: {
-                                    callback: val => {
-                                        const marcas = { 0: 'Oct 24', 40: 'Dic 24', 80: 'Mar 25', 120: 'Jun 25', 160: 'Sep 25', 200: 'Dic 25', 240: '2026' };
-                                        return marcas[val] || '';
-                                    },
-                                    font: { size: 10, weight: 'bold' }
-                                }
-                            },
-                            y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: ctx => ` Duración: ${ctx.raw[1] - ctx.raw[0]} días (Día ${ctx.raw[0]} al ${ctx.raw[1]})`
-                                }
-                            },
-                            datalabels: { display: false }
-                        }
-                    }
-                });
-            }
-
-            // 2. Task Status (Dona)
-            const ctxStatus = document.getElementById('chartGanttStatus');
-            if (ctxStatus) {
-                if (window.ganttStatusInstancia) window.ganttStatusInstancia.destroy();
-                window.ganttStatusInstancia = new Chart(ctxStatus.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Complete', 'Overdue', 'In Progress', 'Not Started'],
-                        datasets: [{
-                            data: [20, 18, 22, 40],
-                            backgroundColor: ['#b91c1c', '#0284c7', '#d97706', '#10b981'],
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '62%',
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } }
-                            },
-                            datalabels: (typeof ChartDataLabels !== 'undefined') ? {
-                                color: '#ffffff',
-                                font: { weight: 'bold', size: 11 },
-                                formatter: val => `${val}%`
-                            } : false
-                        }
-                    }
-                });
-            }
-
-            // 3. Days Per Project (Barras Horizontales con valor numérico al final)
-            const ctxDuracion = document.getElementById('chartGanttDuracion');
-            if (ctxDuracion) {
-                if (window.ganttDuracionInstancia) window.ganttDuracionInstancia.destroy();
-                window.ganttDuracionInstancia = new Chart(ctxDuracion.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: hitosData.map(h => h.label),
-                        datasets: [{
-                            data: hitosData.map(h => h.duracion),
-                            backgroundColor: hitosData.map(h => h.color),
-                            borderRadius: 4,
-                            barPercentage: 0.7
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                            y: { grid: { display: false }, ticks: { font: { size: 10 } } }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            datalabels: (typeof ChartDataLabels !== 'undefined') ? {
-                                anchor: 'end',
-                                align: 'right',
-                                color: '#1e293b',
-                                font: { weight: 'bold', size: 10 },
-                                formatter: val => val
-                            } : false
-                        }
-                    }
-                });
-            }
+        // =========================================================================
+// TABLERO GANTT EJECUTIVO CONECTADO A HITOS INSTITUCIONALES Y FECHAS FATALES
+// =========================================================================
+function renderTableroGanttEjecutivo() {
+    // Catálogo Maestro de Hitos Rectores Institucionales con sus fechas de inicio, días y estatus
+    const hitosInstitucionales = [
+        { 
+            id: 'RH-E', 
+            nombre: 'H-01 Recursos Humanos (Convenios y Plazas)', 
+            panel: 'A', 
+            inicioDia: 0, 
+            duracion: 35, 
+            estatus: 'Concluido', 
+            color: '#10b981',
+            acciones: 'Finiquitos, ratificación laboral ante tribunal y baja plazas IECG'
+        },
+        { 
+            id: 'JUR-C', 
+            nombre: 'H-02 Jurídico (Convenios Modificatorios & Contencioso)', 
+            panel: 'B', 
+            inicioDia: 20, 
+            duracion: 50, 
+            estatus: 'En Proceso', 
+            color: '#3b82f6',
+            acciones: 'Convenio modificatorio Banorte, amparos y juicios en trámite'
+        },
+        { 
+            id: 'PTR-I', 
+            nombre: 'H-03 Patrimonio Inmueble (Acuerdos de Destino)', 
+            panel: 'C', 
+            inicioDia: 40, 
+            duracion: 65, 
+            estatus: 'En Espera Tercero (Art. 6)', 
+            color: '#f59e0b',
+            acciones: 'Formalización de destino recintos históricos ante Consejería'
+        },
+        { 
+            id: 'FID-F', 
+            nombre: 'H-04 Fideicomisos (FIARCA & Zonas Arqueológicas)', 
+            panel: 'D', 
+            inicioDia: 60, 
+            duracion: 45, 
+            estatus: 'En Proceso', 
+            color: '#6366f1',
+            acciones: 'Transferencia operativa de pasivos y recintos a favor de SECUL'
+        },
+        { 
+            id: 'PTR-M', 
+            nombre: 'H-05 Bienes Muebles (2,570 Bienes no localizados)', 
+            panel: 'E', 
+            inicioDia: 80, 
+            duracion: 75, 
+            estatus: 'En Proceso', 
+            color: '#065f46',
+            acciones: 'Brigadas de búsqueda física, bajas por desuso y actas circunstanciadas'
+        },
+        { 
+            id: 'FIN-P', 
+            nombre: 'H-06 Finanzas / SAT (Cancelación de RFC IECG)', 
+            panel: 'F', 
+            inicioDia: 110, 
+            duracion: 30, 
+            estatus: 'En Espera Tercero (Art. 6)', 
+            color: '#d97706',
+            acciones: 'Cancelación definitiva RFC, cuentas residuales y retenciones nómina'
+        },
+        { 
+            id: 'TIC-S', 
+            nombre: 'H-07 TI (Entrega de Sistemas, Sitios y Servidores)', 
+            panel: 'G', 
+            inicioDia: 100, 
+            duracion: 40, 
+            estatus: 'Concluido', 
+            color: '#059669',
+            acciones: 'Migración dominios, entrega llaves de seguridad y servidores'
+        },
+        { 
+            id: 'ARC-G', 
+            nombre: 'H-08 Archivo y Concentración Documental', 
+            panel: 'H', 
+            inicioDia: 120, 
+            duracion: 60, 
+            estatus: 'En Proceso', 
+            color: '#8b5cf6',
+            acciones: 'Transferencia de acervo histórico al Archivo General del Estado'
+        },
+        { 
+            id: 'AUD-I', 
+            nombre: 'H-09 Fiscalización y Solventación ASEG / ASF', 
+            panel: 'I', 
+            inicioDia: 140, 
+            duracion: 55, 
+            estatus: 'En Proceso', 
+            color: '#475569',
+            acciones: 'Atención a pliegos de observaciones de cuentas públicas anteriores'
+        },
+        { 
+            id: 'GOB-J', 
+            nombre: 'H-10 Gobernanza y Dictamen de Liquidación Final', 
+            panel: 'J', 
+            inicioDia: 160, 
+            duracion: 50, 
+            estatus: 'Validación', 
+            color: '#ea580c',
+            acciones: 'Acta de sesión de prórroga, libro blanco y entrega final a SECUL'
         }
+    ];
+
+    // -------------------------------------------------------------
+    // 1. GRÁFICA SUPERIOR: TIMELINE DE HITOS RECTORES
+    // -------------------------------------------------------------
+    const ctxTimeline = document.getElementById('chartGanttTimeline');
+    if (ctxTimeline) {
+        if (window.instanciaGanttTimeline) window.instanciaGanttTimeline.destroy();
+
+        window.instanciaGanttTimeline = new Chart(ctxTimeline.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: hitosInstitucionales.map(h => h.nombre),
+                datasets: [{
+                    label: 'Período de Ejecución',
+                    data: hitosInstitucionales.map(h => [h.inicioDia, h.inicioDia + h.duracion]),
+                    backgroundColor: hitosInstitucionales.map(h => h.color),
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barPercentage: 0.65
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 220,
+                        grid: { color: '#e2e8f0', lineWidth: 1 },
+                        ticks: {
+                            // Hitos fatales institucionales reflejados en la escala
+                            callback: function(val) {
+                                const hitosFatales = {
+                                    0: 'Inicio D-345',
+                                    45: '30-Oct (Sec. Cultura)',
+                                    90: '30-Nov (Comité)',
+                                    140: '26-Feb (Cierre SECUL)',
+                                    190: '05-Abr (Cierre Final)',
+                                    220: 'Extinción'
+                                };
+                                return hitosFatales[val] || '';
+                            },
+                            font: { size: 10, weight: 'bold' },
+                            color: '#1e293b'
+                        }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { 
+                            font: { size: 11, weight: 'bold' },
+                            color: '#334155'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(ctx) {
+                                return hitosInstitucionales[ctx[0].dataIndex].nombre;
+                            },
+                            label: function(ctx) {
+                                const h = hitosInstitucionales[ctx.dataIndex];
+                                return [
+                                    ` Duración: ${h.duracion} días`,
+                                    ` Estatus: ${h.estatus}`,
+                                    ` Acciones: ${h.acciones}`
+                                ];
+                            }
+                        }
+                    },
+                    datalabels: { display: false }
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 2. GRÁFICA INFERIOR IZQUIERDA: TASK STATUS INSTITUCIONAL
+    // -------------------------------------------------------------
+    const ctxStatus = document.getElementById('chartGanttStatus');
+    if (ctxStatus) {
+        if (window.instanciaGanttStatus) window.instanciaGanttStatus.destroy();
+
+        const conteo = {
+            'Concluido': hitosInstitucionales.filter(h => h.estatus === 'Concluido').length,
+            'En Proceso': hitosInstitucionales.filter(h => h.estatus === 'En Proceso').length,
+            'En Espera Tercero (Art. 6)': hitosInstitucionales.filter(h => h.estatus.includes('Tercero')).length,
+            'Validación': hitosInstitucionales.filter(h => h.estatus === 'Validación').length
+        };
+
+        window.instanciaGanttStatus = new Chart(ctxStatus.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Concluido', 'En Proceso', 'En Espera Tercero (Art. 6)', 'Validación'],
+                datasets: [{
+                    data: [conteo['Concluido'], conteo['En Proceso'], conteo['En Espera Tercero (Art. 6)'], conteo['Validación']],
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ea580c'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } }
+                    },
+                    datalabels: (typeof ChartDataLabels !== 'undefined') ? {
+                        color: '#ffffff',
+                        font: { weight: 'bold', size: 11 },
+                        formatter: (val, ctx) => {
+                            if (val <= 0) return '';
+                            const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            return `${val} (${Math.round((val/total)*100)}%)`;
+                        }
+                    } : false
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 3. GRÁFICA INFERIOR DERECHA: DURACIÓN REAL EN DÍAS POR HITO
+    // -------------------------------------------------------------
+    const ctxDuracion = document.getElementById('chartGanttDuracion');
+    if (ctxDuracion) {
+        if (window.instanciaGanttDuracion) window.instanciaGanttDuracion.destroy();
+
+        window.instanciaGanttDuracion = new Chart(ctxDuracion.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: hitosInstitucionales.map(h => h.nombre),
+                datasets: [{
+                    label: 'Días Requeridos / Programados',
+                    data: hitosInstitucionales.map(h => h.duracion),
+                    backgroundColor: hitosInstitucionales.map(h => h.color),
+                    borderRadius: 4,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { 
+                            font: { size: 10, weight: 'bold' },
+                            callback: val => `${val} días`
+                        }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: (typeof ChartDataLabels !== 'undefined') ? {
+                        anchor: 'end',
+                        align: 'right',
+                        color: '#0f172a',
+                        font: { weight: 'black', size: 10 },
+                        formatter: val => `${val} d`
+                    } : false
+                }
+            }
+        });
+    }
+}
         
     </script>
 </script>
