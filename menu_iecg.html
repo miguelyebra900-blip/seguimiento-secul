@@ -2683,81 +2683,43 @@ function renderTarjetas10Areas(avancesPorArea) {
         }
 
 // =========================================================================
-        // APERTURA DEL MODAL UNIVERSAL CON ASIGNACIÓN DE FOLIOS FORZADA
+        // REDIRECCIÓN UNIFICADA: ABRIR SIEMPRE EL MODAL DE COMPROMISOS Y GESTIÓN
         // =========================================================================
+        
+        // Botón Header (Imagen 5) y Botón Matriz (Imagen 3)
         function abrirBuzonCargaUniversal() {
-            poblarSelectBuzon();
-            actualizarFolioSiguienteSugerido(); // Llena el Folio Hito (Pestaña 1)
-            actualizarFolioAccionSugerido();    // Llena el Folio Acción (Pestaña 2)
-            openModal('modal-buzon-universal');
+            const primerHito = (accionesDataset && accionesDataset.length > 0) ? accionesDataset[0] : null;
+            if (primerHito) {
+                abrirModalDesdeGrafica(primerHito.clave_accion || primerHito.id);
+            } else {
+                openModal('modal-hito-fiscalizacion');
+            }
         }
-// =========================================================================
-// ABRIR MODAL UNIVERSAL DIRECTO EN PESTAÑA 2 FILTRADO POR EL PANEL SELECCIONADO
-// =========================================================================
-function abrirBuzonRapidoArea(letraPanel) {
-    const panel = (letraPanel || 'A').toUpperCase();
 
-    // 1. Filtrar las acciones/hitos pertenecientes a este panel
-    const accionesDelPanel = accionesDataset.filter(a => a.panel === panel);
-    const accionBase = accionesDelPanel.length > 0 ? accionesDelPanel[0] : accionesDataset[0];
-
-    // 2. Poblamos el selector con los hitos del panel y seleccionamos el primero
-    const selectPadre = document.getElementById('buzonSelectAccion');
-    if (selectPadre) {
-        selectPadre.innerHTML = accionesDataset.map(a => 
-            `<option value="${a.clave_accion || a.id}">[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...</option>`
-        ).join('');
-        
-        if (accionBase) {
-            selectPadre.value = accionBase.clave_accion || accionBase.id;
+        // Botones de las 10 Tarjetas de Área "Cargar Soporte en Panel X" (Imagen 1)
+        function abrirBuzonRapidoArea(letraPanel) {
+            const panel = (letraPanel || 'A').toUpperCase();
+            const accionDelPanel = accionesDataset.find(a => a.panel === panel) || accionesDataset[0];
+            
+            if (accionDelPanel) {
+                abrirModalDesdeGrafica(accionDelPanel.clave_accion || accionDelPanel.id);
+            } else {
+                openModal('modal-hito-fiscalizacion');
+            }
         }
-    }
 
-    // 3. Forzar el cambio directo a la Pestaña 2: "Nueva Acción (Asociada a Hito)"
-    if (typeof cambiarTabModalUniversal === 'function') {
-        cambiarTabModalUniversal('tab-accion');
-    }
-
-    // 4. Actualizar el indicador visual del panel de Drive
-    const labelDrive = document.getElementById('labelPanelDestinoDrive');
-    if (labelDrive) {
-        labelDrive.innerText = `Panel ${panel} (${accionBase.area})`;
-    }
-
-    // 5. Abrir el Modal Universal
-    openModal('modal-buzon-universal');
-}
-        
+        // Clic en las barras del Roadmap (Imagen 4) y botones de edición en la Matriz (Imagen 3)
         function cargarAccionEnBuzonDirecto(accionId, riesgoId = null) {
-    // Si viene de un modal previo, lo cerramos
-    if (document.getElementById('modal-riesgos-inicio')) closeModal('modal-riesgos-inicio');
-    if (document.getElementById('modal-hito-fiscalizacion')) closeModal('modal-hito-fiscalizacion');
-
-    const act = accionesDataset.find(a => (a.clave_accion === accionId) || (a.id === accionId));
-    
-    // Poblamos y seleccionamos la acción específica
-    const selectPadre = document.getElementById('buzonSelectAccion');
-    if (selectPadre) {
-        selectPadre.innerHTML = accionesDataset.map(a => 
-            `<option value="${a.clave_accion || a.id}">[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...</option>`
-        ).join('');
-
-        if (act) selectPadre.value = act.clave_accion || act.id;
-    }
-
-    // Cambiar a la Pestaña 2 (Nueva Acción)
-    if (typeof cambiarTabModalUniversal === 'function') {
-        cambiarTabModalUniversal('tab-accion');
-    }
-
-    const labelDrive = document.getElementById('labelPanelDestinoDrive');
-    if (labelDrive && act) {
-        labelDrive.innerText = `Panel ${act.panel} (${act.area})`;
-    }
-
-    // Abrir el Modal Universal
-    openModal('modal-buzon-universal');
-}
+            if (document.getElementById('modal-riesgos-inicio')) closeModal('modal-riesgos-inicio');
+            if (document.getElementById('modal-hito-fiscalizacion')) closeModal('modal-hito-fiscalizacion');
+            
+            const act = accionesDataset.find(a => (a.clave_accion === accionId) || (a.id === accionId));
+            if (act) {
+                abrirModalDesdeGrafica(act.clave_accion || act.id);
+            } else {
+                abrirModalDesdeGrafica(accionId);
+            }
+        }
         
         function abrirCarpetaActualDesdeBuzon() { const act = accionesDataset.find(a => a.id === document.getElementById('buzonSelectAccion').value); if (act) window.abrirCarpetaDrivePanel(act.panel); }
 
@@ -3542,31 +3504,36 @@ function abrirModalAltaAccionVinculada() {
     }
 }
 
-        function abrirModalAltaAccionVinculadaDesdeDetalle() {
-    // 1. Cerrar el modal de detalle limpio
-    closeModal('modal-hito-fiscalizacion');
+function abrirModalAltaAccionVinculadaDesdeDetalle() {
+            // 1. Cerrar el modal de detalle del hito
+            closeModal('modal-hito-fiscalizacion');
 
-    // 2. Abrir el Modal Universal de Alta de Entregables
-    openModal('modal-buzon-universal');
+            // 2. Abrir el Modal Universal de Alta de Entregables
+            openModal('modal-buzon-universal');
 
-    // 3. Posicionarse en la pestaña de nueva acción asociada
-    if (typeof cambiarTabModalUniversal === 'function') {
-        cambiarTabModalUniversal('tab-accion');
-    }
+            // 3. Posicionarse en la pestaña 2: "Nueva Acción Asociada"
+            if (typeof cambiarTabModalUniversal === 'function') {
+                cambiarTabModalUniversal('tab-accion');
+            }
 
-    // 4. Autoseleccionar el hito activo en el combobox del modal universal
-    const selectPadre = document.getElementById('buzonSelectAccion');
-    if (selectPadre) {
-        selectPadre.innerHTML = accionesDataset.map(a => 
-            `<option value="${a.id}">[${a.id}] ${a.hito} (${a.area})</option>`
-        ).join('');
+            // 4. Autoseleccionar el hito padre y generar el consecutivo automático
+            const selectPadre = document.getElementById('buzonSelectAccion');
+            if (selectPadre) {
+                selectPadre.innerHTML = accionesDataset.map(a => 
+                    `<option value="${a.clave_accion || a.id}">[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...</option>`
+                ).join('');
 
-        if (window.hitoActivoEnModalFiscal) {
-            selectPadre.value = window.hitoActivoEnModalFiscal.id;
+                if (window.hitoActivoEnModalFiscal) {
+                    selectPadre.value = window.hitoActivoEnModalFiscal.clave_accion || window.hitoActivoEnModalFiscal.id;
+                }
+
+                // Genera la clave de acción en vivo y actualiza la etiqueta de Drive
+                if (typeof actualizarFolioAccionSugerido === 'function') {
+                    actualizarFolioAccionSugerido();
+                }
+            }
         }
-    }
-}
-
+        
         // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
 function agregarFilaAccionHito() {
     const contenedor = document.getElementById('contenedorAccionesObligatorias');
