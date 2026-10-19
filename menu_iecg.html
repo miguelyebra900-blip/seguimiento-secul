@@ -4547,19 +4547,155 @@ else if (tipo === 'status') {
         if (sustento) sustento.innerHTML = `<strong>Sustento:</strong> Artículos 6, 7 y 18 de los Lineamientos del IECG (regularización de bienes y trámites notariales).`;
     }
     
-    } else if (tipo === 'duracion') {
-        if (header) header.className = "p-5 bg-gradient-to-r from-slate-700 to-slate-900 text-white flex items-start justify-between";
-        if (icono) icono.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
-        if (titulo) titulo.textContent = "Metodología de Cómputo de Plazos (Barras)";
-        if (regla) regla.textContent = "Calcula la carga temporal asignada a cada una de las 10 comisiones, convirtiendo los días matemáticos a períodos de calendario comprensibles.";
-        if (formula) formula.innerHTML = `
-            • <strong>Cómputo:</strong> Días_Totales = Fecha_Fin_Programada - Fecha_Inicio_Programada<br>
-            • <strong>Conversión Humana:</strong> Si Días > 30 → se expresa en Meses Equivalentes (Días / 30.4)
-        `;
-        if (interpretacion) interpretacion.textContent = "Evita la confusión de ver cientos de días abstractos (como 759 días). Expresa con claridad que se trata de '25 Meses' con vencimiento al 30 de noviembre de 2026, facilitando la rendición de cuentas.";
-        if (sustento) sustento.innerHTML = "<strong>Sustento:</strong> Calendario oficial de entrega-recepción extraordinaria normado en los Artículos 6, 7 y 37 de los Lineamientos del IECG.";
-    }
+} else if (tipo === 'status') {
+        if (header) header.className = "p-5 bg-gradient-to-r from-emerald-600 to-teal-800 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
+        if (titulo) titulo.textContent = "Metodología y Padrón de Estatus de las Acciones";
+        
+        // Obtener el universo real de acciones del dataset
+        const datasetReal = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+        const concluidas = datasetReal.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100);
+        const enProceso = datasetReal.filter(a => a.estatus === 'En Proceso' || (Number(a.avance) > 0 && Number(a.avance) < 100));
+        const esperaTercero = datasetReal.filter(a => (a.estatus && a.estatus.includes('Tercero')) || a.dependenciaExterna);
+        const validacion = datasetReal.filter(a => a.estatus === 'Validación');
 
+        if (regla) regla.innerHTML = `
+            <strong>Principio de Comprobación:</strong> El gráfico de anillo clasifica las <strong>30 acciones sustantivas</strong> del proceso de extinción según el nivel de soporte documental integrado en Google Drive.
+        `;
+
+        if (formula) formula.innerHTML = `
+            <div class="space-y-3 text-xs">
+                <div>
+                    <span class="font-bold text-emerald-800 uppercase block text-[11px]">1. Fórmula de Distribución Porcentual</span>
+                    <p class="font-mono bg-white p-2 rounded-lg border border-slate-200 text-[10.5px] mt-1 text-slate-700">
+                        % Estatus = (Acciones en ese Estatus ÷ 30 Acciones Totales) × 100
+                    </p>
+                </div>
+                
+                <div class="border-t border-slate-200 pt-2 space-y-1">
+                    <span class="font-bold text-slate-800 block text-[11px] uppercase">2. Criterios de Clasificación Normativa</span>
+                    <p>• <strong>🟢 Concluido (100%):</strong> Entregable con acta formal firmada, validada y expediente digital en Drive.</p>
+                    <p>• <strong>🔵 En Proceso:</strong> Tareas operativas en desahogo ordinario dentro de los plazos de la comisión.</p>
+                    <p>• <strong>🟡 En Espera Tercero (Art. 6):</strong> Obligaciones detenidas por trámites dependientes de autoridades externas (SAT, Notarías, ASEG, Fiduciaria Banorte).</p>
+                    <p>• <strong>🟣 Validación:</strong> Documentación concluida en fase de dictamen ante el Comité de Extinción.</p>
+                </div>
+            </div>
+        `;
+
+        if (interpretacion) interpretacion.innerHTML = `
+            <div class="space-y-3">
+                <span class="font-bold text-slate-800 uppercase block text-[11px]">3. Desglose Nominal de las Acciones por Estatus (${datasetReal.length} Registradas)</span>
+                
+                <!-- Concluidas -->
+                <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+                    <div class="flex justify-between items-center font-bold text-emerald-800 text-[11px] mb-1">
+                        <span>🟢 CONCLUIDAS (${concluidas.length} Acciones)</span>
+                        <span>${Math.round((concluidas.length / (datasetReal.length || 1)) * 100)}%</span>
+                    </div>
+                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
+                        ${concluidas.map(a => `<li><strong>${a.clave_accion \vert{}\vert{} a.id}:</strong>${a.accion || a.nombre} (100%)</li>`).join('')}
+                    </ul>
+                </div>
+
+                <!-- En Proceso -->
+                <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl">
+                    <div class="flex justify-between items-center font-bold text-blue-800 text-[11px] mb-1">
+                        <span>🔵 EN PROCESO (${enProceso.length} Acciones)</span>
+                        <span>${Math.round((enProceso.length / (datasetReal.length || 1)) * 100)}%</span>
+                    </div>
+                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
+                        ${enProceso.map(a => `<li><strong>${a.clave_accion || a.id}:</strong> ${a.accion \vert{}\vert{} a.nombre} (${a.avance || 0}%)</li>`).join('')}
+                    </ul>
+                </div>
+
+                <!-- En Espera Tercero -->
+                <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl">
+                    <div class="flex justify-between items-center font-bold text-amber-800 text-[11px] mb-1">
+                        <span>🟡 EN ESPERA TERCERO - ART. 6 (${esperaTercero.length} Acciones)</span>
+                        <span>${Math.round((esperaTercero.length / (datasetReal.length || 1)) * 100)}%</span>
+                    </div>
+                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
+                        ${esperaTercero.map(a => `<li><strong>${a.clave_accion \vert{}\vert{} a.id}:</strong>${a.accion || a.nombre} (${a.avance \vert{}\vert{} 0}\% - Ente:${a.dependenciaExterna || 'Autoridad Externa'})</li>`).join('')}
+                    </ul>
+                </div>
+
+                <!-- En Validación -->
+                <div class="bg-purple-50 border border-purple-200 p-2.5 rounded-xl">
+                    <div class="flex justify-between items-center font-bold text-purple-800 text-[11px] mb-1">
+                        <span>🟣 EN VALIDACIÓN (${validacion.length} Acciones)</span>
+                        <span>${Math.round((validacion.length / (datasetReal.length || 1)) * 100)}%</span>
+                    </div>
+                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
+                        ${validacion.map(a => `<li><strong>${a.clave_accion || a.id}:</strong> ${a.accion \vert{}\vert{} a.nombre} (${a.avance || 0}%)</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+
+        if (sustento) sustento.innerHTML = `
+            <strong>Sustento Legal:</strong> Artículo 6 de los Lineamientos de Liquidación y Extinción del IECG (salvedad de responsabilidades y prórroga legal por obligaciones que dependen de terceros o de autoridades de otros órdenes de gobierno).
+        `;
+
+    } else if (tipo === 'duracion') {
+        if (header) header.className = "p-5 bg-gradient-to-r from-slate-800 to-indigo-950 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
+        if (titulo) titulo.textContent = "Metodología de Cómputo de Plazos y Avance por Área";
+
+        const listaAreas = window.areasGanttProcesadas || [];
+
+        if (regla) regla.innerHTML = `
+            <strong>Principio de Medición Temporal:</strong> Calcula la vigencia jurídica concedida a cada una de las 10 Comisiones por el Decreto No. 345, contrastando el plazo programado en calendario contra el avance ponderado de sus acciones.
+        `;
+
+        if (formula) formula.innerHTML = `
+            <div class="space-y-2 text-xs">
+                <div>
+                    <span class="font-bold text-indigo-700 uppercase block text-[11px]">1. Fórmulas de Medición</span>
+                    <p class="font-mono bg-white p-2 rounded-lg border border-slate-200 text-[10.5px] mt-1 text-slate-700">
+                        • Plazo en Días Naturales = Fecha_Fin_Programada - Fecha_Inicio_Programada<br>
+                        • Meses Equivalentes = Días Naturales ÷ 30.4 días<br>
+                        • Avance Ponderado del Área = Suma(% Avance de sus Acciones) ÷ Cantidad de Acciones del Área
+                    </p>
+                </div>
+                <div class="border-t border-slate-200 pt-2 text-slate-600">
+                    <span class="font-bold text-slate-800 uppercase block text-[11px]">2. Justificación Administrativa</span>
+                    <p>Evita confusiones al presentar plazos extensos: en vez de "759 días" abstractos, se presenta como <strong>"25 Meses (759 d)" con fecha límite al 30-Nov-2026</strong>, otorgando certeza jurídica sobre la prórroga amparada en el Artículo 6.</p>
+                </div>
+            </div>
+        `;
+
+        if (interpretacion) interpretacion.innerHTML = `
+            <div class="space-y-2">
+                <span class="font-bold text-slate-800 uppercase block text-[11px]">3. Auditoría Desglosada por Comisión (10 Áreas Estratégicas)</span>
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                    <table class="w-full text-left text-[10.5px]">
+                        <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0">
+                            <tr>
+                                <th class="p-2">Área / Comisión</th>
+                                <th class="p-2">Vigencia Oficial</th>
+                                <th class="p-2">Duración</th>
+                                <th class="p-2 text-right">Avance Ponderado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-mono">
+                            ${listaAreas.map(a => `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 font-bold font-sans text-slate-900">Área ${a.panel}:${a.nombre.substring(0, 24)}...</td>
+                                    <td class="p-2 text-slate-600">${a.inicio} al${a.fin}</td>
+                                    <td class="p-2 text-indigo-700 font-bold">${formatearDuracionHumana(a.duracionTotal)}</td>
+                                    <td class="p-2 text-right font-bold ${a.promedioAvance === 100 ? 'text-emerald-600' : 'text-blue-600'}">${a.promedioAvance}\% (${a.acciones.length} acc.)</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        if (sustento) sustento.innerHTML = `
+            <strong>Sustento Legal:</strong> Decreto Legislativo No. 345 (Artículo Quinto Transitorio) y Lineamientos del IECG (Artículos 6, 7, 18 y 37 sobre el calendario de entrega-recepción extraordinaria y la cesión de obligaciones).
+        `;
+    }
     if (typeof openModal === 'function') {
         openModal('modal-metodologia');
     } else {
