@@ -4438,6 +4438,9 @@ window.cerrarModalHitoFatal = function() {
         // =========================================================================
 // FUNCIÓN GLOBAL: ABRIR MODAL DE METODOLOGÍA (TIMELINE, STATUS Y DURACIÓN)
 // =========================================================================
+// =========================================================================
+// FUNCIÓN GLOBAL: ABRIR MODAL DE METODOLOGÍA (SINTAXIS 100% SEGURA)
+// =========================================================================
 window.abrirModalMetodologia = function(tipo) {
     const modal = document.getElementById('modal-metodologia');
     const header = document.getElementById('metodologiaHeader');
@@ -4453,188 +4456,113 @@ window.abrirModalMetodologia = function(tipo) {
         return;
     }
 
-if (tipo === 'timeline') {
+    if (tipo === 'timeline') {
         if (header) header.className = "p-5 bg-gradient-to-r from-blue-700 to-indigo-800 text-white flex items-start justify-between";
         if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-gantt"></i>';
         if (titulo) titulo.textContent = "Metodología del Cronograma Oficial (Gantt Maestro)";
         
-        if (regla) regla.innerHTML = `
-            <strong>Principio Rector:</strong> Sincroniza en un solo gráfico el tiempo legal concedido a cada comisión frente al avance documental físico comprobado en las carpetas de entrega-recepción.
-        `;
+        if (regla) regla.innerHTML = "<strong>Principio Rector:</strong> Sincroniza en un solo gráfico el tiempo legal concedido a cada comisión frente al avance documental físico comprobado en las carpetas de entrega-recepción.";
 
-        if (formula) formula.innerHTML = `
-            <div class="space-y-2 text-xs">
-                <div>
-                    <span class="font-bold text-indigo-700 block text-[11px] uppercase">1. ¿De dónde se toman los datos?</span>
-                    <p class="text-slate-600">
-                        • <strong>Fechas de Inicio y Fin:</strong> Se extraen del calendario oficial aprobado por el Comité de Extinción conforme a los plazos fijados por el Decreto No. 345.<br>
-                        • <strong>Porcentaje de Avance (%):</strong> No es una estimación al azar; es el <strong>promedio aritmético</strong> del avance individual de cada una de las acciones que componen el Área, validado con su expediente en Google Drive.
-                    </p>
-                </div>
+        if (formula) {
+            formula.innerHTML = 
+                '<div class="space-y-2 text-xs">' +
+                    '<div>' +
+                        '<span class="font-bold text-indigo-700 block text-[11px] uppercase">1. ¿De dónde se toman los datos?</span>' +
+                        '<p class="text-slate-600">• <strong>Fechas:</strong> Extraídas del calendario oficial aprobado por el Comité conforme al Decreto No. 345.<br>• <strong>Avance (%):</strong> Promedio aritmético del cumplimiento de sus acciones con evidencia en Drive.</p>' +
+                    '</div>' +
+                    '<div class="border-t border-slate-200 pt-2">' +
+                        '<span class="font-bold text-indigo-700 block text-[11px] uppercase">2. Fórmula de Cálculo</span>' +
+                        '<p class="font-mono bg-white p-2 rounded-lg border border-slate-200 mt-1 text-slate-700 text-[10.5px]">' +
+                            '• Plazo Total (Barra Gris) = Fecha_Fin - Fecha_Inicio (días naturales)<br>' +
+                            '• Avance Logrado (Barra Color) = Plazo_Total × (% Avance Promedio)' +
+                        '</p>' +
+                    '</div>' +
+                '</div>';
+        }
 
-                <div class="border-t border-slate-200 pt-2">
-                    <span class="font-bold text-indigo-700 block text-[11px] uppercase">2. ¿Cómo se calcula matemáticamente?</span>
-                    <p class="text-slate-600 font-mono text-[10.5px] bg-white p-2 rounded-lg border border-slate-200 mt-1">
-                        • Día de Arranque en Escala = Fecha_Inicio_Área - 01/Oct/2024 (Fecha Decreto)<br>
-                        • Plazo Total (Barra Gris) = Fecha_Fin_Programada - Fecha_Inicio_Área (en días naturales)<br>
-                        • Longitud Avance (Barra Color) = Plazo_Total × (% Cumplimiento Promedio)
-                    </p>
-                </div>
+        if (interpretacion) {
+            interpretacion.innerHTML = 
+                '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">' +
+                    '<span class="font-black uppercase tracking-wider text-[10px] block text-indigo-600">💡 Ejemplo: Recursos Humanos (Área A)</span>' +
+                    '<p class="text-slate-700 text-[11px] leading-relaxed">' +
+                        '• <strong>Vigencia:</strong> 01-Oct-2024 al 30-Jun-2025 (272 días / 9 meses).<br>' +
+                        '• <strong>Avance Real:</strong> Con 2 acciones al 100% y 1 al 70%, su promedio da <strong>80%</strong>.<br>' +
+                        '• <strong>Representación:</strong> La barra gris cubre 272 días y la barra de color llena 218 días (el 80%).' +
+                    '</p>' +
+                '</div>';
+        }
 
-                <div class="border-t border-slate-200 pt-2">
-                    <span class="font-bold text-indigo-700 block text-[11px] uppercase">3. ¿Por qué se calcula de esta forma?</span>
-                    <p class="text-slate-600">
-                        Permite distinguir al instante si una comisión va en tiempo conforme a calendario, o si el plazo ya venció y requiere ampararse formalmente en prórroga legal por trámites supeditados a instancias externas (Artículo 6 de los Lineamientos).
-                    </p>
-                </div>
-            </div>
-        `;
+        if (sustento) sustento.innerHTML = "<strong>Sustento Legal:</strong> Decreto No. 345 (Art. Quinto Transitorio) y Lineamientos del IECG (Arts. 6 y 13).";
 
-        if (interpretacion) interpretacion.innerHTML = `
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
-                <span class="font-black text-slate-800 uppercase tracking-wider text-[10px] block text-indigo-600">
-                    💡 Ejemplo Práctico: Caso Real de Recursos Humanos (Área A)
-                </span>
-                <p class="text-slate-700 text-[11px] leading-relaxed">
-                    • <strong>Vigencia programada:</strong> Del <strong>01-Oct-2024</strong> al <strong>30-Jun-2025</strong>.<br>
-                    • <strong>Plazo Total (Barra Gris):</strong> De octubre a junio transcurren exactamente <strong>272 días naturales</strong> (9 meses). Esa es la longitud máxima autorizada.<br>
-                    • <strong>Cálculo de Avance:</strong> Si el Área A tiene 3 acciones (Convenios finiquitados al 100%, Plazas canceladas al 100% y Ratificación ante Tribunal al 70%), su promedio real es: <em>(100 + 100 + 70) ÷ 3 = <strong>80% de cumplimiento</strong></em>.<br>
-                    • <strong>Lo que dibuja la gráfica:</strong> La <strong>barra gris</strong> se extiende 272 días, y la <strong>barra de color</strong> cubre el 80% de esa distancia (218 días). El tramo gris restante representa la documentación pendiente de ratificar ante el Tribunal.
-                </p>
-            </div>
-        `;
-
-        if (sustento) sustento.innerHTML = `
-            <strong>Sustento Legal:</strong> Decreto No. 345 (Artículo Quinto Transitorio) y Lineamientos del IECG (Artículo 6 sobre plazo de 15 meses y prórroga por terceros; Artículo 13 sobre rendición de avances de entregables trimestrales).
-        `;
-    
-
-else if (tipo === 'status') {
-        if (header) header.className = "p-5 bg-gradient-to-r from-emerald-600 to-teal-800 text-white flex items-start justify-between";
-        if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
-        if (titulo) titulo.textContent = "Metodología de Distribución de Estatus (Dona)";
-        if (regla) regla.innerHTML = `<strong>Principio:</strong> Mide el estado procesal y legal de las 30 acciones sustantivas que integran la liquidación patrimonial.`;
-        if (formula) formula.innerHTML = `
-            <div class="space-y-1.5 text-xs text-slate-600">
-                <p>• <strong>🟢 Concluido (100%):</strong> Acción terminada con acta firmada y carpeta probatoria en Drive.</p>
-                <p>• <strong>🔵 En Proceso:</strong> Tareas en ejecución normal dentro del plazo sin impedimento legal.</p>
-                <p>• <strong>🟡 En Espera Tercero (Art. 6):</strong> Tarea detenida formalmente por trámites dependientes de autoridades externas (SAT, ASEG, Notarías, Finanzas).</p>
-                <p>• <strong>🟣 Validación:</strong> Entregable concluido en revisión por el Comité de Extinción.</p>
-                <p class="font-mono bg-white p-2 rounded border border-slate-200 mt-2 text-[10px]">
-                    % Estado = (Cantidad de Acciones en ese Estado ÷ 30 Acciones Totales) × 100
-                </p>
-            </div>
-        `;
-        if (interpretacion) interpretacion.innerHTML = `
-            <strong>Ejemplo:</strong> Si 21 acciones cuentan con acta de entrega final y carpeta en Drive, la gráfica muestra <strong>70% Concluido</strong>. Si 5 trámites están supeditados a la cancelación de cuentas bancarias en Banorte, se registran como <strong>Espera Tercero (17%)</strong>, justificando la ampliación de plazos ante la ASEG.
-        `;
-        if (sustento) sustento.innerHTML = `<strong>Sustento:</strong> Artículo 6 de los Lineamientos del IECG (salvedad de responsabilidades por causas imputables a terceros).`;
-    } 
-    else if (tipo === 'duracion') {
-        if (header) header.className = "p-5 bg-gradient-to-r from-slate-700 to-slate-900 text-white flex items-start justify-between";
-        if (icono) icono.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
-        if (titulo) titulo.textContent = "Metodología del Cómputo de Plazos (Barras)";
-        if (regla) regla.innerHTML = `<strong>Principio:</strong> Representa la duración de la comisión expresada en meses y días para una lectura administrativa natural.`;
-        if (formula) formula.innerHTML = `
-            <p class="font-mono bg-white p-2 rounded border border-slate-200 text-[10.5px] text-slate-700">
-                • Días = Fecha_Fin_Programada - Fecha_Inicio_Programada<br>
-                • Meses Equivalentes = Días ÷ 30.4 días promedio por mes
-            </p>
-        `;
-        if (interpretacion) interpretacion.innerHTML = `
-            <strong>Ejemplo:</strong> Para <em>Patrimonio Inmueble (Área C)</em>, la vigencia comprende del <strong>01-Nov-2024 al 30-Nov-2026</strong>. La resta matemática arroja <strong>759 días naturales</strong>. Para evitar confusiones directivas, el sistema convierte esa cifra y muestra: <strong>25 Meses (759 d)</strong> con fecha límite al 30 de noviembre de 2026.
-        `;
-        if (sustento) sustento.innerHTML = `<strong>Sustento:</strong> Artículos 6, 7 y 18 de los Lineamientos del IECG (regularización de bienes y trámites notariales).`;
-    }
-    
-} else if (tipo === 'status') {
+    } else if (tipo === 'status') {
         if (header) header.className = "p-5 bg-gradient-to-r from-emerald-600 to-teal-800 text-white flex items-start justify-between";
         if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
         if (titulo) titulo.textContent = "Metodología y Padrón de Estatus de las Acciones";
-        
-        // Obtener el universo real de acciones del dataset
+
         const datasetReal = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
         const concluidas = datasetReal.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100);
         const enProceso = datasetReal.filter(a => a.estatus === 'En Proceso' || (Number(a.avance) > 0 && Number(a.avance) < 100));
         const esperaTercero = datasetReal.filter(a => (a.estatus && a.estatus.includes('Tercero')) || a.dependenciaExterna);
         const validacion = datasetReal.filter(a => a.estatus === 'Validación');
+        const total = datasetReal.length || 1;
 
-        if (regla) regla.innerHTML = `
-            <strong>Principio de Comprobación:</strong> El gráfico de anillo clasifica las <strong>30 acciones sustantivas</strong> del proceso de extinción según el nivel de soporte documental integrado en Google Drive.
-        `;
+        if (regla) regla.innerHTML = "<strong>Principio de Comprobación:</strong> Clasifica individualmente las 30 acciones según el nivel de soporte documental integrado en Google Drive.";
 
-        if (formula) formula.innerHTML = `
-            <div class="space-y-3 text-xs">
-                <div>
-                    <span class="font-bold text-emerald-800 uppercase block text-[11px]">1. Fórmula de Distribución Porcentual</span>
-                    <p class="font-mono bg-white p-2 rounded-lg border border-slate-200 text-[10.5px] mt-1 text-slate-700">
-                        % Estatus = (Acciones en ese Estatus ÷ 30 Acciones Totales) × 100
-                    </p>
-                </div>
-                
-                <div class="border-t border-slate-200 pt-2 space-y-1">
-                    <span class="font-bold text-slate-800 block text-[11px] uppercase">2. Criterios de Clasificación Normativa</span>
-                    <p>• <strong>🟢 Concluido (100%):</strong> Entregable con acta formal firmada, validada y expediente digital en Drive.</p>
-                    <p>• <strong>🔵 En Proceso:</strong> Tareas operativas en desahogo ordinario dentro de los plazos de la comisión.</p>
-                    <p>• <strong>🟡 En Espera Tercero (Art. 6):</strong> Obligaciones detenidas por trámites dependientes de autoridades externas (SAT, Notarías, ASEG, Fiduciaria Banorte).</p>
-                    <p>• <strong>🟣 Validación:</strong> Documentación concluida en fase de dictamen ante el Comité de Extinción.</p>
-                </div>
-            </div>
-        `;
+        if (formula) {
+            formula.innerHTML = 
+                '<div class="space-y-1 text-xs text-slate-700">' +
+                    '<p class="font-mono bg-white p-2 rounded-lg border border-slate-200 text-[10.5px]">' +
+                        '% Estatus = (Acciones en ese Estatus ÷ Total de Acciones) × 100' +
+                    '</p>' +
+                    '<p class="text-[11px] text-slate-500 mt-1">• <strong>🟢 Concluido:</strong> 100% acreditado en Drive.<br>• <strong>🔵 En Proceso:</strong> Trámite ordinario.<br>• <strong>🟡 Espera Tercero:</strong> Detenido por SAT, ASEG o Notarías (Art. 6).<br>• <strong>🟣 Validación:</strong> En dictamen ante Comité.</p>' +
+                '</div>';
+        }
 
-        if (interpretacion) interpretacion.innerHTML = `
-            <div class="space-y-3">
-                <span class="font-bold text-slate-800 uppercase block text-[11px]">3. Desglose Nominal de las Acciones por Estatus (${datasetReal.length} Registradas)</span>
-                
-                <!-- Concluidas -->
-                <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
-                    <div class="flex justify-between items-center font-bold text-emerald-800 text-[11px] mb-1">
-                        <span>🟢 CONCLUIDAS (${concluidas.length} Acciones)</span>
-                        <span>${Math.round((concluidas.length / (datasetReal.length || 1)) * 100)}%</span>
-                    </div>
-                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
-                        ${concluidas.map(a => `<li><strong>${a.clave_accion \vert{}\vert{} a.id}:</strong>${a.accion || a.nombre} (100%)</li>`).join('')}
-                    </ul>
-                </div>
+        if (interpretacion) {
+            let htmlConcluidas = concluidas.map(a => '<li><strong>' + (a.clave_accion || a.id) + ':</strong> ' + (a.accion || a.nombre) + ' (100%)</li>').join('');
+            let htmlProceso = enProceso.map(a => '<li><strong>' + (a.clave_accion || a.id) + ':</strong> ' + (a.accion || a.nombre) + ' (' + (a.avance || 0) + '%)</li>').join('');
+            let htmlEspera = esperaTercero.map(a => '<li><strong>' + (a.clave_accion || a.id) + ':</strong> ' + (a.accion || a.nombre) + ' (' + (a.avance || 0) + '% - Ente: ' + (a.dependenciaExterna || 'Tercero') + ')</li>').join('');
+            let htmlValidacion = validacion.map(a => '<li><strong>' + (a.clave_accion || a.id) + ':</strong> ' + (a.accion || a.nombre) + ' (' + (a.avance || 0) + '%)</li>').join('');
 
-                <!-- En Proceso -->
-                <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl">
-                    <div class="flex justify-between items-center font-bold text-blue-800 text-[11px] mb-1">
-                        <span>🔵 EN PROCESO (${enProceso.length} Acciones)</span>
-                        <span>${Math.round((enProceso.length / (datasetReal.length || 1)) * 100)}%</span>
-                    </div>
-                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
-                        ${enProceso.map(a => `<li><strong>${a.clave_accion || a.id}:</strong> ${a.accion \vert{}\vert{} a.nombre} (${a.avance || 0}%)</li>`).join('')}
-                    </ul>
-                </div>
+            interpretacion.innerHTML = 
+                '<div class="space-y-2.5">' +
+                    '<span class="font-bold text-slate-800 uppercase block text-[11px]">Padrón Nominal de Acciones (' + datasetReal.length + ' Registradas):</span>' +
+                    
+                    '<div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">' +
+                        '<div class="flex justify-between font-bold text-emerald-800 text-[11px] mb-1">' +
+                            '<span>🟢 CONCLUIDAS (' + concluidas.length + ' Acciones)</span>' +
+                            '<span>' + Math.round((concluidas.length / total) * 100) + '%</span>' +
+                        '</div>' +
+                        '<ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-24 overflow-y-auto font-mono">' + (htmlConcluidas || '<li>Ninguna</li>') + '</ul>' +
+                    '</div>' +
 
-                <!-- En Espera Tercero -->
-                <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl">
-                    <div class="flex justify-between items-center font-bold text-amber-800 text-[11px] mb-1">
-                        <span>🟡 EN ESPERA TERCERO - ART. 6 (${esperaTercero.length} Acciones)</span>
-                        <span>${Math.round((esperaTercero.length / (datasetReal.length || 1)) * 100)}%</span>
-                    </div>
-                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
-                        ${esperaTercero.map(a => `<li><strong>${a.clave_accion \vert{}\vert{} a.id}:</strong>${a.accion || a.nombre} (${a.avance \vert{}\vert{} 0}\% - Ente:${a.dependenciaExterna || 'Autoridad Externa'})</li>`).join('')}
-                    </ul>
-                </div>
+                    '<div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl">' +
+                        '<div class="flex justify-between font-bold text-blue-800 text-[11px] mb-1">' +
+                            '<span>🔵 EN PROCESO (' + enProceso.length + ' Acciones)</span>' +
+                            '<span>' + Math.round((enProceso.length / total) * 100) + '%</span>' +
+                        '</div>' +
+                        '<ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-24 overflow-y-auto font-mono">' + (htmlProceso || '<li>Ninguna</li>') + '</ul>' +
+                    '</div>' +
 
-                <!-- En Validación -->
-                <div class="bg-purple-50 border border-purple-200 p-2.5 rounded-xl">
-                    <div class="flex justify-between items-center font-bold text-purple-800 text-[11px] mb-1">
-                        <span>🟣 EN VALIDACIÓN (${validacion.length} Acciones)</span>
-                        <span>${Math.round((validacion.length / (datasetReal.length || 1)) * 100)}%</span>
-                    </div>
-                    <ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto font-mono">
-                        ${validacion.map(a => `<li><strong>${a.clave_accion || a.id}:</strong> ${a.accion \vert{}\vert{} a.nombre} (${a.avance || 0}%)</li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-        `;
+                    '<div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl">' +
+                        '<div class="flex justify-between font-bold text-amber-800 text-[11px] mb-1">' +
+                            '<span>🟡 EN ESPERA TERCERO - ART. 6 (' + esperaTercero.length + ' Acciones)</span>' +
+                            '<span>' + Math.round((esperaTercero.length / total) * 100) + '%</span>' +
+                        '</div>' +
+                        '<ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-24 overflow-y-auto font-mono">' + (htmlEspera || '<li>Ninguna</li>') + '</ul>' +
+                    '</div>' +
 
-        if (sustento) sustento.innerHTML = `
-            <strong>Sustento Legal:</strong> Artículo 6 de los Lineamientos de Liquidación y Extinción del IECG (salvedad de responsabilidades y prórroga legal por obligaciones que dependen de terceros o de autoridades de otros órdenes de gobierno).
-        `;
+                    '<div class="bg-purple-50 border border-purple-200 p-2.5 rounded-xl">' +
+                        '<div class="flex justify-between font-bold text-purple-800 text-[11px] mb-1">' +
+                            '<span>🟣 EN VALIDACIÓN (' + validacion.length + ' Acciones)</span>' +
+                            '<span>' + Math.round((validacion.length / total) * 100) + '%</span>' +
+                        '</div>' +
+                        '<ul class="text-[10px] text-slate-600 list-disc pl-4 space-y-0.5 max-h-24 overflow-y-auto font-mono">' + (htmlValidacion || '<li>Ninguna</li>') + '</ul>' +
+                    '</div>' +
+                '</div>';
+        }
+
+        if (sustento) sustento.innerHTML = "<strong>Sustento Legal:</strong> Artículo 6 de los Lineamientos del IECG (salvedad de responsabilidades por causas imputables a terceros).";
 
     } else if (tipo === 'duracion') {
         if (header) header.className = "p-5 bg-gradient-to-r from-slate-800 to-indigo-950 text-white flex items-start justify-between";
@@ -4643,59 +4571,54 @@ else if (tipo === 'status') {
 
         const listaAreas = window.areasGanttProcesadas || [];
 
-        if (regla) regla.innerHTML = `
-            <strong>Principio de Medición Temporal:</strong> Calcula la vigencia jurídica concedida a cada una de las 10 Comisiones por el Decreto No. 345, contrastando el plazo programado en calendario contra el avance ponderado de sus acciones.
-        `;
+        if (regla) regla.innerHTML = "<strong>Principio de Medición Temporal:</strong> Mide la vigencia legal de cada Comisión, contrastando el plazo programado en calendario contra el avance ponderado de sus acciones.";
 
-        if (formula) formula.innerHTML = `
-            <div class="space-y-2 text-xs">
-                <div>
-                    <span class="font-bold text-indigo-700 uppercase block text-[11px]">1. Fórmulas de Medición</span>
-                    <p class="font-mono bg-white p-2 rounded-lg border border-slate-200 text-[10.5px] mt-1 text-slate-700">
-                        • Plazo en Días Naturales = Fecha_Fin_Programada - Fecha_Inicio_Programada<br>
-                        • Meses Equivalentes = Días Naturales ÷ 30.4 días<br>
-                        • Avance Ponderado del Área = Suma(% Avance de sus Acciones) ÷ Cantidad de Acciones del Área
-                    </p>
-                </div>
-                <div class="border-t border-slate-200 pt-2 text-slate-600">
-                    <span class="font-bold text-slate-800 uppercase block text-[11px]">2. Justificación Administrativa</span>
-                    <p>Evita confusiones al presentar plazos extensos: en vez de "759 días" abstractos, se presenta como <strong>"25 Meses (759 d)" con fecha límite al 30-Nov-2026</strong>, otorgando certeza jurídica sobre la prórroga amparada en el Artículo 6.</p>
-                </div>
-            </div>
-        `;
+        if (formula) {
+            formula.innerHTML = 
+                '<div class="space-y-1.5 text-xs text-slate-700">' +
+                    '<p class="font-mono bg-white p-2 rounded-lg border border-slate-200 text-[10.5px]">' +
+                        '• Días Naturales = Fecha_Fin - Fecha_Inicio<br>' +
+                        '• Meses Equivalentes = Días Naturales ÷ 30.4 días<br>' +
+                        '• Avance Área = Suma(% Acciones) ÷ Cantidad de Acciones' +
+                    '</p>' +
+                '</div>';
+        }
 
-        if (interpretacion) interpretacion.innerHTML = `
-            <div class="space-y-2">
-                <span class="font-bold text-slate-800 uppercase block text-[11px]">3. Auditoría Desglosada por Comisión (10 Áreas Estratégicas)</span>
-                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                    <table class="w-full text-left text-[10.5px]">
-                        <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0">
-                            <tr>
-                                <th class="p-2">Área / Comisión</th>
-                                <th class="p-2">Vigencia Oficial</th>
-                                <th class="p-2">Duración</th>
-                                <th class="p-2 text-right">Avance Ponderado</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-mono">
-                            ${listaAreas.map(a => `
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-2 font-bold font-sans text-slate-900">Área ${a.panel}:${a.nombre.substring(0, 24)}...</td>
-                                    <td class="p-2 text-slate-600">${a.inicio} al${a.fin}</td>
-                                    <td class="p-2 text-indigo-700 font-bold">${formatearDuracionHumana(a.duracionTotal)}</td>
-                                    <td class="p-2 text-right font-bold ${a.promedioAvance === 100 ? 'text-emerald-600' : 'text-blue-600'}">${a.promedioAvance}\% (${a.acciones.length} acc.)</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
+        if (interpretacion) {
+            let filasTabla = listaAreas.map(function(a) {
+                let colorAvance = (a.promedioAvance === 100) ? 'text-emerald-600' : 'text-blue-600';
+                return '<tr class="hover:bg-slate-50 border-b border-slate-100">' +
+                    '<td class="p-2 font-bold font-sans text-slate-900">Área ' + a.panel + ': ' + a.nombre.substring(0, 24) + '...</td>' +
+                    '<td class="p-2 text-slate-600">' + a.inicio + ' al ' + a.fin + '</td>' +
+                    '<td class="p-2 text-indigo-700 font-bold">' + formatearDuracionHumana(a.duracionTotal) + '</td>' +
+                    '<td class="p-2 text-right font-bold ' + colorAvance + '">' + a.promedioAvance + '% (' + a.acciones.length + ' acc.)</td>' +
+                '</tr>';
+            }).join('');
 
-        if (sustento) sustento.innerHTML = `
-            <strong>Sustento Legal:</strong> Decreto Legislativo No. 345 (Artículo Quinto Transitorio) y Lineamientos del IECG (Artículos 6, 7, 18 y 37 sobre el calendario de entrega-recepción extraordinaria y la cesión de obligaciones).
-        `;
+            interpretacion.innerHTML = 
+                '<div class="space-y-2">' +
+                    '<span class="font-bold text-slate-800 uppercase block text-[11px]">Auditoría Desglosada por Comisión (10 Áreas Estratégicas):</span>' +
+                    '<div class="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">' +
+                        '<table class="w-full text-left text-[10.5px]">' +
+                            '<thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0">' +
+                                '<tr>' +
+                                    '<th class="p-2">Área</th>' +
+                                    '<th class="p-2">Vigencia</th>' +
+                                    '<th class="p-2">Duración</th>' +
+                                    '<th class="p-2 text-right">Avance</th>' +
+                                '</tr>' +
+                            '</thead>' +
+                            '<tbody class="divide-y divide-slate-100 font-mono">' +
+                                (filasTabla || '<tr><td colspan="4" class="p-3 text-center text-slate-400">Sin datos</td></tr>') +
+                            '</tbody>' +
+                        '</table>' +
+                    '</div>' +
+                '</div>';
+        }
+
+        if (sustento) sustento.innerHTML = "<strong>Sustento Legal:</strong> Decreto No. 345 y Lineamientos del IECG (Arts. 6, 7, 18 y 37).";
     }
+
     if (typeof openModal === 'function') {
         openModal('modal-metodologia');
     } else {
