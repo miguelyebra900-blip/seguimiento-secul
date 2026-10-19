@@ -2118,7 +2118,7 @@ function activarKpiNeon(elemento, tipoKpi) {
         let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
         let chartEnlargedInstance = null;
 
-        function updateAuthUI() {
+       function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
             const role = document.getElementById('userRoleDisplay');
@@ -2134,8 +2134,9 @@ function activarKpiNeon(elemento, tipoKpi) {
                 if (lblAuditoriaUser) lblAuditoriaUser.innerText = `${currentUser.nombre} (${currentUser.usuario})`;
 
                 const rolStr = (currentUser.rol || '').toLowerCase();
+                // Si el rol es admin, auditor, contralor o asegurador se muestra el acceso directo
                 if (btnAdminTop) {
-                    if (rolStr.includes('admin') || rolStr.includes('super')) {
+                    if (rolStr.includes('admin') || rolStr.includes('super') || rolStr.includes('auditor') || rolStr.includes('aseg')) {
                         btnAdminTop.classList.remove('hidden');
                         btnAdminTop.classList.add('flex');
                     } else {
@@ -4717,6 +4718,221 @@ window.adjuntarEvidenciaPanelJ = function(idHitoLegal, descripcionHito) {
     } else {
         openModal('modal-hito-fiscalizacion');
     }
+};
+
+        // =========================================================================
+// DATAGRID INTEGRAL TIPO EXCEL: PERSISTENCIA SUPABASE + GOOGLE DRIVE
+// =========================================================================
+
+// 1. Renderizado reactivo de la tabla interactiva
+window.renderTablaExcelEnVivo = function() {
+    const tbody = document.getElementById('tbodyMatrizExcel');
+    if (!tbody) return;
+
+    tbody.innerHTML = accionesDataset.map((act, index) => {
+        const idClave = act.clave_accion || act.id;
+        const panel = act.panel || 'A';
+        const tieneDrive = Boolean(act.driveUrl && act.driveUrl.trim() !== '');
+
+        return `
+            <tr id="fila-excel-${idClave}" class="hover:bg-indigo-50/40 transition border-b border-slate-200">
+                <!-- Fila # -->
+                <td class="p-2 border-r border-slate-200 text-center font-bold text-slate-400 bg-slate-50">${index + 1}</td>
+                
+                <!-- Clave Oficial -->
+                <td class="p-2 border-r border-slate-200 font-bold text-indigo-950 whitespace-nowrap bg-slate-50/60 font-mono text-[11px]">
+                    ${idClave}
+                </td>
+                
+                <!-- Panel Asignado -->
+                <td class="p-2 border-r border-slate-200 whitespace-nowrap bg-slate-50/40">
+                    <span class="w-5 h-5 rounded bg-indigo-100 text-indigo-800 font-black inline-flex items-center justify-center text-[10px]">${panel}</span>
+                    <span class="text-slate-600 font-sans text-[10.5px] ml-1 font-semibold">${(act.area || '').substring(0, 18)}...</span>
+                </td>
+
+                <!-- Hito Rector (Editable en Celda) -->
+                <td class="p-1 border-r border-slate-200">
+                    <input type="text" value="${(act.hito || '').replace(/"/g, '&quot;')}" 
+                           onchange="actualizarCeldaExcelPersistente('${idClave}', 'hito', this.value)"
+                           class="w-full p-1.5 bg-transparent hover:bg-white focus:bg-white focus:ring-2 focus:ring-emerald-500 rounded border border-transparent hover:border-slate-300 font-sans text-xs font-semibold text-slate-900 transition">
+                </td>
+
+                <!-- Acción Específica (Editable en Celda) -->
+                <td class="p-1 border-r border-slate-200">
+                    <input type="text" value="${(act.accion || '').replace(/"/g, '&quot;')}" 
+                           onchange="actualizarCeldaExcelPersistente('${idClave}', 'accion', this.value)"
+                           class="w-full p-1.5 bg-transparent hover:bg-white focus:bg-white focus:ring-2 focus:ring-emerald-500 rounded border border-transparent hover:border-slate-300 font-sans text-xs text-slate-800 transition">
+                </td>
+
+                <!-- Responsable (Editable en Celda) -->
+                <td class="p-1 border-r border-slate-200">
+                    <input type="text" value="${(act.responsable || '').replace(/"/g, '&quot;')}" 
+                           onchange="actualizarCeldaExcelPersistente('${idClave}', 'responsable', this.value)"
+                           class="w-full p-1.5 bg-transparent hover:bg-white focus:bg-white focus:ring-2 focus:ring-emerald-500 rounded border border-transparent hover:border-slate-300 font-sans text-[11px] text-slate-700 transition">
+                </td>
+
+                <!-- Estatus (Combobox en Celda) -->
+                <td class="p-1 border-r border-slate-200 text-center">
+                    <select onchange="actualizarCeldaExcelPersistente('${idClave}', 'estatus', this.value)"
+                            class="w-full p-1 bg-white border border-slate-200 rounded font-sans text-[10.5px] font-bold ${
+                                act.estatus === 'Concluido' ? 'text-emerald-700' :
+                                (act.estatus === 'Validación' ? 'text-purple-700' :
+                                (act.estatus && act.estatus.includes('Tercero') ? 'text-amber-700' : 'text-blue-700'))
+                            }">
+                        <option value="En Proceso" ${act.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                        <option value="Validación" ${act.estatus === 'Validación' ? 'selected' : ''}>Validación</option>
+                        <option value="En Espera Tercero (Art. 6)" ${(act.estatus && act.estatus.includes('Tercero')) ? 'selected' : ''}>Espera Tercero</option>
+                        <option value="Concluido" ${act.estatus === 'Concluido' ? 'selected' : ''}>Concluido</option>
+                    </select>
+                </td>
+
+                <!-- Avance (%) Numérico -->
+                <td class="p-1 border-r border-slate-200 text-center">
+                    <input type="number" min="0" max="100" step="5" value="${act.avance || 0}" 
+                           onchange="actualizarCeldaExcelPersistente('${idClave}', 'avance', this.value)"
+                           class="w-16 p-1 text-center font-mono font-bold text-xs rounded border border-slate-200 focus:ring-2 focus:ring-emerald-500 ${
+                               Number(act.avance) === 100 ? 'bg-emerald-50 text-emerald-800' : 'bg-white text-slate-800'
+                           }">
+                </td>
+
+                <!-- Gestión Drive y Carga Rápida -->
+                <td class="p-1 border-r border-slate-200 text-center whitespace-nowrap">
+                    ${tieneDrive ? `
+                        <div class="flex items-center justify-center gap-1">
+                            <a href="${act.driveUrl}" target="_blank" class="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded border border-emerald-200 text-[10px] font-bold" title="Abrir expediente">
+                                <i class="fa-brands fa-google-drive"></i>
+                            </a>
+                            <button type="button" onclick="cargarArchivoDirectoDesdeExcel('${idClave}', '${panel}')" class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[10px]" title="Reemplazar archivo">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            </button>
+                        </div>
+                    ` : `
+                        <button type="button" onclick="cargarArchivoDirectoDesdeExcel('${idClave}', '${panel}')" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded border border-indigo-200 text-[10px] font-bold flex items-center gap-1 mx-auto" title="Subir expediente">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Subir
+                        </button>
+                    `}
+                </td>
+
+                <!-- Botón Puente al Modal Universal (Imagen 6) -->
+                <td class="p-1 text-center whitespace-nowrap">
+                    <button type="button" onclick="abrirModalDesdeGrafica('${idClave}')" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[10px] font-bold shadow-2xs transition" title="Abrir ficha completa del hito">
+                        <i class="fa-solid fa-up-right-from-square"></i> Ficha
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+// 2. Controlador de celda con persistencia automática en Supabase + LocalStorage
+window.actualizarCeldaExcelPersistente = async function(idClave, campo, valor) {
+    const act = accionesDataset.find(a => (a.clave_accion === idClave) || (a.id === idClave));
+    if (!act) return;
+
+    if (campo === 'avance') {
+        let num = parseInt(valor, 10);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > 100) num = 100;
+        act.avance = num;
+        if (num === 100) act.estatus = 'Concluido';
+    } else if (campo === 'estatus') {
+        act.estatus = valor;
+        if (valor === 'Concluido' && act.avance < 100) act.avance = 100;
+    } else {
+        act[campo] = valor.trim();
+    }
+
+    // A. Guardar en memoria y LocalStorage
+    guardarDataset();
+
+    // B. Indicador visual de guardado en el encabezado
+    const badge = document.getElementById('badgeGuardadoExcel');
+    if (badge) {
+        badge.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-amber-500 me-1"></i> Sincronizando...';
+    }
+
+    // C. Persistencia en Supabase
+    if (supabaseClient) {
+        try {
+            await supabaseClient
+                .from('acciones_transicion')
+                .upsert([{
+                    clave_accion: idClave,
+                    panel: act.panel,
+                    hito: act.hito,
+                    accion: act.accion,
+                    responsable: act.responsable,
+                    estatus: act.estatus,
+                    avance: act.avance,
+                    drive_url: act.driveUrl || '',
+                    updated_at: new Date().toISOString()
+                }], { onConflict: 'clave_accion' });
+        } catch (errSupabase) {
+            console.warn("Aviso: Sincronización en Supabase guardada en modo local:", errSupabase);
+        }
+    }
+
+    // D. Registrar en auditoría
+    registrarAuditoria('Edición en Hoja de Cálculo Excel', {
+        clave: idClave,
+        campoModificado: campo,
+        nuevoValor: valor
+    });
+
+    if (badge) {
+        setTimeout(() => {
+            badge.innerHTML = '<i class="fa-solid fa-check-double text-emerald-600 me-1"></i> Sincronizado';
+        }, 350);
+    }
+
+    // E. Actualizar el tablero completo en tiempo real
+    actualizarDashboard();
+};
+
+// 3. Subida rápida de archivo a Drive desde la celda de la tabla
+window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.zip';
+    
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const badge = document.getElementById('badgeGuardadoExcel');
+        if (badge) badge.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-indigo-600 me-1"></i> Subiendo a Drive...';
+
+        try {
+            const nombreArchivoOficial = `[${idClave}] ${file.name}`;
+            const fileUrl = await window.subirArchivoADrive(file, panelLetra, nombreArchivoOficial);
+
+            const act = accionesDataset.find(a => (a.clave_accion === idClave) || (a.id === idClave));
+            if (act) {
+                act.driveUrl = fileUrl;
+                guardarDataset();
+                
+                // Actualizar Supabase
+                if (supabaseClient) {
+                    await supabaseClient.from('acciones_transicion').upsert([{
+                        clave_accion: idClave,
+                        drive_url: fileUrl,
+                        updated_at: new Date().toISOString()
+                    }], { onConflict: 'clave_accion' });
+                }
+            }
+
+            actualizarDashboard();
+            renderTablaExcelEnVivo();
+            alert(`¡Documento respaldado en Google Drive exitosamente!\n\n• Clave: ${idClave}\n• Archivo: ${file.name}`);
+        } catch (err) {
+            alert("Error al subir a Google Drive: " + err.message);
+        } finally {
+            if (badge) badge.innerHTML = '<i class="fa-solid fa-check-double text-emerald-600 me-1"></i> Sincronizado';
+        }
+    };
+
+    input.click();
 };
         
 </script>
