@@ -632,83 +632,122 @@
             </div>
         </div>
 
-        <!-- --------------------------------------------------------------------- -->
-        <!-- SUB-VISTA 2: NUEVO TABLERO GANTT EJECUTIVO (ESTILO PROJECT DASHBOARD) -->
-        <!-- --------------------------------------------------------------------- -->
-        <div id="vistaCronogramaEjecutivo" class="hidden space-y-4">
-            
-            <!-- PANEL SUPERIOR: TASK TIMELINE GANTT -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="bg-[#0275d8] text-white px-5 py-3 flex items-center justify-between">
-                    <h4 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-chart-gantt"></i> Task Timeline · Hitos Rectores Institucionales
-                    </h4>
-                    <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-mono font-semibold">
-                        Cierre Normativo IECG
-                    </span>
-                </div>
-                <div class="p-4 overflow-x-auto bg-white">
-                    <div class="min-w-[850px] h-[340px] relative">
-                        <canvas id="chartGanttTimeline"></canvas>
-                    </div>
-                </div>
-            </div>
+       <!-- ================================================================= -->
+            <!-- SUB-VISTA 2: TABLERO GANTT EJECUTIVO CONECTADO A FECHAS Y ACCIONES -->
+            <!-- ================================================================= -->
+            <div id="vistaCronogramaEjecutivo" class="hidden space-y-6">
 
-            <!-- PANELES INFERIORES: TASK STATUS Y DAYS PER PROJECT -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                
-                <!-- Izquierda: Task Status (Dona) -->
-                <div class="md:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <h5 class="text-center font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-chart-pie text-emerald-600"></i> Task Status
-                    </h5>
-                    <div class="h-[210px] relative">
-                        <canvas id="chartGanttStatus"></canvas>
+                <!-- 1. GUÍA DE TEMPORALIDAD Y BOTÓN DESCARGA FORMATO ÁREAS -->
+                <div class="bg-indigo-50/70 border border-indigo-200 rounded-3xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-lg shadow-xs">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-black text-slate-900 text-sm">Escala Temporal Oficial: Decreto No. 345 y Lineamientos de Extinción</h4>
+                            <p class="text-xs text-slate-600 mt-0.5">
+                                Cómputo en días naturales desde el <strong>01-Oct-2024</strong>. Fecha de corte del sistema: <strong class="text-indigo-700 font-mono">19-Oct-2026 (📍 HOY)</strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="descargarPlantillaCapturaExcel()" 
+                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-file-excel"></i> Descargar Formato Áreas (CSV)
+                        </button>
                     </div>
                 </div>
 
-                <!-- Derecha: Days Per Project (Barras) -->
-                <div class="md:col-span-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <h5 class="text-center font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-bars-progress text-indigo-600"></i> Days Per Project (Duración Estimada en Días)
-                    </h5>
-                    <div class="h-[210px] relative">
-                        <canvas id="chartGanttDuracion"></canvas>
+                <!-- 2. CINTILLO DE HITOS FATALES INSTITUCIONALES -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="p-3 rounded-2xl bg-white border border-indigo-200 shadow-2xs">
+                        <span class="block text-[10px] font-black uppercase text-indigo-700">1. Revisión de Avance</span>
+                        <span class="block text-base font-black text-slate-900 mt-0.5 font-mono">30-Oct-2026</span>
+                        <span class="block text-[11px] text-slate-500 font-medium">Despacho Secretaria de Cultura</span>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-blue-200 shadow-2xs">
+                        <span class="block text-[10px] font-black uppercase text-blue-700">2. Sesión Extraordinaria</span>
+                        <span class="block text-base font-black text-slate-900 mt-0.5 font-mono">30-Nov-2026</span>
+                        <span class="block text-[11px] text-slate-500 font-medium">Comité de Extinción IECG</span>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-amber-200 shadow-2xs">
+                        <span class="block text-[10px] font-black uppercase text-amber-700">3. Cierre Interno</span>
+                        <span class="block text-base font-black text-slate-900 mt-0.5 font-mono">26-Feb-2026</span>
+                        <span class="block text-[11px] text-slate-500 font-medium">Entrega Operativa SECUL</span>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-rose-200 shadow-2xs">
+                        <span class="block text-[10px] font-black uppercase text-rose-700">4. Cierre General</span>
+                        <span class="block text-base font-black text-slate-900 mt-0.5 font-mono">05-Abr-2026</span>
+                        <span class="block text-[11px] text-slate-500 font-medium">Extinción Legal y Dictamen ASEG</span>
+                    </div>
+                </div>
+
+                <!-- 3. GRÁFICA GANTT: TASK TIMELINE CON CALENDARIO Y CLIC INTERACTIVO -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="bg-[#0275d8] text-white px-5 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-chart-gantt"></i>
+                            <h4 class="font-bold text-xs uppercase tracking-wider">Línea de Tiempo Oficial de Hitos Rectores</h4>
+                        </div>
+                        <span class="text-[11px] bg-white/20 px-3 py-0.5 rounded-full font-bold">
+                            Haz clic en una barra para auditar sus acciones
+                        </span>
+                    </div>
+
+                    <div class="p-5 overflow-x-auto">
+                        <div class="min-w-[850px] h-[360px] relative">
+                            <canvas id="chartGanttTimeline"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. CONTENEDOR DE DESGLOSE DE ACCIONES POR HITO SELECCIONADO -->
+                <div id="cajaDetalleHitoAcciones" class="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span id="badgeHitoDetalle" class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs font-mono">H</span>
+                            <div>
+                                <h4 id="tituloHitoDetalle" class="font-black text-slate-900 text-sm">Selecciona un Hito en la gráfica o en la lista</h4>
+                                <p id="subtituloHitoDetalle" class="text-xs text-slate-500">Desglose analítico de las acciones sustantivas que componen el hito.</p>
+                            </div>
+                        </div>
+                        <span id="avanceHitoDetalle" class="text-sm font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl">--% Avance</span>
+                    </div>
+                    <div id="listaAccionesHitoCuerpo" class="divide-y divide-slate-100 text-xs">
+                        <p class="text-slate-400 py-4 text-center italic">Haz clic en cualquier barra del cronograma para ver el avance, días transcurridos y enlaces probatorios de sus acciones.</p>
+                    </div>
+                </div>
+
+                <!-- 5. ANALÍTICA INFERIOR: STATUS DE ACCIONES Y DURACIÓN EN DÍAS -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <!-- Task Status -->
+                    <div class="md:col-span-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <h5 class="text-center font-bold text-slate-800 text-xs uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-chart-pie text-emerald-600"></i> Distribución de las Acciones
+                            </h5>
+                            <p class="text-center text-[10px] text-slate-400 mb-3">Estatus operativo y normativo real del dataset</p>
+                        </div>
+                        <div class="h-[220px] relative">
+                            <canvas id="chartGanttStatus"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Days Per Project -->
+                    <div class="md:col-span-8 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <h5 class="text-center font-bold text-slate-800 text-xs uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-hourglass-half text-indigo-600"></i> Cómputo de Días Naturales por Hito Rector
+                            </h5>
+                            <p class="text-center text-[10px] text-slate-400 mb-3">Duración matemática = Fecha Fin Programada − Fecha Inicio Programada</p>
+                        </div>
+                        <div class="h-[220px] relative">
+                            <canvas id="chartGanttDuracion"></canvas>
+                        </div>
                     </div>
                 </div>
 
             </div>
-
-            <div class="text-center text-[11px] text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i> Cronograma sincronizado con el dataset de Hitos Rectores (Paneles A al J).
-            </div>
-        </div>
-
-    </div>
-
-<!-- CINTILLO DE FECHAS CRÍTICAS Y FATALES INSTITUCIONALES -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-    <div class="p-2.5 rounded-xl bg-white border border-indigo-200 shadow-2xs">
-        <span class="block text-[10px] font-extrabold uppercase text-indigo-700">1. Revisión de Avance</span>
-        <span class="block text-sm font-black text-slate-900 mt-0.5">30-Oct</span>
-        <span class="block text-[10px] text-slate-500 font-semibold">Despacho Secretaria de Cultura</span>
-    </div>
-    <div class="p-2.5 rounded-xl bg-white border border-blue-200 shadow-2xs">
-        <span class="block text-[10px] font-extrabold uppercase text-blue-700">2. Sesión Extraordinaria</span>
-        <span class="block text-sm font-black text-slate-900 mt-0.5">30-Nov</span>
-        <span class="block text-[10px] text-slate-500 font-semibold">Comité de Extinción IECG</span>
-    </div>
-    <div class="p-2.5 rounded-xl bg-white border border-amber-200 shadow-2xs">
-        <span class="block text-[10px] font-extrabold uppercase text-amber-700">3. Cierre Interno</span>
-        <span class="block text-sm font-black text-slate-900 mt-0.5">26-Feb</span>
-        <span class="block text-[10px] text-slate-500 font-semibold">Entrega Operativa SECUL</span>
-    </div>
-    <div class="p-2.5 rounded-xl bg-white border border-rose-200 shadow-2xs">
-        <span class="block text-[10px] font-extrabold uppercase text-rose-700">4. Cierre General</span>
-        <span class="block text-sm font-black text-slate-900 mt-0.5">05-Abr</span>
-        <span class="block text-[10px] text-slate-500 font-semibold">Extinción Legal y Dictamen ASEG</span>
-    </div>
-</div>
 
         
         <!-- ================================================================= -->
