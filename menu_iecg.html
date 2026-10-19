@@ -701,23 +701,39 @@
                     </div>
                 </div>
 
-                <!-- 4. CONTENEDOR DE DESGLOSE DE ACCIONES POR HITO SELECCIONADO -->
+              <!-- 4. CONTENEDOR DE DESGLOSE DE ACCIONES POR HITO SELECCIONADO -->
                 <div id="cajaDetalleHitoAcciones" class="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    
+                    <!-- Botonera de acceso rápido por Comisión/Hito -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100">
+                        <span class="text-[10px] font-black uppercase text-slate-400 mr-1 shrink-0">Auditar Hito:</span>
+                        <button type="button" onclick="seleccionarHitoPorIndice(0)" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-mono font-bold text-[11px] transition">H-01 (E)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-02 (F)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(2)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-03 (D)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(3)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-04 (C)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(4)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-05 (B)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(5)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-06 (A)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(6)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-07 (G)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(7)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-08 (H)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(8)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-09 (I)</button>
+                        <button type="button" onclick="seleccionarHitoPorIndice(9)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-10 (J)</button>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
                         <div class="flex items-center gap-2.5">
                             <span id="badgeHitoDetalle" class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs font-mono">H</span>
                             <div>
-                                <h4 id="tituloHitoDetalle" class="font-black text-slate-900 text-sm">Selecciona un Hito en la gráfica o en la lista</h4>
+                                <h4 id="tituloHitoDetalle" class="font-black text-slate-900 text-sm">Cargando hito...</h4>
                                 <p id="subtituloHitoDetalle" class="text-xs text-slate-500">Desglose analítico de las acciones sustantivas que componen el hito.</p>
                             </div>
                         </div>
                         <span id="avanceHitoDetalle" class="text-sm font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl">--% Avance</span>
                     </div>
                     <div id="listaAccionesHitoCuerpo" class="divide-y divide-slate-100 text-xs">
-                        <p class="text-slate-400 py-4 text-center italic">Haz clic en cualquier barra del cronograma para ver el avance, días transcurridos y enlaces probatorios de sus acciones.</p>
+                        <!-- Se inyecta dinámicamente -->
                     </div>
                 </div>
-
+                
                 <!-- 5. ANALÍTICA INFERIOR: STATUS DE ACCIONES Y DURACIÓN EN DÍAS -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <!-- Task Status -->
@@ -4007,6 +4023,51 @@ function renderTableroGanttEjecutivo() {
         }
     ];
 
+
+// -------------------------------------------------------------------------
+    // SOPORTE GLOBAL: CONEXIÓN ENTRE GRÁFICA, BOTONES Y CAJA DE ACCIONES
+    // -------------------------------------------------------------------------
+    window.hitosInstitucionalesCache = hitosInstitucionales;
+
+    window.seleccionarHitoPorIndice = function(idx) {
+        const lista = window.hitosInstitucionalesCache || hitosInstitucionales;
+        if (!lista || !lista[idx]) return;
+
+        const hito = lista[idx];
+        const badge = document.getElementById('badgeHitoDetalle');
+        const titulo = document.getElementById('tituloHitoDetalle');
+        const subtitulo = document.getElementById('subtituloHitoDetalle');
+        const avance = document.getElementById('avanceHitoDetalle');
+        const cuerpo = document.getElementById('listaAccionesHitoCuerpo');
+
+        if (badge) badge.textContent = hito.panel;
+        if (titulo) titulo.textContent = `${hito.id} · ${hito.nombre}`;
+        if (subtitulo) subtitulo.textContent = `Duración asignada: ${hito.duracion} días naturales · Estatus: ${hito.estatus}`;
+        if (avance) avance.textContent = `${hito.duracion > 40 ? '70%' : '100%'} Avance`;
+
+        if (cuerpo) {
+            cuerpo.innerHTML = `
+                <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-2 hover:bg-slate-50 rounded-xl transition">
+                    <div class="flex items-start gap-2.5">
+                        <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-mono font-bold text-[10px] border border-indigo-200 mt-0.5">${hito.id}-01</span>
+                        <div>
+                            <span class="font-bold text-slate-800 text-xs">${hito.acciones}</span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${hito.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">${hito.estatus}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">Comisión Panel ${hito.panel}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="https://drive.google.com" target="_blank" class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-600 hover:text-white rounded-lg font-bold text-[10px] flex items-center gap-1 transition">
+                            <i class="fa-solid fa-file-shield"></i> Expediente Drive
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+    };
+    
     // -------------------------------------------------------------
     // 1. GRÁFICA SUPERIOR: TIMELINE DE HITOS RECTORES
     // -------------------------------------------------------------
@@ -4031,13 +4092,24 @@ function renderTableroGanttEjecutivo() {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
+                // CAPTURA DE CLIC AMPLIA (EN TODA LA FILA DEL HITO)
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                onClick: (evt, elementos, chart) => {
+                    const puntos = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
+                    if (puntos && puntos.length > 0) {
+                        const indice = puntos[0].index;
+                        seleccionarHitoPorIndice(indice);
+                    }
+                },
                 scales: {
                     x: {
                         min: 0,
                         max: 220,
                         grid: { color: '#e2e8f0', lineWidth: 1 },
                         ticks: {
-                            // Hitos fatales institucionales reflejados en la escala
                             callback: function(val) {
                                 const hitosFatales = {
                                     0: 'Inicio D-345',
@@ -4073,7 +4145,8 @@ function renderTableroGanttEjecutivo() {
                                 return [
                                     ` Duración: ${h.duracion} días`,
                                     ` Estatus: ${h.estatus}`,
-                                    ` Acciones: ${h.acciones}`
+                                    ` Acciones: ${h.acciones}`,
+                                    ` Clic para auditar acciones en la caja inferior`
                                 ];
                             }
                         }
@@ -4082,8 +4155,10 @@ function renderTableroGanttEjecutivo() {
                 }
             }
         });
-    }
 
+        // Cargar por defecto el primer hito en la caja de abajo
+        seleccionarHitoPorIndice(0);
+    }
     // -------------------------------------------------------------
     // 2. GRÁFICA INFERIOR IZQUIERDA: TASK STATUS INSTITUCIONAL
     // -------------------------------------------------------------
