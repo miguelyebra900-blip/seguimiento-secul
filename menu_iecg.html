@@ -721,15 +721,18 @@
                 
 
                 <!-- 3. GRÁFICA GANTT: TASK TIMELINE CON CALENDARIO Y CLIC INTERACTIVO -->
+           <!-- TARJETA SUPERIOR: LÍNEA DE TIEMPO OFICIAL DE HITOS RECTORES -->
                 <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
                     <div class="bg-[#0275d8] text-white px-5 py-3 flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-chart-gantt"></i>
                             <h4 class="font-bold text-xs uppercase tracking-wider">Línea de Tiempo Oficial de Hitos Rectores</h4>
                         </div>
-                        <span class="text-[11px] bg-white/20 px-3 py-0.5 rounded-full font-bold">
-                            Haz clic en una barra para auditar sus acciones
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="abrirModalMetodologia('timeline')" class="px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded-xl text-[11px] font-bold transition flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-circle-question"></i> Metodología de Tiempos
+                            </button>
+                        </div>
                     </div>
 
                     <div class="p-5 overflow-x-auto">
@@ -784,14 +787,20 @@
                 </div>
                 
                 <!-- 5. ANALÍTICA INFERIOR: STATUS DE ACCIONES Y DURACIÓN EN DÍAS -->
+   <!-- 5. ANALÍTICA INFERIOR: STATUS DE ACCIONES Y DURACIÓN EN DÍAS -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <!-- Task Status -->
                     <div class="md:col-span-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                            <h5 class="text-center font-bold text-slate-800 text-xs uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-chart-pie text-emerald-600"></i> Distribución de las Acciones
-                            </h5>
-                            <p class="text-center text-[10px] text-slate-400 mb-3">Estatus operativo y normativo real del dataset</p>
+                            <div class="flex items-center justify-between mb-1">
+                                <h5 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-chart-pie text-emerald-600"></i> Distribución de Acciones
+                                </h5>
+                                <button type="button" onclick="abrirModalMetodologia('status')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[10px] transition">
+                                    <i class="fa-solid fa-circle-info"></i> Metodología
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mb-3">Estatus normativo ponderado de las 30 acciones</p>
                         </div>
                         <div class="h-[220px] relative">
                             <canvas id="chartGanttStatus"></canvas>
@@ -801,10 +810,15 @@
                     <!-- Days Per Project -->
                     <div class="md:col-span-8 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                            <h5 class="text-center font-bold text-slate-800 text-xs uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-hourglass-half text-indigo-600"></i> Cómputo de Días Naturales por Hito Rector
-                            </h5>
-                            <p class="text-center text-[10px] text-slate-400 mb-3">Duración matemática = Fecha Fin Programada − Fecha Inicio Programada</p>
+                            <div class="flex items-center justify-between mb-1">
+                                <h5 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-hourglass-half text-indigo-600"></i> Cómputo de Días por Área Estratégica
+                                </h5>
+                                <button type="button" onclick="abrirModalMetodologia('duracion')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[10px] transition">
+                                    <i class="fa-solid fa-circle-info"></i> Metodología
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mb-3">Cálculo en meses y días naturales según el Decreto No. 345</p>
                         </div>
                         <div class="h-[220px] relative">
                             <canvas id="chartGanttDuracion"></canvas>
@@ -4000,10 +4014,10 @@ function renderTableroGanttEjecutivo() {
     const datasetReal = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
 
     const areasProcesadas = catalogoAreasEstrategicas.map((area, index) => {
-        // FILTRADO ESTRICTO: Solo las acciones que verdaderamente pertenecen a esta área
-        let accionesPropias = datasetReal.filter(a => {
-            const clave = a.clave_accion || a.id || '';
-            return a.panel === area.panel || clave.startsWith(area.prefijoAccion) || clave.startsWith(area.panel);
+     let accionesPropias = datasetReal.filter(a => {
+            const clave = (a.clave_accion || a.id || '').trim();
+            // Filtrado estricto por el prefijo específico del área (ej. RH_E para Recursos Humanos)
+            return clave.startsWith(area.prefijoAccion);
         });
 
         // Si la base aún no tiene cargadas acciones para esa área, dejamos un registro formal
@@ -4420,6 +4434,69 @@ window.cerrarModalHitoFatal = function() {
         modal.classList.add('hidden');
     }
 };
+
+        // =========================================================================
+// FUNCIÓN GLOBAL: ABRIR MODAL DE METODOLOGÍA (TIMELINE, STATUS Y DURACIÓN)
+// =========================================================================
+window.abrirModalMetodologia = function(tipo) {
+    const modal = document.getElementById('modal-metodologia');
+    const header = document.getElementById('metodologiaHeader');
+    const icono = document.getElementById('metodologiaIcono');
+    const titulo = document.getElementById('metodologiaTitulo');
+    const regla = document.getElementById('metodologiaRegla');
+    const formula = document.getElementById('metodologiaFormula');
+    const interpretacion = document.getElementById('metodologiaInterpretacion');
+    const sustento = document.getElementById('metodologiaSustentoLegal');
+
+    if (!modal) {
+        console.error("No se encontró el contenedor 'modal-metodologia' en el HTML.");
+        return;
+    }
+
+    if (tipo === 'timeline') {
+        if (header) header.className = "p-5 bg-gradient-to-r from-blue-700 to-indigo-800 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-gantt"></i>';
+        if (titulo) titulo.textContent = "Metodología del Task Timeline (Gantt Oficial)";
+        if (regla) regla.textContent = "Mide de manera sincronizada dos variables: la vigencia programada de la comisión frente a su avance físico/documental acreditado en expedientes.";
+        if (formula) formula.innerHTML = `
+            • <strong>Inicio Relativo (Día X):</strong> Fecha_Inicio - 01/Oct/2024<br>
+            • <strong>Plazo Total (Barra Gris):</strong> Fecha_Fin - Fecha_Inicio (en días naturales)<br>
+            • <strong>Avance Real (Barra Color):</strong> Plazo_Total × (% Cumplimiento Promedio de sus Acciones)
+        `;
+        if (interpretacion) interpretacion.textContent = "La barra gris indica hasta dónde tiene autorización legal de operar el área. La barra de color muestra cuánto camino ha recorrido. Si la barra de color no llena la gris al llegar a la fecha límite, el sistema activa la salvedad de prórroga.";
+        if (sustento) sustento.innerHTML = "<strong>Sustento:</strong> Conforme al Artículo Quinto Transitorio del Decreto 345 y Artículo 13 de los Lineamientos del IECG (evaluación de metas de entregables trimestrales).";
+    } else if (tipo === 'status') {
+        if (header) header.className = "p-5 bg-gradient-to-r from-emerald-600 to-teal-800 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
+        if (titulo) titulo.textContent = "Metodología de Distribución de Acciones (Dona)";
+        if (regla) regla.textContent = "Clasifica individualmente cada una de las 30 acciones de la matriz institucional de acuerdo con su estado de comprobación legal ante el órgano de control.";
+        if (formula) formula.innerHTML = `
+            • <strong>Concluido (Verde):</strong> Avance = 100% con soporte documental en Drive.<br>
+            • <strong>En Proceso (Azul):</strong> Avance entre 1% y 99% en trámite ordinario.<br>
+            • <strong>En Espera Tercero (Ámbar):</strong> Trámite detenido formalmente por SAT, ASEG, Notaría o Finanzas.<br>
+            • <strong>Validación (Morado):</strong> En revisión por el Comité de Extinción.
+        `;
+        if (interpretacion) interpretacion.textContent = "Ofrece una visión ejecutiva inmediata del estado procesal de la extinción: qué porcentaje está blindado documentalmente y qué porcentaje depende de validaciones externas.";
+        if (sustento) sustento.innerHTML = "<strong>Sustento:</strong> Artículo 6 de los Lineamientos del IECG (salvedad legal por obligaciones supeditadas a autoridades de otros órdenes de gobierno).";
+    } else if (tipo === 'duracion') {
+        if (header) header.className = "p-5 bg-gradient-to-r from-slate-700 to-slate-900 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
+        if (titulo) titulo.textContent = "Metodología de Cómputo de Plazos (Barras)";
+        if (regla) regla.textContent = "Calcula la carga temporal asignada a cada una de las 10 comisiones, convirtiendo los días matemáticos a períodos de calendario comprensibles.";
+        if (formula) formula.innerHTML = `
+            • <strong>Cómputo:</strong> Días_Totales = Fecha_Fin_Programada - Fecha_Inicio_Programada<br>
+            • <strong>Conversión Humana:</strong> Si Días > 30 → se expresa en Meses Equivalentes (Días / 30.4)
+        `;
+        if (interpretacion) interpretacion.textContent = "Evita la confusión de ver cientos de días abstractos (como 759 días). Expresa con claridad que se trata de '25 Meses' con vencimiento al 30 de noviembre de 2026, facilitando la rendición de cuentas.";
+        if (sustento) sustento.innerHTML = "<strong>Sustento:</strong> Calendario oficial de entrega-recepción extraordinaria normado en los Artículos 6, 7 y 37 de los Lineamientos del IECG.";
+    }
+
+    if (typeof openModal === 'function') {
+        openModal('modal-metodologia');
+    } else {
+        modal.classList.remove('hidden');
+    }
+};
         
     </script>
 </script>
@@ -4620,6 +4697,58 @@ window.cerrarModalHitoFatal = function() {
 
     </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL DE METODOLOGÍAS DE CÁLCULO NORMATIVO Y ESTADÍSTICO                  -->
+<!-- ========================================================================= -->
+<div id="modal-metodologia" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <div id="metodologiaHeader" class="p-5 bg-slate-900 text-white flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div id="metodologiaIcono" class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider bg-black/20 px-2.5 py-0.5 rounded-full">Sustento Técnico</span>
+                    <h3 id="metodologiaTitulo" class="text-base font-black mt-0.5">Metodología de Cálculo</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-metodologia')" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs text-slate-700 leading-relaxed overflow-y-auto max-h-[70vh]">
+            <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-4 space-y-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">Principio y Regla de Negocio</span>
+                <p id="metodologiaRegla" class="text-slate-900 font-semibold text-xs"></p>
+            </div>
+
+            <div class="border border-slate-200 rounded-2xl p-4 space-y-2 bg-white shadow-2xs">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Fórmula Matemática & Parámetros</span>
+                <div id="metodologiaFormula" class="font-mono bg-slate-50 p-2.5 rounded-xl text-slate-800 text-[11px] border border-slate-200"></div>
+            </div>
+
+            <div class="space-y-1.5">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Interpretación para No Expertos</span>
+                <p id="metodologiaInterpretacion" class="text-slate-600 text-xs"></p>
+            </div>
+
+            <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 flex items-start gap-2.5">
+                <i class="fa-solid fa-gavel text-amber-600 text-sm mt-0.5"></i>
+                <div id="metodologiaSustentoLegal" class="text-[11px]"></div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end rounded-b-3xl">
+            <button type="button" onclick="closeModal('modal-metodologia')" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition">
+                Entendido
+            </button>
+        </div>
+
+    </div>
+</div>    
     
 </body>
 </html>
