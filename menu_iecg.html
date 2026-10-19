@@ -256,10 +256,17 @@
     </button>
 </div>
 
+               <!-- BOTÓN VISTOSO: ACCESO A LA BASE DE DATOS GENERAL Y GOBERNANZA -->
                 <div class="flex items-center gap-2">
-                    <span id="labelGlobalStatus" class="text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-xl border border-slate-200/80 shadow-2xs">
-                        <i class="fa-solid fa-scale-balanced text-indigo-600 me-1"></i> Auditoría Superior del Estado (ASEG)
-                    </span>
+                    <button type="button" onclick="abrirModalBaseDatosGeneral()" 
+                            class="btn-executive px-4 py-1.5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white font-extrabold text-xs flex items-center gap-2 border border-indigo-400/50 shadow-md hover:shadow-indigo-300/40 hover:scale-102 transition-all">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <i class="fa-solid fa-database text-amber-400 text-sm"></i>
+                        <span>Base de Datos General IECG</span>
+                        <span class="bg-indigo-600/60 text-[10px] px-2 py-0.5 rounded-full border border-indigo-300/30 text-indigo-200">
+                            Hitos & Acciones (A-J)
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -4934,6 +4941,130 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 
     input.click();
 };
+
+// =========================================================================
+// MESA DE CONTROL Y GOBERNANZA: BASE DE DATOS GENERAL INTERACTIVA
+// =========================================================================
+
+// 1. Abrir Modal de la Base de Datos General
+window.abrirModalBaseDatosGeneral = function() {
+    renderBaseDatosGeneralJerarquica();
+    openModal('modal-base-datos-general');
+};
+
+// 2. Renderizado del Árbol Jerárquico: Hito Padre -> Acciones Hijas
+window.renderBaseDatosGeneralJerarquica = function() {
+    const contenedor = document.getElementById('cuerpoBaseDatosGeneral');
+    if (!contenedor) return;
+
+    const filtroPanel = document.getElementById('filtroPanelBDGeneral')?.value || 'TODOS';
+    const query = (document.getElementById('buscadorBDGeneral')?.value || '').toLowerCase().trim();
+
+    // Agrupar las acciones por su Hito Padre
+    const mapaHitos = {};
+
+    accionesDataset.forEach(act => {
+        const idHito = act.clave_hito || act.id.split('-A-')[0];
+        if (filtroPanel !== 'TODOS' && act.panel !== filtroPanel) return;
+
+        // Filtro de texto
+        const textoMatch = !query || 
+            (act.clave_accion || act.id).toLowerCase().includes(query) ||
+            idHito.toLowerCase().includes(query) ||
+            act.hito.toLowerCase().includes(query) ||
+            act.accion.toLowerCase().includes(query) ||
+            act.responsable.toLowerCase().includes(query);
+
+        if (!textoMatch) return;
+
+        if (!mapaHitos[idHito]) {
+            mapaHitos[idHito] = {
+                clave_hito: idHito,
+                panel: act.panel,
+                area: act.area,
+                nombreHito: act.hito,
+                acciones: []
+            };
+        }
+        mapaHitos[idHito].acciones.push(act);
+    });
+
+    const listaHitos = Object.values(mapaHitos);
+
+    if (listaHitos.length === 0) {
+        contenedor.innerHTML = `
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">
+                <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
+                <p class="font-bold text-xs">No se encontraron hitos o acciones con el criterio seleccionado.</p>
+            </div>
+        `;
+        return;
+    }
+
+    contenedor.innerHTML = listaHitos.map(h => {
+        // Cálculo del promedio real de este hito específico
+        const sumaAvance = h.acciones.reduce((acc, curr) => acc + (Number(curr.avance) || 0), 0);
+        const promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
+
+        return `
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">
+                
+                <!-- Encabezado del Hito Padre (Con botón de solicitud de edición) -->
+                <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center font-mono text-xs shadow-2xs">
+                            ${h.panel}
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-indigo-950 text-xs bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                                    ${h.clave_hito}
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${h.area}</span>
+                            </div>
+                            <h4 class="font-black text-slate-900 text-sm mt-0.5">${h.nombreHito}</h4>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
+                        <span class="px-2.5 py-1 rounded-xl text-xs font-black ${promedioHito === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
+                            ${promedioHito}% Promedio (${h.acciones.length} Acciones)
+                        </span>
+                        <!-- Botón protegido con candado -->
+                        <button type="button" onclick="solicitarModificacionHitoGeneral('${h.clave_hito}', '${h.nombreHito.replace(/'/g, "\\'")}')" 
+                                class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"
+                                title="Solicitar cambio normativo al Hito">
+                            <i class="fa-solid fa-lock text-amber-600"></i> Modificar Hito
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de Acciones Hijas Subordinadas -->
+                <div class="p-3 overflow-x-auto">
+                    <table class="w-full text-left text-[11px]">
+                        <thead class="text-slate-400 font-bold uppercase text-[9px] border-b border-slate-100">
+                            <tr>
+                                <th class="p-2">Clave Acción</th>
+                                <th class="p-2 min-w-[220px]">Compromiso Específico</th>
+                                <th class="p-2">Responsable</th>
+                                <th class="p-2 text-center">Estatus</th>
+                                <th class="p-2 text-center">Avance</th>
+                                <th class="p-2 text-center">Expediente Drive</th>
+                                <th class="p-2 text-center">Gobernanza</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-sans">
+                            ${h.acciones.map(a => {
+                                const idClave = a.clave_accion || a.id;
+                                const tieneDrive = Boolean(a.driveUrl && a.driveUrl.trim() !== '');
+
+                                return `
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">${idClave}</td>
+                                        <td class="p-2 text-slate-800 font-medium">${a.accion}</td>
+                                        <td class="p-2 text-slate-600">${a.responsable || 'Comisión'}</td>
+                                        <td class="p-2 text-center">
+                                            <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold ${ a.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (a.estatus === 'Validación' ? 'bg-purple-100 text-purple-800' : (a.estatus && a.estatus.includes('Tercero') ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800')) }">${a.estatus}</span>
         
 </script>
 <!-- ========================================================================= -->
@@ -5185,6 +5316,92 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 
     </div>
 </div>    
+
+<!-- ========================================================================= -->
+<!-- MODAL DE BASE DE DATOS GENERAL, GOBERNANZA Y IMPORTACIÓN EXCEL            -->
+<!-- ========================================================================= -->
+<div id="modal-base-datos-general" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-3xl max-w-6xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header con Identidad Oficial y Acciones Rápidas -->
+        <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-xl border border-amber-400/30 shadow-inner">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            Estructura Viva Relacional
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono">Decreto No. 345 | 10 Paneles (A - J)</span>
+                    </div>
+                    <h3 class="text-lg font-black tracking-tight text-white mt-0.5">Base de Datos General: Hitos Normativos y Acciones Operativas</h3>
+                </div>
+            </div>
+            
+            <!-- Acciones de Cabecera: Descarga Plantilla y Carga Masiva -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="descargarPlantillaGobernanzaExcel()" class="btn-executive px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-file-excel"></i> Descargar Plantilla Excel
+                </button>
+                <label class="btn-executive px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-file-import"></i> Subir Excel / CSV
+                    <input type="file" id="inputCargaExcelGeneral" accept=".csv" class="hidden" onchange="procesarImportacionExcelGeneral(event)">
+                </label>
+                <button type="button" onclick="closeModal('modal-base-datos-general')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Banner de Candado de Seguridad y Filtros Rápidos -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5 text-slate-700">
+                <span class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black shrink-0 border border-amber-300">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </span>
+                <p class="leading-tight text-[11px]">
+                    <strong>Candado de Seguridad y Trazabilidad ASEG:</strong> Las modificaciones realizadas por enlaces generarán una 
+                    <span class="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Solicitud de Autorización</span> canalizada a la bandeja de <code>auditoria.html</code>.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <select id="filtroPanelBDGeneral" onchange="renderBaseDatosGeneralJerarquica()" class="p-2 border border-slate-300 rounded-xl bg-white font-bold text-indigo-900 text-xs shadow-2xs">
+                    <option value="TODOS">Todos los Paneles (A - J)</option>
+                    <option value="A">Panel A - Recursos Humanos</option>
+                    <option value="B">Panel B - Asuntos Jurídicos</option>
+                    <option value="C">Panel C - Inmuebles & Predios</option>
+                    <option value="D">Panel D - Fideicomisos FIARCA</option>
+                    <option value="E">Panel E - Control Patrimonial</option>
+                    <option value="F">Panel F - Financiero / SAT</option>
+                    <option value="G">Panel G - Tecnologías (TI)</option>
+                    <option value="H">Panel H - Archivo & AGEG</option>
+                    <option value="I">Panel I - Fiscalización ASEG</option>
+                    <option value="J">Panel J - Gobernanza Líder</option>
+                </select>
+                <input type="text" id="buscadorBDGeneral" oninput="renderBaseDatosGeneralJerarquica()" placeholder="Buscar por clave, tema o responsable..." class="p-2 border border-slate-300 rounded-xl bg-white text-xs w-56 sm:w-64 focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        <!-- Contenedor Desplazable del Árbol Jerárquico Hitos ➔ Acciones -->
+        <div id="cuerpoBaseDatosGeneral" class="p-5 overflow-y-auto space-y-4 text-xs bg-slate-100/50">
+            <!-- Inyección interactiva con JavaScript -->
+        </div>
+
+        <!-- Footer Informativo -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 shrink-0">
+            <span class="font-medium flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-nodes text-indigo-600"></i> Relación canónica 1:N garantizada (Hito Rector ➔ Acciones Operativas)
+            </span>
+            <button type="button" onclick="closeModal('modal-base-datos-general')" class="btn-executive px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs">
+                Cerrar Base de Datos
+            </button>
+        </div>
+
+    </div>
+</div>
     
 </body>
 </html>
