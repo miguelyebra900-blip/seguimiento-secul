@@ -4453,31 +4453,100 @@ window.abrirModalMetodologia = function(tipo) {
         return;
     }
 
-    if (tipo === 'timeline') {
+if (tipo === 'timeline') {
         if (header) header.className = "p-5 bg-gradient-to-r from-blue-700 to-indigo-800 text-white flex items-start justify-between";
         if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-gantt"></i>';
-        if (titulo) titulo.textContent = "Metodología del Task Timeline (Gantt Oficial)";
-        if (regla) regla.textContent = "Mide de manera sincronizada dos variables: la vigencia programada de la comisión frente a su avance físico/documental acreditado en expedientes.";
-        if (formula) formula.innerHTML = `
-            • <strong>Inicio Relativo (Día X):</strong> Fecha_Inicio - 01/Oct/2024<br>
-            • <strong>Plazo Total (Barra Gris):</strong> Fecha_Fin - Fecha_Inicio (en días naturales)<br>
-            • <strong>Avance Real (Barra Color):</strong> Plazo_Total × (% Cumplimiento Promedio de sus Acciones)
+        if (titulo) titulo.textContent = "Metodología del Cronograma Oficial (Gantt Maestro)";
+        
+        if (regla) regla.innerHTML = `
+            <strong>Principio Rector:</strong> Sincroniza en un solo gráfico el tiempo legal concedido a cada comisión frente al avance documental físico comprobado en las carpetas de entrega-recepción.
         `;
-        if (interpretacion) interpretacion.textContent = "La barra gris indica hasta dónde tiene autorización legal de operar el área. La barra de color muestra cuánto camino ha recorrido. Si la barra de color no llena la gris al llegar a la fecha límite, el sistema activa la salvedad de prórroga.";
-        if (sustento) sustento.innerHTML = "<strong>Sustento:</strong> Conforme al Artículo Quinto Transitorio del Decreto 345 y Artículo 13 de los Lineamientos del IECG (evaluación de metas de entregables trimestrales).";
-    } else if (tipo === 'status') {
+
+        if (formula) formula.innerHTML = `
+            <div class="space-y-2 text-xs">
+                <div>
+                    <span class="font-bold text-indigo-700 block text-[11px] uppercase">1. ¿De dónde se toman los datos?</span>
+                    <p class="text-slate-600">
+                        • <strong>Fechas de Inicio y Fin:</strong> Se extraen del calendario oficial aprobado por el Comité de Extinción conforme a los plazos fijados por el Decreto No. 345.<br>
+                        • <strong>Porcentaje de Avance (%):</strong> No es una estimación al azar; es el <strong>promedio aritmético</strong> del avance individual de cada una de las acciones que componen el Área, validado con su expediente en Google Drive.
+                    </p>
+                </div>
+
+                <div class="border-t border-slate-200 pt-2">
+                    <span class="font-bold text-indigo-700 block text-[11px] uppercase">2. ¿Cómo se calcula matemáticamente?</span>
+                    <p class="text-slate-600 font-mono text-[10.5px] bg-white p-2 rounded-lg border border-slate-200 mt-1">
+                        • Día de Arranque en Escala = Fecha_Inicio_Área - 01/Oct/2024 (Fecha Decreto)<br>
+                        • Plazo Total (Barra Gris) = Fecha_Fin_Programada - Fecha_Inicio_Área (en días naturales)<br>
+                        • Longitud Avance (Barra Color) = Plazo_Total × (% Cumplimiento Promedio)
+                    </p>
+                </div>
+
+                <div class="border-t border-slate-200 pt-2">
+                    <span class="font-bold text-indigo-700 block text-[11px] uppercase">3. ¿Por qué se calcula de esta forma?</span>
+                    <p class="text-slate-600">
+                        Permite distinguir al instante si una comisión va en tiempo conforme a calendario, o si el plazo ya venció y requiere ampararse formalmente en prórroga legal por trámites supeditados a instancias externas (Artículo 6 de los Lineamientos).
+                    </p>
+                </div>
+            </div>
+        `;
+
+        if (interpretacion) interpretacion.innerHTML = `
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+                <span class="font-black text-slate-800 uppercase tracking-wider text-[10px] block text-indigo-600">
+                    💡 Ejemplo Práctico: Caso Real de Recursos Humanos (Área A)
+                </span>
+                <p class="text-slate-700 text-[11px] leading-relaxed">
+                    • <strong>Vigencia programada:</strong> Del <strong>01-Oct-2024</strong> al <strong>30-Jun-2025</strong>.<br>
+                    • <strong>Plazo Total (Barra Gris):</strong> De octubre a junio transcurren exactamente <strong>272 días naturales</strong> (9 meses). Esa es la longitud máxima autorizada.<br>
+                    • <strong>Cálculo de Avance:</strong> Si el Área A tiene 3 acciones (Convenios finiquitados al 100%, Plazas canceladas al 100% y Ratificación ante Tribunal al 70%), su promedio real es: <em>(100 + 100 + 70) ÷ 3 = <strong>80% de cumplimiento</strong></em>.<br>
+                    • <strong>Lo que dibuja la gráfica:</strong> La <strong>barra gris</strong> se extiende 272 días, y la <strong>barra de color</strong> cubre el 80% de esa distancia (218 días). El tramo gris restante representa la documentación pendiente de ratificar ante el Tribunal.
+                </p>
+            </div>
+        `;
+
+        if (sustento) sustento.innerHTML = `
+            <strong>Sustento Legal:</strong> Decreto No. 345 (Artículo Quinto Transitorio) y Lineamientos del IECG (Artículo 6 sobre plazo de 15 meses y prórroga por terceros; Artículo 13 sobre rendición de avances de entregables trimestrales).
+        `;
+    
+
+else if (tipo === 'status') {
         if (header) header.className = "p-5 bg-gradient-to-r from-emerald-600 to-teal-800 text-white flex items-start justify-between";
         if (icono) icono.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
-        if (titulo) titulo.textContent = "Metodología de Distribución de Acciones (Dona)";
-        if (regla) regla.textContent = "Clasifica individualmente cada una de las 30 acciones de la matriz institucional de acuerdo con su estado de comprobación legal ante el órgano de control.";
+        if (titulo) titulo.textContent = "Metodología de Distribución de Estatus (Dona)";
+        if (regla) regla.innerHTML = `<strong>Principio:</strong> Mide el estado procesal y legal de las 30 acciones sustantivas que integran la liquidación patrimonial.`;
         if (formula) formula.innerHTML = `
-            • <strong>Concluido (Verde):</strong> Avance = 100% con soporte documental en Drive.<br>
-            • <strong>En Proceso (Azul):</strong> Avance entre 1% y 99% en trámite ordinario.<br>
-            • <strong>En Espera Tercero (Ámbar):</strong> Trámite detenido formalmente por SAT, ASEG, Notaría o Finanzas.<br>
-            • <strong>Validación (Morado):</strong> En revisión por el Comité de Extinción.
+            <div class="space-y-1.5 text-xs text-slate-600">
+                <p>• <strong>🟢 Concluido (100%):</strong> Acción terminada con acta firmada y carpeta probatoria en Drive.</p>
+                <p>• <strong>🔵 En Proceso:</strong> Tareas en ejecución normal dentro del plazo sin impedimento legal.</p>
+                <p>• <strong>🟡 En Espera Tercero (Art. 6):</strong> Tarea detenida formalmente por trámites dependientes de autoridades externas (SAT, ASEG, Notarías, Finanzas).</p>
+                <p>• <strong>🟣 Validación:</strong> Entregable concluido en revisión por el Comité de Extinción.</p>
+                <p class="font-mono bg-white p-2 rounded border border-slate-200 mt-2 text-[10px]">
+                    % Estado = (Cantidad de Acciones en ese Estado ÷ 30 Acciones Totales) × 100
+                </p>
+            </div>
         `;
-        if (interpretacion) interpretacion.textContent = "Ofrece una visión ejecutiva inmediata del estado procesal de la extinción: qué porcentaje está blindado documentalmente y qué porcentaje depende de validaciones externas.";
-        if (sustento) sustento.innerHTML = "<strong>Sustento:</strong> Artículo 6 de los Lineamientos del IECG (salvedad legal por obligaciones supeditadas a autoridades de otros órdenes de gobierno).";
+        if (interpretacion) interpretacion.innerHTML = `
+            <strong>Ejemplo:</strong> Si 21 acciones cuentan con acta de entrega final y carpeta en Drive, la gráfica muestra <strong>70% Concluido</strong>. Si 5 trámites están supeditados a la cancelación de cuentas bancarias en Banorte, se registran como <strong>Espera Tercero (17%)</strong>, justificando la ampliación de plazos ante la ASEG.
+        `;
+        if (sustento) sustento.innerHTML = `<strong>Sustento:</strong> Artículo 6 de los Lineamientos del IECG (salvedad de responsabilidades por causas imputables a terceros).`;
+    } 
+    else if (tipo === 'duracion') {
+        if (header) header.className = "p-5 bg-gradient-to-r from-slate-700 to-slate-900 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
+        if (titulo) titulo.textContent = "Metodología del Cómputo de Plazos (Barras)";
+        if (regla) regla.innerHTML = `<strong>Principio:</strong> Representa la duración de la comisión expresada en meses y días para una lectura administrativa natural.`;
+        if (formula) formula.innerHTML = `
+            <p class="font-mono bg-white p-2 rounded border border-slate-200 text-[10.5px] text-slate-700">
+                • Días = Fecha_Fin_Programada - Fecha_Inicio_Programada<br>
+                • Meses Equivalentes = Días ÷ 30.4 días promedio por mes
+            </p>
+        `;
+        if (interpretacion) interpretacion.innerHTML = `
+            <strong>Ejemplo:</strong> Para <em>Patrimonio Inmueble (Área C)</em>, la vigencia comprende del <strong>01-Nov-2024 al 30-Nov-2026</strong>. La resta matemática arroja <strong>759 días naturales</strong>. Para evitar confusiones directivas, el sistema convierte esa cifra y muestra: <strong>25 Meses (759 d)</strong> con fecha límite al 30 de noviembre de 2026.
+        `;
+        if (sustento) sustento.innerHTML = `<strong>Sustento:</strong> Artículos 6, 7 y 18 de los Lineamientos del IECG (regularización de bienes y trámites notariales).`;
+    }
+    
     } else if (tipo === 'duracion') {
         if (header) header.className = "p-5 bg-gradient-to-r from-slate-700 to-slate-900 text-white flex items-start justify-between";
         if (icono) icono.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
