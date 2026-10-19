@@ -4332,6 +4332,95 @@ function guardarAjustesAreaCronograma() {
     // Notificación en pantalla
     alert(`Área ${a.panel} actualizada correctamente.\nLas gráficas de Gantt, Estatus y Duración se han recalculado en tiempo real.`);
 }
+
+// =========================================================================
+// FUNCIÓN GLOBAL: ABRIR MODAL DE HITOS FATALES (ZOOM Y SUSTENTO LEGAL)
+// =========================================================================
+window.abrirModalHitoFatal = function(num) {
+    const modal = document.getElementById('modal-hito-fatal');
+    const header = document.getElementById('hitoFatalHeader');
+    const icono = document.getElementById('hitoFatalIcono');
+    const badgeNum = document.getElementById('hitoFatalNumero');
+    const titulo = document.getElementById('hitoFatalTitulo');
+    const fecha = document.getElementById('hitoFatalFecha');
+    const objetivo = document.getElementById('hitoFatalObjetivo');
+    const fundamento = document.getElementById('hitoFatalFundamento');
+    const impacto = document.getElementById('hitoFatalImpacto');
+
+    if (!modal) {
+        console.error("No se encontró el contenedor con id 'modal-hito-fatal' en el HTML.");
+        return;
+    }
+
+    if (num === 1) {
+        if (header) header.className = "p-6 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-handshake"></i>';
+        if (badgeNum) badgeNum.textContent = "Hito 1 · Revisión de Avance";
+        if (titulo) titulo.textContent = "Mesa de Trabajo Directiva de Avance";
+        if (fecha) fecha.textContent = "30 de Octubre de 2026 · Despacho de la Secretaria de Cultura";
+        if (objetivo) objetivo.textContent = "Reunión de coordinación interna y técnica entre la Secretaria de Cultura (Órgano Receptor), la persona Liquidadora y las coordinaciones de las 10 comisiones para revisar el corte de metas e indicadores del cierre institucional.";
+        if (fundamento) fundamento.innerHTML = `
+            <p>• <strong>Artículo Quinto Transitorio del Decreto Legislativo 345:</strong> Establece la sustitución de funciones del Instituto Estatal de la Cultura a favor de la Secretaría de Cultura y la obligación de rendición de avances del proceso liquidatorio.</p>
+            <p>• <strong>Artículo 13 de los Lineamientos del IECG:</strong> Obligación de entregar informes de corte trimestral del estatus de cumplimiento de entregables, metas e indicadores de los proyectos institucionales.</p>
+        `;
+        if (impacto) impacto.innerHTML = `<strong>Carácter normativo:</strong> Fecha de acuerdo ejecutivo interno para armonizar las cifras oficiales antes de la sesión plenaria de comité y asegurar que no existan observaciones no solventadas.`;
+    } else if (num === 2) {
+        if (header) header.className = "p-6 bg-gradient-to-r from-blue-700 to-blue-900 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-users-rectangle"></i>';
+        if (badgeNum) badgeNum.textContent = "Hito 2 · Sesión Plenaria";
+        if (titulo) titulo.textContent = "Sesión Extraordinaria del Comité de Extinción";
+        if (fecha) fecha.textContent = "30 de Noviembre de 2026 · Sede Colegiada de Gobierno";
+        if (objetivo) objetivo.textContent = "Presentación y aprobación formal de los reportes mensuales de liquidación, convenios modificatorios de fideicomisos, acuerdos de destino inmobiliario y determinación de salvedades legales.";
+        if (fundamento) fundamento.innerHTML = `
+            <p>• <strong>Artículos 4 y 9 fracción III de los Lineamientos de los Comités de Extinción:</strong> Faculta al Comité para reunirse por convocatoria y analizar los reportes y cuentas que rinda el Liquidador.</p>
+            <p>• <strong>Artículo 10 de los Lineamientos de Comités:</strong> Integración formal por la Secretaria de Cultura (Presidenta), Secretaría de Finanzas, Secretaría de la Honestidad, Consejería Jurídica del Ejecutivo y Archivo General del Estado.</p>
+        `;
+        if (impacto) impacto.innerHTML = `<strong>Efecto colegiado:</strong> Los acuerdos alcanzados en esta sesión adquieren validez oficial vinculante para todas las dependencias del Poder Ejecutivo intervinientes.`;
+    } else if (num === 3) {
+        if (header) header.className = "p-6 bg-gradient-to-r from-amber-600 to-amber-800 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-box-archive"></i>';
+        if (badgeNum) badgeNum.textContent = "Hito 3 · Finiquito Operativo";
+        if (titulo) titulo.textContent = "Cierre Interno Operativo SECUL";
+        if (fecha) fecha.textContent = "26 de Febrero de 2026 · Entrega Operativa Sectorial";
+        if (objetivo) objetivo.textContent = "Conclusión total de la operación directa en el ámbito de cultura. Todo asunto pendiente que no se cierre en esta fecha debe quedar expresamente catalogado como salvedad legal imputable a terceros.";
+        if (fundamento) fundamento.innerHTML = `
+            <p>• <strong>Artículo 6 de los Lineamientos del IECG:</strong> Establece el plazo de liquidación y prevé expresamente la prórroga legal: <em>«No se considerará dentro de este plazo el cumplimiento de obligaciones que dependa de terceros, o bien, de autoridades de otros órdenes de gobierno»</em>.</p>
+            <p>• <strong>Artículos 7 y 17 de los Lineamientos del IECG:</strong> Transferencia de pasivos, juicios en trámite y derechos a la Secretaría de Cultura.</p>
+        `;
+        if (impacto) impacto.innerHTML = `<strong>Blindaje directivo:</strong> Exime de responsabilidad a los funcionarios del sector cultural por trámites que dependan del SAT, Notarías Públicas, Fiduciaria Banorte o la Secretaría de Finanzas.`;
+    } else if (num === 4) {
+        if (header) header.className = "p-6 bg-gradient-to-r from-rose-700 to-rose-900 text-white flex items-start justify-between";
+        if (icono) icono.innerHTML = '<i class="fa-solid fa-stamp"></i>';
+        if (badgeNum) badgeNum.textContent = "Hito 4 · Extinción Definitiva";
+        if (titulo) titulo.textContent = "Cierre General, Dictamen ASEG y Extinción Definitiva";
+        if (fecha) fecha.textContent = "05 de Abril de 2026 · Cierre Constitucional y Fiscal";
+        if (objetivo) objetivo.textContent = "Cancelación definitiva del RFC ante el SAT, entrega de acervos al Archivo General del Estado, informe final del Liquidador, dictamen final de fiscalización por la ASEG y publicación del decreto de extinción.";
+        if (fundamento) fundamento.innerHTML = `
+            <p>• <strong>Artículo Quinto Transitorio del Decreto 345:</strong> Cese definitivo de las funciones del Liquidador tras la liquidación contable y rendición del informe final al Comité de Extinción.</p>
+            <p>• <strong>Artículo 5 tercer párrafo de los Lineamientos del IECG:</strong> Obligación de dar de baja el RFC ante el SAT y notificar formalmente al Comité.</p>
+            <p>• <strong>Artículos 30 y 31 de los Lineamientos del IECG:</strong> Entrega definitiva del archivo histórico al Archivo General del Estado.</p>
+        `;
+        if (impacto) impacto.innerHTML = `<strong>Efecto jurídico final:</strong> Conclusión formal del proceso de extinción y liquidación patrimonial de la paraestatal con base en el Dictamen de Cuenta Pública de la ASEG.`;
+    }
+
+    // Despliegue seguro
+    if (typeof openModal === 'function') {
+        openModal('modal-hito-fatal');
+    } else {
+        modal.classList.remove('hidden');
+    }
+};
+
+window.cerrarModalHitoFatal = function() {
+    const modal = document.getElementById('modal-hito-fatal');
+    if (!modal) return;
+    if (typeof closeModal === 'function') {
+        closeModal('modal-hito-fatal');
+    } else {
+        modal.classList.add('hidden');
+    }
+};
+        
     </script>
 </script>
 <!-- ========================================================================= -->
