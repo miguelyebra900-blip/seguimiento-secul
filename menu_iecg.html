@@ -2349,16 +2349,29 @@ function activarKpiNeon(elemento, tipoKpi) {
             };
         }
 
-      function actualizarDashboard() {
+    function actualizarDashboard() {
             const metricas = calcularMetricas();
-            document.getElementById('kpiAvanceGlobalTop').innerText = `${metricas.avanceGlobal}%`;
-            document.getElementById('kpiDocsAcreditadosTop').innerText = `${metricas.docsAcreditados} / 30`;
-            document.getElementById('kpiTercerosTop').innerText = `${metricas.enEsperaTerceros} Acciones`;
+            const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
+            const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
+            const elKpiTerceros = document.getElementById('kpiTercerosTop');
 
+            if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
+            if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
+            if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
+
+            // 1. Vistas originales
             renderTarjetas10Areas(metricas.avancesPorArea);
             renderTablaMatriz();
             renderCharts(metricas);
-            renderCintilloNoticioso(); // <-- AQUÍ
+            renderCintilloNoticioso();
+
+            // 2. SINCRONIZACIÓN MAESTRA: TABLERO GANTT, DONA Y BARRAS
+            if (typeof renderTableroGanttEjecutivo === 'function') {
+                renderTableroGanttEjecutivo();
+            }
+            if (typeof seleccionarAreaEstrategica === 'function') {
+                seleccionarAreaEstrategica(indiceAreaActiva);
+            }
         }
 
 function renderTarjetas10Areas(avancesPorArea) {
@@ -3243,33 +3256,44 @@ function renderListaCompromisosDetalle(act) {
             if (!window.hitoActivoEnModalFiscal) return;
             const fileInput = document.getElementById('inputArchivoLocalModal');
             const nuevoEstatus = document.getElementById('modalFiscalEstatus').value;
-            const nuevoAvance = parseInt(document.getElementById('modalFiscalAvance').value) || 0;
+            const nuevoAvance = parseInt(document.getElementById('modalFiscalAvance').value, 10) || 0;
             const observaciones = document.getElementById('modalFiscalObs').value;
 
             try {
                 let driveUrl = window.hitoActivoEnModalFiscal.driveUrl || '';
-                if (fileInput && fileInput.files.length > 0) {
-                    alert("Subiendo documento de forma segura a Google Drive institucional...");
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
                     driveUrl = await subirArchivoADrive(fileInput.files[0], window.hitoActivoEnModalFiscal.panel);
                 }
 
+                // Actualizar la acción seleccionada
                 const act = accionesDataset.find(a => a.id === window.hitoActivoEnModalFiscal.id);
                 if (act) {
                     act.estatus = nuevoEstatus;
                     act.avance = nuevoAvance;
-                    act.driveUrl = driveUrl;
-                    act.observaciones = observaciones;
-                    guardarDataset();
+                    if (driveUrl) act.driveUrl = driveUrl;
+                    if (observaciones) act.observaciones = observaciones;
                 }
 
+                // Propagar avance a las acciones hermanas del mismo hito
+                const claveBase = window.hitoActivoEnModalFiscal.clave_hito || window.hitoActivoEnModalFiscal.id.split('-A-')[0];
+                accionesDataset.forEach(a => {
+                    const claveH = a.clave_hito || a.id.split('-A-')[0];
+                    if (claveH === claveBase) {
+                        a.estatus = nuevoEstatus;
+                        a.avance = nuevoAvance;
+                    }
+                });
+
+                guardarDataset();
                 closeModal('modal-hito-fiscalizacion');
-                alert("¡Avance y evidencia guardados y sincronizados exitosamente en todo el sistema!");
+                
+                // Disparo de sincronización global
                 actualizarDashboard();
             } catch (err) {
                 alert("Error al procesar la evidencia: " + err.message);
             }
         }
-
+        
         async function enviarSolicitudModal(e) {
             e.preventDefault();
             alert('¡Solicitud registrada correctamente!');
@@ -4626,7 +4650,6 @@ window.abrirModalMetodologia = function(tipo) {
     }
 };
         
-    </script>
 </script>
 <!-- ========================================================================= -->
     <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
