@@ -739,36 +739,47 @@
                     </div>
                 </div>
 
-              <!-- 4. CONTENEDOR DE DESGLOSE DE ACCIONES POR HITO SELECCIONADO -->
-                <div id="cajaDetalleHitoAcciones" class="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-3">
+           <!-- 4. CONTENEDOR DE DESGLOSE DE ACCIONES POR ÁREA ESTRATÉGICA -->
+                <div id="cajaDetalleHitoAcciones" class="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-4">
                     
-                    <!-- Botonera de acceso rápido por Comisión/Hito -->
-                    <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100">
-                        <span class="text-[10px] font-black uppercase text-slate-400 mr-1 shrink-0">Auditar Hito:</span>
-                        <button type="button" onclick="seleccionarHitoPorIndice(0)" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-mono font-bold text-[11px] transition">H-01 (E)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-02 (F)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(2)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-03 (D)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(3)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-04 (C)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(4)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-05 (B)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(5)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-06 (A)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(6)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-07 (G)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(7)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-08 (H)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(8)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-09 (I)</button>
-                        <button type="button" onclick="seleccionarHitoPorIndice(9)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-mono font-bold text-[11px] transition">H-10 (J)</button>
+                    <!-- Botonera organizada formalmente por las 10 ÁREAS ESTRATÉGICAS -->
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+                        <div class="flex items-center gap-1.5 overflow-x-auto">
+                            <span class="text-[10px] font-black uppercase text-slate-400 mr-1 shrink-0">Seleccionar Área:</span>
+                            <button type="button" onclick="seleccionarAreaEstrategica(0)" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-xs transition shadow-xs">Área A (RH)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(1)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área B (Jurídico)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(2)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área C (Inmuebles)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(3)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área D (Fideicomisos)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(4)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área E (Bienes)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(5)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área F (SAT/Finanzas)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(6)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área G (Sistemas)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(7)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área H (Archivo)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(8)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área I (ASEG)</button>
+                            <button type="button" onclick="seleccionarAreaEstrategica(9)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Área J (Gobernanza)</button>
+                        </div>
+                        
+                        <!-- BOTÓN INDUCTIVO: MODIFICAR CRONOGRAMA DIRECTAMENTE -->
+                        <button type="button" onclick="abrirEditorInductivoCronograma()" 
+                            class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs">
+                            <i class="fa-solid fa-pen-to-square"></i> Modificar Metas y Plazos de esta Área
+                        </button>
                     </div>
 
+                    <!-- Ficha Directiva de la Comisión Seleccionada -->
                     <div class="flex items-center justify-between pt-1">
-                        <div class="flex items-center gap-2.5">
-                            <span id="badgeHitoDetalle" class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs font-mono">H</span>
+                        <div class="flex items-center gap-3">
+                            <span id="badgeHitoDetalle" class="w-9 h-9 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-sm font-mono shadow-2xs">A</span>
                             <div>
-                                <h4 id="tituloHitoDetalle" class="font-black text-slate-900 text-sm">Cargando hito...</h4>
-                                <p id="subtituloHitoDetalle" class="text-xs text-slate-500">Desglose analítico de las acciones sustantivas que componen el hito.</p>
+                                <h4 id="tituloHitoDetalle" class="font-black text-slate-900 text-sm">Cargando área...</h4>
+                                <p id="subtituloHitoDetalle" class="text-xs text-slate-500 font-medium">Plazo de ejecución y responsable institucional.</p>
                             </div>
                         </div>
-                        <span id="avanceHitoDetalle" class="text-sm font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl">--% Avance</span>
+                        <span id="avanceHitoDetalle" class="text-sm font-black text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl shadow-2xs">--% Avance</span>
                     </div>
+
+                    <!-- Contenedor exclusivo de las acciones de ESTA área -->
                     <div id="listaAccionesHitoCuerpo" class="divide-y divide-slate-100 text-xs">
-                        <!-- Se inyecta dinámicamente -->
+                        <!-- Se llena dinámicamente -->
                     </div>
                 </div>
                 
@@ -3953,72 +3964,81 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 // =========================================================================
-// MOTOR COMPLETO: CRONOGRAMA MAESTRO, HITOS REALES Y DESGLOSE POR PANEL
+// CATÁLOGO DE LAS 10 ÁREAS ESTRATÉGICAS (CON CÓDIGOS DE FILTRADO EXACTO)
 // =========================================================================
 
 const FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
-const FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00'); // 📍 HOY
+const FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
 
-// Catálogo Rector de los 10 Paneles del IECG alineado al Decreto 345 y Lineamientos
-const catalogoHitosRectores = [
-    { id: 'RH_E-H-0001', panel: 'A', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', dependencia: 'Tribunal de Conciliación y Arbitraje' },
-    { id: 'JUR_C-H-0001', panel: 'B', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', dependencia: 'Consejería Jurídica del Ejecutivo' },
-    { id: 'PTR_I-H-0002', panel: 'C', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', dependencia: 'Secretaría de Finanzas / Consejería' },
-    { id: 'FTD_F-H-0001', panel: 'D', nombre: 'Fideicomisos (Convenio Modificatorio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', dependencia: 'Fiduciaria Banorte / Finanzas' },
-    { id: 'PTR_M-H-0001', panel: 'E', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', dependencia: 'Secretaría de Finanzas' },
-    { id: 'FIN_P-H-0003', panel: 'F', nombre: 'Financiero & Fiscal (Cancelación de RFC IECG ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', dependencia: 'SAT / Secretaría de Finanzas' },
-    { id: 'TIC_S-H-0001', panel: 'G', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', dependencia: 'DGTIT Secretaría de Finanzas' },
-    { id: 'ARC_G-H-0002', panel: 'H', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', dependencia: 'Archivo General del Estado' },
-    { id: 'AUD_I-H-0001', panel: 'I', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', dependencia: 'Auditoría Superior del Estado (ASEG)' },
-    { id: 'GOB_J-H-0001', panel: 'J', nombre: 'Gobernanza (Dictamen y Acta Final de Extinción)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', dependencia: 'Comité de Extinción / SECUL' }
+// Mapeo canónico exacto: Letra de Panel -> Prefijos reales en la matriz del IECG
+let catalogoAreasEstrategicas = [
+    { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
+    { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
+    { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
+    { panel: 'D', id: 'FTD_F-H-0001', prefijoAccion: 'FTD_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
+    { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
+    { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
+    { panel: 'G', id: 'TIC_S-H-0001', prefijoAccion: 'TIC_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
+    { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
+    { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
+    { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
 ];
+
+let indiceAreaActiva = 0;
 
 function diasDiff(d1, d2) {
     return Math.round((new Date(d2) - new Date(d1)) / (1000 * 60 * 60 * 24));
 }
 
-function renderTableroGanttEjecutivo() {
-    // Vincular dinámicamente cada hito rector con todas las acciones reales registradas
-    const datasetReal = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset) && accionesDataset.length > 0) 
-        ? accionesDataset 
-        : [];
+function formatearDuracionHumana(dias) {
+    const meses = Math.round(dias / 30.4);
+    if (meses <= 1) return `${dias} días`;
+    return `${meses} Meses (${dias} d)`;
+}
 
-    const hitosProcesados = catalogoHitosRectores.map((h, index) => {
-        let accionesDelHito = datasetReal.filter(a => a.panel === h.panel || (a.clave_accion && a.clave_accion.startsWith(h.panel)));
-        
-        if (accionesDelHito.length === 0) {
-            accionesDelHito = [
+function renderTableroGanttEjecutivo() {
+    const datasetReal = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+
+    const areasProcesadas = catalogoAreasEstrategicas.map((area, index) => {
+        // FILTRADO ESTRICTO: Solo las acciones que verdaderamente pertenecen a esta área
+        let accionesPropias = datasetReal.filter(a => {
+            const clave = a.clave_accion || a.id || '';
+            return a.panel === area.panel || clave.startsWith(area.prefijoAccion) || clave.startsWith(area.panel);
+        });
+
+        // Si la base aún no tiene cargadas acciones para esa área, dejamos un registro formal
+        if (accionesPropias.length === 0) {
+            accionesPropias = [
                 {
-                    clave_accion: `${h.id}-A01`,
-                    accion: `Acciones sustantivas y entrega-recepción del Panel ${h.panel}`,
-                    avance: 70,
-                    estatus: 'En Proceso',
+                    clave_accion: `${area.prefijoAccion}-A-0001`,
+                    accion: `Acciones sustantivas y entrega-recepción del Área ${area.panel}`,
+                    avance: area.avance,
+                    estatus: area.estatus,
+                    responsable: 'Comisión Responsable',
                     driveUrl: 'https://drive.google.com'
                 }
             ];
         }
 
-        const duracionTotal = Math.max(1, diasDiff(h.inicio, h.fin));
-        const offsetInicio = Math.max(0, diasDiff(FECHA_INICIO_DECRETO, h.inicio));
+        const duracionTotal = Math.max(1, diasDiff(area.inicio, area.fin));
+        const offsetInicio = Math.max(0, diasDiff(FECHA_INICIO_DECRETO, area.inicio));
         const offsetFin = offsetInicio + duracionTotal;
-        const promedioAvance = Math.round(accionesDelHito.reduce((acc, curr) => acc + (Number(curr.avance) || 0), 0) / accionesDelHito.length);
+        const promedioAvance = Math.round(accionesPropias.reduce((acc, curr) => acc + (Number(curr.avance) || 0), 0) / accionesPropias.length);
 
         return {
-            ...h,
+            ...area,
             indice: index,
             offsetInicio,
             offsetFin,
             duracionTotal,
             promedioAvance,
-            acciones: accionesDelHito
+            acciones: accionesPropias
         };
     });
 
-    window.hitosGanttProcesados = hitosProcesados;
+    window.areasGanttProcesadas = areasProcesadas;
 
-    // -------------------------------------------------------------
-    // 1. GRÁFICA SUPERIOR: LÍNEA DE TIEMPO CON CALENDARIO Y AVANCE REAL
-    // -------------------------------------------------------------
+    // 1. TIMELINE GANTT: PLAZO OFICIAL PROGRAMADO VS AVANCE LOGRADO
     const ctxTimeline = document.getElementById('chartGanttTimeline');
     if (ctxTimeline) {
         if (window.instanciaGanttTimeline) window.instanciaGanttTimeline.destroy();
@@ -4026,18 +4046,18 @@ function renderTableroGanttEjecutivo() {
         window.instanciaGanttTimeline = new Chart(ctxTimeline.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: hitosProcesados.map(h => `${h.panel}. ${h.nombre}`),
+                labels: areasProcesadas.map(a => `Área ${a.panel}. ${a.nombre}`),
                 datasets: [
                     {
-                        label: 'Avance Real Ejecutado',
-                        data: hitosProcesados.map(h => [h.offsetInicio, h.offsetInicio + Math.round((h.duracionTotal * h.promedioAvance) / 100)]),
-                        backgroundColor: hitosProcesados.map(h => h.color),
+                        label: 'Avance Logrado',
+                        data: areasProcesadas.map(a => [a.offsetInicio, a.offsetInicio + Math.round((a.duracionTotal * a.promedioAvance) / 100)]),
+                        backgroundColor: areasProcesadas.map(a => a.color),
                         borderRadius: 6,
                         barPercentage: 0.65
                     },
                     {
-                        label: 'Ventana Temporal Autorizada (Meta)',
-                        data: hitosProcesados.map(h => [h.offsetInicio, h.offsetFin]),
+                        label: 'Plazo Oficial Programado (Meta)',
+                        data: areasProcesadas.map(a => [a.offsetInicio, a.offsetFin]),
                         backgroundColor: '#e2e8f0',
                         borderRadius: 6,
                         barPercentage: 0.65
@@ -4048,14 +4068,11 @@ function renderTableroGanttEjecutivo() {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
+                interaction: { mode: 'index', intersect: false },
                 onClick: (evt, elementos, chart) => {
                     const puntos = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
                     if (puntos && puntos.length > 0) {
-                        seleccionarHitoPorIndice(puntos[0].index);
+                        seleccionarAreaEstrategica(puntos[0].index);
                     }
                 },
                 scales: {
@@ -4065,7 +4082,7 @@ function renderTableroGanttEjecutivo() {
                         grid: { color: '#f1f5f9' },
                         ticks: {
                             callback: function(val) {
-                                const marcasCalendario = {
+                                const calendario = {
                                     0: '01-Oct-24 (Decreto)',
                                     90: 'Ene-25',
                                     180: 'Abr-25',
@@ -4075,7 +4092,7 @@ function renderTableroGanttEjecutivo() {
                                     520: '05-Abr-26 (Dictamen ASEG)',
                                     550: 'Extinción Total'
                                 };
-                                return marcasCalendario[val] || '';
+                                return calendario[val] || '';
                             },
                             font: { size: 10, weight: 'bold' },
                             color: '#1e293b'
@@ -4094,15 +4111,15 @@ function renderTableroGanttEjecutivo() {
                     },
                     tooltip: {
                         callbacks: {
-                            title: (ctx) => hitosProcesados[ctx[0].dataIndex].nombre,
+                            title: (ctx) => areasProcesadas[ctx[0].dataIndex].nombre,
                             label: (ctx) => {
-                                const h = hitosProcesados[ctx.dataIndex];
+                                const a = areasProcesadas[ctx.dataIndex];
                                 return [
-                                    ` Vigencia: ${h.inicio} al ${h.fin}`,
-                                    ` Duración total: ${h.duracionTotal} días naturales`,
-                                    ` Cumplimiento promedio: ${h.promedioAvance}%`,
-                                    ` Total de acciones auditadas: ${h.acciones.length}`,
-                                    ` Clic para desplegar listado probatorio`
+                                    ` Vigencia oficial: ${a.inicio} al ${a.fin}`,
+                                    ` Plazo total: ${formatearDuracionHumana(a.duracionTotal)}`,
+                                    ` Avance físico: ${a.promedioAvance}% completado`,
+                                    ` Acciones asignadas a esta área: ${a.acciones.length}`,
+                                    ` Clic para auditar expedientes de esta comisión`
                                 ];
                             }
                         }
@@ -4112,22 +4129,19 @@ function renderTableroGanttEjecutivo() {
             }
         });
 
-        // Cargar por defecto el primer hito
-        seleccionarHitoPorIndice(0);
+        seleccionarAreaEstrategica(indiceAreaActiva);
     }
 
-    // -------------------------------------------------------------
-    // 2. DONA: TASK STATUS SOBRE TODAS LAS ACCIONES REALES
-    // -------------------------------------------------------------
+    // 2. DONA: TASK STATUS SOBRE TODAS LAS ACCIONES
     const ctxStatus = document.getElementById('chartGanttStatus');
     if (ctxStatus) {
         if (window.instanciaGanttStatus) window.instanciaGanttStatus.destroy();
 
-        const todas = hitosProcesados.flatMap(h => h.acciones);
+        const todas = areasProcesadas.flatMap(a => a.acciones);
         const conteo = {
             'Concluido': todas.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length,
             'En Proceso': todas.filter(a => a.estatus === 'En Proceso' || (Number(a.avance) > 0 && Number(a.avance) < 100)).length,
-            'En Espera Tercero (Art. 6)': todas.filter(a => (a.estatus && a.estatus.includes('Tercero')) || a.dependenciaExterna).length,
+            'En Espera Tercero (Art. 6)': todas.filter(a => (a.estatus && a.estatus.includes('Tercero'))).length,
             'Validación': todas.filter(a => a.estatus === 'Validación').length
         };
 
@@ -4162,9 +4176,7 @@ function renderTableroGanttEjecutivo() {
         });
     }
 
-    // -------------------------------------------------------------
-    // 3. BARRAS HORIZONTALES: DÍAS NATURALES REALES POR HITO
-    // -------------------------------------------------------------
+    // 3. BARRAS: TIEMPO TOTAL PROGRAMADO EN MESES Y DÍAS
     const ctxDuracion = document.getElementById('chartGanttDuracion');
     if (ctxDuracion) {
         if (window.instanciaGanttDuracion) window.instanciaGanttDuracion.destroy();
@@ -4172,11 +4184,11 @@ function renderTableroGanttEjecutivo() {
         window.instanciaGanttDuracion = new Chart(ctxDuracion.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: hitosProcesados.map(h => `${h.panel}. ${h.nombre.substring(0, 32)}...`),
+                labels: areasProcesadas.map(a => `Área ${a.panel}. ${a.nombre.substring(0, 30)}...`),
                 datasets: [{
-                    label: 'Días Naturales de Calendario',
-                    data: hitosProcesados.map(h => h.duracionTotal),
-                    backgroundColor: hitosProcesados.map(h => h.color),
+                    label: 'Plazo Total Programado',
+                    data: areasProcesadas.map(a => a.duracionTotal),
+                    backgroundColor: areasProcesadas.map(a => a.color),
                     borderRadius: 4,
                     barPercentage: 0.7
                 }]
@@ -4189,7 +4201,7 @@ function renderTableroGanttEjecutivo() {
                     x: {
                         beginAtZero: true,
                         grid: { color: '#f1f5f9' },
-                        ticks: { font: { size: 10, weight: 'bold' }, callback: val => `${val} días` }
+                        ticks: { font: { size: 10, weight: 'bold' }, callback: val => `${val} d` }
                     },
                     y: {
                         grid: { display: false },
@@ -4201,8 +4213,8 @@ function renderTableroGanttEjecutivo() {
                     tooltip: {
                         callbacks: {
                             label: (ctx) => {
-                                const h = hitosProcesados[ctx.dataIndex];
-                                return ` Ventana: ${h.inicio} al ${h.fin} (${h.duracionTotal} días naturales)`;
+                                const a = areasProcesadas[ctx.dataIndex];
+                                return ` Plazo: ${formatearDuracionHumana(a.duracionTotal)} (Vence: ${a.fin})`;
                             }
                         }
                     },
@@ -4211,7 +4223,7 @@ function renderTableroGanttEjecutivo() {
                         align: 'right',
                         color: '#0f172a',
                         font: { weight: 'bold', size: 10 },
-                        formatter: val => `${val} d`
+                        formatter: (val, ctx) => formatearDuracionHumana(val)
                     } : false
                 }
             }
@@ -4219,55 +4231,55 @@ function renderTableroGanttEjecutivo() {
     }
 }
 
-// -----------------------------------------------------------------------------
-// SELECCIÓN Y DESGLOSE DINÁMICO DE TODAS LAS ACCIONES DEL HITO SELECCIONADO
-// -----------------------------------------------------------------------------
-window.seleccionarHitoPorIndice = function(idx) {
-    const lista = window.hitosGanttProcesados || [];
+// SELECCIÓN DIRECTA DE ÁREA ESTRATÉGICA
+window.seleccionarAreaEstrategica = function(idx) {
+    const lista = window.areasGanttProcesadas || [];
     if (!lista || !lista[idx]) return;
 
-    const h = lista[idx];
+    indiceAreaActiva = idx;
+    const a = lista[idx];
+
     const badge = document.getElementById('badgeHitoDetalle');
     const titulo = document.getElementById('tituloHitoDetalle');
     const subtitulo = document.getElementById('subtituloHitoDetalle');
     const avance = document.getElementById('avanceHitoDetalle');
     const contenedor = document.getElementById('listaAccionesHitoCuerpo');
 
-    if (badge) badge.textContent = h.panel;
-    if (titulo) titulo.textContent = `${h.id} · ${h.nombre}`;
-    if (subtitulo) subtitulo.textContent = `Vigencia: ${h.inicio} al ${h.fin} (${h.duracionTotal} días naturales) · Ente externo vinculado: ${h.dependencia}`;
-    if (avance) avance.textContent = `${h.promedioAvance}% Avance Promedio`;
+    if (badge) badge.textContent = a.panel;
+    if (titulo) titulo.textContent = `Área ${a.panel}: ${a.nombre}`;
+    if (subtitulo) subtitulo.textContent = `Plazo: ${a.inicio} al ${a.fin} (${formatearDuracionHumana(a.duracionTotal)}) · Ente externo: ${a.dependencia}`;
+    if (avance) avance.textContent = `${a.promedioAvance}% Avance Promedio`;
 
     if (!contenedor) return;
 
-    // Renderizar TODAS las acciones que integran el hito
-    contenedor.innerHTML = h.acciones.map(a => `
+    // Solo muestra las acciones que corresponden a ESTA área
+    contenedor.innerHTML = a.acciones.map(accion => `
         <div class="py-2.5 px-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50 transition rounded-2xl border-b border-slate-100 last:border-0">
             <div class="flex items-start gap-3">
                 <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-mono font-bold text-[10px] border border-indigo-200 mt-0.5 shrink-0">
-                    ${a.clave_accion || a.id || 'ACC'}
+                    ${accion.clave_accion || accion.id || 'ACC'}
                 </span>
                 <div>
-                    <h5 class="font-bold text-slate-900 text-xs">${a.accion || a.nombre || 'Acción institucional'}</h5>
+                    <h5 class="font-bold text-slate-900 text-xs">${accion.accion || accion.nombre || 'Acción institucional'}</h5>
                     <div class="flex items-center gap-2 mt-1">
                         <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                            a.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' :
-                            (a.estatus === 'Validación' ? 'bg-purple-100 text-purple-800' :
-                            (a.estatus && a.estatus.includes('Tercero') ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'))
-                        }">${a.estatus || 'En Proceso'}</span>
-                        <span class="text-[10px] text-slate-500 font-mono font-bold">${a.avance || 0}% de cumplimiento</span>
-                        <span class="text-[10px] text-slate-400">· Resp: ${a.responsable || 'Comisión Directiva'}</span>
+                            accion.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' :
+                            (accion.estatus === 'Validación' ? 'bg-purple-100 text-purple-800' :
+                            (accion.estatus && accion.estatus.includes('Tercero') ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'))
+                        }">${accion.estatus || 'En Proceso'}</span>
+                        <span class="text-[10px] text-slate-500 font-mono font-bold">${accion.avance || 0}% acreditado</span>
+                        <span class="text-[10px] text-slate-400">· Resp: ${accion.responsable || 'Comisión'}</span>
                     </div>
                 </div>
             </div>
             <div class="shrink-0 flex items-center gap-2">
-                ${a.driveUrl ? `
-                    <a href="${a.driveUrl}" target="_blank" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-300 rounded-xl font-bold text-[10px] flex items-center gap-1.5 transition shadow-2xs">
+                ${accion.driveUrl ? `
+                    <a href="${accion.driveUrl}" target="_blank" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-300 rounded-xl font-bold text-[10px] flex items-center gap-1.5 transition shadow-2xs">
                         <i class="fa-solid fa-folder-open"></i> Expediente Drive
                     </a>
                 ` : `
                     <a href="https://drive.google.com" target="_blank" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-[10px] flex items-center gap-1 transition">
-                        <i class="fa-brands fa-google-drive text-amber-600"></i> Carpeta Panel ${h.panel}
+                        <i class="fa-brands fa-google-drive text-amber-600"></i> Carpeta Área ${a.panel}
                     </a>
                 `}
             </div>
@@ -4276,74 +4288,50 @@ window.seleccionarHitoPorIndice = function(idx) {
 };
 
 // -----------------------------------------------------------------------------
-// CONTROLADOR DEL MODAL DE DETALLE NORMATIVO (ZOOM Y SUSTENTO JURÍDICO)
+// CONTROLADOR DEL MODAL DE EDICIÓN INDUCTIVA DEL USUARIO
 // -----------------------------------------------------------------------------
-function abrirModalHitoFatal(num) {
-    const modal = document.getElementById('modal-hito-fatal');
-    const header = document.getElementById('hitoFatalHeader');
-    const icono = document.getElementById('hitoFatalIcono');
-    const badgeNum = document.getElementById('hitoFatalNumero');
-    const titulo = document.getElementById('hitoFatalTitulo');
-    const fecha = document.getElementById('hitoFatalFecha');
-    const objetivo = document.getElementById('hitoFatalObjetivo');
-    const fundamento = document.getElementById('hitoFatalFundamento');
-    const impacto = document.getElementById('hitoFatalImpacto');
+function abrirEditorInductivoCronograma() {
+    const a = catalogoAreasEstrategicas[indiceAreaActiva];
+    if (!a) return;
 
-    if (!modal) return;
+    document.getElementById('editorAreaNombreTitulo').textContent = `Área ${a.panel}: ${a.nombre}`;
+    document.getElementById('inputEditorAvance').value = a.avance;
+    document.getElementById('valorEditorAvance').innerText = `${a.avance}%`;
+    document.getElementById('inputEditorFechaInicio').value = a.inicio;
+    document.getElementById('inputEditorFechaFin').value = a.fin;
+    document.getElementById('selectEditorEstatus').value = a.estatus;
+    
+    const dias = diasDiff(a.inicio, a.fin);
+    document.getElementById('previewDiasCalculados').innerText = formatearDuracionHumana(dias);
 
-    if (num === 1) {
-        header.className = "p-6 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white flex items-start justify-between";
-        icono.innerHTML = '<i class="fa-solid fa-handshake"></i>';
-        badgeNum.textContent = "Hito 1 · Revisión de Avance";
-        titulo.textContent = "Mesa de Trabajo Directiva de Avance";
-        fecha.textContent = "30 de Octubre de 2026 · Despacho de la Secretaria de Cultura";
-        objetivo.textContent = "Reunión de coordinación interna y técnica entre la Secretaria de Cultura (Órgano Receptor), la persona Liquidadora y las coordinaciones de las 10 comisiones para revisar el corte de metas e indicadores del cierre institucional.";
-        fundamento.innerHTML = `
-            <p>• <strong>Artículo Quinto Transitorio del Decreto Legislativo 345:</strong> Establece la sustitución de funciones del Instituto Estatal de la Cultura a favor de la Secretaría de Cultura y la obligación de rendición de avances del proceso liquidatorio.</p>
-            <p>• <strong>Artículo 13 de los Lineamientos del IECG:</strong> Obligación de entregar informes de corte trimestral del estatus de cumplimiento de entregables, metas e indicadores de los proyectos institucionales.</p>
-        `;
-        impacto.innerHTML = `<strong>Carácter normativo:</strong> Fecha de acuerdo ejecutivo interno para armonizar las cifras oficiales antes de la sesión plenaria de comité y asegurar que no existan observaciones no solventadas.`;
-    } else if (num === 2) {
-        header.className = "p-6 bg-gradient-to-r from-blue-700 to-blue-900 text-white flex items-start justify-between";
-        icono.innerHTML = '<i class="fa-solid fa-users-rectangle"></i>';
-        badgeNum.textContent = "Hito 2 · Sesión Plenaria";
-        titulo.textContent = "Sesión Extraordinaria del Comité de Extinción";
-        fecha.textContent = "30 de Noviembre de 2026 · Sede Colegiada de Gobierno";
-        objetivo.textContent = "Presentación y aprobación formal de los reportes mensuales de liquidación, convenios modificatorios de fideicomisos, acuerdos de destino inmobiliario y determinación de salvedades legales.";
-        fundamento.innerHTML = `
-            <p>• <strong>Artículos 4 y 9 fracción III de los Lineamientos de los Comités de Extinción:</strong> Faculta al Comité para reunirse por convocatoria y analizar los reportes y cuentas que rinda el Liquidador.</p>
-            <p>• <strong>Artículo 10 de los Lineamientos de Comités:</strong> Integración formal por la Secretaria de Cultura (Presidenta), Secretaría de Finanzas, Secretaría de la Honestidad, Consejería Jurídica del Ejecutivo y Archivo General del Estado.</p>
-        `;
-        impacto.innerHTML = `<strong>Efecto colegiado:</strong> Los acuerdos alcanzados en esta sesión adquieren validez oficial vinculante para todas las dependencias del Poder Ejecutivo intervinientes.`;
-    } else if (num === 3) {
-        header.className = "p-6 bg-gradient-to-r from-amber-600 to-amber-800 text-white flex items-start justify-between";
-        icono.innerHTML = '<i class="fa-solid fa-box-archive"></i>';
-        badgeNum.textContent = "Hito 3 · Finiquito Operativo";
-        titulo.textContent = "Cierre Interno Operativo SECUL";
-        fecha.textContent = "26 de Febrero de 2026 · Entrega Operativa Sectorial";
-        objetivo.textContent = "Conclusión total de la operación directa en el ámbito de cultura. Todo asunto pendiente que no se cierre en esta fecha debe quedar expresamente catalogado como salvedad legal imputable a terceros.";
-        fundamento.innerHTML = `
-            <p>• <strong>Artículo 6 de los Lineamientos del IECG:</strong> Establece el plazo de liquidación y prevé expresamente la prórroga legal: <em>«No se considerará dentro de este plazo el cumplimiento de obligaciones que dependa de terceros, o bien, de autoridades de otros órdenes de gobierno»</em>.</p>
-            <p>• <strong>Artículos 7 y 17 de los Lineamientos del IECG:</strong> Transferencia de pasivos, juicios en trámite y derechos a la Secretaría de Cultura.</p>
-        `;
-        impacto.innerHTML = `<strong>Blindaje directivo:</strong> Exime de responsabilidad a los funcionarios del sector cultural por trámites que dependan del SAT, Notarías Públicas, Fiduciaria Banorte o la Secretaría de Finanzas.`;
-    } else if (num === 4) {
-        header.className = "p-6 bg-gradient-to-r from-rose-700 to-rose-900 text-white flex items-start justify-between";
-        icono.innerHTML = '<i class="fa-solid fa-stamp"></i>';
-        badgeNum.textContent = "Hito 4 · Extinción Definitiva";
-        titulo.textContent = "Cierre General, Dictamen ASEG y Extinción Definitiva";
-        fecha.textContent = "05 de Abril de 2026 · Cierre Constitucional y Fiscal";
-        objetivo.textContent = "Cancelación definitiva del RFC ante el SAT, entrega de acervos al Archivo General del Estado, informe final del Liquidador, dictamen final de fiscalización por la ASEG y publicación del decreto de extinción.";
-        fundamento.innerHTML = `
-            <p>• <strong>Artículo Quinto Transitorio del Decreto 345:</strong> Cese definitivo de las funciones del Liquidador tras la liquidación contable y rendición del informe final al Comité de Extinción.</p>
-            <p>• <strong>Artículo 5 tercer párrafo de los Lineamientos del IECG:</strong> Obligación de dar de baja el RFC ante el SAT y notificar formalmente al Comité.</p>
-            <p>• <strong>Artículos 30 y 31 de los Lineamientos del IECG:</strong> Entrega definitiva del archivo histórico al Archivo General del Estado.</p>
-        `;
-        impacto.innerHTML = `<strong>Efecto jurídico final:</strong> Conclusión formal del proceso de extinción y liquidación patrimonial de la paraestatal con base en el Dictamen de Cuenta Pública de la ASEG.`;
-    }
+    // Escuchador dinámico para recalcular los días al cambiar fecha en el formulario
+    document.getElementById('inputEditorFechaFin').onchange = function() {
+        const d = diasDiff(document.getElementById('inputEditorFechaInicio').value, this.value);
+        document.getElementById('previewDiasCalculados').innerText = formatearDuracionHumana(d);
+    };
 
-    openModal('modal-hito-fatal');
-}        
+    openModal('modal-editor-cronograma');
+}
+
+function guardarAjustesAreaCronograma() {
+    const a = catalogoAreasEstrategicas[indiceAreaActiva];
+    if (!a) return;
+
+    // Actualizar los datos del área en el catálogo vivo
+    a.avance = Number(document.getElementById('inputEditorAvance').value);
+    a.inicio = document.getElementById('inputEditorFechaInicio').value;
+    a.fin = document.getElementById('inputEditorFechaFin').value;
+    a.estatus = document.getElementById('selectEditorEstatus').value;
+
+    // Cerrar modal
+    closeModal('modal-editor-cronograma');
+
+    // Redibujar inmediatamente todo el tablero con los nuevos datos
+    renderTableroGanttEjecutivo();
+
+    // Notificación en pantalla
+    alert(`Área ${a.panel} actualizada correctamente.\nLas gráficas de Gantt, Estatus y Duración se han recalculado en tiempo real.`);
+}
     </script>
 </script>
 <!-- ========================================================================= -->
@@ -4450,6 +4438,94 @@ function abrirModalHitoFatal(num) {
             <span class="text-[11px] text-slate-400 font-mono">Decreto No. 345 & Lineamientos IECG</span>
             <button type="button" onclick="closeModal('modal-hito-fatal')" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-xs">
                 Cerrar Ventana
+            </button>
+        </div>
+
+    </div>
+</div>
+
+    <!-- ========================================================================= -->
+<!-- MODAL DE EDICIÓN INDUCTIVA DEL CRONOGRAMA Y METAS                         -->
+<!-- ========================================================================= -->
+<div id="modal-editor-cronograma" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Encabezado con guía inductiva -->
+        <div class="p-5 bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black">Ajustar Parámetros del Cronograma</h3>
+                    <p class="text-xs text-white/90">Área seleccionada: <span id="editorAreaNombreTitulo" class="font-bold underline">Área A</span></p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-editor-cronograma')" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formulario guiado -->
+        <div class="p-6 space-y-4 text-xs text-slate-700 overflow-y-auto max-h-[75vh]">
+            
+            <!-- Campo 1: Porcentaje de Avance -->
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1.5">
+                <label class="block font-black text-slate-800 uppercase tracking-wider text-[11px]">
+                    1. Avance Acreditado (%)
+                </label>
+                <div class="flex items-center gap-3">
+                    <input type="range" id="inputEditorAvance" min="0" max="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('valorEditorAvance').innerText = this.value + '%'">
+                    <span id="valorEditorAvance" class="w-14 text-center font-black text-indigo-700 bg-indigo-50 border border-indigo-200 py-1 rounded-lg text-xs">70%</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">
+                    ℹ️ <strong>Qué pasa si lo modificas:</strong> Si es menor a 100%, la barra del Gantt mostrará avance parcial y la dona de estatus recalculará las acciones pendientes.
+                </p>
+            </div>
+
+            <!-- Campo 2: Rango de Fechas -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
+                    <label class="block font-black text-slate-800 text-[11px]">Fecha de Arranque</label>
+                    <input type="date" id="inputEditorFechaInicio" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-mono font-bold">
+                    <p class="text-[10px] text-slate-400">Fecha en que inició actividades el área.</p>
+                </div>
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
+                    <label class="block font-black text-slate-800 text-[11px]">Fecha Límite Programada</label>
+                    <input type="date" id="inputEditorFechaFin" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-mono font-bold">
+                    <p class="text-[10px] text-slate-400">Vencimiento normativo acordado.</p>
+                </div>
+            </div>
+
+            <!-- Campo 3: Estatus Normativo -->
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1.5">
+                <label class="block font-black text-slate-800 text-[11px]">Estatus Legal de la Comisión</label>
+                <select id="selectEditorEstatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold text-slate-800">
+                    <option value="Concluido">🟢 Concluido (100% de expedientes integrados)</option>
+                    <option value="En Proceso">🔵 En Proceso (Actividades en curso ordinario)</option>
+                    <option value="En Espera Tercero (Art. 6)">🟡 En Espera Tercero (Amparado por Art. 6: SAT, Notaría, ASEG)</option>
+                    <option value="Validación">🟣 Validación (En revisión por Comité)</option>
+                </select>
+                <p class="text-[10px] text-slate-500">
+                    ℹ️ <strong>Consecuencia:</strong> Si seleccionas "En Espera Tercero", el sistema clasifica esta área como amparada por la prórroga legal sin generar sanción por rezago.
+                </p>
+            </div>
+
+            <!-- Previsualización de Días -->
+            <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between text-amber-900">
+                <span class="font-bold text-xs">Duración calculada del plazo:</span>
+                <span id="previewDiasCalculados" class="font-mono font-black text-sm">-- días naturales</span>
+            </div>
+
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 rounded-b-3xl">
+            <button type="button" onclick="closeModal('modal-editor-cronograma')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                Cancelar
+            </button>
+            <button type="button" onclick="guardarAjustesAreaCronograma()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-check"></i> Aplicar y Actualizar Gráficas
             </button>
         </div>
 
