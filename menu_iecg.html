@@ -146,7 +146,27 @@
     transform: translateY(-1px);
 }
     </style>
-
+<!-- PEGAR DENTRO DE <head> EN menu_iecg.html Y menu_forum.html -->
+<script>
+    (function verificarAccesoProtegido() {
+        const sesion = localStorage.getItem('secul_user');
+        if (!sesion) {
+            // No hay sesión activa: Redirige de inmediato al login principal
+            window.location.replace('index.html');
+            return;
+        }
+        try {
+            const usuario = JSON.parse(sesion);
+            if (!usuario || !usuario.usuario) {
+                localStorage.removeItem('secul_user');
+                window.location.replace('index.html');
+            }
+        } catch (e) {
+            localStorage.removeItem('secul_user');
+            window.location.replace('index.html');
+        }
+    })();
+</script>
 
     
 </head>
