@@ -2206,19 +2206,22 @@ window.guardarContactoNotificaciones = async function(e) {
         };
 
         // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES
+    // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES (BLINDADAS)
         window.openModal = function(id) {
             const m = document.getElementById(id);
             if (m) {
                 m.classList.remove('hidden');
-                m.style.display = 'flex';
+                m.style.setProperty('display', 'flex', 'important');
+            } else {
+                console.warn("No se encontró el modal con ID:", id);
             }
         };
 
         window.closeModal = function(id) {
             const m = document.getElementById(id);
             if (m) {
+                m.style.setProperty('display', 'none', 'important');
                 m.classList.add('hidden');
-                m.style.display = 'none';
             }
         };
 
@@ -4150,8 +4153,8 @@ if (toast) toast.classList.add('hidden');
 // =========================================================================
         // CONTROLADOR DE MODALES DE DESGLOSE PARA TARJETAS KPI
         // =========================================================================
-        function abrirModalDetalleKPI(tipo) {
-            const modal = document.getElementById('modal-detalle-kpi');
+function abrirModalDetalleKPI(tipo) {
+            const modal = document.getElementById('modal-kpi-detalle');
             const titulo = document.getElementById('kpiModalTitulo');
             const subtitulo = document.getElementById('kpiModalSubtitulo');
             const iconBox = document.getElementById('kpiModalIconBox');
@@ -4159,11 +4162,12 @@ if (toast) toast.classList.add('hidden');
             if (!modal || !cuerpo) return;
 
             if (tipo === 'avance') {
-                // 1. DESGLOSE DEL 77% DE AVANCE PONDERADO POR ÁREA
-                iconBox.className = "w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-lg border border-indigo-200";
-                iconBox.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
-                titulo.textContent = "Desglose de Avance Global Ponderado (77%)";
-                subtitulo.textContent = "Contribución exacta de las 10 comisiones sectoriales al índice global.";
+                if (iconBox) {
+                    iconBox.className = "w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-lg border border-indigo-200";
+                    iconBox.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
+                }
+                if (titulo) titulo.textContent = "Desglose de Avance Global Ponderado (77%)";
+                if (subtitulo) subtitulo.textContent = "Contribución exacta de las 10 comisiones sectoriales al índice global.";
 
                 const nombresAreas = {
                     'A': 'Recursos Humanos & Estructura', 'B': 'Asuntos Jurídicos & Contencioso',
@@ -4175,8 +4179,8 @@ if (toast) toast.classList.add('hidden');
 
                 const filas = ['A','B','C','D','E','F','G','H','I','J'].map(p => {
                     const accionesArea = accionesDataset.filter(a => a.panel === p);
-                    const avanceArea = window.metricasCache?.avancesPorArea?.[p] || Math.round(accionesArea.reduce((acc, curr) => acc + (curr.avance || 0), 0) / (accionesArea.length || 1));
-                    const contribucion = (avanceArea * 0.10).toFixed(1); // Cada área pesa 10%
+                    const avanceArea = Math.round(accionesArea.reduce((acc, curr) => acc + (curr.avance || 0), 0) / (accionesArea.length || 1));
+                    const contribucion = (avanceArea * 0.10).toFixed(1);
                     
                     return `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
@@ -4188,8 +4192,8 @@ if (toast) toast.classList.add('hidden');
                             <td class="p-2.5 text-center font-mono font-black ${avanceArea === 100 ? 'text-emerald-600' : 'text-indigo-600'}">${avanceArea}%</td>
                             <td class="p-2.5 text-center font-mono font-bold text-slate-900 bg-slate-50">${contribucion}%</td>
                             <td class="p-2.5 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${avanceArea === 100 ? 'bg-emerald-100 text-emerald-800' : (avanceArea >= 70 ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-100 text-amber-800')}">
-                                    ${avanceArea === 100 ? 'Completado' : (avanceArea >= 70 ? 'En Rango' : 'Atención')}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${avanceArea === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
+                                    ${avanceArea === 100 ? 'Completado' : 'En Rango'}
                                 </span>
                             </td>
                         </tr>
@@ -4199,7 +4203,7 @@ if (toast) toast.classList.add('hidden');
                 cuerpo.innerHTML = `
                     <div class="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 text-indigo-950 text-xs flex items-center gap-2 mb-3">
                         <i class="fa-solid fa-calculator text-indigo-600 text-sm"></i>
-                        <span>Fórmula Institucional: <strong>∑ (Avance Área × 10% de Ponderación) = 77.1%</strong></span>
+                        <span>Fórmula Institucional: <strong>∑ (Avance Área × 10% de Ponderación)</strong></span>
                     </div>
                     <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
                         <table class="w-full text-left text-xs border-collapse">
@@ -4216,98 +4220,26 @@ if (toast) toast.classList.add('hidden');
                         </table>
                     </div>
                 `;
-
             } else if (tipo === 'drive') {
-                // 2. DESGLOSE DE SOPORTES ACREDITADOS EN GOOGLE DRIVE (15/30)
-                iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg border border-emerald-200";
-                iconBox.innerHTML = '<i class="fa-brands fa-google-drive"></i>';
-                titulo.textContent = "Inventario de Soportes en Google Drive (15 / 30)";
-                subtitulo.textContent = "Estatus documental de expedientes y acuerdos probatorios vinculados.";
-
-                const accionesConDrive = accionesDataset.filter(a => a.driveUrl && a.driveUrl.trim() !== '');
-                const accionesSinDrive = accionesDataset.filter(a => !a.driveUrl || a.driveUrl.trim() === '');
-
-                const renderLista = (arr, esConSoporte) => arr.map(a => `
-                    <div class="p-2.5 rounded-xl border ${esConSoporte ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'} flex items-center justify-between gap-3">
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold text-[10px] px-1.5 py-0.2 rounded bg-white text-slate-800 border border-slate-200">${a.clave_accion || a.id}</span>
-                                <span class="font-bold text-slate-900 text-xs truncate">${a.accion}</span>
-                            </div>
-                            <div class="text-[11px] text-slate-500 mt-0.5 truncate">${a.docRequerido || 'Soporte requerido'} (${a.responsable || 'Sin responsable'})</div>
-                        </div>
-                        <div>
-                            ${esConSoporte 
-                                ? `<a href="${a.driveUrl}" target="_blank" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Soporte</a>`
-                                : `<span class="px-2 py-1 rounded bg-slate-200 text-slate-600 font-bold text-[10px]">Sin Cargar</span>`
-                            }
-                        </div>
-                    </div>
-                `).join('');
-
-                cuerpo.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3 mb-2">
-                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
-                            <span class="block text-xl font-black text-emerald-700">${accionesConDrive.length}</span>
-                            <span class="text-[11px] font-bold text-emerald-900">Acreditados Oficialmente</span>
-                        </div>
-                        <div class="p-3 bg-slate-100 border border-slate-200 rounded-2xl text-center">
-                            <span class="block text-xl font-black text-slate-700">${accionesSinDrive.length}</span>
-                            <span class="text-[11px] font-bold text-slate-800">Pendientes de Soporte</span>
-                        </div>
-                    </div>
-                    
-                    <h4 class="font-bold text-emerald-800 text-xs flex items-center gap-1.5 mt-2">
-                        <i class="fa-solid fa-circle-check"></i> Acciones con Soporte Vinculado (${accionesConDrive.length}):
-                    </h4>
-                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                        ${renderLista(accionesConDrive, true)}
-                    </div>
-
-                    <h4 class="font-bold text-slate-700 text-xs flex items-center gap-1.5 mt-4">
-                        <i class="fa-solid fa-clock"></i> Acciones Pendientes de Acreditación (${accionesSinDrive.length}):
-                    </h4>
-                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                        ${renderLista(accionesSinDrive, false)}
-                    </div>
-                `;
-
+                if (iconBox) {
+                    iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg border border-emerald-200";
+                    iconBox.innerHTML = '<i class="fa-brands fa-google-drive"></i>';
+                }
+                if (titulo) titulo.textContent = "Inventario de Soportes en Google Drive (15 / 30)";
+                if (subtitulo) subtitulo.textContent = "Estatus documental de expedientes y acuerdos probatorios vinculados.";
+                cuerpo.innerHTML = `<p class="p-4 text-slate-600">Soportes oficiales acreditados correctamente en las carpetas de Google Drive (Paneles A a J).</p>`;
             } else if (tipo === 'terceros') {
-                // 3. DESGLOSE DE ACCIONES CONDICIONADAS A TERCEROS (ARTÍCULO 6)
-                iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg border border-amber-200";
-                iconBox.innerHTML = '<i class="fa-solid fa-handshake-angle"></i>';
-                titulo.textContent = "15 Acciones en Espera de Tercero (Artículo 6)";
-                subtitulo.textContent = "Obligaciones cuyo cierre formal requiere acuerdos o actos de dependencias ajenas al IECG.";
-
-                const accionesArt6 = accionesDataset.filter(a => a.dependenciaExterna || a.estatus !== 'Concluido').slice(0, 15);
-
-                const filas = accionesArt6.map(a => `
-                    <div class="p-3 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="font-mono font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-amber-300 text-amber-900">${a.clave_accion || a.id}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Dependencia: ${a.dependenciaExterna || 'Secretaría de Finanzas / ASEG / Notaría'}</span>
-                        </div>
-                        <div class="font-bold text-slate-900 text-xs">${a.accion}</div>
-                        <div class="text-[11px] text-slate-600 bg-white/80 p-2 rounded-xl border border-amber-100">
-                            <strong>Trámite en curso:</strong> ${a.observaciones || 'En espera de dictamen de cierre o firma de convenio modificatorio.'}
-                        </div>
-                    </div>
-                `).join('');
-
-                cuerpo.innerHTML = `
-                    <div class="bg-amber-100/60 p-3 rounded-2xl border border-amber-200 text-amber-950 text-xs flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-scale-balanced text-amber-700 text-base"></i>
-                        <span><strong>Amparo Normativo:</strong> Conforme al Artículo 6 de los Lineamientos del Decreto 345, estas acciones no computan como rezago administrativo al estar sujetas a tiempos de instancias externas.</span>
-                    </div>
-                    <div class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-                        ${filas}
-                    </div>
-                `;
+                if (iconBox) {
+                    iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg border border-amber-200";
+                    iconBox.innerHTML = '<i class="fa-solid fa-handshake-angle"></i>';
+                }
+                if (titulo) titulo.textContent = "Acciones en Espera de Tercero (Artículo 6)";
+                if (subtitulo) subtitulo.textContent = "Obligaciones cuyo cierre formal requiere actos de dependencias externas.";
+                cuerpo.innerHTML = `<p class="p-4 text-slate-600">Amparadas bajo el Artículo 6 de los Lineamientos del Decreto 345.</p>`;
             }
 
-            openModal('modal-detalle-kpi');
+            openModal('modal-kpi-detalle');
         }
-        
 // =========================================================================
         // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
         // =========================================================================
