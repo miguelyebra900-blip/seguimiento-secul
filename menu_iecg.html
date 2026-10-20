@@ -1704,7 +1704,8 @@ window.guardarContactoNotificaciones = async function(e) {
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                  <div id="contenedorAccionesObligatorias" class="space-y-3">
+                    
+<div id="contenedorAccionesObligatorias" class="space-y-3">
     <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item">
         <div class="flex items-center justify-between">
             <span class="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
@@ -1786,7 +1787,6 @@ window.guardarContactoNotificaciones = async function(e) {
         </div>
     </div>
 </div>
-
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
       <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
@@ -3625,19 +3625,25 @@ function renderListaCompromisosDetalle(act) {
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value; // 'A', 'B', ... 'J'
+    const panel = document.getElementById('nuevoHitoPanel').value;
     const vertiente = document.getElementById('nuevoHitoVertiente').value;
     const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    // =========================================================================
-    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
-    // =========================================================================
-    const puedeEditar = currentUser && (
-        currentUser.esAdmin || 
-        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(panel))
-    );
+    const contenedorAcciones = document.getElementById('contenedorAccionesObligatorias');
+    const filasAcciones = contenedorAcciones ? contenedorAcciones.querySelectorAll('.fila-accion-item') : [];
+    
+    if (!filasAcciones || filasAcciones.length === 0) {
+        alert("Debe definir al menos una acción obligatoria.");
+        return;
+    }
+
+    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
+        ? resolverPanelesUsuario(currentUser) 
+        : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditar = esAdmin || misPaneles.includes(panel);
 
     if (!puedeEditar) {
         const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
@@ -3664,16 +3670,22 @@ async function guardarNuevoHitoConAcciones(e) {
         return;
     }
 
-    // Continúa con la lógica normal existente de creación directa...
-
-    // 2. Generación del siguiente consecutivo analizando el número máximo real
     const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
 
-    // 3. Registrar cada acción vinculada con su correlativo: A-0001, A-0002, etc.
     filasAcciones.forEach((fila, idx) => {
-        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
-        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
-        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
+        const inputTit = fila.querySelector('input[name="txtAccionTituloHito"]');
+        const selectResp = fila.querySelector('select[name="selAccionRespHito"]');
+        const selectCoesp = fila.querySelector('select[name="selAccionCoresponsable"]');
+        const selectTercero = fila.querySelector('select[name="selAccionTercero"]');
+        const selectEst = fila.querySelector('select[name="selAccionEstatusHito"]');
+        const inputDoc = fila.querySelector('input[name="txtAccionDocHito"]');
+
+        const titAccion = inputTit ? inputTit.value.trim() : `Acción Operativa ${idx + 1}`;
+        const respAccion = selectResp ? selectResp.value : `${area} (Panel ${panel})`;
+        const coresponsable = selectCoesp ? selectCoesp.value : 'Ninguna';
+        const tercero = selectTercero ? selectTercero.value : 'Interna';
+        const estatusAccion = selectEst ? selectEst.value : 'En Proceso';
+        const docSug = (inputDoc && inputDoc.value.trim()) ? inputDoc.value.trim() : `Soporte Oficial ${claveHitoGenerada}`;
 
         const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
 
@@ -3685,49 +3697,45 @@ async function guardarNuevoHitoConAcciones(e) {
             area: `${area} (Panel ${panel})`,
             hito: titulo,
             accion: titAccion,
-            responsable: respAccion || area,
+            responsable: respAccion,
+            panel_coresponsable: coresponsable !== 'Ninguna' ? coresponsable : null,
+            tercero: tercero !== 'Interna' ? 'Tercero Estatal' : 'Interna',
+            terceroNombre: tercero,
             peso: 33.33,
             estatus: estatusAccion,
             avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            tercero: "Interna",
-            terceroNombre: "Comité de Transición IECG",
-            docRequerido: `Soporte Oficial ${cAccion}`,
+            docRequerido: docSug,
             driveUrl: ""
         };
 
         accionesDataset.push(nuevoRegistro);
     });
 
-    // 4. Sincronización persistente en Supabase (si está configurada la tabla)
     if (supabaseClient) {
         try {
             await supabaseClient.from('hitos_transicion').insert([{
                 clave_hito: claveHitoGenerada,
-                clave_area: claveArea,
                 panel: panel,
-                consecutivo_num: parseInt(claveHitoGenerada.slice(-4), 10),
                 titulo: titulo,
                 normativa: norma,
-                detalle_operativo: `Registrado desde Tablero en Panel ${panel}`,
+                detalle_operativo: `Registrado en Panel ${panel}`,
                 estatus: 'En Proceso',
                 avance_porcentaje: 40
             }]);
         } catch (errSupabase) {
-            console.warn("Sincronización en hitos_transicion guardada localmente:", errSupabase);
+            console.warn("Sincronización en hitos_transicion local:", errSupabase);
         }
     }
 
     guardarDataset();
+    alert(`¡Hito y Acciones registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
 
-    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
-
-    document.getElementById('tab-hitos').reset();
+    const formHitos = document.getElementById('tab-hitos');
+    if (formHitos) formHitos.reset();
     closeModal('modal-buzon-universal');
 
     actualizarDashboard();
-    if (typeof renderCronogramaRoadmap === 'function') {
-        renderCronogramaRoadmap();
-    }
+    if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
 }
         
         function abrirPestañaAccionDesdeHito() {
