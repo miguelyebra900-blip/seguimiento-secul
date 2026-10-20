@@ -146,24 +146,66 @@
     transform: translateY(-1px);
 }
 /* EFECTO DESTELLO PARA EL COMUNICADO DEL ADMINISTRADOR EN EL CINTILLO */
-/* EFECTO DESTELLO DORADO PULSANTE DEL COMUNICADO */
 .ticker-comunicado-destello {
-    background: linear-gradient(135deg, #d97706, #b45309) !important;
-    color: #ffffff !important;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95)) !important;
+    color: #0f172a !important;
     border: 2px solid #fde68a !important;
-    box-shadow: 0 0 14px rgba(251, 191, 36, 0.85), 0 0 25px rgba(217, 119, 6, 0.5) !important;
-    animation: pulso-cintillo-admin 1.4s infinite alternate !important;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.9), 0 0 30px rgba(245, 158, 11, 0.6) !important;
+    animation: pulse-destello-admin 1.5s infinite alternate !important;
     cursor: pointer;
-    font-weight: 800 !important;
+    font-weight: 900 !important;
 }
 
-@keyframes pulso-cintillo-admin {
+@keyframes pulse-destello-admin {
     0% { transform: scale(1); filter: brightness(1); }
-    100% { transform: scale(1.04); filter: brightness(1.25); }
+    100% { transform: scale(1.05); filter: brightness(1.3); }
 }
         
     </style>
+<!-- PEGAR DENTRO DE <head> EN menu_iecg.html Y menu_forum.html -->
+<script>
+    (function verificarAccesoProtegido() {
+        const sesion = localStorage.getItem('secul_user');
+        if (!sesion) {
+            // No hay sesión activa: Redirige de inmediato al login principal
+            window.location.replace('index.html');
+            return;
+        }
+        try {
+            const usuario = JSON.parse(sesion);
+            if (!usuario || !usuario.usuario) {
+                localStorage.removeItem('secul_user');
+                window.location.replace('index.html');
+            }
+        } catch (e) {
+            localStorage.removeItem('secul_user');
+            window.location.replace('index.html');
+        }
+    })();
 
+window.guardarContactoNotificaciones = async function(e) {
+    e.preventDefault();
+    const correo = document.getElementById('inputPerfilCorreo').value.trim();
+    const tel = document.getElementById('inputPerfilWhatsApp').value.trim();
+
+    if (!currentUser) return;
+
+    currentUser.correo_notificaciones = correo;
+    currentUser.telefono_whatsapp = tel;
+    localStorage.setItem('secul_user', JSON.stringify(currentUser));
+
+    if (supabaseClient && currentUser.id) {
+        await supabaseClient
+            .from('usuarios_acceso')
+            .update({ correo_notificaciones: correo, telefono_whatsapp: tel })
+            .eq('id', currentUser.id);
+    }
+
+    closeModal('modal-contacto-notificaciones');
+    alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
+};
+    
+</script>
 
     
 </head>
@@ -1333,8 +1375,7 @@
     </div>
 
     <!-- MODAL DE INICIO: MATRIZ DE RIESGOS DIRECTIVOS -->
- <!-- CÓDIGO CORREGIDO -->
-<div id="modal-riesgos-inicio" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div id="modal-riesgos-inicio" class="fixed inset-0 z-50 modal-glass flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col transition-all">
             
             <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
@@ -1663,91 +1704,23 @@
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                    <!-- CONTENEDOR DINÁMICO DE ACCIONES OBLIGATORIAS ESTRUCTURADAS -->
-<div id="contenedorAccionesObligatorias" class="space-y-3">
-    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item">
-        <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
-                <i class="fa-solid fa-circle-check text-[9px]"></i> Acción Inicial (Obligatoria)
-            </span>
-        </div>
-
-        <!-- Descripción de la acción -->
-        <div>
-            <label class="block font-bold text-slate-700 text-[11px] mb-0.5">Descripción de la Acción Operativa:</label>
-            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-xl text-xs font-semibold bg-white" required>
-        </div>
-
-        <!-- Matriz de Responsabilidad, Co-responsabilidad y Terceros -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <!-- 1. Instancia Responsable (A - J) -->
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Área Responsable Principal:</label>
-                <select name="selAccionRespHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-bold text-indigo-900" required>
-                    <option value="Panel A - Recursos Humanos & Estructura">Panel A - Recursos Humanos & Estructura</option>
-                    <option value="Panel B - Asuntos Jurídicos & Contencioso">Panel B - Asuntos Jurídicos & Contencioso</option>
-                    <option value="Panel C - Patrimonio Inmobiliario & Predios">Panel C - Patrimonio Inmobiliario & Predios</option>
-                    <option value="Panel D - Fideicomisos & Fondos (FIARCA)">Panel D - Fideicomisos & Fondos (FIARCA)</option>
-                    <option value="Panel E - Control Patrimonial & Bienes">Panel E - Control Patrimonial & Bienes</option>
-                    <option value="Panel F - Financiero, Presupuestal & Fiscal">Panel F - Financiero, Presupuestal & Fiscal</option>
-                    <option value="Panel G - Tecnologías de la Información (TI)">Panel G - Tecnologías de la Información (TI)</option>
-                    <option value="Panel H - Archivo & Gestión Documental">Panel H - Archivo & Gestión Documental</option>
-                    <option value="Panel I - Fiscalización & Auditorías">Panel I - Fiscalización & Auditorías</option>
-                    <option value="Panel J - Asuntos Internos Líder Proyecto">Panel J - Asuntos Internos Líder Proyecto</option>
-                </select>
-            </div>
-
-            <!-- 2. Área Co-responsable (Vinculación) -->
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Comisión Co-responsable (Vincular):</label>
-                <select name="selAccionCoresponsable" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-purple-900">
-                    <option value="Ninguna">Sin Co-responsabilidad (Área Única)</option>
-                    <option value="Panel A">Panel A - Recursos Humanos</option>
-                    <option value="Panel B">Panel B - Asuntos Jurídicos</option>
-                    <option value="Panel C">Panel C - Patrimonio Inmueble</option>
-                    <option value="Panel D">Panel D - Fideicomisos</option>
-                    <option value="Panel E">Panel E - Bienes Muebles</option>
-                    <option value="Panel F">Panel F - Finanzas & SAT</option>
-                    <option value="Panel G">Panel G - Tecnologías</option>
-                    <option value="Panel H">Panel H - Archivo</option>
-                    <option value="Panel I">Panel I - Auditoría ASEG</option>
-                    <option value="Panel J">Panel J - Gobernanza</option>
-                </select>
-            </div>
-
-            <!-- 3. Entidad Externa / Terceros (Art. 6) -->
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Dependencia Externa (Art. 6):</label>
-                <select name="selAccionTercero" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-amber-900">
-                    <option value="Interna">Interna (Trámite 100% Directo)</option>
-                    <option value="Secretaría de Finanzas (DGRH/DGTIT)">Secretaría de Finanzas (DGRH / DGTIT)</option>
-                    <option value="SAT Celaya / SHCP">SAT Celaya / SHCP</option>
-                    <option value="Fiduciaria Banorte">Fiduciaria Banorte</option>
-                    <option value="Consejería Jurídica del Ejecutivo">Consejería Jurídica del Ejecutivo</option>
-                    <option value="Tribunal de Conciliación y Arbitraje">Tribunal de Conciliación y Arbitraje</option>
-                    <option value="Registro Público de la Propiedad / Notarías">Registro Público / Notarías</option>
-                    <option value="Archivo General del Estado (AGEG)">Archivo General del Estado (AGEG)</option>
-                    <option value="ASEG (Fiscalización Superior)">ASEG (Fiscalización Superior)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
-            <div>
-                <label class="block font-bold text-slate-600 text-[10px]">Estatus Operativo:</label>
-                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold">
-                    <option value="En Proceso">En Proceso</option>
-                    <option value="Validación">En Validación</option>
-                    <option value="Concluido">Concluido al 100%</option>
-                </select>
-            </div>
-            <div>
-                <label class="block font-bold text-slate-600 text-[10px]">Expediente Documental Sugerido:</label>
-                <input type="text" name="txtAccionDocHito" placeholder="Ej. Acta de entrega, oficio o convenio..." class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-medium">
-            </div>
-        </div>
-    </div>
-</div>
+                    <div id="contenedorAccionesObligatorias" class="space-y-2.5">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
+                            </div>
+                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+                                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                                    <option value="En Proceso">En Proceso</option>
+                                    <option value="Validación">En Validación</option>
+                                    <option value="Concluido">Concluido al 100%</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
@@ -2166,26 +2139,7 @@
             "I": "1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9",
             "J": "1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas"
         };
-// =========================================================================
-        // CATÁLOGO MAESTRO GLOBAL DE LAS 10 COMISIONES ESTRATÉGICAS (PANELES A - J)
-        // =========================================================================
-        var FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
-        var FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
 
-        var catalogoAreasEstrategicas = [
-            { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
-            { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
-            { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
-            { panel: 'D', id: 'FID_F-H-0001', prefijoAccion: 'FID_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
-            { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
-            { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
-            { panel: 'G', id: 'TIT_S-H-0001', prefijoAccion: 'TIT_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
-            { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
-            { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
-            { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
-        ];
-
-        var indiceAreaActiva = 0;
         // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES
         window.openModal = function(id) {
             const m = document.getElementById(id);
@@ -2600,35 +2554,29 @@ if (btnVinculo) {
         }
 
     function actualizarDashboard() {
-        const metricas = calcularMetricas();
-        const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
-        const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
-        const elKpiTerceros = document.getElementById('kpiTercerosTop');
+            const metricas = calcularMetricas();
+            const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
+            const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
+            const elKpiTerceros = document.getElementById('kpiTercerosTop');
 
-        if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
-        if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
-        if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
+            if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
+            if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
+            if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
 
-        // 1. Vistas y eventos de clic indispensables
-        renderTarjetas10Areas(metricas.avancesPorArea);
-        renderTablaMatriz();
-        renderCharts(metricas);
+            // 1. Vistas originales
+            renderTarjetas10Areas(metricas.avancesPorArea);
+            renderTablaMatriz();
+            renderCharts(metricas);
+            renderCintilloNoticioso();
 
-        // 2. Sincronización de Tableros
-        if (typeof renderTableroGanttEjecutivo === 'function') {
-            renderTableroGanttEjecutivo();
-        }
-        if (typeof seleccionarAreaEstrategica === 'function') {
-            seleccionarAreaEstrategica(indiceAreaActiva);
-        }
-
-        // 3. Ejecución segura del cintillo sin congelar la interfaz
-        setTimeout(() => {
-            if (typeof renderCintilloNoticioso === 'function') {
-                renderCintilloNoticioso();
+            // 2. SINCRONIZACIÓN MAESTRA: TABLERO GANTT, DONA Y BARRAS
+            if (typeof renderTableroGanttEjecutivo === 'function') {
+                renderTableroGanttEjecutivo();
             }
-        }, 50);
-    }
+            if (typeof seleccionarAreaEstrategica === 'function') {
+                seleccionarAreaEstrategica(indiceAreaActiva);
+            }
+        }
 
 function renderTarjetas10Areas(avancesPorArea) {
             // Alias de respaldo para compatibilidad
@@ -3572,6 +3520,10 @@ function renderListaCompromisosDetalle(act) {
             e.target.reset();
         }
 
+        window.addEventListener('DOMContentLoaded', () => {
+            mostrarSeccionTab('tab-dashboard');
+            actualizarDashboard();
+        });
 
      // =========================================================================
         // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
@@ -3611,25 +3563,19 @@ function renderListaCompromisosDetalle(act) {
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value;
+    const panel = document.getElementById('nuevoHitoPanel').value; // 'A', 'B', ... 'J'
     const vertiente = document.getElementById('nuevoHitoVertiente').value;
     const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    // DEFINICIÓN DE LAS FILAS DE ACCIONES (Corrige el ReferenceError)
-    const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item');
-    if (!filasAcciones || filasAcciones.length === 0) {
-        alert("Debe definir al menos una acción obligatoria.");
-        return;
-    }
-
-    // Validación de permisos por panel
-    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
-        ? resolverPanelesUsuario(currentUser) 
-        : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
-    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
-    const puedeEditar = esAdmin || misPaneles.includes(panel);
+    // =========================================================================
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
+    // =========================================================================
+    const puedeEditar = currentUser && (
+        currentUser.esAdmin || 
+        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(panel))
+    );
 
     if (!puedeEditar) {
         const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
@@ -3656,17 +3602,16 @@ async function guardarNuevoHitoConAcciones(e) {
         return;
     }
 
-    // Generar la clave de hito consecutiva
+    // Continúa con la lógica normal existente de creación directa...
+
+    // 2. Generación del siguiente consecutivo analizando el número máximo real
     const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
 
-    // Iterar cada acción capturada
+    // 3. Registrar cada acción vinculada con su correlativo: A-0001, A-0002, etc.
     filasAcciones.forEach((fila, idx) => {
-        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]')?.value.trim() || 'Acción Operativa';
-        const respAccion = fila.querySelector('select[name="selAccionRespHito"]')?.value || `${area} (Panel ${panel})`;
-        const coresponsable = fila.querySelector('select[name="selAccionCoresponsable"]')?.value || 'Ninguna';
-        const tercero = fila.querySelector('select[name="selAccionTercero"]')?.value || 'Interna';
-        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]')?.value || 'En Proceso';
-        const docSug = fila.querySelector('input[name="txtAccionDocHito"]')?.value.trim() || `Soporte Oficial ${claveHitoGenerada}`;
+        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
+        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
+        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
 
         const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
 
@@ -3678,46 +3623,49 @@ async function guardarNuevoHitoConAcciones(e) {
             area: `${area} (Panel ${panel})`,
             hito: titulo,
             accion: titAccion,
-            responsable: respAccion,
-            panel_coresponsable: coresponsable !== 'Ninguna' ? coresponsable : null,
-            tercero: tercero !== 'Interna' ? 'Tercero Estatal' : 'Interna',
-            terceroNombre: tercero,
+            responsable: respAccion || area,
             peso: 33.33,
             estatus: estatusAccion,
             avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            docRequerido: docSug,
+            tercero: "Interna",
+            terceroNombre: "Comité de Transición IECG",
+            docRequerido: `Soporte Oficial ${cAccion}`,
             driveUrl: ""
         };
 
         accionesDataset.push(nuevoRegistro);
     });
 
-    // Sincronizar en Supabase si está disponible
+    // 4. Sincronización persistente en Supabase (si está configurada la tabla)
     if (supabaseClient) {
         try {
             await supabaseClient.from('hitos_transicion').insert([{
                 clave_hito: claveHitoGenerada,
+                clave_area: claveArea,
                 panel: panel,
+                consecutivo_num: parseInt(claveHitoGenerada.slice(-4), 10),
                 titulo: titulo,
                 normativa: norma,
-                detalle_operativo: `Registrado en Panel ${panel}`,
+                detalle_operativo: `Registrado desde Tablero en Panel ${panel}`,
                 estatus: 'En Proceso',
                 avance_porcentaje: 40
             }]);
         } catch (errSupabase) {
-            console.warn("Sincronización en hitos_transicion local:", errSupabase);
+            console.warn("Sincronización en hitos_transicion guardada localmente:", errSupabase);
         }
     }
 
     guardarDataset();
-    alert(`¡Hito y Acciones registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
+
+    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
 
     document.getElementById('tab-hitos').reset();
     closeModal('modal-buzon-universal');
 
     actualizarDashboard();
-    if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+    if (typeof renderCronogramaRoadmap === 'function') {
+        renderCronogramaRoadmap();
+    }
 }
         
         function abrirPestañaAccionDesdeHito() {
@@ -3848,82 +3796,27 @@ function abrirModalAltaAccionVinculadaDesdeDetalle() {
     poblarSelectBuzon(claveSel);
 }
         
-    function agregarFilaAccionHito() {
+        // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
+function agregarFilaAccionHito() {
     const contenedor = document.getElementById('contenedorAccionesObligatorias');
     if (!contenedor) return;
     const numFila = contenedor.querySelectorAll('.fila-accion-item').length + 1;
     
     const div = document.createElement('div');
-    div.className = "p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item relative animate-in fade-in duration-150";
+    div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item relative";
     div.innerHTML = `
         <div class="flex items-center justify-between">
             <span class="text-[10px] font-bold uppercase text-indigo-700">• Acción Adicional #${numFila}</span>
-            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold p-1"><i class="fa-solid fa-trash-can"></i></button>
+            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-trash-can"></i></button>
         </div>
-        <div>
-            <label class="block font-bold text-slate-700 text-[11px] mb-0.5">Descripción de la Acción Operativa:</label>
-            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-xl text-xs font-semibold bg-white" required>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Área Responsable Principal:</label>
-                <select name="selAccionRespHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-bold text-indigo-900" required>
-                    <option value="Panel A - Recursos Humanos & Estructura">Panel A - Recursos Humanos & Estructura</option>
-                    <option value="Panel B - Asuntos Jurídicos & Contencioso">Panel B - Asuntos Jurídicos & Contencioso</option>
-                    <option value="Panel C - Patrimonio Inmobiliario & Predios">Panel C - Patrimonio Inmobiliario & Predios</option>
-                    <option value="Panel D - Fideicomisos & Fondos (FIARCA)">Panel D - Fideicomisos & Fondos (FIARCA)</option>
-                    <option value="Panel E - Control Patrimonial & Bienes">Panel E - Control Patrimonial & Bienes</option>
-                    <option value="Panel F - Financiero, Presupuestal & Fiscal">Panel F - Financiero, Presupuestal & Fiscal</option>
-                    <option value="Panel G - Tecnologías de la Información (TI)">Panel G - Tecnologías de la Información (TI)</option>
-                    <option value="Panel H - Archivo & Gestión Documental">Panel H - Archivo & Gestión Documental</option>
-                    <option value="Panel I - Fiscalización & Auditorías">Panel I - Fiscalización & Auditorías</option>
-                    <option value="Panel J - Asuntos Internos Líder Proyecto">Panel J - Asuntos Internos Líder Proyecto</option>
-                </select>
-            </div>
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Comisión Co-responsable:</label>
-                <select name="selAccionCoresponsable" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-purple-900">
-                    <option value="Ninguna">Sin Co-responsabilidad</option>
-                    <option value="Panel A">Panel A - Recursos Humanos</option>
-                    <option value="Panel B">Panel B - Asuntos Jurídicos</option>
-                    <option value="Panel C">Panel C - Patrimonio Inmueble</option>
-                    <option value="Panel D">Panel D - Fideicomisos</option>
-                    <option value="Panel E">Panel E - Bienes Muebles</option>
-                    <option value="Panel F">Panel F - Finanzas & SAT</option>
-                    <option value="Panel G">Panel G - Tecnologías</option>
-                    <option value="Panel H">Panel H - Archivo</option>
-                    <option value="Panel I">Panel I - Auditoría ASEG</option>
-                    <option value="Panel J">Panel J - Gobernanza</option>
-                </select>
-            </div>
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Dependencia Externa (Art. 6):</label>
-                <select name="selAccionTercero" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-amber-900">
-                    <option value="Interna">Interna (Trámite Directo)</option>
-                    <option value="Secretaría de Finanzas (DGRH/DGTIT)">Secretaría de Finanzas</option>
-                    <option value="SAT Celaya / SHCP">SAT Celaya / SHCP</option>
-                    <option value="Fiduciaria Banorte">Fiduciaria Banorte</option>
-                    <option value="Consejería Jurídica del Ejecutivo">Consejería Jurídica</option>
-                    <option value="Tribunal de Conciliación y Arbitraje">Tribunal Conciliación</option>
-                    <option value="Registro Público de la Propiedad / Notarías">Registro Público / Notarías</option>
-                    <option value="Archivo General del Estado (AGEG)">Archivo AGEG</option>
-                    <option value="ASEG (Fiscalización Superior)">ASEG</option>
-                </select>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
-            <div>
-                <label class="block font-bold text-slate-600 text-[10px]">Estatus Operativo:</label>
-                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold">
-                    <option value="En Proceso">En Proceso</option>
-                    <option value="Validación">En Validación</option>
-                    <option value="Concluido">Concluido al 100%</option>
-                </select>
-            </div>
-            <div>
-                <label class="block font-bold text-slate-600 text-[10px]">Expediente Documental:</label>
-                <input type="text" name="txtAccionDocHito" placeholder="Ej. Acta circunstanciada..." class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-medium">
-            </div>
+        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+        <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+            <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                <option value="En Proceso">En Proceso</option>
+                <option value="Validación">En Validación</option>
+                <option value="Concluido">Concluido al 100%</option>
+            </select>
         </div>
     `;
     contenedor.appendChild(div);
@@ -3944,6 +3837,12 @@ function subirEvidenciaDesdeDetalle(idAccion) {
     }
 }
 
+// =========================================================================
+// FUNCIÓN PUENTE: VINCULAR MATRIZ DE RIESGOS CON SU HITO RECTOR Y ACCIONES
+// =========================================================================
+// =========================================================================
+// FUNCIÓN PUENTE: VINCULAR MATRIZ DE RIESGOS CON SU HITO RECTOR Y ACCIONES
+// =========================================================================
 // =========================================================================
 // FUNCIÓN PUENTE: VINCULAR MATRIZ DE RIESGOS CON SU HITO RECTOR Y ACCIONES
 // =========================================================================
@@ -3969,121 +3868,59 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
         }
     }
 }
-// =========================================================================
-// MOTOR DEFINITIVO: CINTILLO (5 REPETICIONES) Y AVISO AL ENTRAR
-// =========================================================================
 
-function obtenerComunicadoDirectivoVigente() {
-    try {
-        return JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
-    } catch (e) {
-        return null;
+// ARRANQUE GENERAL DEL DASHBOARD AL CARGAR EL DOM
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof mostrarSeccionTab === 'function') {
+        mostrarSeccionTab('tab-dashboard');
     }
-}
+    if (typeof actualizarDashboard === 'function') {
+        actualizarDashboard();
+    }
+});
 
-function renderCintilloNoticioso() {
-    const track = document.getElementById('tickerTrack');
-    if (!track) return;
+// =========================================================================
+        // RENDER DINÁMICO DEL CINTILLO TIPO NOTICIARIO (HITOS CANÓNICOS 30+)
+        // =========================================================================
+// =========================================================================
+        // RENDER DINÁMICO DEL CINTILLO TIPO NOTICIARIO (HITOS CANÓNICOS 30+)
+        // =========================================================================
+        function renderCintilloNoticioso() {
+            const track = document.getElementById('tickerTrack');
+            if (!track) return;
 
-    const com = obtenerComunicadoDirectivoVigente();
-    const ORIGEN_ACTUAL = "IECG";
-    const tieneAvisoActivo = Boolean(com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino));
+            const iconMap = {
+                'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
+                'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
+                'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
+                'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
+                'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
+                'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
+                'G': { icon: 'fa-server', color: 'text-blue-400' },
+                'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
+                'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
+                'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
+            };
 
-    const pillComunicadoHTML = () => `
-        <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
-            <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-            <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
-            <span class="font-mono text-xs uppercase font-black text-amber-200">[AVISO DIRECTIVO]:</span>
-            <strong class="text-white text-xs underline">${(com.titulo || 'Comunicado General').slice(0, 48)}</strong>
-            <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black ml-1.5 shadow-xs">Leer Aviso →</span>
-        </div>
-    `;
+            const htmlItems = accionesDataset.map(act => {
+                const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
+                const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
+                const idClave = act.clave_accion || act.id;
 
-    const iconMap = {
-        'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
-        'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
-        'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
-        'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
-        'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
-        'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
-        'G': { icon: 'fa-server', color: 'text-blue-400' },
-        'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
-        'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
-        'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
-    };
+                return `
+                    <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
+                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                        <i class="fa-solid ${conf.icon} ${conf.color} text-sm"></i>
+                        <span class="font-mono text-xs font-bold text-indigo-300">[${idClave}]</span>
+                        <strong class="font-bold text-slate-100 text-xs">${act.hito}:</strong>
+                        <span class="text-slate-300 text-xs truncate max-w-sm">${act.accion.slice(0, 55)}...</span>
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-white/15 text-white">${act.avance}%</span>
+                    </div>
+                `;
+            }).join('');
 
-    const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-    let itemsIntercaladosHTML = '';
-
-    paneles.forEach((letraPanel, idx) => {
-        if (tieneAvisoActivo && idx % 2 === 0) {
-            itemsIntercaladosHTML += pillComunicadoHTML();
+            track.innerHTML = htmlItems + htmlItems;
         }
-
-        const accionesDelPanel = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) 
-            ? accionesDataset.filter(act => act.panel === letraPanel) 
-            : [];
-
-        accionesDelPanel.forEach(act => {
-            const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
-            const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
-            const idClave = act.clave_accion || act.id;
-
-            itemsIntercaladosHTML += `
-                <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
-                    <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                    <i class="fa-solid ${conf.icon} ${conf.color} text-sm"></i>
-                    <span class="font-mono text-xs font-bold text-indigo-300">[${idClave}]</span>
-                    <strong class="font-bold text-slate-100 text-xs">${act.hito}:</strong>
-                    <span class="text-slate-300 text-xs truncate max-w-sm">${act.accion.slice(0, 55)}...</span>
-                    <span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-white/15 text-white">${act.avance}%</span>
-                </div>
-            `;
-        });
-    });
-
-    track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
-
-    if (tieneAvisoActivo && typeof proyectarAvisoAlEntrarSesion === 'function') {
-        proyectarAvisoAlEntrarSesion(com, true);
-    }
-}
-
-function proyectarAvisoAlEntrarSesion(com, activo) {
-    const toast = document.getElementById('toastAvisoDirectivoFlotante');
-    if (!toast || !activo || !com) return;
-    if (!currentUser) return;
-
-    const elTitulo = document.getElementById('toastAvisoTitulo');
-    const elResumen = document.getElementById('toastAvisoResumen');
-    if (elTitulo) elTitulo.innerText = com.titulo || 'Instrucción Oficial';
-    if (elResumen) elResumen.innerText = (com.cuerpo || '').slice(0, 75) + '...';
-
-    toast.classList.remove('hidden');
-}
-
-window.abrirModalComunicadoVigente = function() {
-    const com = obtenerComunicadoDirectivoVigente();
-    if (!com) {
-        alert("No hay ningún comunicado emitido por Auditoría en este momento.");
-        return;
-    }
-
-    const elTit = document.getElementById('lblModalComunicadoTitulo');
-    const elEmisor = document.getElementById('lblModalComunicadoEmisor');
-    const elFecha = document.getElementById('lblModalComunicadoFecha');
-    const elCuerpo = document.getElementById('lblModalComunicadoCuerpo');
-
-    if (elTit) elTit.innerText = com.titulo || 'Comunicado General';
-    if (elEmisor) elEmisor.innerText = com.emisor || 'Dirección General / Auditoría';
-    if (elFecha) elFecha.innerText = com.fecha || new Date().toLocaleString();
-    if (elCuerpo) elCuerpo.innerText = com.cuerpo || 'Sin contenido especificado.';
-
-    const toast = document.getElementById('toastAvisoDirectivoFlotante');
-    if (toast) toast.classList.add('hidden');
-
-    openModal('modal-lectura-comunicado-directivo');
-};
 
         // =========================================================================
         // APERTURA Y RENDER DINÁMICO DE LA MEMORIA DE CÁLCULO DIRECTIVA
@@ -4379,7 +4216,29 @@ window.abrirModalComunicadoVigente = function() {
                 renderTableroGanttEjecutivo();
             }
         }
-        
+// =========================================================================
+// CATÁLOGO DE LAS 10 ÁREAS ESTRATÉGICAS (CON CÓDIGOS DE FILTRADO EXACTO)
+// =========================================================================
+
+const FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
+const FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
+
+// Mapeo canónico exacto: Letra de Panel -> Prefijos reales en la matriz del IECG
+let catalogoAreasEstrategicas = [
+    { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
+    { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
+    { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
+    { panel: 'D', id: 'FTD_F-H-0001', prefijoAccion: 'FTD_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
+    { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
+    { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
+    { panel: 'G', id: 'TIC_S-H-0001', prefijoAccion: 'TIC_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
+    { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
+    { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
+    { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
+];
+
+let indiceAreaActiva = 0;
+
 function diasDiff(d1, d2) {
     return Math.round((new Date(d2) - new Date(d1)) / (1000 * 60 * 60 * 24));
 }
@@ -6536,19 +6395,22 @@ window.addEventListener('DOMContentLoaded', () => {
 });
         
 </script>
-
-    <!-- ========================================================================= -->
-    <!-- CINTILLO INFORMATIVO INFERIOR TIPO TICKER BURSÁTIL / NOTICIARIO          -->
+<!-- ========================================================================= -->
+    <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
     <!-- ========================================================================= -->
     <footer class="ticker-footer-container">
-        <div class="px-3 py-1 bg-indigo-950 border-r border-indigo-700/50 flex items-center gap-2 shrink-0 z-10 shadow-lg">
+        <!-- Badge fijo a la izquierda -->
+        <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span class="text-[10px] font-black uppercase tracking-wider text-amber-300 whitespace-nowrap">
-                <i class="fa-solid fa-tower-broadcast me-1"></i> MONITOR EN VIVO
-            </span>
+            <i class="fa-solid fa-bullhorn text-amber-400"></i>
+            <span class="hidden sm:inline">Hitos & Acciones IECG</span>
         </div>
-        <div id="tickerTrack" class="ticker-track">
-            <!-- Aquí JavaScript inyecta los hitos y los 5 avisos directivos -->
+
+        <!-- Pista de desplazamiento continuo -->
+        <div class="overflow-hidden w-full flex">
+            <div id="tickerTrack" class="ticker-track">
+                <!-- Se inyecta dinámicamente con JavaScript -->
+            </div>
         </div>
     </footer>
 
@@ -7156,85 +7018,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>
         </form>
-    </div>
-</div>
-    <!-- ========================================================================= -->
-<!-- 1. TOAST FLOTANTE: AVISO EN VIVO AL INICIAR SESIÓN                        -->
-<!-- ========================================================================= -->
-<div id="toastAvisoDirectivoFlotante" class="fixed top-20 right-6 z-50 hidden max-w-sm w-full bg-slate-900 border-2 border-amber-400 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-4 duration-300">
-    <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-lg font-black shrink-0 shadow-md animate-bounce">
-            <i class="fa-solid fa-bullhorn"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-            <span class="text-[9px] font-black uppercase text-amber-400 tracking-wider block">COMUNICADO DIRECTIVO VIGENTE</span>
-            <h4 id="toastAvisoTitulo" class="text-xs font-black text-white truncate mt-0.5">Aviso Oficial</h4>
-            <p id="toastAvisoResumen" class="text-[11px] text-slate-300 truncate mt-0.5">Haga clic aquí para consultar la instrucción.</p>
-            <div class="flex items-center gap-2 mt-2 pt-1.5 border-t border-slate-800">
-                <button type="button" onclick="abrirModalComunicadoVigente()" class="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] rounded-lg shadow-xs transition">
-                    Leer Comunicado Oficial →
-                </button>
-                <button type="button" onclick="document.getElementById('toastAvisoDirectivoFlotante').classList.add('hidden')" class="text-slate-500 hover:text-slate-300 text-[10px] font-bold">
-                    Descartar
-                </button>
-            </div>
-        </div>
-        <button type="button" onclick="document.getElementById('toastAvisoDirectivoFlotante').classList.add('hidden')" class="text-slate-500 hover:text-white text-xs">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
-</div>
-
-<!-- ========================================================================= -->
-<!-- 2. MODAL FORMAL DE LECTURA DEL COMUNICADO EMITIDO DESDE AUDITORÍA         -->
-<!-- ========================================================================= -->
-<div id="modal-lectura-comunicado-directivo" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-amber-300 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        
-        <!-- Header Oficial -->
-        <div class="bg-gradient-to-r from-slate-950 via-amber-950 to-slate-950 p-5 text-white flex justify-between items-center border-b border-amber-500/30">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-lg border border-amber-400/30 shadow-inner">
-                    <i class="fa-solid fa-bullhorn"></i>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-300 block">MESA DE CONTROL Y GOBERNANZA</span>
-                    <h3 class="font-black text-sm text-white">Instrucción Directiva Oficial</h3>
-                </div>
-            </div>
-            <button type="button" onclick="closeModal('modal-lectura-comunicado-directivo')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <!-- Cuerpo del Comunicado -->
-        <div class="p-6 space-y-4 text-xs text-slate-700">
-            <div class="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block">Asunto / Directriz:</span>
-                <h4 id="lblModalComunicadoTitulo" class="font-black text-slate-900 text-sm">--</h4>
-                <div class="flex items-center justify-between text-[10.5px] text-slate-500 pt-1 border-t border-amber-100">
-                    <span><strong>Emisor:</strong> <span id="lblModalComunicadoEmisor">Dirección General / Auditoría</span></span>
-                    <span id="lblModalComunicadoFecha" class="font-mono text-[10px]">--</span>
-                </div>
-            </div>
-
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">Contenido Oficial y Criterio de Cumplimiento:</label>
-                <div id="lblModalComunicadoCuerpo" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 font-medium whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
-                    --
-                </div>
-            </div>
-
-            <div class="p-3 bg-slate-100 rounded-2xl text-[10.5px] text-slate-500 flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-amber-600 text-sm"></i>
-                <span>Este comunicado fue emitido desde la consola de <code>auditoria.html</code> con validez para el proceso de extinción (Decreto No. 345)[cite: 14].</span>
-            </div>
-
-            <div class="flex justify-end pt-2 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-lectura-comunicado-directivo')" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition shadow-sm">
-                    Enterado / Cerrar
-                </button>
-            </div>
-        </div>
-
     </div>
 </div>
     
