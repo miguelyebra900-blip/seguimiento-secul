@@ -1700,7 +1700,7 @@ window.guardarContactoNotificaciones = async function(e) {
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                 <!-- CONTENEDOR DINÁMICO DE ACCIONES OBLIGATORIAS ESTRUCTURADAS -->
+        <!-- CONTENEDOR DINÁMICO DE ACCIONES OBLIGATORIAS ESTRUCTURADAS -->
                     <div id="contenedorAccionesObligatorias" class="space-y-3">
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item">
                             <div class="flex items-center justify-between">
@@ -3615,126 +3615,7 @@ function renderListaCompromisosDetalle(act) {
                 actualizarFolioAccionSugerido();
             }
         }
-// =========================================================================
-// 1. GUARDAR NUEVO HITO / ACCIÓN DESDE EL MODAL MAESTRO (CON PONDERACIÓN)
-// =========================================================================
-// =========================================================================
-// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CLAVES ATÓMICAS EN SUPABASE)
-// =========================================================================
-// =========================================================================
-// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CONSECUTIVOS CANÓNICOS)
-// =========================================================================
-async function guardarNuevoHitoConAcciones(e) {
-    e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value;
-    const vertiente = document.getElementById('nuevoHitoVertiente').value;
-    const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
-    const area = document.getElementById('nuevoHitoArea').value.trim();
-    const norma = document.getElementById('nuevoHitoNorma').value.trim();
-
-    // 1. Definición segura de las filas (soluciona el error 'filasAcciones is not defined')
-    const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item');
-    if (!filasAcciones || filasAcciones.length === 0) {
-        alert("Debe definir al menos una acción obligatoria.");
-        return;
-    }
-
-    // 2. Validación de permisos por panel
-    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
-        ? resolverPanelesUsuario(currentUser) 
-        : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
-    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
-    const puedeEditar = esAdmin || misPaneles.includes(panel);
-
-    if (!puedeEditar) {
-        const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
-        if (!motivo || motivo.trim() === '') {
-            alert("Operación cancelada: Se requiere motivo para proponer hitos vinculados.");
-            return;
-        }
-
-        const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
-
-        registrarSolicitudAuditoria({
-            tipo: 'NUEVO_HITO_VINCULADO',
-            clave: claveHitoGenerada,
-            campo: 'nuevo_hito_propuesto',
-            valorPropuesto: { titulo, area, norma, panel },
-            motivo: motivo.trim(),
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        });
-
-        alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nTu propuesta para registrar el Hito ${claveHitoGenerada} en el Panel ${panel} ha sido canalizada a la mesa de control de 'auditoria.html'.`);
-        closeModal('modal-buzon-universal');
-        return;
-    }
-
-    // 3. Generar la clave de hito consecutiva
-    const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
-
-    // 4. Iterar cada acción capturada guardando sus selectores
-    filasAcciones.forEach((fila, idx) => {
-        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]')?.value.trim() || 'Acción Operativa';
-        const respAccion = fila.querySelector('select[name="selAccionRespHito"]')?.value || `${area} (Panel ${panel})`;
-        const coresponsable = fila.querySelector('select[name="selAccionCoresponsable"]')?.value || 'Ninguna';
-        const tercero = fila.querySelector('select[name="selAccionTercero"]')?.value || 'Interna';
-        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]')?.value || 'En Proceso';
-        const docSug = fila.querySelector('input[name="txtAccionDocHito"]')?.value.trim() || `Soporte Oficial ${claveHitoGenerada}`;
-
-        const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
-
-        const nuevoRegistro = {
-            id: cAccion,
-            clave_accion: cAccion,
-            clave_hito: claveHitoGenerada,
-            panel: panel,
-            area: `${area} (Panel ${panel})`,
-            hito: titulo,
-            accion: titAccion,
-            responsable: respAccion,
-            panel_coresponsable: coresponsable !== 'Ninguna' ? coresponsable : null,
-            tercero: tercero !== 'Interna' ? 'Tercero Estatal' : 'Interna',
-            terceroNombre: tercero,
-            peso: 33.33,
-            estatus: estatusAccion,
-            avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            docRequerido: docSug,
-            driveUrl: ""
-        };
-
-        accionesDataset.push(nuevoRegistro);
-    });
-
-    // 5. Sincronizar en Supabase si está activo
-    if (supabaseClient) {
-        try {
-            await supabaseClient.from('hitos_transicion').insert([{
-                clave_hito: claveHitoGenerada,
-                panel: panel,
-                titulo: titulo,
-                normativa: norma,
-                detalle_operativo: `Registrado en Panel ${panel}`,
-                estatus: 'En Proceso',
-                avance_porcentaje: 40
-            }]);
-        } catch (errSupabase) {
-            console.warn("Sincronización en hitos_transicion local:", errSupabase);
-        }
-    }
-
-    guardarDataset();
-    alert(`¡Hito y Acciones registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
-
-    document.getElementById('tab-hitos').reset();
-    closeModal('modal-buzon-universal');
-
-    actualizarDashboard();
-    if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
-}
-        
         function abrirPestañaAccionDesdeHito() {
     // 1. Cerrar el modal actual de detalle de hito
     closeModal('modal-hito-fiscalizacion');
@@ -3864,7 +3745,7 @@ function abrirModalAltaAccionVinculadaDesdeDetalle() {
 }
         
         // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
-function agregarFilaAccionHito() {
+Function agregarFilaAccionHito() {
     const contenedor = document.getElementById('contenedorAccionesObligatorias');
     if (!contenedor) return;
     const numFila = contenedor.querySelectorAll('.fila-accion-item').length + 1;
@@ -3944,6 +3825,122 @@ function agregarFilaAccionHito() {
     `;
     contenedor.appendChild(div);
 }
+        async function guardarNuevoHitoConAcciones(e) {
+    e.preventDefault();
+
+    const panel = document.getElementById('nuevoHitoPanel').value;
+    const vertiente = document.getElementById('nuevoHitoVertiente').value;
+    const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
+    const area = document.getElementById('nuevoHitoArea').value.trim();
+    const norma = document.getElementById('nuevoHitoNorma').value.trim();
+
+    const contenedorAcciones = document.getElementById('contenedorAccionesObligatorias');
+    const filasAcciones = contenedorAcciones ? contenedorAcciones.querySelectorAll('.fila-accion-item') : [];
+    
+    if (!filasAcciones || filasAcciones.length === 0) {
+        alert("Debe definir al menos una acción obligatoria.");
+        return;
+    }
+
+    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
+        ? resolverPanelesUsuario(currentUser) 
+        : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditar = esAdmin || misPaneles.includes(panel);
+
+    if (!puedeEditar) {
+        const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
+        if (!motivo || motivo.trim() === '') {
+            alert("Operación cancelada: Se requiere motivo para proponer hitos vinculados.");
+            return;
+        }
+
+        const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
+
+        registrarSolicitudAuditoria({
+            tipo: 'NUEVO_HITO_VINCULADO',
+            clave: claveHitoGenerada,
+            campo: 'nuevo_hito_propuesto',
+            valorPropuesto: { titulo, area, norma, panel },
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
+
+        alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nTu propuesta para registrar el Hito ${claveHitoGenerada} en el Panel ${panel} ha sido canalizada a la mesa de control de 'auditoria.html'.`);
+        closeModal('modal-buzon-universal');
+        return;
+    }
+
+    const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
+
+    filasAcciones.forEach((fila, idx) => {
+        const inputTit = fila.querySelector('input[name="txtAccionTituloHito"]');
+        const selectResp = fila.querySelector('select[name="selAccionRespHito"]') || fila.querySelector('input[name="txtAccionRespHito"]');
+        const selectCoesp = fila.querySelector('select[name="selAccionCoresponsable"]');
+        const selectTercero = fila.querySelector('select[name="selAccionTercero"]');
+        const selectEst = fila.querySelector('select[name="selAccionEstatusHito"]');
+        const inputDoc = fila.querySelector('input[name="txtAccionDocHito"]');
+
+        const titAccion = inputTit ? inputTit.value.trim() : `Acción Operativa ${idx + 1}`;
+        const respAccion = selectResp ? selectResp.value : `${area} (Panel ${panel})`;
+        const coresponsable = selectCoesp ? selectCoesp.value : 'Ninguna';
+        const tercero = selectTercero ? selectTercero.value : 'Interna';
+        const estatusAccion = selectEst ? selectEst.value : 'En Proceso';
+        const docSug = (inputDoc && inputDoc.value.trim()) ? inputDoc.value.trim() : `Soporte Oficial ${claveHitoGenerada}`;
+
+        const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
+
+        const nuevoRegistro = {
+            id: cAccion,
+            clave_accion: cAccion,
+            clave_hito: claveHitoGenerada,
+            panel: panel,
+            area: `${area} (Panel ${panel})`,
+            hito: titulo,
+            accion: titAccion,
+            responsable: respAccion,
+            panel_coresponsable: coresponsable !== 'Ninguna' ? coresponsable : null,
+            tercero: tercero !== 'Interna' ? 'Tercero Estatal' : 'Interna',
+            terceroNombre: tercero,
+            peso: 33.33,
+            estatus: estatusAccion,
+            avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
+            docRequerido: docSug,
+            driveUrl: ""
+        };
+
+        accionesDataset.push(nuevoRegistro);
+    });
+
+    if (supabaseClient) {
+        try {
+            await supabaseClient.from('hitos_transicion').insert([{
+                clave_hito: claveHitoGenerada,
+                panel: panel,
+                titulo: titulo,
+                normativa: norma,
+                detalle_operativo: `Registrado en Panel ${panel}`,
+                estatus: 'En Proceso',
+                avance_porcentaje: 40
+            }]);
+        } catch (errSupabase) {
+            console.warn("Sincronización en hitos_transicion local:", errSupabase);
+        }
+    }
+
+    guardarDataset();
+    alert(`¡Hito y Acciones registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
+
+    const formHitos = document.getElementById('tab-hitos');
+    if (formHitos) formHitos.reset();
+    closeModal('modal-buzon-universal');
+
+    actualizarDashboard();
+    if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
+}
+        
 // Función para enlazar la subida de evidencias desde la vista de detalle
 function subirEvidenciaDesdeDetalle(idAccion) {
     const act = accionesDataset.find(a => a.id === idAccion);
