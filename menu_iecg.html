@@ -212,6 +212,12 @@
         <i class="fa-solid fa-shield-halved text-amber-400"></i> Admin & Auditoría
     </a>
 
+  <!-- BOTÓN SOLICITAR VINCULACIÓN A OTRO PANEL (Solo visible al autenticarse como enlace) -->
+    <button type="button" id="btnSolicitarVinculacionPanelTop" onclick="abrirModalSolicitarVinculacion()" 
+            class="hidden btn-executive bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 border border-indigo-700/60 px-3 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 shadow-xs">
+        <i class="fa-solid fa-link text-indigo-400"></i> Solicitar Vinculación
+    </button>                  
+                    
     <!-- ESTADO DE SESIÓN DINÁMICO CON SUPABASE -->
     <div id="userSessionContainer" class="bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2.5 text-xs shadow-inner">
         <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
@@ -2159,6 +2165,18 @@ function activarKpiNeon(elemento, tipoKpi) {
                 if (btnAdminTop) btnAdminTop.classList.add('hidden');
             }
         }
+
+// Dentro de updateAuthUI(), agrega:
+const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
+if (btnVinculo) {
+    if (currentUser && !currentUser.esAdmin) {
+        btnVinculo.classList.remove('hidden');
+        btnVinculo.classList.add('flex');
+    } else {
+        btnVinculo.classList.add('hidden');
+        btnVinculo.classList.remove('flex');
+    }
+}
 
         function handleAuthClick() {
             if (currentUser) {
@@ -5490,6 +5508,77 @@ window.procesarImportacionExcelGeneral = function(event) {
 
     reader.readAsText(file, 'UTF-8');
 };
+
+        // =========================================================================
+// GESTIÓN DE VINCULACIÓN INTERINSTITUCIONAL DE PANELES
+// =========================================================================
+
+// 1. Abrir modal y mostrar datos del usuario en sesión
+window.abrirModalSolicitarVinculacion = function() {
+    if (!currentUser) {
+        alert("Debe iniciar sesión para solicitar la vinculación a un panel.");
+        openModal('modal-auth');
+        return;
+    }
+
+    const lblUser = document.getElementById('lblUsuarioSolicitanteVinculo');
+    const lblPaneles = document.getElementById('lblPanelesActualesVinculo');
+    const txtMotivo = document.getElementById('txtMotivoVinculacion');
+
+    if (lblUser) lblUser.innerText = `${currentUser.nombre} (${currentUser.usuario})`;
+    if (lblPaneles) {
+        const paneles = currentUser.paneles_autorizados || [currentUser.panel_origen || 'A'];
+        lblPaneles.innerHTML = `Paneles asignados actualmente: <strong class="text-indigo-700 font-mono">${paneles.join(', ')}</strong>`;
+    }
+    if (txtMotivo) txtMotivo.value = '';
+
+    openModal('modal-solicitar-vinculacion');
+};
+
+// 2. Procesar y enviar la petición a Auditoría / Supabase
+window.enviarSolicitudVinculacionPanel = async function(e) {
+    e.preventDefault();
+
+    if (!currentUser) return;
+
+    const panelDeseado = document.getElementById('selPanelSolicitado').value;
+    const motivo = document.getElementById('txtMotivoVinculacion').value.trim();
+    const btn = document.getElementById('btnSubmitVinculacion');
+
+    const panelesActuales = currentUser.paneles_autorizados || [currentUser.panel_origen || 'A'];
+    if (panelesActuales.includes(panelDeseado)) {
+        alert(`Ya cuentas con permisos de edición para el Panel ${panelDeseado}.`);
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Enviando...';
+
+    const ticketVinculacion = {
+        tipo: 'VINCULACION_PANEL',
+        clave: `VINC-${currentUser.usuario}-${panelDeseado}`,
+        campo: 'paneles_autorizados',
+        valorAnterior: panelesActuales.join(', '),
+        valorPropuesto: panelDeseado,
+        motivo: motivo,
+        solicitante: `${currentUser.nombre} (${currentUser.usuario})`,
+        usuario_id: currentUser.id,
+        panel_solicitado: panelDeseado,
+        fecha: new Date().toLocaleString(),
+        estatus: 'Pendiente de Autorización'
+    };
+
+    // Guardar en la bandeja de auditoria.html (local y Supabase)
+    if (typeof registrarSolicitudAuditoria === 'function') {
+        registrarSolicitudAuditoria(ticketVinculacion);
+    }
+
+    alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA:\n\nSe ha turnado a la Mesa de Control de 'auditoria.html' tu solicitud para el Panel ${panelDeseado}.\nUna vez validada por los Administradores, se activarán tus permisos de edición en esa comisión.`);
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
+    closeModal('modal-solicitar-vinculacion');
+};
         
 </script>
 <!-- ========================================================================= -->
@@ -5934,6 +6023,78 @@ window.procesarImportacionExcelGeneral = function(event) {
                 </button>
                 <button type="submit" id="btnGuardarEdicionDinamica" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
                     <i class="fa-solid fa-check"></i> Aplicar y Propagar
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: SOLICITUD DE VINCULACIÓN A COMISIÓN / PANEL ADICIONAL              -->
+<!-- ========================================================================= -->
+<div id="modal-solicitar-vinculacion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-base leading-snug">Vincular a Comisión Adicional</h3>
+                    <p class="text-[11px] text-slate-300">Petición de co-titularidad para permisos de edición</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-solicitar-vinculacion')" class="text-slate-400 hover:text-white text-lg transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formulario -->
+        <form onsubmit="enviarSolicitudVinculacionPanel(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <!-- Indicador del usuario actual -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Usuario Solicitante:</span>
+                <span id="lblUsuarioSolicitanteVinculo" class="font-bold text-indigo-950 text-xs block">--</span>
+                <span id="lblPanelesActualesVinculo" class="text-[10.5px] text-slate-500 block">Paneles asignados actualmente: <strong>--</strong></span>
+            </div>
+
+            <!-- Selector de Panel a Solicitar -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">Comisión / Panel al que requiere acceso:</label>
+                <select id="selPanelSolicitado" class="w-full p-2.5 border rounded-xl bg-white font-bold text-indigo-900 text-xs focus:ring-2 focus:ring-indigo-500 shadow-2xs" required>
+                    <option value="" disabled selected>Seleccione un Panel...</option>
+                    <option value="A">Panel A - Recursos Humanos & Estructura</option>
+                    <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
+                    <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
+                    <option value="D">Panel D - Fideicomisos & Fondos Especiales (FIARCA)</option>
+                    <option value="E">Panel E - Control Patrimonial & Bienes Muebles</option>
+                    <option value="F">Panel F - Financiero, Presupuestal & Fiscal (SAT)</option>
+                    <option value="G">Panel G - Tecnologías de la Información (TI)</option>
+                    <option value="H">Panel H - Archivo & Gestión Documental</option>
+                    <option value="I">Panel I - Fiscalización & Auditorías (ASEG)</option>
+                    <option value="J">Panel J - Asuntos Internos / Líder de Proyecto</option>
+                </select>
+            </div>
+
+            <!-- Justificación Técnica -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">
+                    <i class="fa-solid fa-shield-halved text-indigo-600 me-1"></i> Justificación de Vinculación Interinstitucional:
+                </label>
+                <textarea id="txtMotivoVinculacion" rows="3" placeholder="Ej. Se requiere dar seguimiento a las actas del Comité y derechos laborales vinculados con la entrega de expedientes..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
+                <span class="text-[10px] text-slate-400 block mt-1">Esta solicitud será evaluada y autorizada por la Mesa de Control en <code>auditoria.html</code>.</span>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-solicitar-vinculacion')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">
+                    Cancelar
+                </button>
+                <button type="submit" id="btnSubmitVinculacion" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar Petición
                 </button>
             </div>
         </form>
