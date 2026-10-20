@@ -6424,7 +6424,7 @@ function registrarSolicitudAuditoria(solicitud) {
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    // Recuperación segura de sesión
+    // 1. Recuperación segura de sesión
     const sesionGuardada = localStorage.getItem('secul_user');
     if (sesionGuardada) {
         try {
@@ -6452,19 +6452,15 @@ window.addEventListener('DOMContentLoaded', () => {
         updateAuthUI();
     }
 
-    // Forzar la ejecución de todo el motor visual con un leve respiro de carga
+    // 2. Arranque blindado de componentes visuales
     setTimeout(() => {
-        if (typeof mostrarSeccionTab === 'function') {
-            mostrarSeccionTab('tab-dashboard');
-        }
-        if (typeof actualizarDashboard === 'function') {
-            actualizarDashboard();
-        }
-        if (typeof renderCintilloNoticioso === 'function') {
-            renderCintilloNoticioso();
-        }
-        if (typeof verificarYProyectarAvisoDirectivo === 'function') {
-            verificarYProyectarAvisoDirectivo();
+        try {
+            if (typeof mostrarSeccionTab === 'function') mostrarSeccionTab('tab-dashboard');
+            if (typeof actualizarDashboard === 'function') actualizarDashboard();
+            if (typeof renderCintilloNoticioso === 'function') renderCintilloNoticioso();
+            if (typeof verificarYProyectarAvisoDirectivo === 'function') verificarYProyectarAvisoDirectivo();
+        } catch (err) {
+            console.error("Error en el arranque visual:", err);
         }
     }, 150);
 });
