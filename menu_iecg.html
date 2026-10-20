@@ -4945,8 +4945,6 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 // =========================================================================
 // MESA DE CONTROL Y GOBERNANZA: BASE DE DATOS GENERAL INTERACTIVA
 // =========================================================================
-
-// 1. Abrir Modal de la Base de Datos General
 // =========================================================================
 // MESA DE CONTROL Y GOBERNANZA: BASE DE DATOS GENERAL INTERACTIVA
 // =========================================================================
@@ -4959,24 +4957,27 @@ window.abrirModalBaseDatosGeneral = function() {
 
 // 2. Renderizado del Árbol Jerárquico: Hito Padre -> Acciones Hijas
 window.renderBaseDatosGeneralJerarquica = function() {
-    const contenedor = document.getElementById('cuerpoBaseDatosGeneral');
+    var contenedor = document.getElementById('cuerpoBaseDatosGeneral');
     if (!contenedor) return;
 
-    const filtroPanel = document.getElementById('filtroPanelBDGeneral')?.value || 'TODOS';
-    const query = (document.getElementById('buscadorBDGeneral')?.value || '').toLowerCase().trim();
+    var elFiltro = document.getElementById('filtroPanelBDGeneral');
+    var filtroPanel = elFiltro ? elFiltro.value : 'TODOS';
+    var elBuscador = document.getElementById('buscadorBDGeneral');
+    var query = elBuscador ? elBuscador.value.toLowerCase().trim() : '';
 
-    const mapaHitos = {};
+    var mapaHitos = {};
 
-    accionesDataset.forEach(act => {
-        const idHito = act.clave_hito || act.id.split('-A-')[0];
+    accionesDataset.forEach(function(act) {
+        var idHito = act.clave_hito || act.id.split('-A-')[0];
         if (filtroPanel !== 'TODOS' && act.panel !== filtroPanel) return;
 
-        const textoMatch = !query || 
-            (act.clave_accion || act.id).toLowerCase().includes(query) ||
-            idHito.toLowerCase().includes(query) ||
-            act.hito.toLowerCase().includes(query) ||
-            act.accion.toLowerCase().includes(query) ||
-            act.responsable.toLowerCase().includes(query);
+        var idClave = act.clave_accion || act.id;
+        var textoMatch = !query || 
+            idClave.toLowerCase().indexOf(query) !== -1 ||
+            idHito.toLowerCase().indexOf(query) !== -1 ||
+            (act.hito && act.hito.toLowerCase().indexOf(query) !== -1) ||
+            (act.accion && act.accion.toLowerCase().indexOf(query) !== -1) ||
+            (act.responsable && act.responsable.toLowerCase().indexOf(query) !== -1);
 
         if (!textoMatch) return;
 
@@ -4992,141 +4993,97 @@ window.renderBaseDatosGeneralJerarquica = function() {
         mapaHitos[idHito].acciones.push(act);
     });
 
-    const listaHitos = Object.values(mapaHitos);
+    var listaHitos = Object.values(mapaHitos);
 
     if (listaHitos.length === 0) {
-        contenedor.innerHTML = `
-            <div class="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">
-                <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
-                <p class="font-bold text-xs">No se encontraron hitos o acciones con el criterio seleccionado.</p>
-            </div>
-        `;
+        contenedor.innerHTML = '<div class="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">' +
+            '<i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>' +
+            '<p class="font-bold text-xs">No se encontraron hitos o acciones con el criterio seleccionado.</p>' +
+            '</div>';
         return;
     }
 
-    contenedor.innerHTML = listaHitos.map(h => {
-        const sumaAvance = h.acciones.reduce((acc, curr) => acc + (Number(curr.avance) || 0), 0);
-        const promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
+    var htmlFinal = '';
 
-        return `
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">
-                
-                <!-- Encabezado del Hito Padre -->
-                <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center font-mono text-xs shadow-2xs">
-                            ${h.panel}
-                        </span>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold text-indigo-950 text-xs bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
-                                    ${h.clave_hito}
-                                </span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${h.area}</span>
-                            </div>
-                            <h4 class="font-black text-slate-900 text-sm mt-0.5">${h.nombreHito}</h4>
-                        </div>
-                    </div>
+    listaHitos.forEach(function(h) {
+        var sumaAvance = h.acciones.reduce(function(acc, curr) {
+            return acc + (Number(curr.avance) || 0);
+        }, 0);
+        var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
+        var badgeColor = (promedioHito === 100) ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800';
 
-                    <!-- Botones de Acción del Hito Padre -->
-                    <div class="flex items-center gap-1.5 self-end md:self-auto shrink-0 flex-wrap">
-                        <span class="px-2.5 py-1 rounded-xl text-xs font-black ${promedioHito === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
-                            ${promedioHito}% (${h.acciones.length} Acc.)
-                        </span>
-                        
-                        <!-- 1. Botón Agregar Acción a este Hito -->
-                        <button type="button" onclick="abrirAltaAccionParaHitoEspecifico('${h.clave_hito}')" 
-                                class="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"
-                                title="Agregar nueva acción vinculada a este Hito">
-                            <i class="fa-solid fa-plus text-indigo-600"></i> + Acción
-                        </button>
+        var filasAcciones = '';
+        h.acciones.forEach(function(a) {
+            var idClaveAccion = a.clave_accion || a.id;
+            var tieneDrive = Boolean(a.driveUrl && a.driveUrl.trim() !== '');
 
-                        <!-- 2. Botón Modificar Hito -->
-                        <button type="button" onclick="abrirModalEdicionDinamica('HITO', '${h.clave_hito}')" 
-                                class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs">
-                            <i class="fa-solid fa-sliders text-amber-600"></i> Modificar Hito
-                        </button>
+            var badgeEst = 'bg-blue-100 text-blue-800';
+            if (a.estatus === 'Concluido') badgeEst = 'bg-emerald-100 text-emerald-800';
+            else if (a.estatus === 'Validación') badgeEst = 'bg-purple-100 text-purple-800';
+            else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-100 text-amber-800';
 
-                        <!-- 3. Botón Eliminar Hito (Canalizado a Auditoría) -->
-                        <button type="button" onclick="solicitarEliminacionHito('${h.clave_hito}', '${h.nombreHito.replace(/'/g, "\\'")}', ${h.acciones.length})" 
-                                class="px-2 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"
-                                title="Solicitar baja formal de este Hito ante Auditoría">
-                            <i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar
-                        </button>
-                    </div>
-                </div>
+            var btnDrive = tieneDrive 
+                ? '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border transition"><i class="fa-brands fa-google-drive text-emerald-600"></i><span>Ver Documental</span></button>'
+                : '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border transition"><i class="fa-brands fa-google-drive text-amber-500"></i><span>Abrir Carpeta ' + h.panel + '</span></button>';
 
-                <!-- Tabla de Acciones Hijas Subordinadas -->
-                <div class="p-3 overflow-x-auto">
-                    <table class="w-full text-left text-[11px]">
-                        <thead class="text-slate-400 font-bold uppercase text-[9px] border-b border-slate-100">
-                            <tr>
-                                <th class="p-2">Clave Acción</th>
-                                <th class="p-2 min-w-[220px]">Compromiso Específico</th>
-                                <th class="p-2">Responsable</th>
-                                <th class="p-2 text-center">Estatus</th>
-                                <th class="p-2 text-center">Avance</th>
-                                <th class="p-2 text-center">Expediente Drive</th>
-                                <th class="p-2 text-center">Gestión</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-sans">
-                            ${h.acciones.map(a => {
-                                const idClave = a.clave_accion || a.id;
-                                const tieneDrive = Boolean(a.driveUrl && a.driveUrl.trim() !== '');
+            filasAcciones += '<tr class="hover:bg-slate-50/80 transition">' +
+                '<td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">' + idClaveAccion + '</td>' +
+                '<td class="p-2 text-slate-800 font-medium">' + (a.accion || '') + '</td>' +
+                '<td class="p-2 text-slate-600">' + (a.responsable || 'Comisión') + '</td>' +
+                '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold ' + badgeEst + '">' + (a.estatus || 'En Proceso') + '</span></td>' +
+                '<td class="p-2 text-center font-mono font-black ' + (Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600') + '">' + (a.avance || 0) + '%</td>' +
+                '<td class="p-2 text-center whitespace-nowrap">' + btnDrive + '</td>' +
+                '<td class="p-2 text-center whitespace-nowrap">' +
+                    '<div class="inline-flex items-center gap-1">' +
+                        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition"><i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar</button>' +
+                        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition" title="Solicitar baja formal"><i class="fa-solid fa-trash-can text-rose-600"></i></button>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+        });
 
-                                return `
-                                    <tr class="hover:bg-slate-50/80 transition">
-                                        <td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">${idClave}</td>
-                                        <td class="p-2 text-slate-800 font-medium">${a.accion}</td>
-                                        <td class="p-2 text-slate-600">${a.responsable || 'Comisión'}</td>
-                                        <td class="p-2 text-center">
-                                            <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold ${ a.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (a.estatus === 'Validación' ? 'bg-purple-100 text-purple-800' : (a.estatus && a.estatus.includes('Tercero') ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800')) }">${a.estatus}</span>
-                                        </td>
-                                        <td class="p-2 text-center font-mono font-black ${Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600'}">
-                                            ${a.avance}%
-                                        </td>
-                                        
-                                        <!-- Botón de Drive Vinculado a Carpetas Reales (A-J) -->
-                                        <td class="p-2 text-center whitespace-nowrap">
-                                            <button type="button" onclick="abrirExpedienteODrivePanel('${idClave}', '${h.panel}')" 
-                                                    class="px-2.5 py-1 ${tieneDrive ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'} rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border transition">
-                                                <i class="fa-brands fa-google-drive ${tieneDrive ? 'text-emerald-600' : 'text-amber-500'}"></i>
-                                                <span>${tieneDrive ? 'Ver Documental' : 'Abrir Carpeta ' + h.panel}</span>
-                                            </button>
-                                        </td>
+        htmlFinal += '<div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">' +
+            '<div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">' +
+                '<div class="flex items-center gap-3">' +
+                    '<span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center font-mono text-xs shadow-2xs">' + h.panel + '</span>' +
+                    '<div>' +
+                        '<div class="flex items-center gap-2">' +
+                            '<span class="font-mono font-bold text-indigo-950 text-xs bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">' + h.clave_hito + '</span>' +
+                            '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">' + h.area + '</span>' +
+                        '</div>' +
+                        '<h4 class="font-black text-slate-900 text-sm mt-0.5">' + h.nombreHito + '</h4>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="flex items-center gap-1.5 self-end md:self-auto shrink-0 flex-wrap">' +
+                    '<span class="px-2.5 py-1 rounded-xl text-xs font-black ' + badgeColor + '">' + promedioHito + '% (' + h.acciones.length + ' Acc.)</span>' +
+                    '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-plus text-indigo-600"></i> + Acción</button>' +
+                    '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-sliders text-amber-600"></i> Modificar Hito</button>' +
+                    '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="px-2 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="p-3 overflow-x-auto">' +
+                '<table class="w-full text-left text-[11px]">' +
+                    '<thead class="text-slate-400 font-bold uppercase text-[9px] border-b border-slate-100">' +
+                        '<tr>' +
+                            '<th class="p-2">Clave Acción</th>' +
+                            '<th class="p-2 min-w-[220px]">Compromiso Específico</th>' +
+                            '<th class="p-2">Responsable</th>' +
+                            '<th class="p-2 text-center">Estatus</th>' +
+                            '<th class="p-2 text-center">Avance</th>' +
+                            '<th class="p-2 text-center">Expediente Drive</th>' +
+                            '<th class="p-2 text-center">Gestión</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody class="divide-y divide-slate-100 font-sans">' + filasAcciones + '</tbody>' +
+                '</table>' +
+            '</div>' +
+        '</div>';
+    });
 
-                                        <!-- Botones de Editar y Eliminar Acción -->
-                                        <td class="p-2 text-center whitespace-nowrap">
-                                            <div class="inline-flex items-center gap-1">
-                                                <button type="button" onclick="abrirModalEdicionDinamica('ACCION', '${idClave}')" 
-                                                        class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition">
-                                                    <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar
-                                                </button>
-                                                <button type="button" onclick="solicitarEliminacionAccion('${idClave}', '${a.accion.replace(/'/g, "\\'")}')" 
-                                                        class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition"
-                                                        title="Solicitar baja formal de esta acción">
-                                                    <i class="fa-solid fa-trash-can text-rose-600"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-        `;
-    }).join('');
+    contenedor.innerHTML = htmlFinal;
 };
 
-// =========================================================================
-// ACCIONES DE ALTA RÁPIDA DESDE LA BASE DE DATOS GENERAL
-// =========================================================================
-
-// Abrir Alta de Hito (Pestaña 1 del Modal Maestro)
+// 3. Abrir Alta de Hito
 window.abrirAltaHitoDesdeBDGeneral = function() {
     closeModal('modal-base-datos-general');
     openModal('modal-buzon-universal');
@@ -5135,7 +5092,7 @@ window.abrirAltaHitoDesdeBDGeneral = function() {
     }
 };
 
-// Abrir Alta de Acción vinculada directamente a un Hito Padre
+// 4. Abrir Alta de Acción vinculada a Hito Padre
 window.abrirAltaAccionParaHitoEspecifico = function(claveHito) {
     closeModal('modal-base-datos-general');
     openModal('modal-buzon-universal');
@@ -5143,13 +5100,15 @@ window.abrirAltaAccionParaHitoEspecifico = function(claveHito) {
         cambiarTabModalUniversal('tab-accion');
     }
 
-    const selectPadre = document.getElementById('buzonSelectAccion');
+    var selectPadre = document.getElementById('buzonSelectAccion');
     if (selectPadre) {
-        selectPadre.innerHTML = accionesDataset.map(a => 
-            `<option value="${a.clave_accion || a.id}">[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...</option>`
-        ).join('');
+        selectPadre.innerHTML = accionesDataset.map(function(a) {
+            return '<option value="' + (a.clave_accion || a.id) + '">[Panel ' + a.panel + '] ' + a.hito + ' - ' + a.accion.slice(0, 45) + '...</option>';
+        }).join('');
 
-        const itemHito = accionesDataset.find(a => (a.clave_hito === claveHito) || a.id.startsWith(claveHito));
+        var itemHito = accionesDataset.find(function(a) {
+            return (a.clave_hito === claveHito) || a.id.startsWith(claveHito);
+        });
         if (itemHito) {
             selectPadre.value = itemHito.clave_accion || itemHito.id;
         }
@@ -5160,11 +5119,11 @@ window.abrirAltaAccionParaHitoEspecifico = function(claveHito) {
     }
 };
 
-// =========================================================================
-// APERTURA DE EXPEDIENTE / CARPETAS DE GOOGLE DRIVE (A a J)
-// =========================================================================
+// 5. Apertura de Expediente / Carpetas Drive (A a J)
 window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
-    const act = accionesDataset.find(a => (a.clave_accion === idClave) || (a.id === idClave));
+    var act = accionesDataset.find(function(a) {
+        return (a.clave_accion === idClave) || (a.id === idClave);
+    });
     if (act && act.driveUrl && act.driveUrl.trim() !== '') {
         window.open(act.driveUrl, '_blank');
     } else {
@@ -5172,19 +5131,252 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
     }
 };
 
-// =========================================================================
-// CONTROLADOR DEL MODAL DE EDICIÓN DINÁMICA
-// =========================================================================
+// 6. Abrir Modal de Edición Dinámica
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
-    const modal = document.getElementById('modal-edicion-dinamica');
-    const inputTipo = document.getElementById('editItemTipo');
-    const inputClave = document.getElementById('editItemClave');
-    const inputPanel = document.getElementById('editItemPanel');
-    const lblClave = document.getElementById('labelClaveActivaEdit');
-    const lblPanel = document.getElementById('labelPanelActivoEdit');
-    const lblTitulo = document.getElementById('lblTituloPrincipalEdit');
-    const txtTitulo = document.getElementById('inputTituloEdit');
-    const bloque
+    var modal = document.getElementById('modal-edicion-dinamica');
+    var inputTipo = document.getElementById('editItemTipo');
+    var inputClave = document.getElementById('editItemClave');
+    var inputPanel = document.getElementById('editItemPanel');
+    var lblClave = document.getElementById('labelClaveActivaEdit');
+    var lblPanel = document.getElementById('labelPanelActivoEdit');
+    var lblTitulo = document.getElementById('lblTituloPrincipalEdit');
+    var txtTitulo = document.getElementById('inputTituloEdit');
+    var bloqueAccion = document.getElementById('bloqueCamposAccion');
+    var txtMotivo = document.getElementById('inputMotivoEdit');
+
+    if (!modal) return;
+    if (txtMotivo) txtMotivo.value = '';
+
+    if (inputTipo) inputTipo.value = tipo;
+    if (inputClave) inputClave.value = claveId;
+    if (lblClave) lblClave.innerText = claveId;
+
+    if (tipo === 'HITO') {
+        var hitoItems = accionesDataset.filter(function(a) {
+            return (a.clave_hito === claveId) || a.id.startsWith(claveId);
+        });
+        var item = hitoItems[0] || {};
+
+        if (inputPanel) inputPanel.value = item.panel || 'A';
+        if (lblPanel) lblPanel.innerText = 'Panel ' + (item.panel || 'A') + ' (' + (item.area || '') + ')';
+        if (lblTitulo) lblTitulo.innerText = 'Título Oficial del Hito Normativo:';
+        if (txtTitulo) txtTitulo.value = item.hito || '';
+        
+        if (bloqueAccion) bloqueAccion.classList.add('hidden');
+        var badge = document.getElementById('badgeTipoEdicion');
+        if (badge) badge.innerText = 'MODIFICACIÓN DE HITO NORMATIVO';
+        var tit = document.getElementById('tituloEdicionDinamica');
+        if (tit) tit.innerText = 'Gestión del Hito [' + claveId + ']';
+    } else {
+        var act = accionesDataset.find(function(a) {
+            return (a.clave_accion === claveId) || (a.id === claveId);
+        });
+        if (!act) return;
+
+        if (inputPanel) inputPanel.value = act.panel || 'A';
+        if (lblPanel) lblPanel.innerText = 'Panel ' + act.panel + ' (' + act.area + ')';
+        if (lblTitulo) lblTitulo.innerText = 'Descripción de la Acción / Entregable Específico:';
+        if (txtTitulo) txtTitulo.value = act.accion || '';
+
+        var elResp = document.getElementById('inputRespEdit');
+        if (elResp) elResp.value = act.responsable || '';
+        var elEst = document.getElementById('selectEstatusEdit');
+        if (elEst) elEst.value = act.estatus || 'En Proceso';
+        var elSlider = document.getElementById('inputAvanceSliderEdit');
+        if (elSlider) elSlider.value = act.avance || 0;
+        var elLblAvance = document.getElementById('labelAvanceSliderEdit');
+        if (elLblAvance) elLblAvance.innerText = (act.avance || 0) + '%';
+
+        if (bloqueAccion) bloqueAccion.classList.remove('hidden');
+        var badge2 = document.getElementById('badgeTipoEdicion');
+        if (badge2) badge2.innerText = 'MODIFICACIÓN DE ACCIÓN OPERATIVA';
+        var tit2 = document.getElementById('tituloEdicionDinamica');
+        if (tit2) tit2.innerText = 'Gestión de Acción [' + claveId + ']';
+    }
+
+    openModal('modal-edicion-dinamica');
+};
+
+// 7. Guardar Formulario de Edición Dinámica
+window.guardarFormularioEdicionDinamica = async function(e) {
+    e.preventDefault();
+
+    var tipo = document.getElementById('editItemTipo').value;
+    var claveId = document.getElementById('editItemClave').value;
+    var panel = document.getElementById('editItemPanel').value;
+    var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
+    var motivo = document.getElementById('inputMotivoEdit').value.trim();
+    var fileInput = document.getElementById('inputFileEditDinamico');
+    var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+
+    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
+
+    try {
+        var driveUrlFinal = null;
+
+        if (tipo === 'ACCION' && fileInput && fileInput.files && fileInput.files.length > 0) {
+            var archivoFisico = fileInput.files[0];
+            var nombreNominal = '[' + claveId + '] ' + archivoFisico.name;
+            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, panel, nombreNominal);
+        }
+
+        if (tipo === 'HITO') {
+            if (esAdmin) {
+                accionesDataset.forEach(function(a) {
+                    if ((a.clave_hito === claveId) || a.id.startsWith(claveId)) {
+                        a.hito = nuevoTitulo;
+                    }
+                });
+                guardarDataset();
+                registrarAuditoria('Modificación de Hito (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, motivo: motivo });
+                alert('¡Hito [' + claveId + '] actualizado y sincronizado en todo el sistema!');
+            } else {
+                registrarSolicitudAuditoria({
+                    tipo: 'MODIFICAR_HITO',
+                    clave: claveId,
+                    campo: 'hito',
+                    valorPropuesto: nuevoTitulo,
+                    motivo: motivo,
+                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                    fecha: new Date().toLocaleString(),
+                    estatus: 'Pendiente de Autorización'
+                });
+                alert('🔒 SOLICITUD CANALIZADA A AUDITORÍA:\nLa propuesta para el Hito [' + claveId + '] fue enviada a la mesa de control de "auditoria.html".');
+            }
+        } else {
+            var nuevoResp = document.getElementById('inputRespEdit').value.trim();
+            var nuevoEstatus = document.getElementById('selectEstatusEdit').value;
+            var nuevoAvance = parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0;
+
+            var act = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveId) || (a.id === claveId);
+            });
+            if (!act) return;
+
+            if (esAdmin) {
+                act.accion = nuevoTitulo;
+                act.responsable = nuevoResp;
+                act.estatus = nuevoEstatus;
+                act.avance = nuevoAvance;
+                if (driveUrlFinal) act.driveUrl = driveUrlFinal;
+
+                guardarDataset();
+                registrarAuditoria('Modificación de Acción (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, nuevoAvance: nuevoAvance, nuevoEstatus: nuevoEstatus, motivo: motivo });
+                alert('¡Acción [' + claveId + '] actualizada exitosamente!');
+            } else {
+                registrarSolicitudAuditoria({
+                    tipo: 'MODIFICAR_ACCION',
+                    clave: claveId,
+                    campo: 'datos_completos',
+                    valorPropuesto: { accion: nuevoTitulo, responsable: nuevoResp, estatus: nuevoEstatus, avance: nuevoAvance, driveUrl: driveUrlFinal },
+                    motivo: motivo,
+                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                    fecha: new Date().toLocaleString(),
+                    estatus: 'Pendiente de Autorización'
+                });
+                alert('🔒 SOLICITUD ENVIADA A AUDITORÍA:\nLos cambios propuestos para la Acción [' + claveId + '] han sido registrados y esperan validación en "auditoria.html".');
+            }
+        }
+
+        closeModal('modal-edicion-dinamica');
+        actualizarDashboard();
+        renderBaseDatosGeneralJerarquica();
+    } catch (err) {
+        alert('Error al procesar la actualización: ' + err.message);
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
+    }
+};
+
+// 8. Solicitar Baja de Acción
+window.solicitarEliminacionAccion = function(claveAccion) {
+    var act = accionesDataset.find(function(a) {
+        return (a.clave_accion === claveAccion) || (a.id === claveAccion);
+    });
+    var desc = act ? act.accion : '';
+
+    var motivo = prompt('[CANDADO DE GOBERNANZA - SOLICITUD DE BAJA]\n\nAcción a eliminar: ' + claveAccion + '\n"' + desc + '"\n\nIngrese la justificación documental obligatoria para la Secretaría de la Honestidad / ASEG:');
+    if (!motivo || motivo.trim() === '') {
+        alert('Operación cancelada: No se puede tramitar una baja sin sustento legal.');
+        return;
+    }
+
+    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    if (esAdmin) {
+        if (confirm('¿Confirma como Administrador la baja definitiva de la acción ' + claveAccion + '?')) {
+            accionesDataset = accionesDataset.filter(function(a) {
+                return (a.clave_accion !== claveAccion) && (a.id !== claveAccion);
+            });
+            guardarDataset();
+            registrarAuditoria('Eliminación Directa de Acción (Admin)', { claveAccion: claveAccion, motivo: motivo });
+            alert('Acción ' + claveAccion + ' eliminada del sistema.');
+            actualizarDashboard();
+            renderBaseDatosGeneralJerarquica();
+        }
+    } else {
+        registrarSolicitudAuditoria({
+            tipo: 'ELIMINAR_ACCION',
+            clave: claveAccion,
+            campo: 'baja_total',
+            valorAnterior: desc,
+            valorPropuesto: 'SOLICITUD DE BAJA / SUPRESIÓN',
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización de Baja'
+        });
+
+        alert('🔒 SOLICITUD DE BAJA CANALIZADA A AUDITORÍA:\n\nLa petición de supresión de la acción ' + claveAccion + ' ha sido turnada a la mesa de control de "auditoria.html" para autorización de los Administradores.');
+    }
+};
+
+// 9. Solicitar Baja de Hito Completo
+window.solicitarEliminacionHito = function(claveHito, cantidadAcciones) {
+    var primerItem = accionesDataset.find(function(a) {
+        return (a.clave_hito === claveHito) || a.id.startsWith(claveHito);
+    });
+    var nombreHito = primerItem ? primerItem.hito : '';
+
+    var motivo = prompt('[CANDADO DE GOBERNANZA - SOLICITUD DE BAJA DE HITO]\n\nHito a dar de baja: ' + claveHito + ' - "' + nombreHito + '"\nAcciones asociadas que se verán afectadas: ' + cantidadAcciones + '\n\nIngrese el fundamento legal o acuerdo del Comité para solicitar la baja:');
+    if (!motivo || motivo.trim() === '') {
+        alert('Operación cancelada: La supresión de un Hito Normativo requiere acuerdo fundado.');
+        return;
+    }
+
+    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    if (esAdmin) {
+        if (confirm('¡ADVERTENCIA DE ADMINISTRADOR!\n\nSe eliminará el Hito ' + claveHito + ' junto con sus ' + cantidadAcciones + ' acciones asociadas.\n¿Desea proceder?')) {
+            accionesDataset = accionesDataset.filter(function(a) {
+                return (a.clave_hito !== claveHito) && (!a.id.startsWith(claveHito));
+            });
+            guardarDataset();
+            registrarAuditoria('Eliminación Directa de Hito (Admin)', { claveHito: claveHito, nombreHito: nombreHito, motivo: motivo });
+            alert('Hito ' + claveHito + ' y sus acciones han sido eliminados.');
+            actualizarDashboard();
+            renderBaseDatosGeneralJerarquica();
+        }
+    } else {
+        registrarSolicitudAuditoria({
+            tipo: 'ELIMINAR_HITO',
+            clave: claveHito,
+            campo: 'baja_hito_con_acciones',
+            valorAnterior: nombreHito + ' (' + cantidadAcciones + ' acciones)',
+            valorPropuesto: 'BAJA DEFINITIVA DE HITO NORMATIVO',
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización de Baja'
+        });
+
+        alert('🔒 PETICIÓN ENVIADA A AUDITORÍA:\n\nLa solicitud para dar de baja el Hito ' + claveHito + ' ha sido registrada. Debe ser autorizada colegiadamente en "auditoria.html".');
+    }
+};
         
         // 5. Registrar solicitudes para auditoria.html
 function registrarSolicitudAuditoria(solicitud) {
