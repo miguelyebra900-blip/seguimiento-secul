@@ -6325,6 +6325,43 @@ function registrarSolicitudAuditoria(solicitud) {
         }]).then();
     }
 }        
+// =========================================================================
+// ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
+// =========================================================================
+window.addEventListener('DOMContentLoaded', () => {
+    // 1. Recuperar sesión almacenada de forma blindada
+    const sesionGuardada = localStorage.getItem('secul_user');
+    if (sesionGuardada) {
+        try {
+            currentUser = JSON.parse(sesionGuardada);
+            // Sincronizar paneles autorizados si existía sesión previa
+            if (typeof resolverPanelesUsuario === 'function') {
+                currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
+            }
+        } catch (e) {
+            currentUser = null;
+            localStorage.removeItem('secul_user');
+            window.location.replace('index.html');
+            return;
+        }
+    } else {
+        window.location.replace('index.html');
+        return;
+    }
+
+    // 2. Refrescar interfaz de usuario con la sesión restaurada
+    if (typeof updateAuthUI === 'function') {
+        updateAuthUI();
+    }
+
+    // 3. Cargar tableros y métricas
+    if (typeof mostrarSeccionTab === 'function') {
+        mostrarSeccionTab('tab-dashboard');
+    }
+    if (typeof actualizarDashboard === 'function') {
+        actualizarDashboard();
+    }
+});
         
 </script>
 <!-- ========================================================================= -->
