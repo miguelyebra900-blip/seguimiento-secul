@@ -91,18 +91,18 @@
    CINTILLO INFORMATIVO INFERIOR TIPO TICKER BURSÁTIL / NOTICIARIO
    ========================================================================= */
 .ticker-footer-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 52px; /* Se aumenta la altura de 44px a 52px para dar holgura a las letras más grandes */
-    background: rgba(15, 23, 42, 0.96);
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 52px !important;
+    background: rgba(15, 23, 42, 0.98) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(99, 102, 241, 0.35);
-    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.25);
-    z-index: 45;
-    display: flex;
+    border-top: 1px solid rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4) !important;
+    z-index: 999 !important; /* Asegura que flote siempre sobre cualquier contenedor */
+    display: flex !important;
     align-items: center;
     overflow: hidden;
 }
@@ -209,8 +209,8 @@ window.guardarContactoNotificaciones = async function(e) {
 
     
 </head>
-    
-<body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen">
+ <body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen pb-20">   
+
 
     <!-- HEADER INSTITUCIONAL (FONDO CLARO MINIMALISTA) -->
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
@@ -458,17 +458,17 @@ window.guardarContactoNotificaciones = async function(e) {
             </div>
         </div>
 
-        <!-- Grid de las 4 Gráficas Grandes -->
+      <!-- Grid de las 4 Gráficas Grandes con clic reactivado -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="gridCardsGraficas">
             
             <!-- Gráfica 1: Avance Ponderado Global -->
             <div onclick="seleccionarTarjetaGrafica(this, 'global')" 
-                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-indigo-400 ring-4 ring-indigo-100/70 shadow-md flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:shadow-xl">
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-indigo-400 ring-4 ring-indigo-100/70 shadow-md flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-102">
                 <div class="flex items-center justify-between w-full mb-1">
                     <span class="text-xs font-black text-slate-700 uppercase tracking-wide">AVANCE PONDERADO GLOBAL</span>
                     <i class="fa-solid fa-expand text-[11px] text-indigo-600"></i>
                 </div>
-                <div class="relative w-48 h-48 my-3 flex items-center justify-center pointer-events-none">
+                <div class="relative w-48 h-48 my-3 flex items-center justify-center">
                     <canvas id="chartAvanceGlobal"></canvas>
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                         <span id="labelChartAvanceGlobal" class="text-3xl font-black text-slate-900 leading-none">77%</span>
@@ -482,12 +482,12 @@ window.guardarContactoNotificaciones = async function(e) {
 
             <!-- Gráfica 2: Distribución por Prioridad -->
             <div onclick="seleccionarTarjetaGrafica(this, 'prioridades')" 
-                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl hover:scale-102">
                 <div class="flex items-center justify-between w-full mb-1">
                     <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">DISTRIBUCIÓN POR PRIORIDAD</span>
                     <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
                 </div>
-                <div class="relative h-48 w-full my-3 pointer-events-none">
+                <div class="relative h-48 w-full my-3">
                     <canvas id="chartPrioridades"></canvas>
                 </div>
                 <div class="flex flex-wrap items-center justify-center gap-2.5 text-[10px] font-extrabold bg-white p-1.5 rounded-xl border border-slate-200">
@@ -500,12 +500,12 @@ window.guardarContactoNotificaciones = async function(e) {
 
             <!-- Gráfica 3: Estatus de Compromisos -->
             <div onclick="seleccionarTarjetaGrafica(this, 'estatus')" 
-                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl hover:scale-102">
                 <div class="flex items-center justify-between w-full mb-1">
                     <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">ESTATUS DE COMPROMISOS</span>
                     <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
                 </div>
-                <div class="relative h-48 w-full my-3 pointer-events-none">
+                <div class="relative h-48 w-full my-3">
                     <canvas id="chartEstatus"></canvas>
                 </div>
                 <div class="flex flex-wrap items-center justify-center gap-2.5 text-[10px] font-extrabold bg-white p-1.5 rounded-xl border border-slate-200">
@@ -517,12 +517,12 @@ window.guardarContactoNotificaciones = async function(e) {
 
             <!-- Gráfica 4: Rendimiento por Área -->
             <div onclick="seleccionarTarjetaGrafica(this, 'areas')" 
-                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl">
+                 class="card-chart-box bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:shadow-xl hover:scale-102">
                 <div class="flex items-center justify-between w-full mb-1">
                     <span class="text-xs font-black text-slate-700 uppercase tracking-wide text-center w-full pl-3">RENDIMIENTO POR ÁREA (SCUL)</span>
                     <i class="fa-solid fa-expand text-[11px] text-slate-400"></i>
                 </div>
-                <div class="relative h-48 w-full my-3 pointer-events-none">
+                <div class="relative h-48 w-full my-3">
                     <canvas id="chartAreas"></canvas>
                 </div>
                 <span class="text-xs text-slate-500 text-center font-semibold bg-white px-3 py-1 rounded-full border border-slate-200">
@@ -530,11 +530,7 @@ window.guardarContactoNotificaciones = async function(e) {
                 </span>
             </div>
 
-        </div> <!-- FIN DEL GRID DE LAS 4 GRÁFICAS -->
-
-    </div> <!-- FIN DE LA TARJETA DE ANALÍTICA -->
-
-</div> <!-- FIN DE TAB-DASHBOARD -->
+        </div>
         <!-- ================================================================= -->
         <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (8 ÁREAS A - H)  -->
         <!-- ================================================================= -->
