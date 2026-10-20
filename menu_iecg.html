@@ -1333,7 +1333,8 @@
     </div>
 
     <!-- MODAL DE INICIO: MATRIZ DE RIESGOS DIRECTIVOS -->
-    <div id="modal-riesgos-inicio" class="fixed inset-0 z-50 modal-glass flex items-center justify-center p-4">
+ <!-- CÓDIGO CORREGIDO -->
+<div id="modal-riesgos-inicio" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col transition-all">
             
             <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
@@ -3969,31 +3970,80 @@ window.addEventListener('DOMContentLoaded', () => {
 // =========================================================================
 
 // 1. Obtener comunicado activo (desde LocalStorage o Supabase)
-async function obtenerComunicadoDirectivoVigente() {
-    let com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
-    
-    if (supabaseClient) {
-        try {
-            const { data } = await supabaseClient
-                .from('auditoria_trazabilidad')
-                .select('*')
-                .ilike('accion', '%[COMUNICADO DIRECTIVO]%')
-                .order('id', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+a// =========================================================================
+// MOTOR INMEDIATO: CINTILLO CON 5 REPETICIONES Y AVISO AL ENTRAR (SIN BLOQUEOS)
+// =========================================================================
 
-            if (data && data.detalles) {
-                const comRemoto = typeof data.detalles === 'object' ? data.detalles : JSON.parse(data.detalles);
-                if (comRemoto && comRemoto.activo) {
-                    com = comRemoto;
-                    localStorage.setItem('secul_comunicado_directivo', JSON.stringify(com));
-                }
-            }
-        } catch (e) {
-            console.warn("Consulta Supabase de comunicado diferida a memoria local:", e);
+function obtenerComunicadoDirectivoVigente() {
+    return JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
+}
+
+function renderCintilloNoticioso() {
+    const track = document.getElementById('tickerTrack');
+    if (!track) return;
+
+    // Lectura síncrona en 0 ms
+    const com = obtenerComunicadoDirectivoVigente();
+    const ORIGEN_ACTUAL = "IECG"; // En menu_forum.html cambiar a "FORUM"
+    const tieneAvisoActivo = com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino);
+
+    const pillComunicadoHTML = () => `
+        <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
+            <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+            <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
+            <span class="font-mono text-xs uppercase font-black text-amber-200">[AVISO DIRECTIVO]:</span>
+            <strong class="text-white text-xs underline">${(com.titulo || 'Comunicado General').slice(0, 48)}</strong>
+            <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black ml-1.5 shadow-xs">Leer Aviso →</span>
+        </div>
+    `;
+
+    const iconMap = {
+        'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
+        'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
+        'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
+        'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
+        'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
+        'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
+        'G': { icon: 'fa-server', color: 'text-blue-400' },
+        'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
+        'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
+        'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
+    };
+
+    const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    let itemsIntercaladosHTML = '';
+
+    paneles.forEach((letraPanel, idx) => {
+        // Intercala el aviso cada 2 paneles (A, C, E, G, I = 5 repeticiones)
+        if (tieneAvisoActivo && idx % 2 === 0) {
+            itemsIntercaladosHTML += pillComunicadoHTML();
         }
+
+        const accionesDelPanel = (typeof accionesDataset !== 'undefined') ? accionesDataset.filter(a => a.panel === letraPanel) : [];
+        accionesDelPanel.forEach(act => {
+            const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
+            const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
+            const idClave = act.clave_accion || act.id;
+
+            itemsIntercaladosHTML += `
+                <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
+                    <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                    <i class="fa-solid ${conf.icon} ${conf.color} text-sm"></i>
+                    <span class="font-mono text-xs font-bold text-indigo-300">[${idClave}]</span>
+                    <strong class="font-bold text-slate-100 text-xs">${act.hito}:</strong>
+                    <span class="text-slate-300 text-xs truncate max-w-sm">${act.accion.slice(0, 55)}...</span>
+                    <span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-white/15 text-white">${act.avance}%</span>
+                </div>
+            `;
+        });
+    });
+
+    track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
+
+    // Despliegue de alerta emergente
+    if (tieneAvisoActivo) {
+        proyectarAvisoAlEntrarSesion(com, true);
     }
-    return com;
 }
 
 // 2. Renderizado del Cintillo intercalando el aviso 5 VECES (cada 2 áreas)
