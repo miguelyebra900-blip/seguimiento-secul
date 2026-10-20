@@ -3584,11 +3584,6 @@ function renderListaCompromisosDetalle(act) {
             e.target.reset();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            mostrarSeccionTab('tab-dashboard');
-            actualizarDashboard();
-        });
-
      // =========================================================================
         // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
         // =========================================================================
@@ -3987,17 +3982,6 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
         }
     }
 }
-
-// ARRANQUE GENERAL DEL DASHBOARD AL CARGAR EL DOM
-window.addEventListener('DOMContentLoaded', () => {
-    if (typeof mostrarSeccionTab === 'function') {
-        mostrarSeccionTab('tab-dashboard');
-    }
-    if (typeof actualizarDashboard === 'function') {
-        actualizarDashboard();
-    }
-    verificarYProyectarAvisoDirectivo(); // <-- Agregar esta línea aquí
-});
 
 // =========================================================================
         // RENDER DINÁMICO DEL CINTILLO: 30 HITOS + 5 COMUNICADOS INTERCALADOS
@@ -6554,13 +6538,15 @@ function registrarSolicitudAuditoria(solicitud) {
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
+// =========================================================================
+// ARRANQUE GENERAL ÚNICO Y DEFINITIVO DEL SISTEMA
+// =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Recuperar sesión almacenada de forma blindada
+    // 1. Recuperar sesión almacenada de forma segura
     const sesionGuardada = localStorage.getItem('secul_user');
     if (sesionGuardada) {
         try {
             currentUser = JSON.parse(sesionGuardada);
-            // Sincronizar paneles autorizados si existía sesión previa
             if (typeof resolverPanelesUsuario === 'function') {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
@@ -6575,20 +6561,22 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 2. Refrescar interfaz de usuario con la sesión restaurada
+    // 2. Refrescar la interfaz de usuario con la sesión restaurada
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 3. Cargar tableros y métricas
+    // 3. Cargar las vistas, métricas y avisos directivos de forma limpia
     if (typeof mostrarSeccionTab === 'function') {
         mostrarSeccionTab('tab-dashboard');
     }
     if (typeof actualizarDashboard === 'function') {
         actualizarDashboard();
     }
+    if (typeof verificarYProyectarAvisoDirectivo === 'function') {
+        verificarYProyectarAvisoDirectivo();
+    }
 });
-        
 </script>
 <!-- ========================================================================= -->
     <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
