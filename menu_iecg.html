@@ -4947,6 +4947,11 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 // =========================================================================
 
 // 1. Abrir Modal de la Base de Datos General
+// =========================================================================
+// MESA DE CONTROL Y GOBERNANZA: BASE DE DATOS GENERAL INTERACTIVA
+// =========================================================================
+
+// 1. Abrir Modal de la Base de Datos General
 window.abrirModalBaseDatosGeneral = function() {
     renderBaseDatosGeneralJerarquica();
     openModal('modal-base-datos-general');
@@ -4967,7 +4972,6 @@ window.renderBaseDatosGeneralJerarquica = function() {
         const idHito = act.clave_hito || act.id.split('-A-')[0];
         if (filtroPanel !== 'TODOS' && act.panel !== filtroPanel) return;
 
-        // Filtro de texto
         const textoMatch = !query || 
             (act.clave_accion || act.id).toLowerCase().includes(query) ||
             idHito.toLowerCase().includes(query) ||
@@ -5002,14 +5006,13 @@ window.renderBaseDatosGeneralJerarquica = function() {
     }
 
     contenedor.innerHTML = listaHitos.map(h => {
-        // Cálculo del promedio real de este hito específico
         const sumaAvance = h.acciones.reduce((acc, curr) => acc + (Number(curr.avance) || 0), 0);
         const promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
 
         return `
             <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">
                 
-                <!-- Encabezado del Hito Padre (Con botón de solicitud de edición) -->
+                <!-- Encabezado del Hito Padre -->
                 <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center font-mono text-xs shadow-2xs">
@@ -5030,11 +5033,10 @@ window.renderBaseDatosGeneralJerarquica = function() {
                         <span class="px-2.5 py-1 rounded-xl text-xs font-black ${promedioHito === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
                             ${promedioHito}% Promedio (${h.acciones.length} Acciones)
                         </span>
-                        <!-- Botón protegido con candado -->
-                        <button type="button" onclick="solicitarModificacionHitoGeneral('${h.clave_hito}', '${h.nombreHito.replace(/'/g, "\\'")}')" 
-                                class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"
-                                title="Solicitar cambio normativo al Hito">
-                            <i class="fa-solid fa-lock text-amber-600"></i> Modificar Hito
+                        <!-- Botón Dinámico de Modificar Hito -->
+                        <button type="button" onclick="abrirModalEdicionDinamica('HITO', '${h.clave_hito}')" 
+                                class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1.5 transition shadow-2xs">
+                            <i class="fa-solid fa-sliders text-amber-600"></i> Modificar Hito
                         </button>
                     </div>
                 </div>
@@ -5050,14 +5052,15 @@ window.renderBaseDatosGeneralJerarquica = function() {
                                 <th class="p-2 text-center">Estatus</th>
                                 <th class="p-2 text-center">Avance</th>
                                 <th class="p-2 text-center">Expediente Drive</th>
-                                <th class="p-2 text-center">Gobernanza</th>
+                                <th class="p-2 text-center">Gestión</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-sans">
                             ${h.acciones.map(a => {
                                 const idClave = a.clave_accion || a.id;
                                 const tieneDrive = Boolean(a.driveUrl && a.driveUrl.trim() !== '');
-return `
+
+                                return `
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">${idClave}</td>
                                         <td class="p-2 text-slate-800 font-medium">${a.accion}</td>
@@ -5068,23 +5071,21 @@ return `
                                         <td class="p-2 text-center font-mono font-black ${Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600'}">
                                             ${a.avance}%
                                         </td>
-                                        <!-- Carga / Verificación Drive -->
+                                        
+                                        <!-- Botón de Drive Vinculado a Carpetas Reales (A-J) -->
                                         <td class="p-2 text-center whitespace-nowrap">
-                                            ${tieneDrive ? `
-                                                <a href="${a.driveUrl}" target="_blank" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 border border-emerald-200">
-                                                    <i class="fa-brands fa-google-drive"></i> Ver Documental
-                                                </a>
-                                            ` : `
-                                                <button type="button" onclick="cargarArchivoDirectoDesdeExcel('${idClave}', '${h.panel}')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 border border-indigo-200">
-                                                    <i class="fa-solid fa-cloud-arrow-up"></i> Subir PDF
-                                                </button>
-                                            `}
+                                            <button type="button" onclick="abrirExpedienteODrivePanel('${idClave}', '${h.panel}')" 
+                                                    class="px-2.5 py-1 ${tieneDrive ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'} rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border transition">
+                                                <i class="fa-brands fa-google-drive ${tieneDrive ? 'text-emerald-600' : 'text-amber-500'}"></i>
+                                                <span>${tieneDrive ? 'Ver Documental' : 'Abrir Carpeta ' + h.panel}</span>
+                                            </button>
                                         </td>
-                                        <!-- Botón de Solicitud de Edición con Candado -->
+
+                                        <!-- Botón Dinámico de Editar Acción -->
                                         <td class="p-2 text-center whitespace-nowrap">
-                                            <button type="button" onclick="solicitarModificacionAccionGeneral('${idClave}', '${a.accion.replace(/'/g, "\\'")}', ${a.avance}, '${a.estatus}')" 
-                                                    class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition">
-                                                <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar Acción
+                                            <button type="button" onclick="abrirModalEdicionDinamica('ACCION', '${idClave}')" 
+                                                    class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition">
+                                                <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar
                                             </button>
                                         </td>
                                     </tr>
@@ -5100,97 +5101,170 @@ return `
 };
 
 // =========================================================================
-// CANDADO DE SEGURIDAD: WORKFLOW DE SOLICITUD A AUDITORÍA (AUDITORIA.HTML)
+// APERTURA DE EXPEDIENTE / CARPETAS DE GOOGLE DRIVE (A a J)
 // =========================================================================
+window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
+    const act = accionesDataset.find(a => (a.clave_accion === idClave) || (a.id === idClave));
+    if (act && act.driveUrl && act.driveUrl.trim() !== '') {
+        window.open(act.driveUrl, '_blank');
+    } else {
+        window.abrirCarpetaDrivePanel(panelLetra);
+    }
+};
 
-// 3. Solicitar Modificación de Hito
-window.solicitarModificacionHitoGeneral = function(claveHito, tituloHito) {
-    const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+// =========================================================================
+// CONTROLADOR DEL MODAL DE EDICIÓN DINÁMICA
+// =========================================================================
+window.abrirModalEdicionDinamica = function(tipo, claveId) {
+    const modal = document.getElementById('modal-edicion-dinamica');
+    const inputTipo = document.getElementById('editItemTipo');
+    const inputClave = document.getElementById('editItemClave');
+    const inputPanel = document.getElementById('editItemPanel');
+    const lblClave = document.getElementById('labelClaveActivaEdit');
+    const lblPanel = document.getElementById('labelPanelActivoEdit');
+    const lblTitulo = document.getElementById('lblTituloPrincipalEdit');
+    const txtTitulo = document.getElementById('inputTituloEdit');
+    const bloqueAccion = document.getElementById('bloqueCamposAccion');
+    const txtMotivo = document.getElementById('inputMotivoEdit');
 
-    const nuevoTitulo = prompt(`[CANDADO DE GOBERNANZA]\nModificar Hito: ${claveHito}\n\nIngrese el nuevo título normativo:`, tituloHito);
-    if (!nuevoTitulo || nuevoTitulo.trim() === '' || nuevoTitulo === tituloHito) return;
+    if (!modal) return;
+    txtMotivo.value = '';
 
-    const motivo = prompt("Motivo o sustento técnico para la modificación (Obligatorio para auditoría):");
-    if (!motivo || motivo.trim() === '') {
-        alert("Operación cancelada: Todo cambio debe justificar su causa raíz conforme al Art. 6.");
-        return;
+    inputTipo.value = tipo;
+    inputClave.value = claveId;
+    lblClave.innerText = claveId;
+
+    if (tipo === 'HITO') {
+        const hitoItems = accionesDataset.filter(a => (a.clave_hito === claveId) || a.id.startsWith(claveId));
+        const item = hitoItems[0] || {};
+
+        inputPanel.value = item.panel || 'A';
+        lblPanel.innerText = `Panel ${item.panel || 'A'} (${item.area || ''})`;
+        lblTitulo.innerText = "Título Oficial del Hito Normativo:";
+        txtTitulo.value = item.hito || '';
+        
+        if (bloqueAccion) bloqueAccion.classList.add('hidden');
+        document.getElementById('badgeTipoEdicion').innerText = "MODIFICACIÓN DE HITO NORMATIVO";
+        document.getElementById('tituloEdicionDinamica').innerText = `Gestión del Hito [${claveId}]`;
+    } else {
+        const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+        if (!act) return;
+
+        inputPanel.value = act.panel || 'A';
+        lblPanel.innerText = `Panel ${act.panel} (${act.area})`;
+        lblTitulo.innerText = "Descripción de la Acción / Entregable Específico:";
+        txtTitulo.value = act.accion || '';
+
+        document.getElementById('inputRespEdit').value = act.responsable || '';
+        document.getElementById('selectEstatusEdit').value = act.estatus || 'En Proceso';
+        document.getElementById('inputAvanceSliderEdit').value = act.avance || 0;
+        document.getElementById('labelAvanceSliderEdit').innerText = `${act.avance || 0}%`;
+
+        if (bloqueAccion) bloqueAccion.classList.remove('hidden');
+        document.getElementById('badgeTipoEdicion').innerText = "MODIFICACIÓN DE ACCIÓN OPERATIVA";
+        document.getElementById('tituloEdicionDinamica').innerText = `Gestión de Acción [${claveId}]`;
     }
 
-    if (esAdmin) {
-        accionesDataset.forEach(a => {
-            if ((a.clave_hito === claveHito) || (a.id.startsWith(claveHito))) {
-                a.hito = nuevoTitulo.trim();
+    openModal('modal-edicion-dinamica');
+};
+
+// =========================================================================
+// GUARDAR CAMBIOS: PROCESAR DIRECTO (ADMIN) O ENCOLAR SOLICITUD (ENLACE)
+// =========================================================================
+window.guardarFormularioEdicionDinamica = async function(e) {
+    e.preventDefault();
+
+    const tipo = document.getElementById('editItemTipo').value;
+    const claveId = document.getElementById('editItemClave').value;
+    const panel = document.getElementById('editItemPanel').value;
+    const nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
+    const motivo = document.getElementById('inputMotivoEdit').value.trim();
+    const fileInput = document.getElementById('inputFileEditDinamico');
+    const btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+
+    const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
+
+    try {
+        let driveUrlFinal = null;
+
+        // Subir archivo mediante Google Apps Script si fue seleccionado
+        if (tipo === 'ACCION' && fileInput && fileInput.files && fileInput.files.length > 0) {
+            const archivoFisico = fileInput.files[0];
+            const nombreNominal = `[${claveId}] ${archivoFisico.name}`;
+            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, panel, nombreNominal);
+        }
+
+        if (tipo === 'HITO') {
+            if (esAdmin) {
+                accionesDataset.forEach(a => {
+                    if ((a.clave_hito === claveId) || a.id.startsWith(claveId)) {
+                        a.hito = nuevoTitulo;
+                    }
+                });
+                guardarDataset();
+                registrarAuditoria('Modificación de Hito (Admin)', { claveId, nuevoTitulo, motivo });
+                alert(`¡Hito [${claveId}] actualizado y sincronizado en todo el sistema!`);
+            } else {
+                registrarSolicitudAuditoria({
+                    tipo: 'MODIFICAR_HITO',
+                    clave: claveId,
+                    campo: 'hito',
+                    valorPropuesto: nuevoTitulo,
+                    motivo: motivo,
+                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                    fecha: new Date().toLocaleString(),
+                    estatus: 'Pendiente de Autorización'
+                });
+                alert(`🔒 SOLICITUD CANALIZADA A AUDITORÍA:\nLa propuesta para el Hito [${claveId}] fue enviada a la mesa de control de 'auditoria.html'.`);
             }
-        });
-        guardarDataset();
-        registrarAuditoria('Modificación Directa de Hito (Admin)', { claveHito, nuevoTitulo, motivo });
-        alert(`¡Hito ${claveHito} actualizado con éxito por Administrador!`);
+        } else {
+            // ACCIÓN
+            const nuevoResp = document.getElementById('inputRespEdit').value.trim();
+            const nuevoEstatus = document.getElementById('selectEstatusEdit').value;
+            const nuevoAvance = parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0;
+
+            const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+            if (!act) return;
+
+            if (esAdmin) {
+                act.accion = nuevoTitulo;
+                act.responsable = nuevoResp;
+                act.estatus = nuevoEstatus;
+                act.avance = nuevoAvance;
+                if (driveUrlFinal) act.driveUrl = driveUrlFinal;
+
+                guardarDataset();
+                registrarAuditoria('Modificación de Acción (Admin)', { claveId, nuevoTitulo, nuevoAvance, nuevoEstatus, motivo });
+                alert(`¡Acción [${claveId}] actualizada exitosamente!`);
+            } else {
+                registrarSolicitudAuditoria({
+                    tipo: 'MODIFICAR_ACCION',
+                    clave: claveId,
+                    campo: 'datos_completos',
+                    valorPropuesto: { accion: nuevoTitulo, responsable: nuevoResp, estatus: nuevoEstatus, avance: nuevoAvance, driveUrl: driveUrlFinal },
+                    motivo: motivo,
+                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                    fecha: new Date().toLocaleString(),
+                    estatus: 'Pendiente de Autorización'
+                });
+                alert(`🔒 SOLICITUD ENVIADA A AUDITORÍA:\nLos cambios propuestos para la Acción [${claveId}] han sido registrados y esperan validación en 'auditoria.html'.`);
+            }
+        }
+
+        closeModal('modal-edicion-dinamica');
         actualizarDashboard();
         renderBaseDatosGeneralJerarquica();
-    } else {
-        registrarSolicitudAuditoria({
-            tipo: 'MODIFICAR_HITO',
-            clave: claveHito,
-            campo: 'hito',
-            valorAnterior: tituloHito,
-            valorPropuesto: nuevoTitulo.trim(),
-            motivo: motivo.trim(),
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        });
-
-        alert(`🔒 SOLICITUD ENVIADA A AUDITORÍA:\n\nTu propuesta de cambio para el Hito ${claveHito} ha sido registrada con éxito.\nUn Administrador debe autorizarla en 'auditoria.html' para reflejarse en el sistema.`);
+    } catch (err) {
+        alert("Error al procesar la actualización: " + err.message);
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
     }
 };
-
-// 4. Solicitar Modificación de Acción
-window.solicitarModificacionAccionGeneral = function(claveAccion, accionDesc, avanceActual, estatusActual) {
-    const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
-
-    const nuevoAvance = prompt(`[CANDADO DE GOBERNANZA]\nAcción: ${claveAccion}\n\nIngrese nuevo porcentaje de avance (0 a 100):`, avanceActual);
-    if (nuevoAvance === null) return;
-    
-    const avanceNum = parseInt(nuevoAvance, 10);
-    if (isNaN(avanceNum) || avanceNum < 0 || avanceNum > 100) {
-        alert("Error: Ingrese un porcentaje válido de 0 a 100.");
-        return;
-    }
-
-    const motivo = prompt("Motivo o número de oficio que acredita este avance:");
-    if (!motivo || motivo.trim() === '') {
-        alert("Operación cancelada: Debe indicar la evidencia documental del avance.");
-        return;
-    }
-
-    if (esAdmin) {
-        const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
-        if (act) {
-            act.avance = avanceNum;
-            if (avanceNum === 100) act.estatus = 'Concluido';
-            guardarDataset();
-            registrarAuditoria('Modificación Directa de Acción (Admin)', { claveAccion, avanceNum, motivo });
-            alert(`¡Acción ${claveAccion} actualizada exitosamente!`);
-            actualizarDashboard();
-            renderBaseDatosGeneralJerarquica();
-        }
-    } else {
-        registrarSolicitudAuditoria({
-            tipo: 'MODIFICAR_ACCION',
-            clave: claveAccion,
-            campo: 'avance',
-            valorAnterior: avanceActual,
-            valorPropuesto: avanceNum,
-            motivo: motivo.trim(),
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        });
-
-        alert(`🔒 SOLICITUD CANALIZADA A AUDITORÍA:\n\nEl cambio de avance (${avanceActual}% ➔ ${avanceNum}%) ha sido enviado a la mesa de control de 'auditoria.html'.`);
-    }
-};
-
+        
 // 5. Registrar solicitudes para auditoria.html
 function registrarSolicitudAuditoria(solicitud) {
     let solicitudes = JSON.parse(localStorage.getItem('secul_solicitudes_cambio')) || [];
@@ -5637,6 +5711,116 @@ window.procesarImportacionExcelGeneral = function(event) {
                 Cerrar Base de Datos
             </button>
         </div>
+
+    </div>
+</div>
+
+    <!-- ========================================================================= -->
+<!-- MODAL DINÁMICO DE EDICIÓN Y GOBERNANZA (HITO / ACCIÓN)                     -->
+<!-- ========================================================================= -->
+<div id="modal-edicion-dinamica" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header Dinámico -->
+        <div id="headerEdicionDinamica" class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <div id="iconoEdicionDinamica" class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
+                    <i class="fa-solid fa-pen-ruler"></i>
+                </div>
+                <div>
+                    <span id="badgeTipoEdicion" class="text-[10px] uppercase font-black tracking-wider text-amber-300 block">MODIFICACIÓN NORMATIVA</span>
+                    <h3 id="tituloEdicionDinamica" class="font-bold text-base leading-snug">Editar Registro</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-edicion-dinamica')" class="text-slate-300 hover:text-white text-lg transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formulario Interactivo -->
+        <form id="formEdicionDinamica" onsubmit="guardarFormularioEdicionDinamica(event)" class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+            <input type="hidden" id="editItemTipo">
+            <input type="hidden" id="editItemClave">
+            <input type="hidden" id="editItemPanel">
+
+            <!-- Ficha Técnica de la Clave -->
+            <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Clave Canónica:</span>
+                    <span id="labelClaveActivaEdit" class="font-mono font-black text-indigo-950 text-xs">--</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Comisión / Panel:</span>
+                    <span id="labelPanelActivoEdit" class="font-bold text-indigo-700 text-xs">Panel --</span>
+                </div>
+            </div>
+
+            <!-- Campo Principal (Título del Hito o Acción) -->
+            <div>
+                <label id="lblTituloPrincipalEdit" class="block font-bold text-slate-800 mb-1">Descripción / Título Oficial:</label>
+                <textarea id="inputTituloEdit" rows="2" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
+            </div>
+
+            <!-- Controles Exclusivos para Acciones -->
+            <div id="bloqueCamposAccion" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Responsable Institucional:</label>
+                        <input type="text" id="inputRespEdit" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus Normativo:</label>
+                        <select id="selectEstatusEdit" class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs">
+                            <option value="En Proceso">🔵 En Proceso</option>
+                            <option value="Validación">🟣 Validación</option>
+                            <option value="En Espera Tercero (Art. 6)">🟡 En Espera Tercero (Art. 6)</option>
+                            <option value="Concluido">🟢 Concluido (100%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Slider de Avance -->
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label class="font-bold text-slate-700 text-[11px]">Porcentaje de Avance Acreditado:</label>
+                        <span id="labelAvanceSliderEdit" class="font-black text-indigo-700 text-sm">0%</span>
+                    </div>
+                    <input type="range" id="inputAvanceSliderEdit" min="0" max="100" step="5" class="w-full accent-indigo-600 cursor-pointer"
+                           oninput="document.getElementById('labelAvanceSliderEdit').innerText = this.value + '%'">
+                </div>
+
+                <!-- Carga directa a Google Drive vía Apps Script -->
+                <div class="p-3 bg-amber-50/60 border border-amber-200 rounded-2xl space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-amber-950 text-[11px] flex items-center gap-1.5">
+                            <i class="fa-brands fa-google-drive text-amber-600 text-sm"></i> Expediente Probatorio (Drive):
+                        </span>
+                        <button type="button" onclick="abrirCarpetaDrivePanel(document.getElementById('editItemPanel').value)" class="text-[10px] font-bold text-indigo-600 hover:underline">
+                            Abrir Carpeta del Panel <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="inputFileEditDinamico" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700">
+                </div>
+            </div>
+
+            <!-- Justificación Obligatoria para Auditoría (Art. 6) -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">
+                    <i class="fa-solid fa-shield-halved text-indigo-600 me-1"></i> Sustento Técnico / Justificación del Cambio (Auditoría):
+                </label>
+                <textarea id="inputMotivoEdit" rows="2" placeholder="Describa el motivo, oficio u observación que respalda esta actualización..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
+            </div>
+
+            <!-- Footer con Botones -->
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-edicion-dinamica')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">
+                    Cancelar
+                </button>
+                <button type="submit" id="btnGuardarEdicionDinamica" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i> Aplicar y Propagar
+                </button>
+            </div>
+        </form>
 
     </div>
 </div>
