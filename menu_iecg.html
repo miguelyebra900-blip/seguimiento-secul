@@ -3971,7 +3971,63 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // 1. Obtener comunicado activo (desde LocalStorage o Supabase)
 // =========================================================================
-        // MOTOR SINCRONIZADO Y RESILIENTE DEL CINTILLO (5 VECES EL COMUNICADO)
+        // CONSTANTES GLOBALES DE TEMPORALIDAD Y CATÁLOGO DE ÁREAS (GANTT)
+        // Declaradas al inicio para evitar ReferenceError por orden de carga
+        // =========================================================================
+        var FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
+        var FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
+
+        var catalogoAreasEstrategicas = [
+            { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
+            { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
+            { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
+            { panel: 'D', id: 'FID_F-H-0001', prefijoAccion: 'FID_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
+            { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
+            { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
+            { panel: 'G', id: 'TIT_S-H-0001', prefijoAccion: 'TIT_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
+            { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
+            { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
+            { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
+        ];
+
+        var indiceAreaActiva = 0;
+
+        // =========================================================================
+        // MOTOR DE ACTUALIZACIÓN DEL DASHBOARD (PROTEGIDO CONTRA EXCEPCIONES)
+        // =========================================================================
+        function actualizarDashboard() {
+            try {
+                const metricas = calcularMetricas();
+                const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
+                const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
+                const elKpiTerceros = document.getElementById('kpiTercerosTop');
+
+                if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
+                if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
+                if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
+
+                // Vistas obligatorias
+                if (typeof renderTarjetas10Areas === 'function') renderTarjetas10Areas(metricas.avancesPorArea);
+                if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
+                if (typeof renderCharts === 'function') renderCharts(metricas);
+
+                // Tableros sincronizados
+                if (typeof renderTableroGanttEjecutivo === 'function') {
+                    renderTableroGanttEjecutivo();
+                }
+                if (typeof seleccionarAreaEstrategica === 'function') {
+                    seleccionarAreaEstrategica(indiceAreaActiva);
+                }
+            } catch (err) {
+                console.error("Aviso controlado en renderizado del Dashboard:", err);
+            }
+
+            // Inyección segura del cintillo sin frenar los eventos de clic
+            renderCintilloNoticioso();
+        }
+
+        // =========================================================================
+        // MOTOR DEL CINTILLO: LECTURA DIRECTA Y SIN ERRORES DE SINTAXIS
         // =========================================================================
         function obtenerComunicadoDirectivoVigente() {
             try {
@@ -3986,11 +4042,11 @@ window.addEventListener('DOMContentLoaded', () => {
             if (!track) return;
 
             const com = obtenerComunicadoDirectivoVigente();
-            const ORIGEN_ACTUAL = "IECG"; // En menu_forum.html cambiar a "FORUM"
+            const ORIGEN_ACTUAL = "IECG";
             const tieneAvisoActivo = Boolean(com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino));
 
-            // Plantilla de la pastilla con destello pulsante
-            const construirPillComunicado = () => `
+            // Pastilla dorada con destello
+            const pillComunicadoHTML = () => `
                 <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
                     <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
                     <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
@@ -4017,9 +4073,9 @@ window.addEventListener('DOMContentLoaded', () => {
             let itemsIntercaladosHTML = '';
 
             paneles.forEach((letraPanel, idx) => {
-                // Intercala el comunicado cada 2 paneles (5 repeticiones: A, C, E, G, I)
+                // Intercalar 5 veces el comunicado (en paneles A, C, E, G, I)
                 if (tieneAvisoActivo && idx % 2 === 0) {
-                    itemsIntercaladosHTML += construirPillComunicado();
+                    itemsIntercaladosHTML += pillComunicadoHTML();
                 }
 
                 const accionesDelPanel = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) 
@@ -4046,7 +4102,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
 
-            // Proyección de alerta emergente de bienvenida si hay un comunicado vigente
+            // Proyección del aviso flotante
             if (tieneAvisoActivo && typeof proyectarAvisoAlEntrarSesion === 'function') {
                 proyectarAvisoAlEntrarSesion(com, true);
             }
