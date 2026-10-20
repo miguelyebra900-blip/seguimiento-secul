@@ -412,7 +412,7 @@ window.guardarContactoNotificaciones = async function(e) {
     </div>
 
     <!-- KPI 4: PUNTOS CRÍTICOS MAPEADOS -->
-    <div onclick="openModal('modal-riesgos')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-rose-400 transition cursor-pointer group">
+    <div onclick="openModal('modal-riesgos-inicio')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-rose-400 transition cursor-pointer group">
         <div class="flex items-center justify-between mb-2">
             <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">Puntos Críticos Mapeados</span>
             <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs group-hover:bg-rose-600 group-hover:text-white transition">
@@ -2207,24 +2207,23 @@ window.guardarContactoNotificaciones = async function(e) {
 
         // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES
     // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES (BLINDADAS)
+       // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES (BLINDADAS)
         window.openModal = function(id) {
             const m = document.getElementById(id);
-            if (m) {
-                m.classList.remove('hidden');
-                m.style.setProperty('display', 'flex', 'important');
-            } else {
-                console.warn("No se encontró el modal con ID:", id);
+            if (!m) {
+                console.warn("Advertencia: Se intentó abrir un modal inexistente con ID:", id);
+                return;
             }
+            m.classList.remove('hidden');
+            m.style.setProperty('display', 'flex', 'important');
         };
 
         window.closeModal = function(id) {
             const m = document.getElementById(id);
-            if (m) {
-                m.style.setProperty('display', 'none', 'important');
-                m.classList.add('hidden');
-            }
+            if (!m) return;
+            m.style.setProperty('display', 'none', 'important');
+            m.classList.add('hidden');
         };
-
 // Función de respaldo para el efecto neón en KPIs
 function activarKpiNeon(elemento, tipoKpi) {
     document.querySelectorAll('.card-kpi-box').forEach(card => {
