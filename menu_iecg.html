@@ -3957,18 +3957,24 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         // Función para mostrar el comunicado completo al dar clic
-        window.abrirModalComunicadoVigente = function() {
-            try {
-                const com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
-                if (!com) {
-                    alert("No hay ningún comunicado emitido por Auditoría en este momento.");
-                    return;
-                }
-                alert(`📢 COMUNICADO INSTITUCIONAL:\n\n• Asunto: ${com.titulo || 'Sin Asunto'}\n• Emitido por: ${com.emisor || 'Dirección General / Auditoría'}\n• Fecha: ${com.fecha || ''}\n\n${com.cuerpo || ''}`);
-            } catch(e) {
-                console.error("Error al desplegar comunicado:", e);
-            }
-        };
+     window.abrirModalComunicadoVigente = function() {
+    try {
+        const com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
+        if (!com) {
+            alert("No hay ningún comunicado emitido por Auditoría en este momento.");
+            return;
+        }
+
+        document.getElementById('customModalComTitulo').innerText = com.titulo || 'Sin Asunto';
+        document.getElementById('customModalComEmisor').innerText = com.emisor || 'Dirección General / Auditoría';
+        document.getElementById('customModalComFecha').innerText = com.fecha || '';
+        document.getElementById('customModalComCuerpo').innerText = com.cuerpo || '';
+
+        openModal('modal-comunicado-oficial');
+    } catch(e) {
+        console.error("Error al desplegar comunicado:", e);
+    }
+};
 
         // =========================================================================
         // APERTURA Y RENDER DINÁMICO DE LA MEMORIA DE CÁLCULO DIRECTIVA
@@ -7070,4 +7076,50 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
     
 </body>
+<!-- MODAL PERSONALIZADO PARA COMUNICADOS OFICIALES (REEMPLAZO DE ALERT) -->
+<div id="modal-comunicado-oficial" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-amber-300 flex flex-col">
+        <!-- Header Personalizado -->
+        <div class="bg-gradient-to-r from-slate-950 via-amber-950 to-slate-950 p-5 text-white flex justify-between items-center border-b border-amber-500/30">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-lg border border-amber-400/30">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-300 block">SECRETARÍA DE CULTURA DE GUANAJUATO</span>
+                    <h3 class="font-black text-sm text-white">Comunicado Institucional Directivo</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-comunicado-oficial')" class="text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Cuerpo del Mensaje -->
+        <div class="p-6 space-y-4 text-xs text-slate-700">
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Asunto:</span>
+                <h4 id="customModalComTitulo" class="font-black text-slate-900 text-sm">--</h4>
+                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-amber-100">
+                    <span><strong>Emisor:</strong> <span id="customModalComEmisor">--</span></span>
+                    <span id="customModalComFecha" class="font-mono text-[10px]">--</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">Contenido Oficial:</label>
+                <div id="customModalComCuerpo" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 font-medium whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                    --
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-comunicado-oficial')" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition">
+                    Aceptar / Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    
 </html>
