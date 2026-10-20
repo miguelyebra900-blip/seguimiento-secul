@@ -5806,7 +5806,7 @@ window.actualizarPastillaUsuarioModalUniversal = function() {
 
     if (currentUser) {
         if (lblNombre) lblNombre.innerText = currentUser.nombre;
-        const paneles = currentUser.paneles_autorizados || [currentUser.panel_origen || 'A'];
+        const paneles = resolverPanelesUsuario(currentUser);
         if (lblPanel) lblPanel.innerText = `Panel ${paneles.join(', ')}`;
     } else {
         if (lblNombre) lblNombre.innerText = "Modo Consulta";
@@ -5814,7 +5814,6 @@ window.actualizarPastillaUsuarioModalUniversal = function() {
     }
 };
 
-// 2. Llena el desplegable destacando en azul suave los hitos de tu área
 window.poblarSelectBuzon = function(idSeleccionado = null) {
     const select = document.getElementById('buzonSelectAccion');
     if (!select) return;
@@ -5822,7 +5821,7 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
 
     actualizarPastillaUsuarioModalUniversal();
 
-    const misPaneles = currentUser ? (currentUser.paneles_autorizados || [currentUser.panel_origen || 'A']) : [];
+    const misPaneles = resolverPanelesUsuario(currentUser);
     const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
 
     accionesDataset.forEach(a => {
@@ -5833,13 +5832,13 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
         const esDeMiPanel = misPaneles.includes(a.panel);
 
         if (esAdmin || esDeMiPanel) {
-            // Hito de tu panel: con círculo azul y fondo azul suave
+            // Hitos de su panel asignado (destacado en azul tenue)
             opt.textContent = `🔵 [Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 42)}...`;
             opt.style.backgroundColor = '#e0e7ff';
             opt.style.color = '#1e1b4b';
             opt.style.fontWeight = 'bold';
         } else {
-            // Hito de otras áreas
+            // Hitos de otras comisiones
             opt.textContent = `⚪ [Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 42)}...`;
             opt.style.backgroundColor = '#ffffff';
             opt.style.color = '#334155';
@@ -5852,10 +5851,9 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
         select.appendChild(opt);
     });
 
-    if (typeof actualizarFolioAccionSugerido === 'function') {
-        actualizarFolioAccionSugerido();
-    }
-};   
+    actualizarFolioAccionSugerido();
+    if (typeof actualizarInfoAccionBuzon === 'function') actualizarInfoAccionBuzon();
+};
 
 // =========================================================================
 // FUNCIONES GLOBALES DEL MODAL UNIVERSAL DE VINCULACIÓN
@@ -5969,6 +5967,174 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         closeModal('modal-vinculacion-universal');
     } catch (err) {
         alert("Error al procesar la vinculación: " + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Enviar a Validación';
+        }
+    }
+};
+        // Función para inferir paneles del usuario de forma infalible
+function resolverPanelesUsuario(user) {
+    if (!user) return ['A'];
+    const r = (user.rol || '').toLowerCase();
+    if (r === 'admin' || r === 'master_admin' || r === 'super') {
+        return ['A','B','C','D','E','F','G','H','I','J'];
+    }
+    if (Array.isArray(user.paneles_autorizados) && user.paneles_autorizados.length > 0) {
+        return user.paneles_autorizados;
+    }
+    const u = (user.usuario || '').toLowerCase();
+    const a = (user.area_adscripcion || '').toLowerCase();
+
+    // Detección de Dirección Jurídica -> Paneles B y D
+    if (u.includes('juridico') || a.includes('jurídic') || a.includes('juridic')) return ['B', 'D'];
+    if (u.includes('rh') || a.includes('recursos') || a.includes('humano')) return ['A', 'J'];
+    if (u.includes('patrimonio') || a.includes('patrimonial')) return ['E', 'C'];
+    if (u.includes('archivo') || a.includes('documental')) return ['H'];
+    if (u.includes('finanza') || a.includes('financier')) return ['F'];
+    if (u.includes('ti') || a.includes('tecnolog') || a.includes('sistema')) return ['G'];
+    if (u.includes('aseg') || a.includes('auditor') || a.includes('fiscaliz')) return ['I'];
+    return ['A'];
+}
+
+// Actualizar siempre al cargar la página
+if (currentUser) {
+    currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
+    localStorage.setItem('secul_user', JSON.stringify(currentUser));
+}
+
+        // =========================================================================
+// MOTOR INTEGRAL DEL MODAL UNIVERSAL DE VINCULACIÓN
+// =========================================================================
+
+// 1. Abrir Modal Universal con preselección inteligente
+window.abrirModalVinculacionUniversalDirecta = function(hitoPreseleccionado = null, accionPreseleccionada = null) {
+    if (!currentUser) {
+        alert("Debe iniciar sesión para solicitar la vinculación de un hito o acción.");
+        openModal('modal-auth');
+        return;
+    }
+
+    const misPaneles = resolverPanelesUsuario(currentUser);
+    const elMiPanel = document.getElementById('vinculoMiPanelTexto');
+    const elMiNombre = document.getElementById('vinculoMiNombreTexto');
+    const elMotivo = document.getElementById('txtVinculoMotivoOficial');
+    const elFile = document.getElementById('fileVinculoDocumental');
+
+    if (elMiPanel) elMiPanel.innerText = `Panel ${misPaneles.join(', ')} (${currentUser.area_adscripcion || currentUser.rol})`;
+    if (elMiNombre) elMiNombre.innerText = `${currentUser.nombre} (${currentUser.usuario})`;
+    if (elMotivo) elMotivo.value = '';
+    if (elFile) elFile.value = '';
+
+    // Llenar el catálogo de Hitos
+    filtrarHitosPorAreaEnVinculo(hitoPreseleccionado);
+    actualizarAccionesParaVinculoUniversal(accionPreseleccionada);
+
+    openModal('modal-vinculacion-universal');
+};
+
+// 2. Filtrar hitos según el área seleccionada en el combo 1
+window.filtrarHitosPorAreaEnVinculo = function(hitoForzado = null) {
+    const selArea = document.getElementById('selFiltroAreaVinculo');
+    const selHito = document.getElementById('selVinculoHitoObjetivo');
+    if (!selHito) return;
+
+    const areaFiltro = selArea ? selArea.value : 'TODOS';
+
+    const hitosMap = {};
+    accionesDataset.forEach(a => {
+        if (areaFiltro !== 'TODOS' && a.panel !== areaFiltro) return;
+        const hId = a.clave_hito || a.id.split('-A-')[0];
+        if (!hitosMap[hId]) {
+            hitosMap[hId] = { id: hId, panel: a.panel, hito: a.hito, area: a.area };
+        }
+    });
+
+    selHito.innerHTML = Object.values(hitosMap).map(h => 
+        `<option value="${h.id}">[Panel ${h.panel}] ${h.id} - ${h.hito}</option>`
+    ).join('');
+
+    if (hitoForzado && hitosMap[hitoForzado]) {
+        selHito.value = hitoForzado;
+    }
+
+    actualizarAccionesParaVinculoUniversal();
+};
+
+// 3. Desprender las acciones subordinadas según el Hito seleccionado
+window.actualizarAccionesParaVinculoUniversal = function(accionForzada = null) {
+    const selHito = document.getElementById('selVinculoHitoObjetivo');
+    const selAccion = document.getElementById('selVinculoAccionObjetivo');
+    const badgeConteo = document.getElementById('badgeConteoAccionesHito');
+    if (!selHito || !selAccion) return;
+
+    const hitoId = selHito.value;
+    const accionesDelHito = accionesDataset.filter(a => (a.clave_hito === hitoId) || a.id.startsWith(hitoId));
+
+    if (badgeConteo) badgeConteo.innerText = `${accionesDelHito.length} acciones subordinadas`;
+
+    selAccion.innerHTML = '<option value="TODAS">★ Vincular el Hito completo (con todas sus acciones)</option>' +
+        accionesDelHito.map(a => 
+            `<option value="${a.clave_accion || a.id}">[${a.clave_accion || a.id}] ${a.accion.slice(0, 55)}...</option>`
+        ).join('');
+
+    if (accionForzada && accionForzada !== 'TODAS') {
+        selAccion.value = accionForzada;
+    }
+};
+
+// 4. Procesar el envío formal, subir archivo a Drive y emitir dictamen de auditoría
+window.procesarVinculacionUniversalOficial = async function(e) {
+    e.preventDefault();
+
+    const hitoId = document.getElementById('selVinculoHitoObjetivo').value;
+    const accionId = document.getElementById('selVinculoAccionObjetivo').value;
+    const tipoCoesp = document.getElementById('selTipoCorresponsabilidad').value;
+    const motivo = document.getElementById('txtVinculoMotivoOficial').value.trim();
+    const fileInput = document.getElementById('fileVinculoDocumental');
+    const btn = document.getElementById('btnSubmitVinculoOficial');
+
+    const misPaneles = resolverPanelesUsuario(currentUser);
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo soporte y enviando...';
+    }
+
+    try {
+        let driveUrlSoporte = '';
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            const panelOrigen = misPaneles[0] || 'A';
+            const nombreArchivo = `[VINC-${accionId === 'TODAS' ? hitoId : accionId}] ${fileInput.files[0].name}`;
+            driveUrlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, nombreArchivo);
+        }
+
+        const ticketVinculacion = {
+            tipo: 'VINCULACION_INTERINSTITUCIONAL',
+            clave: accionId === 'TODAS' ? hitoId : accionId,
+            nivel_vinculacion: accionId === 'TODAS' ? 'Hito Integral' : 'Acción Específica',
+            tipo_corresponsabilidad: tipoCoesp,
+            hito_objetivo: hitoId,
+            accion_objetivo: accionId,
+            panel_solicitante: misPaneles.join(', '),
+            motivo: motivo,
+            drive_url: driveUrlSoporte,
+            solicitante: `${currentUser.nombre} (${currentUser.usuario})`,
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Validación y Autorización'
+        };
+
+        if (typeof registrarSolicitudAuditoria === 'function') {
+            registrarSolicitudAuditoria(ticketVinculacion);
+        }
+
+        // MENSAJE OFICIAL EXIGIDO
+        alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA CON ÉXITO:\n\nTu petición para vincular [${ticketVinculacion.clave}] (${ticketVinculacion.tipo_corresponsabilidad}) con tu comisión ha sido registrada en el sistema.\n\n⚠️ Deberá estar sujeta a validación y autorización del Director General de Administración y el Líder del Proyecto de Seguimiento a la Extinción.`);
+
+        closeModal('modal-vinculacion-universal');
+    } catch (err) {
+        alert("Error al tramitar la vinculación: " + err.message);
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -6431,42 +6597,50 @@ window.procesarVinculacionUniversalOficial = async function(e) {
     </div>
 </div>
 
+    <!-- ========================================================================= -->
+<!-- MODAL UNIVERSAL INTEGRAL DE VINCULACIÓN Y CO-RESPONSABILIDAD (OFICIAL)    -->
 <!-- ========================================================================= -->
-<!-- MODAL: SOLICITUD DE VINCULACIÓN A COMISIÓN / PANEL ADICIONAL              -->
-<!-- ========================================================================= -->
-<div id="modal-solicitar-vinculacion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+<div id="modal-vinculacion-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
-                    <i class="fa-solid fa-link"></i>
+        <!-- Header Ejecutivo con Identidad Oficial -->
+        <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-5 text-white flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-xl border border-purple-500/30 shadow-inner">
+                    <i class="fa-solid fa-diagram-project"></i>
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-base leading-snug">Vincular a Comisión Adicional</h3>
-                    <p class="text-[11px] text-slate-300">Petición de co-titularidad para permisos de edición</p>
+                    <span class="text-[10px] font-black uppercase tracking-wider bg-purple-500/30 text-purple-200 px-2.5 py-0.5 rounded-full border border-purple-400/30">
+                        Co-responsabilidad Interinstitucional (Art. 6)
+                    </span>
+                    <h3 class="text-base font-black mt-1">Mesa de Vinculación de Hitos y Acciones</h3>
                 </div>
             </div>
-            <button type="button" onclick="closeModal('modal-solicitar-vinculacion')" class="text-slate-400 hover:text-white text-lg transition">
+            <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <!-- Formulario -->
-        <form onsubmit="enviarSolicitudVinculacionPanel(event)" class="p-6 space-y-4 text-xs text-slate-700">
-            <!-- Indicador del usuario actual -->
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block">Usuario Solicitante:</span>
-                <span id="lblUsuarioSolicitanteVinculo" class="font-bold text-indigo-950 text-xs block">--</span>
-                <span id="lblPanelesActualesVinculo" class="text-[10.5px] text-slate-500 block">Paneles asignados actualmente: <strong>--</strong></span>
+        <!-- Formulario Integral Guiado -->
+        <form onsubmit="procesarVinculacionUniversalOficial(event)" class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+            
+            <!-- 1. Ficha del Solicitante Activo -->
+            <div class="p-3.5 bg-purple-50/70 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Comisión Solicitante:</span>
+                    <strong id="vinculoMiPanelTexto" class="text-purple-950 font-bold text-xs">--</strong>
+                </div>
+                <div class="sm:text-right">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Usuario Titular:</span>
+                    <span id="vinculoMiNombreTexto" class="font-semibold text-purple-900 text-xs">--</span>
+                </div>
             </div>
 
-            <!-- Selector de Panel a Solicitar -->
+            <!-- 2. Filtro Rápido por Comisión/Área del Hito -->
             <div>
-                <label class="block font-bold text-slate-800 mb-1">Comisión / Panel al que requiere acceso:</label>
-                <select id="selPanelSolicitado" class="w-full p-2.5 border rounded-xl bg-white font-bold text-indigo-900 text-xs focus:ring-2 focus:ring-indigo-500 shadow-2xs" required>
-                    <option value="" disabled selected>Seleccione un Panel...</option>
+                <label class="block font-bold text-slate-800 mb-1">1. Filtrar por Área / Comisión del Hito a Vincular:</label>
+                <select id="selFiltroAreaVinculo" onchange="filtrarHitosPorAreaEnVinculo()" class="w-full p-2.5 border rounded-xl bg-white font-bold text-slate-800 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs">
+                    <option value="TODOS">Todas las Áreas (A - J)</option>
                     <option value="A">Panel A - Recursos Humanos & Estructura</option>
                     <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
                     <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
@@ -6480,146 +6654,62 @@ window.procesarVinculacionUniversalOficial = async function(e) {
                 </select>
             </div>
 
-            <!-- Justificación Técnica -->
+            <!-- 3. Selección Dinámica del Hito Rector -->
             <div>
-                <label class="block font-bold text-slate-800 mb-1">
-                    <i class="fa-solid fa-shield-halved text-indigo-600 me-1"></i> Justificación de Vinculación Interinstitucional:
-                </label>
-                <textarea id="txtMotivoVinculacion" rows="3" placeholder="Ej. Se requiere dar seguimiento a las actas del Comité y derechos laborales vinculados con la entrega de expedientes..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
-                <span class="text-[10px] text-slate-400 block mt-1">Esta solicitud será evaluada y autorizada por la Mesa de Control en <code>auditoria.html</code>.</span>
+                <label class="block font-bold text-slate-800 mb-1">2. Hito Rector Vinculado:</label>
+                <select id="selVinculoHitoObjetivo" onchange="actualizarAccionesParaVinculoUniversal()" class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-indigo-950 text-xs focus:ring-2 focus:ring-purple-500 border-indigo-200" required></select>
             </div>
 
-            <!-- Botones -->
-            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-solicitar-vinculacion')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">
+            <!-- 4. Desglose de Acciones de ese Hito (Permite vincular solo 1 acción específica o todo) -->
+            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-purple-600"></i> 3. Acción Específica de este Hito que se Vincula:
+                    </label>
+                    <span id="badgeConteoAccionesHito" class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-lg border text-slate-600">-- acciones</span>
+                </div>
+                <select id="selVinculoAccionObjetivo" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs">
+                    <option value="TODAS">★ Vincular el Hito completo (con todas sus acciones)</option>
+                </select>
+                <p class="text-[10.5px] text-slate-500">Puedes vincular <strong>exclusivamente una sola acción</strong> si tu área solo coadyuva en ese entregable, o el hito completo.</p>
+            </div>
+
+            <!-- 5. Tipo o Nivel de Co-responsabilidad -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">Tipo de Co-responsabilidad:</label>
+                    <select id="selTipoCorresponsabilidad" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
+                        <option value="Aportación de Expediente">Aportación de Expediente / Soporte</option>
+                        <option value="Revisión y Dictamen Jurídico">Revisión y Dictamen Jurídico</option>
+                        <option value="Seguimiento y Validación de Entrega">Seguimiento y Validación de Entrega</option>
+                        <option value="Co-titularidad de Gestión">Co-titularidad Plena de Gestión</option>
+                    </select>
+                </div>
+                <!-- 6. Carga de Documental Probatoria / Oficio de Enlace a Drive -->
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">
+                        <i class="fa-brands fa-google-drive text-amber-500"></i> Oficio de Enlace / Soporte (PDF):
+                    </label>
+                    <input type="file" id="fileVinculoDocumental" class="w-full p-1 border rounded-xl text-xs bg-white file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10.5px] file:font-bold file:bg-purple-50 file:text-purple-700">
+                </div>
+            </div>
+
+            <!-- 7. Justificación Técnica y Fundamento Legal -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">
+                    <i class="fa-solid fa-scale-balanced text-purple-700 me-1"></i> Justificación de Vinculación / Causa Raíz (Art. 6):
+                </label>
+                <textarea id="txtVinculoMotivoOficial" rows="3" placeholder="Indicar el número de oficio, proceso interinstitucional o razón por la cual su comisión coadyuva en este entregable..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-500 text-xs" required></textarea>
+                <p class="text-[10px] text-slate-400 mt-1">
+                    ⚠️ <em>Esta solicitud será revisada por la Mesa de Control en <code>auditoria.html</code> y requiere autorización de Dirección General de Administración y el Líder de Proyecto.</em>
+                </p>
+            </div>
+
+            <!-- Footer de Botones -->
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">
                     Cancelar
                 </button>
-                <button type="submit" id="btnSubmitVinculacion" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-paper-plane"></i> Enviar Petición
-                </button>
-            </div>
-        </form>
-
-    </div>
-</div>
-
-    <!-- ========================================================================= -->
-<!-- MODAL DE VINCULACIÓN INTERINSTITUCIONAL DE HITO / ACCIÓN                  -->
-<!-- ========================================================================= -->
-<div id="modal-vincular-elemento" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
-                    <i class="fa-solid fa-diagram-project"></i>
-                </div>
-                <div>
-                    <span id="badgeTipoVinculoElemento" class="text-[10px] font-black uppercase text-indigo-300 tracking-wider block">VINCULACIÓN DE ÁREA</span>
-                    <h3 id="tituloVinculoElemento" class="font-bold text-base leading-snug">Vincular con otra Comisión</h3>
-                </div>
-            </div>
-            <button type="button" onclick="closeModal('modal-vincular-elemento')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <form onsubmit="ejecutarVinculacionElementoGlobal(event)" class="p-6 space-y-4 text-xs text-slate-700">
-            <input type="hidden" id="vinculoTipoItem">
-            <input type="hidden" id="vinculoClaveItem">
-
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block">Elemento Seleccionado:</span>
-                <span id="lblElementoSeleccionado" class="font-mono font-black text-indigo-950 text-xs block">--</span>
-                <p id="descElementoSeleccionado" class="text-[11px] text-slate-600 font-medium">--</p>
-            </div>
-
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">Comisión / Panel con el que se vincula:</label>
-                <select id="selPanelVinculadoDestino" class="w-full p-2.5 border rounded-xl bg-white font-bold text-indigo-900 text-xs focus:ring-2 focus:ring-indigo-500" required>
-                    <option value="" disabled selected>Seleccione un Panel...</option>
-                    <option value="A">Panel A - Recursos Humanos & Estructura</option>
-                    <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
-                    <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
-                    <option value="D">Panel D - Fideicomisos & Fondos Especiales (FIARCA)</option>
-                    <option value="E">Panel E - Control Patrimonial & Bienes Muebles</option>
-                    <option value="F">Panel F - Financiero, Presupuestal & Fiscal (SAT)</option>
-                    <option value="G">Panel G - Tecnologías de la Información (TI)</option>
-                    <option value="H">Panel H - Archivo & Gestión Documental</option>
-                    <option value="I">Panel I - Fiscalización & Auditorías (ASEG)</option>
-                    <option value="J">Panel J - Asuntos Internos / Líder de Proyecto</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">Causa o Fundamento de Co-responsabilidad (Art. 6):</label>
-                <textarea id="txtFundamentoVinculo" rows="3" placeholder="Indicar el acuerdo, oficio o proceso compartido que fundamenta la corresponsabilidad..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white text-xs" required></textarea>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-vincular-elemento')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                <button type="submit" id="btnGuardarVinculo" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-link"></i> Aplicar Vinculación
-                </button>
-            </div>
-        </form>
-
-    </div>
-<!-- ========================================================================= -->
-<!-- MODAL UNIVERSAL DE VINCULACIÓN INTERINSTITUCIONAL (HITOS Y ACCIONES)      -->
-<!-- ========================================================================= -->
-<div id="modal-vinculacion-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        
-        <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-lg border border-purple-500/30">
-                    <i class="fa-solid fa-diagram-project"></i>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase text-purple-300 tracking-wider block">CO-RESPONSABILIDAD INTERINSTITUCIONAL</span>
-                    <h3 class="font-extrabold text-base leading-snug">Vincular Hito u Acción con mi Comisión</h3>
-                </div>
-            </div>
-            <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <form onsubmit="procesarVinculacionUniversalOficial(event)" class="p-6 space-y-4 text-xs text-slate-700">
-            <!-- Ficha del usuario solicitante -->
-            <div class="p-3 bg-purple-50/60 border border-purple-200 rounded-2xl flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Comisión Solicitante:</span>
-                    <strong id="vinculoMiPanelTexto" class="text-indigo-950 font-bold text-xs">--</strong>
-                </div>
-                <div class="text-right">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Usuario Titular:</span>
-                    <span id="vinculoMiNombreTexto" class="font-semibold text-purple-900 text-xs">--</span>
-                </div>
-            </div>
-
-            <!-- Selector de Hito Rector Objetivo -->
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">1. Seleccionar Hito Rector a Vincular:</label>
-                <select id="selVinculoHitoObjetivo" onchange="actualizarAccionesParaVinculoUniversal()" class="w-full p-2.5 border rounded-xl bg-white font-bold text-slate-900 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs" required></select>
-            </div>
-
-            <!-- Selector de Acción Específica Objetivo -->
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">2. Acción Específica Involucrada (Opcional o Integral):</label>
-                <select id="selVinculoAccionObjetivo" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs">
-                    <option value="TODAS">Vincular a todas las acciones de este hito</option>
-                </select>
-            </div>
-
-            <!-- Sustento Técnico y Fundamento -->
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">
-                    <i class="fa-solid fa-scale-balanced text-purple-700 me-1"></i> Justificación de Co-responsabilidad (Art. 6):
-                </label>
-                <textarea id="txtVinculoMotivoOficial" rows="3" placeholder="Detalle el oficio, expediente compartido o acuerdo de colaboración interinstitucional..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-500 text-xs" required></textarea>
-                <p class="text-[10px] text-slate-400 mt-1">Este trámite se turnará a la Mesa de Control de <code>auditoria.html</code>.</p>
-            </div>
-
-            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
                 <button type="submit" id="btnSubmitVinculoOficial" class="btn-executive px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-md">
                     <i class="fa-solid fa-paper-plane"></i> Enviar a Validación
                 </button>
@@ -6628,82 +6718,7 @@ window.procesarVinculacionUniversalOficial = async function(e) {
 
     </div>
 </div>
-    
-</div>
 
-<!-- ========================================================================= -->
-<!-- MODAL UNIVERSAL DE VINCULACIÓN INTERINSTITUCIONAL (HITOS Y ACCIONES)      -->
-<!-- ========================================================================= -->
-<div id="modal-vinculacion-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        
-        <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-lg border border-purple-500/30">
-                    <i class="fa-solid fa-diagram-project"></i>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase text-purple-300 tracking-wider block">CO-RESPONSABILIDAD INTERINSTITUCIONAL</span>
-                    <h3 class="font-extrabold text-base leading-snug">Vincular Hito u Acción con mi Comisión</h3>
-                </div>
-            </div>
-            <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <form onsubmit="procesarVinculacionUniversalOficial(event)" class="p-6 space-y-4 text-xs text-slate-700">
-            <!-- Ficha del usuario solicitante -->
-            <div class="p-3 bg-purple-50/70 border border-purple-200 rounded-2xl flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Comisión Solicitante:</span>
-                    <strong id="vinculoMiPanelTexto" class="text-indigo-950 font-bold text-xs">--</strong>
-                </div>
-                <div class="text-right">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Usuario Titular:</span>
-                    <span id="vinculoMiNombreTexto" class="font-semibold text-purple-900 text-xs">--</span>
-                </div>
-            </div>
-
-            <!-- Selector de Hito Rector Objetivo -->
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">1. Hito Rector a Vincular:</label>
-                <select id="selVinculoHitoObjetivo" onchange="actualizarAccionesParaVinculoUniversal()" class="w-full p-2.5 border rounded-xl bg-white font-bold text-slate-900 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs" required></select>
-            </div>
-
-            <!-- Selector de Acción Específica Objetivo -->
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">2. Acción Específica Involucrada:</label>
-                <select id="selVinculoAccionObjetivo" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs">
-                    <option value="TODAS">Vincular a todas las acciones de este hito</option>
-                </select>
-            </div>
-
-            <!-- Carga de Evidencia / Documento Probatorio Opcional -->
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
-                <label class="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
-                    <i class="fa-brands fa-google-drive text-amber-500"></i> Oficio o Soporte de Colaboración (Opcional):
-                </label>
-                <input type="file" id="fileVinculoDocumental" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-purple-50 file:text-purple-700">
-            </div>
-
-            <!-- Sustento Técnico y Fundamento -->
-            <div>
-                <label class="block font-bold text-slate-800 mb-1">
-                    <i class="fa-solid fa-scale-balanced text-purple-700 me-1"></i> Justificación de Co-responsabilidad (Art. 6):
-                </label>
-                <textarea id="txtVinculoMotivoOficial" rows="3" placeholder="Detalle el oficio, expediente compartido o acuerdo de colaboración interinstitucional..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-500 text-xs" required></textarea>
-                <p class="text-[10px] text-slate-400 mt-1">Este trámite se turnará a la Mesa de Control de <code>auditoria.html</code>.</p>
-            </div>
-
-            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                <button type="submit" id="btnSubmitVinculoOficial" class="btn-executive px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-md">
-                    <i class="fa-solid fa-paper-plane"></i> Enviar a Validación
-                </button>
-            </div>
-        </form>
-
-    </div>
-</div>
     
 </body>
 </html>
