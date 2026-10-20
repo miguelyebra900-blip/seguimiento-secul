@@ -6120,6 +6120,129 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         }
     }
 };
+
+  // Hook para conectar la clave editable al abrir el modal de edición
+const _abrirEdicionOriginal = window.abrirModalEdicionDinamica;
+window.abrirModalEdicionDinamica = function(tipo, claveId) {
+    if (typeof _abrirEdicionOriginal === 'function') {
+        _abrirEdicionOriginal(tipo, claveId);
+    }
+    const inputClave = document.getElementById('inputClaveCanonicaEditable');
+    const selectPanel = document.getElementById('selectPanelEdicionDinamica');
+    if (inputClave) inputClave.value = claveId;
+
+    const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+    if (act && selectPanel) {
+        selectPanel.value = act.panel || 'A';
+    }
+};
+
+// Recalcula el siguiente número consecutivo cronológico consultando en Supabase
+window.cambiarPanelYRecalcularClave = async function(nuevoPanel) {
+    const inputClave = document.getElementById('inputClaveCanonicaEditable');
+    const prefijos = { 'A':'RH_E', 'B':'JUR_C', 'C':'PTR_I', 'D':'FID_F', 'E':'PTR_M', 'F':'FIN_P', 'G':'TIT_S', 'H':'ACH_D', 'I':'AUD_F', 'J':'ASI_P' };
+    const prefijo = prefijos[nuevoPanel] || 'ACT';
+
+    let maxNum = 0;
+
+    if (supabaseClient) {
+        try {
+            const { data } = await supabaseClient
+                .from('acciones_transicion')
+                .select('clave_accion')
+                .ilike('clave_accion', `${prefijo}%`);
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    const match = (item.clave_accion || '').match(/-A-(\d+)/);
+                    if (match && match[1]) {
+                        const num = parseInt(match[1], 10);
+                        if (num > maxNum) maxNum = num;
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn("Consulta Supabase diferida a matriz local:", e);
+        }
+    }
+
+    accionesDataset.forEach(item => {
+        const c = item.clave_accion || item.id || '';
+        if (c.startsWith(prefijo)) {
+            const match = c.match(/-A-(\d+)/);
+            if (match && match[1]) {
+                const num = parseInt(match[1], 10);
+                if (num > maxNum) maxNum = num;
+            }
+        }
+    });
+
+    const siguiente = maxNum + 1;
+    const nuevaClave = `${prefijo}-H-0001-A-${String(siguiente).padStart(4, '0')}`;
+
+    if (inputClave) inputClave.value = nuevaClave;
+    const itemPanel = document.getElementById('editItemPanel');
+    if (itemPanel) itemPanel.value = nuevoPanel;
+};
+
+// Sustitución y reasignación automática si se ingresa una clave idéntica
+window.validarYSustituirClaveCanonica = async function(claveIngresada) {
+    const claveLimpia = (claveIngresada || '').trim().toUpperCase();
+    const claveOriginal = document.getElementById('editItemClave').value;
+
+    if (!claveLimpia || claveLimpia === claveOriginal) return;
+
+    const existente = accionesDataset.find(a => (a.clave_accion === claveLimpia || a.id === claveLimpia) && a.id !== claveOriginal);
+
+    if (existente) {
+        const sustituir = confirm(`⚠️ CLAVE IDÉNTICA DETECTADA:\n\nLa clave "${claveLimpia}" ya está asignada a la acción:\n"${existente.accion}" (Panel ${existente.panel}).\n\n¿Deseas sustituir la clave actual por la nueva y reasignar automáticamente a la anterior el siguiente consecutivo cronológico disponible?`);
+
+        if (sustituir) {
+            const panelExistente = existente.panel || 'A';
+            const prefijos = { 'A':'RH_E', 'B':'JUR_C', 'C':'PTR_I', 'D':'FID_F', 'E':'PTR_M', 'F':'FIN_P', 'G':'TIT_S', 'H':'ACH_D', 'I':'AUD_F', 'J':'ASI_P' };
+            const pref = prefijos[panelExistente] || 'ACT';
+            
+            let maxNum = 0;
+            accionesDataset.forEach(item => {
+                const c = item.clave_accion || item.id || '';
+                if (c.startsWith(pref)) {
+                    const match = c.match(/-A-(\d+)/);
+                    if (match && match[1]) {
+                        const n = parseInt(match[1], 10);
+                        if (n > maxNum) maxNum = n;
+                    }
+                }
+            });
+
+            const nuevaClaveAnterior = `${pref}-H-0001-A-${String(maxNum + 1).padStart(4, '0')}`;
+            
+            existente.id = nuevaClaveAnterior;
+            existente.clave_accion = nuevaClaveAnterior;
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('acciones_transicion').upsert([{
+                        clave_accion: nuevaClaveAnterior,
+                        panel: existente.panel,
+                        accion: existente.accion,
+                        updated_at: new Date().toISOString()
+                    }]);
+                } catch (errSup) {
+                    console.warn("Sincronización en Supabase guardada en local:", errSup);
+                }
+            }
+
+            alert(`✅ REORDENAMIENTO CRONOLÓGICO COMPLETADO:\n\n1. Esta acción asumirá la clave: ${claveLimpia}\n2. La acción anterior ha sido reasignada al nuevo consecutivo: ${nuevaClaveAnterior}`);
+        } else {
+            document.getElementById('inputClaveCanonicaEditable').value = claveOriginal;
+        }
+    }
+};
+
+window.regenerarSiguienteConsecutivoParaEdicion = function() {
+    const panel = document.getElementById('selectPanelEdicionDinamica').value;
+    cambiarPanelYRecalcularClave(panel);
+};      
         
 </script>
 <!-- ========================================================================= -->
@@ -6494,14 +6617,33 @@ window.procesarVinculacionUniversalOficial = async function(e) {
             <input type="hidden" id="editItemPanel">
 
             <!-- Ficha Técnica de la Clave -->
-            <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 flex items-center justify-between">
+     <!-- Ficha Interactiva de Clave Canónica y Panel -->
+            <div class="bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 <div>
-                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Clave Canónica:</span>
-                    <span id="labelClaveActivaEdit" class="font-mono font-black text-indigo-950 text-xs">--</span>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase block">Clave Canónica (Cronológica):</label>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <input type="text" id="inputClaveCanonicaEditable" 
+                               onchange="validarYSustituirClaveCanonica(this.value)" 
+                               class="w-full p-2 bg-white border border-indigo-300 rounded-xl font-mono font-black text-xs text-indigo-950 focus:ring-2 focus:ring-indigo-500 uppercase shadow-inner">
+                        <button type="button" onclick="regenerarSiguienteConsecutivoParaEdicion()" class="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-2xs" title="Recalcular siguiente consecutivo cronológico">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Comisión / Panel:</span>
-                    <span id="labelPanelActivoEdit" class="font-bold text-indigo-700 text-xs">Panel --</span>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase block">Comisión / Panel Asignado:</label>
+                    <select id="selectPanelEdicionDinamica" onchange="cambiarPanelYRecalcularClave(this.value)" class="w-full p-2 bg-white border border-indigo-200 rounded-xl font-bold text-xs text-indigo-900 mt-0.5 focus:ring-2 focus:ring-indigo-500">
+                        <option value="A">Panel A - Recursos Humanos & Estructura</option>
+                        <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
+                        <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
+                        <option value="D">Panel D - Fideicomisos & Fondos (FIARCA)</option>
+                        <option value="E">Panel E - Control Patrimonial & Bienes</option>
+                        <option value="F">Panel F - Financiero, Presupuestal & Fiscal</option>
+                        <option value="G">Panel G - Tecnologías de la Información (TI)</option>
+                        <option value="H">Panel H - Archivo & Gestión Documental</option>
+                        <option value="I">Panel I - Fiscalización & Auditorías</option>
+                        <option value="J">Panel J - Asuntos Internos Líder Proyecto</option>
+                    </select>
                 </div>
             </div>
 
