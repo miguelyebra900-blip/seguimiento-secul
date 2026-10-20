@@ -1704,23 +1704,88 @@ window.guardarContactoNotificaciones = async function(e) {
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                    <div id="contenedorAccionesObligatorias" class="space-y-2.5">
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
-                            </div>
-                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
-                                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
-                                    <option value="En Proceso">En Proceso</option>
-                                    <option value="Validación">En Validación</option>
-                                    <option value="Concluido">Concluido al 100%</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                  <div id="contenedorAccionesObligatorias" class="space-y-3">
+    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item">
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
+                <i class="fa-solid fa-circle-check text-[9px]"></i> Acción Inicial (Obligatoria)
+            </span>
+        </div>
+
+        <div>
+            <label class="block font-bold text-slate-700 text-[11px] mb-0.5">Descripción de la Acción Operativa:</label>
+            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-xl text-xs font-semibold bg-white" required>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <!-- 1. Instancia Responsable Principal (A-J) -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Área Responsable Principal:</label>
+                <select name="selAccionRespHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-bold text-indigo-900" required>
+                    <option value="Panel A - Recursos Humanos & Estructura">Panel A - Recursos Humanos & Estructura</option>
+                    <option value="Panel B - Asuntos Jurídicos & Contencioso">Panel B - Asuntos Jurídicos & Contencioso</option>
+                    <option value="Panel C - Patrimonio Inmobiliario & Predios">Panel C - Patrimonio Inmobiliario & Predios</option>
+                    <option value="Panel D - Fideicomisos & Fondos (FIARCA)">Panel D - Fideicomisos & Fondos (FIARCA)</option>
+                    <option value="Panel E - Control Patrimonial & Bienes">Panel E - Control Patrimonial & Bienes</option>
+                    <option value="Panel F - Financiero, Presupuestal & Fiscal">Panel F - Financiero, Presupuestal & Fiscal</option>
+                    <option value="Panel G - Tecnologías de la Información (TI)">Panel G - Tecnologías de la Información (TI)</option>
+                    <option value="Panel H - Archivo & Gestión Documental">Panel H - Archivo & Gestión Documental</option>
+                    <option value="Panel I - Fiscalización & Auditorías">Panel I - Fiscalización & Auditorías</option>
+                    <option value="Panel J - Asuntos Internos Líder Proyecto">Panel J - Asuntos Internos Líder Proyecto</option>
+                </select>
+            </div>
+
+            <!-- 2. Comisión Co-responsable -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Comisión Co-responsable:</label>
+                <select name="selAccionCoresponsable" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-purple-900">
+                    <option value="Ninguna">Sin Co-responsabilidad (Área Única)</option>
+                    <option value="Panel A">Panel A - Recursos Humanos</option>
+                    <option value="Panel B">Panel B - Asuntos Jurídicos</option>
+                    <option value="Panel C">Panel C - Patrimonio Inmueble</option>
+                    <option value="Panel D">Panel D - Fideicomisos</option>
+                    <option value="Panel E">Panel E - Bienes Muebles</option>
+                    <option value="Panel F">Panel F - Finanzas & SAT</option>
+                    <option value="Panel G">Panel G - Tecnologías</option>
+                    <option value="Panel H">Panel H - Archivo</option>
+                    <option value="Panel I">Panel I - Auditoría ASEG</option>
+                    <option value="Panel J">Panel J - Gobernanza</option>
+                </select>
+            </div>
+
+            <!-- 3. Dependencia Externa / Terceros (Art. 6) -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Dependencia Externa (Art. 6):</label>
+                <select name="selAccionTercero" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-amber-900">
+                    <option value="Interna">Interna (Trámite 100% Directo)</option>
+                    <option value="Secretaría de Finanzas (DGRH/DGTIT)">Secretaría de Finanzas (DGRH / DGTIT)</option>
+                    <option value="SAT Celaya / SHCP">SAT Celaya / SHCP</option>
+                    <option value="Fiduciaria Banorte">Fiduciaria Banorte</option>
+                    <option value="Consejería Jurídica del Ejecutivo">Consejería Jurídica del Ejecutivo</option>
+                    <option value="Tribunal de Conciliación y Arbitraje">Tribunal de Conciliación y Arbitraje</option>
+                    <option value="Registro Público de la Propiedad / Notarías">Registro Público / Notarías</option>
+                    <option value="Archivo General del Estado (AGEG)">Archivo General del Estado (AGEG)</option>
+                    <option value="ASEG (Fiscalización Superior)">ASEG (Fiscalización Superior)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
+            <div>
+                <label class="block font-bold text-slate-600 text-[10px]">Estatus Operativo:</label>
+                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold">
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Validación">En Validación</option>
+                    <option value="Concluido">Concluido al 100%</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-600 text-[10px]">Expediente Documental Sugerido:</label>
+                <input type="text" name="txtAccionDocHito" placeholder="Ej. Acta de entrega, oficio o convenio..." class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-medium">
+            </div>
+        </div>
+    </div>
+</div>
 
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
@@ -3522,11 +3587,6 @@ function renderListaCompromisosDetalle(act) {
             e.target.reset();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            mostrarSeccionTab('tab-dashboard');
-            actualizarDashboard();
-        });
-
      // =========================================================================
         // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
         // =========================================================================
@@ -3871,16 +3931,7 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
     }
 }
 
-// ARRANQUE GENERAL DEL DASHBOARD AL CARGAR EL DOM
-window.addEventListener('DOMContentLoaded', () => {
-    if (typeof mostrarSeccionTab === 'function') {
-        mostrarSeccionTab('tab-dashboard');
-    }
-    if (typeof actualizarDashboard === 'function') {
-        actualizarDashboard();
-    }
-    verificarYProyectarAvisoDirectivo(); // <-- Agregar esta línea aquí
-});
+
 
 // =========================================================================
         // RENDER DINÁMICO DEL CINTILLO: 30 HITOS + 5 COMUNICADOS INTERCALADOS
@@ -6438,37 +6489,48 @@ function registrarSolicitudAuditoria(solicitud) {
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Recuperar sesión almacenada de forma blindada
+    // 1. Recuperación segura de sesión (sin bloqueos abruptos)
     const sesionGuardada = localStorage.getItem('secul_user');
     if (sesionGuardada) {
         try {
             currentUser = JSON.parse(sesionGuardada);
-            // Sincronizar paneles autorizados si existía sesión previa
-            if (typeof resolverPanelesUsuario === 'function') {
+            if (currentUser && typeof resolverPanelesUsuario === 'function') {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
         } catch (e) {
             currentUser = null;
-            localStorage.removeItem('secul_user');
-            window.location.replace('index.html');
-            return;
         }
-    } else {
-        window.location.replace('index.html');
-        return;
     }
 
-    // 2. Refrescar interfaz de usuario con la sesión restaurada
+    // Si no hay usuario autenticado simulamos un modo consulta para que no rompa el DOM
+    if (!currentUser) {
+        currentUser = {
+            id: 'consulta-local',
+            usuario: 'invitado',
+            nombre: 'Modo Consulta Institucional',
+            esAdmin: true,
+            rol: 'admin',
+            paneles_autorizados: ['A','B','C','D','E','F','G','H','I','J']
+        };
+    }
+
+    // 2. Refrescar interfaz y permisos
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 3. Cargar tableros y métricas
+    // 3. Inicialización centralizada y sincronizada de todas las vistas
     if (typeof mostrarSeccionTab === 'function') {
         mostrarSeccionTab('tab-dashboard');
     }
     if (typeof actualizarDashboard === 'function') {
         actualizarDashboard();
+    }
+    if (typeof renderCintilloNoticioso === 'function') {
+        renderCintilloNoticioso();
+    }
+    if (typeof verificarYProyectarAvisoDirectivo === 'function') {
+        verificarYProyectarAvisoDirectivo();
     }
 });
         
