@@ -1528,8 +1528,7 @@
 <div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
         
-        <!-- Header Maestro -->
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+       <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
                     <i class="fa-solid fa-layer-group"></i>
@@ -1539,11 +1538,20 @@
                     <p class="text-[11px] text-slate-300">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
                 </div>
             </div>
-            <button type="button" onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
 
+            <!-- PASTILLA DE SESIÓN ACTIVA (IDENTIDAD DE OPERADOR) -->
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div id="badgeUsuarioSesionModalUniversal" class="bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 flex items-center gap-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-300 text-[10px] uppercase font-bold">Operador:</span>
+                    <strong id="nombreUserModalUniversal" class="text-white text-xs font-semibold">Modo Consulta</strong>
+                    <span id="panelUserModalUniversal" class="bg-indigo-600 text-white font-mono px-1.5 py-0.5 rounded text-[10px] font-black">Panel -</span>
+                </div>
+                <button type="button" onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg transition p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
         <!-- Selector de Pestañas (Wizard) -->
         <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
             <button type="button" id="btnTabHito" onclick="cambiarTabModalUniversal('tab-hitos')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5">
@@ -1672,9 +1680,26 @@
                     <span>La acción quedará <strong>asociada al Hito seleccionado</strong> y alimentará en cascada su porcentaje de avance, estatus y subida a Google Drive.</span>
                 </div>
 
-               <div>
-                    <label class="block font-bold text-slate-700 mb-1">Hito Rector Vinculado (Hito Padre):</label>
+              <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-700">Hito Rector Vinculado (Hito Padre):</label>
+                        <!-- BOTÓN PUENTE A VINCULACIÓN EN MODAL UNIVERSAL -->
+                        <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 transition">
+                            <i class="fa-solid fa-link text-indigo-600"></i> Solicitar Vinculación con este Hito
+                        </button>
+                    </div>
                     <select id="buzonSelectAccion" onchange="actualizarFolioAccionSugerido()" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 border-indigo-200"></select>
+                </div>
+
+                <!-- BANNER REACTIVO DE BLOQUEO POR ÁREA EXTERNA -->
+                <div id="bannerBloqueoAreaExterna" class="hidden p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
+                    <div class="flex items-center gap-2 text-amber-950 text-xs">
+                        <i class="fa-solid fa-shield-halved text-amber-600 text-base"></i>
+                        <span><strong>Comisión Externa:</strong> Este hito no pertenece a tu panel asignado. Para incidir o editarlo, debes tramitar su vinculación formal.</span>
+                    </div>
+                    <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 shadow-xs">
+                        <i class="fa-solid fa-link"></i> Solicitar Vinculación
+                    </button>
                 </div>
 
                 <!-- CAMPO VISUAL DE LA CLAVE DE ACCIÓN GENERADA -->
@@ -2735,25 +2760,46 @@ function renderTarjetas10Areas(avancesPorArea) {
 // =========================================================================
         // POBLAR SELECTOR Y DISPARAR CÁLCULO DE FOLIO DE ACCIÓN DE INMEDIATO
         // =========================================================================
-        function poblarSelectBuzon(idSeleccionado = null) {
+   window.poblarSelectBuzon = function(idSeleccionado = null) {
             const select = document.getElementById('buzonSelectAccion');
             if (!select) return;
             select.innerHTML = '';
-            
+
+            actualizarPastillaUsuarioModalUniversal();
+
+            const misPaneles = currentUser ? (currentUser.paneles_autorizados || [currentUser.panel_origen || 'A']) : [];
+            const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'master_admin' || currentUser.rol === 'super');
+
             accionesDataset.forEach(a => {
                 const opt = document.createElement('option');
-                opt.value = a.clave_accion || a.id;
-                opt.textContent = `[${a.clave_accion || a.id}] ${a.hito} - ${a.accion.slice(0, 45)}...`;
-                if (idSeleccionado && (a.id === idSeleccionado || a.clave_accion === idSeleccionado)) {
+                const clave = a.clave_accion || a.id;
+                opt.value = clave;
+
+                const esDeMiPanel = misPaneles.includes(a.panel);
+
+                if (esAdmin || esDeMiPanel) {
+                    // Hito propio: Destacado con círculo azul y fondo azul tenue
+                    opt.textContent = `🔵 [Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 42)}...`;
+                    opt.style.backgroundColor = '#eef2ff';
+                    opt.style.color = '#1e1b4b';
+                    opt.style.fontWeight = 'bold';
+                } else {
+                    // Hito externo: Texto normal
+                    opt.textContent = `[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...`;
+                    opt.style.backgroundColor = '#ffffff';
+                    opt.style.color = '#334155';
+                    opt.style.fontWeight = 'normal';
+                }
+
+                if (idSeleccionado && (a.id === idSeleccionado || clave === idSeleccionado)) {
                     opt.selected = true;
                 }
                 select.appendChild(opt);
             });
 
-            // Dispara de inmediato la previsualización de la clave
             actualizarFolioAccionSugerido();
-            actualizarInfoAccionBuzon();
-        }
+            if (typeof actualizarInfoAccionBuzon === 'function') actualizarInfoAccionBuzon();
+        };
 
       function actualizarInfoAccionBuzon() {
     const select = document.getElementById('buzonSelectAccion');
@@ -5998,9 +6044,13 @@ window.ejecutarVinculacionElementoGlobal = function(e) {
             </div>
             
 <!-- Acciones de Cabecera: Alta Hito, Plantilla y Carga Masiva -->
-            <div class="flex flex-wrap items-center gap-2">
+<div class="flex flex-wrap items-center gap-2">
                 <button type="button" onclick="abrirAltaHitoDesdeBDGeneral()" class="btn-executive px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-plus-circle"></i> + Nuevo Hito
+                </button>
+                <!-- BOTÓN NUEVO: VINCULAR EN BASE DE DATOS GENERAL -->
+                <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="btn-executive px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm border border-purple-500/40">
+                    <i class="fa-solid fa-link"></i> Vincular Hito / Acción
                 </button>
                 <button type="button" onclick="descargarPlantillaGobernanzaExcel()" class="btn-executive px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-file-excel"></i> Descargar Plantilla Excel
@@ -6305,6 +6355,72 @@ window.ejecutarVinculacionElementoGlobal = function(e) {
         </form>
 
     </div>
+<!-- ========================================================================= -->
+<!-- MODAL UNIVERSAL DE VINCULACIÓN INTERINSTITUCIONAL (HITOS Y ACCIONES)      -->
+<!-- ========================================================================= -->
+<div id="modal-vinculacion-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-lg border border-purple-500/30">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase text-purple-300 tracking-wider block">CO-RESPONSABILIDAD INTERINSTITUCIONAL</span>
+                    <h3 class="font-extrabold text-base leading-snug">Vincular Hito u Acción con mi Comisión</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form onsubmit="procesarVinculacionUniversalOficial(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <!-- Ficha del usuario solicitante -->
+            <div class="p-3 bg-purple-50/60 border border-purple-200 rounded-2xl flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Comisión Solicitante:</span>
+                    <strong id="vinculoMiPanelTexto" class="text-indigo-950 font-bold text-xs">--</strong>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Usuario Titular:</span>
+                    <span id="vinculoMiNombreTexto" class="font-semibold text-purple-900 text-xs">--</span>
+                </div>
+            </div>
+
+            <!-- Selector de Hito Rector Objetivo -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">1. Seleccionar Hito Rector a Vincular:</label>
+                <select id="selVinculoHitoObjetivo" onchange="actualizarAccionesParaVinculoUniversal()" class="w-full p-2.5 border rounded-xl bg-white font-bold text-slate-900 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs" required></select>
+            </div>
+
+            <!-- Selector de Acción Específica Objetivo -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">2. Acción Específica Involucrada (Opcional o Integral):</label>
+                <select id="selVinculoAccionObjetivo" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-purple-500 shadow-2xs">
+                    <option value="TODAS">Vincular a todas las acciones de este hito</option>
+                </select>
+            </div>
+
+            <!-- Sustento Técnico y Fundamento -->
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">
+                    <i class="fa-solid fa-scale-balanced text-purple-700 me-1"></i> Justificación de Co-responsabilidad (Art. 6):
+                </label>
+                <textarea id="txtVinculoMotivoOficial" rows="3" placeholder="Detalle el oficio, expediente compartido o acuerdo de colaboración interinstitucional..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-500 text-xs" required></textarea>
+                <p class="text-[10px] text-slate-400 mt-1">Este trámite se turnará a la Mesa de Control de <code>auditoria.html</code>.</p>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-vinculacion-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" id="btnSubmitVinculoOficial" class="btn-executive px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar a Validación
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+    
 </div>
     
 </body>
