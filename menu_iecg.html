@@ -6452,9 +6452,21 @@ window.addEventListener('DOMContentLoaded', () => {
         updateAuthUI();
     }
 
-    // 2. Arranque blindado de componentes visuales
+  // 2. Arranque blindado de componentes visuales y cintillo en vivo
     setTimeout(() => {
         try {
+            // Asegurar que el contenedor del cintillo exista siempre en el DOM
+            if (!document.getElementById('tickerTrack')) {
+                const footerDinamico = document.createElement('footer');
+                footerDinamico.className = 'ticker-footer-container';
+                footerDinamico.innerHTML = `
+                    <div class="overflow-hidden w-full flex">
+                        <div id="tickerTrack" class="ticker-track"></div>
+                    </div>
+                `;
+                document.body.appendChild(footerDinamico);
+            }
+
             if (typeof mostrarSeccionTab === 'function') mostrarSeccionTab('tab-dashboard');
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderCintilloNoticioso === 'function') renderCintilloNoticioso();
@@ -6463,8 +6475,7 @@ window.addEventListener('DOMContentLoaded', () => {
             console.error("Error en el arranque visual:", err);
         }
     }, 150);
-});
-        
+    
 </script>
 
     <!-- ========================================================================= -->
