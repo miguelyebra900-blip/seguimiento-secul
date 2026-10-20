@@ -2226,6 +2226,7 @@ if (btnVinculo) {
             btnSubmit.disabled = true;
 
             try {
+
                 if (supabaseClient) {
                     const { data, error } = await supabaseClient
                         .from('usuarios_acceso')
@@ -2240,38 +2241,35 @@ if (btnVinculo) {
                         btnSubmit.disabled = false;
                         return;
                     }
-// Detección automática y robusta de paneles por usuario y área de adscripción
-                    let panelesAsignados = data.paneles_autorizados;
-                    if (!panelesAsignados || !Array.isArray(panelesAsignados) || panelesAsignados.length === 0) {
-                        const u = (data.usuario || '').toLowerCase();
-                        const area = (data.area_adscripcion || '').toLowerCase();
-                        if (data.rol === 'admin' || data.rol === 'master_admin') panelesAsignados = ['A','B','C','D','E','F','G','H','I','J'];
-                        else if (u.includes('juridico') || area.includes('jurídic') || area.includes('juridic')) panelesAsignados = ['B', 'D'];
-                        else if (u.includes('rh') || area.includes('humano') || area.includes('recursos')) panelesAsignados = ['A', 'J'];
-                        else if (u.includes('patrimonio') || area.includes('patrimonial')) panelesAsignados = ['E', 'C'];
-                        else if (u.includes('archivo') || area.includes('documental')) panelesAsignados = ['H'];
-                        else if (u.includes('finanza') || area.includes('financier')) panelesAsignados = ['F'];
-                        else if (u.includes('ti') || area.includes('tecnolog') || area.includes('sistema')) panelesAsignados = ['G'];
-                        else if (u.includes('aseg') || area.includes('auditor') || area.includes('fiscaliz')) panelesAsignados = ['I'];
-                        else panelesAsignados = ['A'];
-                    }
+
+                    const esAdmin = (data.rol === 'admin' || data.rol === 'master_admin');
+                    const paneles = (data.paneles_autorizados && Array.isArray(data.paneles_autorizados)) 
+                        ? data.paneles_autorizados 
+                        : (esAdmin ? ['A','B','C','D','E','F','G','H','I','J'] : ['A']);
 
                     currentUser = { 
                         id: data.id, 
                         usuario: data.usuario, 
                         nombre: data.nombre, 
-                        esAdmin: (data.rol === 'admin' || data.rol === 'master_admin'), 
-                        rol: data.rol,
+                        esAdmin: esAdmin, 
+                        rol: data.rol, 
                         area_adscripcion: data.area_adscripcion || '',
-                        paneles_autorizados: panelesAsignados
+                        paneles_autorizados: paneles 
                     };
-                    
                 } else {
                     const esAdmin = (usuarioInput.toLowerCase() === 'admin');
-                    currentUser = { id: 'local-id', usuario: usuarioInput, nombre: usuarioInput.replace('_', ' ').toUpperCase(), esAdmin: esAdmin, rol: esAdmin ? 'admin' : 'enlace' };
+                    currentUser = { 
+                        id: 'local-id', 
+                        usuario: usuarioInput, 
+                        nombre: usuarioInput.replace('_', ' ').toUpperCase(), 
+                        esAdmin: esAdmin, 
+                        rol: esAdmin ? 'admin' : 'enlace',
+                        paneles_autorizados: esAdmin ? ['A','B','C','D','E','F','G','H','I','J'] : ['A']
+                    };
                 }
 
                 localStorage.setItem('secul_user', JSON.stringify(currentUser));
+                
                 updateAuthUI();
                 registrarAuditoria('Inicio de Sesión', { usuario: currentUser.usuario, rol: currentUser.rol });
                 closeModal('modal-auth');
@@ -2784,47 +2782,62 @@ function renderTarjetas10Areas(avancesPorArea) {
 // =========================================================================
         // POBLAR SELECTOR Y DISPARAR CÁLCULO DE FOLIO DE ACCIÓN DE INMEDIATO
         // =========================================================================
-   window.poblarSelectBuzon = function(idSeleccionado = null) {
-            const select = document.getElementById('buzonSelectAccion');
-            if (!select) return;
-            select.innerHTML = '';
+   window.actualizarPastillaUsuarioModalUniversal = function() {
+    const lblNombre = document.getElementById('nombreUserModalUniversal');
+    const lblPanel = document.getElementById('panelUserModalUniversal');
 
-            actualizarPastillaUsuarioModalUniversal();
+    if (currentUser) {
+        if (lblNombre) lblNombre.innerText = currentUser.nombre;
+        const paneles = currentUser.paneles_autorizados || ['A'];
+        if (lblPanel) lblPanel.innerText = `Panel ${paneles.join(', ')}`;
+    } else {
+        if (lblNombre) lblNombre.innerText = "Modo Consulta";
+        if (lblPanel) lblPanel.innerText = "Panel -";
+    }
+};
 
-            const misPaneles = currentUser ? (currentUser.paneles_autorizados || [currentUser.panel_origen || 'A']) : [];
-            const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'master_admin' || currentUser.rol === 'super');
+window.poblarSelectBuzon = function(idSeleccionado = null) {
+    const select = document.getElementById('buzonSelectAccion');
+    if (!select) return;
+    select.innerHTML = '';
 
-            accionesDataset.forEach(a => {
-                const opt = document.createElement('option');
-                const clave = a.clave_accion || a.id;
-                opt.value = clave;
+    actualizarPastillaUsuarioModalUniversal();
 
-                const esDeMiPanel = misPaneles.includes(a.panel);
+    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
 
-                if (esAdmin || esDeMiPanel) {
-                    // Hito propio: Destacado con círculo azul y fondo azul tenue
-                    opt.textContent = `🔵 [Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 42)}...`;
-                    opt.style.backgroundColor = '#eef2ff';
-                    opt.style.color = '#1e1b4b';
-                    opt.style.fontWeight = 'bold';
-                } else {
-                    // Hito externo: Texto normal
-                    opt.textContent = `[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...`;
-                    opt.style.backgroundColor = '#ffffff';
-                    opt.style.color = '#334155';
-                    opt.style.fontWeight = 'normal';
-                }
+    accionesDataset.forEach(a => {
+        const opt = document.createElement('option');
+        const clave = a.clave_accion || a.id;
+        opt.value = clave;
 
-                if (idSeleccionado && (a.id === idSeleccionado || clave === idSeleccionado)) {
-                    opt.selected = true;
-                }
-                select.appendChild(opt);
-            });
+        const esDeMiPanel = misPaneles.includes(a.panel);
 
-            actualizarFolioAccionSugerido();
-            if (typeof actualizarInfoAccionBuzon === 'function') actualizarInfoAccionBuzon();
-        };
+        if (esAdmin || esDeMiPanel) {
+            // Hito de mi área: Resaltado con azul suave e interactivo
+            opt.textContent = `🔵 [Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 42)}...`;
+            opt.style.backgroundColor = '#dbeafe'; // Azul tenue
+            opt.style.color = '#1e3a8a';
+            opt.style.fontWeight = 'bold';
+            opt.disabled = false;
+        } else {
+            // Hito externo: Bloqueado contra selección directa
+            opt.textContent = `🔒 [Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 40)}... (Requiere Vinculación)`;
+            opt.style.backgroundColor = '#f1f5f9';
+            opt.style.color = '#94a3b8';
+            opt.disabled = true; // Impide seleccionar sin vinculación
+        }
 
+        if (idSeleccionado && (a.id === idSeleccionado || clave === idSeleccionado)) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+
+    actualizarFolioAccionSugerido();
+    if (typeof actualizarInfoAccionBuzon === 'function') actualizarInfoAccionBuzon();
+};
+        
       function actualizarInfoAccionBuzon() {
     const select = document.getElementById('buzonSelectAccion');
     if (!select) return;
@@ -2906,34 +2919,18 @@ function renderTarjetas10Areas(avancesPorArea) {
     // =========================================================================
     // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 2)
     // =========================================================================
-    const puedeEditarAccion = currentUser && (
-        currentUser.esAdmin || 
-        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(act.panel))
-    );
+    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditarAccion = esAdmin || misPaneles.includes(act.panel);
 
     if (!puedeEditarAccion) {
-        const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nLa acción pertenece al Panel ${act.panel} (${act.area}), fuera de tu asignación directa.\nIngrese el sustento o motivo de vinculación para enviar a Auditoría:`);
-        if (!motivo || motivo.trim() === '') {
-            alert("Operación cancelada: Debe justificar la propuesta interinstitucional.");
-            return;
+        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${act.panel} (${act.area}).\nTu usuario (${currentUser ? currentUser.nombre : 'Enlace'}) únicamente está facultado para operar sobre: Panel ${misPaneles.join(', ')}.\n\nPara intervenir en esta acción, debes tramitar previamente la vinculación interinstitucional.`);
+        
+        if (typeof abrirModalVinculacionUniversalDirecta === 'function') {
+            abrirModalVinculacionUniversalDirecta(act.clave_hito || act.id.split('-A-')[0], claveAccionFinal);
         }
-
-        registrarSolicitudAuditoria({
-            tipo: 'MODIFICAR_ACCION_VINCULADA',
-            clave: claveAccionFinal,
-            campo: 'accion_vinculada',
-            valorPropuesto: { accion: tituloAccion || act.accion, responsable: respAccion || act.responsable, estatus: nuevoEstatus, avance: nuevoAvance },
-            motivo: motivo.trim(),
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        });
-
-        alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nEl cambio sobre la acción vinculada [${claveAccionFinal}] ha sido remitido a 'auditoria.html' para su autorización.`);
-        closeModal('modal-buzon-universal');
-        return;
+        return; // Detiene de inmediato la subida a Drive y el guardado
     }
-
     // Continúa con la subida a Drive y guardado normal...
 
             let driveUrlFinal = act.driveUrl || '';
@@ -3724,34 +3721,15 @@ function abrirModalAltaAccionVinculada() {
 }
 
 function abrirModalAltaAccionVinculadaDesdeDetalle() {
-            // 1. Cerrar el modal de detalle del hito
-            closeModal('modal-hito-fiscalizacion');
-
-            // 2. Abrir el Modal Universal de Alta de Entregables
-            openModal('modal-buzon-universal');
-
-            // 3. Posicionarse en la pestaña 2: "Nueva Acción Asociada"
-            if (typeof cambiarTabModalUniversal === 'function') {
-                cambiarTabModalUniversal('tab-accion');
-            }
-
-            // 4. Autoseleccionar el hito padre y generar el consecutivo automático
-            const selectPadre = document.getElementById('buzonSelectAccion');
-            if (selectPadre) {
-                selectPadre.innerHTML = accionesDataset.map(a => 
-                    `<option value="${a.clave_accion || a.id}">[Panel ${a.panel}] ${a.hito} - ${a.accion.slice(0, 45)}...</option>`
-                ).join('');
-
-                if (window.hitoActivoEnModalFiscal) {
-                    selectPadre.value = window.hitoActivoEnModalFiscal.clave_accion || window.hitoActivoEnModalFiscal.id;
-                }
-
-                // Genera la clave de acción en vivo y actualiza la etiqueta de Drive
-                if (typeof actualizarFolioAccionSugerido === 'function') {
-                    actualizarFolioAccionSugerido();
-                }
-            }
-        }
+    closeModal('modal-hito-fiscalizacion');
+    openModal('modal-buzon-universal');
+    if (typeof cambiarTabModalUniversal === 'function') {
+        cambiarTabModalUniversal('tab-accion');
+    }
+    const hitoActivo = window.hitoActivoEnModalFiscal;
+    const claveSel = hitoActivo ? (hitoActivo.clave_accion || hitoActivo.id) : null;
+    poblarSelectBuzon(claveSel);
+}
         
         // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
 function agregarFilaAccionHito() {
