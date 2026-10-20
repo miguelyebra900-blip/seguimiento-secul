@@ -2166,7 +2166,26 @@
             "I": "1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9",
             "J": "1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas"
         };
+// =========================================================================
+        // CATÁLOGO MAESTRO GLOBAL DE LAS 10 COMISIONES ESTRATÉGICAS (PANELES A - J)
+        // =========================================================================
+        var FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
+        var FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
 
+        var catalogoAreasEstrategicas = [
+            { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
+            { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
+            { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
+            { panel: 'D', id: 'FID_F-H-0001', prefijoAccion: 'FID_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
+            { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
+            { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
+            { panel: 'G', id: 'TIT_S-H-0001', prefijoAccion: 'TIT_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
+            { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
+            { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
+            { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
+        ];
+
+        var indiceAreaActiva = 0;
         // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES
         window.openModal = function(id) {
             const m = document.getElementById(id);
@@ -3553,10 +3572,6 @@ function renderListaCompromisosDetalle(act) {
             e.target.reset();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            mostrarSeccionTab('tab-dashboard');
-            actualizarDashboard();
-        });
 
      // =========================================================================
         // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
@@ -3955,173 +3970,28 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
     }
 }
 
-// ARRANQUE GENERAL DEL DASHBOARD AL CARGAR EL DOM
-window.addEventListener('DOMContentLoaded', () => {
-    if (typeof mostrarSeccionTab === 'function') {
-        mostrarSeccionTab('tab-dashboard');
+// =========================================================================
+// MOTOR LIMPIO DEL CINTILLO Y COMUNICADOS DIRECTIVOS (5 REPETICIONES)
+// =========================================================================
+
+function obtenerComunicadoDirectivoVigente() {
+    try {
+        return JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
+    } catch (e) {
+        return null;
     }
-    if (typeof actualizarDashboard === 'function') {
-        actualizarDashboard();
-    }
-});
+}
 
-// =========================================================================
-// MOTOR DEFINITIVO: CINTILLO CON 5 COMUNICADOS Y NOTIFICACIÓN AL ENTRAR
-// =========================================================================
-
-// 1. Obtener comunicado activo (desde LocalStorage o Supabase)
-// =========================================================================
-        // CONSTANTES GLOBALES DE TEMPORALIDAD Y CATÁLOGO DE ÁREAS (GANTT)
-        // Declaradas al inicio para evitar ReferenceError por orden de carga
-        // =========================================================================
-        var FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
-        var FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
-
-        var catalogoAreasEstrategicas = [
-            { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
-            { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
-            { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
-            { panel: 'D', id: 'FID_F-H-0001', prefijoAccion: 'FID_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
-            { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
-            { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
-            { panel: 'G', id: 'TIT_S-H-0001', prefijoAccion: 'TIT_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
-            { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
-            { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
-            { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
-        ];
-
-        var indiceAreaActiva = 0;
-
-        // =========================================================================
-        // MOTOR DE ACTUALIZACIÓN DEL DASHBOARD (PROTEGIDO CONTRA EXCEPCIONES)
-        // =========================================================================
-        function actualizarDashboard() {
-            try {
-                const metricas = calcularMetricas();
-                const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
-                const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
-                const elKpiTerceros = document.getElementById('kpiTercerosTop');
-
-                if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
-                if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
-                if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
-
-                // Vistas obligatorias
-                if (typeof renderTarjetas10Areas === 'function') renderTarjetas10Areas(metricas.avancesPorArea);
-                if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
-                if (typeof renderCharts === 'function') renderCharts(metricas);
-
-                // Tableros sincronizados
-                if (typeof renderTableroGanttEjecutivo === 'function') {
-                    renderTableroGanttEjecutivo();
-                }
-                if (typeof seleccionarAreaEstrategica === 'function') {
-                    seleccionarAreaEstrategica(indiceAreaActiva);
-                }
-            } catch (err) {
-                console.error("Aviso controlado en renderizado del Dashboard:", err);
-            }
-
-            // Inyección segura del cintillo sin frenar los eventos de clic
-            renderCintilloNoticioso();
-        }
-
-        // =========================================================================
-        // MOTOR DEL CINTILLO: LECTURA DIRECTA Y SIN ERRORES DE SINTAXIS
-        // =========================================================================
-        function obtenerComunicadoDirectivoVigente() {
-            try {
-                return JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function renderCintilloNoticioso() {
-            const track = document.getElementById('tickerTrack');
-            if (!track) return;
-
-            const com = obtenerComunicadoDirectivoVigente();
-            const ORIGEN_ACTUAL = "IECG";
-            const tieneAvisoActivo = Boolean(com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino));
-
-            // Pastilla dorada con destello
-            const pillComunicadoHTML = () => `
-                <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
-                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-                    <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
-                    <span class="font-mono text-xs uppercase font-black text-amber-200">[AVISO DIRECTIVO]:</span>
-                    <strong class="text-white text-xs underline">${(com.titulo || 'Comunicado General').slice(0, 48)}</strong>
-                    <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black ml-1.5 shadow-xs">Leer Aviso →</span>
-                </div>
-            `;
-
-            const iconMap = {
-                'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
-                'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
-                'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
-                'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
-                'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
-                'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
-                'G': { icon: 'fa-server', color: 'text-blue-400' },
-                'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
-                'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
-                'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
-            };
-
-            const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-            let itemsIntercaladosHTML = '';
-
-            paneles.forEach((letraPanel, idx) => {
-                // Intercalar 5 veces el comunicado (en paneles A, C, E, G, I)
-                if (tieneAvisoActivo && idx % 2 === 0) {
-                    itemsIntercaladosHTML += pillComunicadoHTML();
-                }
-
-                const accionesDelPanel = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) 
-                    ? accionesDataset.filter(act => act.panel === letraPanel) 
-                    : [];
-
-                accionesDelPanel.forEach(act => {
-                    const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
-                    const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
-                    const idClave = act.clave_accion || act.id;
-
-                    itemsIntercaladosHTML += `
-                        <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
-                            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                            <i class="fa-solid ${conf.icon} ${conf.color} text-sm"></i>
-                            <span class="font-mono text-xs font-bold text-indigo-300">[${idClave}]</span>
-                            <strong class="font-bold text-slate-100 text-xs">${act.hito}:</strong>
-                            <span class="text-slate-300 text-xs truncate max-w-sm">${act.accion.slice(0, 55)}...</span>
-                            <span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-white/15 text-white">${act.avance}%</span>
-                        </div>
-                    `;
-                });
-            });
-
-            track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
-
-            // Proyección del aviso flotante
-            if (tieneAvisoActivo && typeof proyectarAvisoAlEntrarSesion === 'function') {
-                proyectarAvisoAlEntrarSesion(com, true);
-            }
-        }
-
-
-
-// 2. Renderizado del Cintillo intercalando el aviso 5 VECES (cada 2 áreas)
-async function renderCintilloNoticioso() {
+function renderCintilloNoticioso() {
     const track = document.getElementById('tickerTrack');
     if (!track) return;
 
-    const com = await obtenerComunicadoDirectivoVigente();
-    const ORIGEN_ACTUAL = "IECG"; // En menu_forum.html cambiar a "FORUM"
-    const tieneAvisoActivo = com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL);
+    const com = obtenerComunicadoDirectivoVigente();
+    const ORIGEN_ACTUAL = "IECG";
+    const tieneAvisoActivo = Boolean(com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino));
 
-    // Plantilla de la pastilla con destello pulsante
-    const construirPillComunicado = () => `
-        <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Oficial emitido por Auditoría. Clic para ver detalles.">
+    const pillComunicadoHTML = () => `
+        <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
             <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
             <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
             <span class="font-mono text-xs uppercase font-black text-amber-200">[AVISO DIRECTIVO]:</span>
@@ -4130,7 +4000,6 @@ async function renderCintilloNoticioso() {
         </div>
     `;
 
-    // Mapeo tradicional de iconos
     const iconMap = {
         'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
         'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
@@ -4144,18 +4013,18 @@ async function renderCintilloNoticioso() {
         'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
     };
 
-    // Construir lista intercalando el comunicado cada 2 áreas (5 veces en total)
     const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     let itemsIntercaladosHTML = '';
 
     paneles.forEach((letraPanel, idx) => {
-        // Inyectar el comunicado al inicio y cada dos áreas (índices 0, 2, 4, 6, 8 = 5 veces)
         if (tieneAvisoActivo && idx % 2 === 0) {
-            itemsIntercaladosHTML += construirPillComunicado();
+            itemsIntercaladosHTML += pillComunicadoHTML();
         }
 
-        // Inyectar las acciones de este panel
-        const accionesDelPanel = accionesDataset.filter(a => a.panel === letraPanel);
+        const accionesDelPanel = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) 
+            ? accionesDataset.filter(act => act.panel === letraPanel) 
+            : [];
+
         accionesDelPanel.forEach(act => {
             const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
             const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
@@ -4174,18 +4043,16 @@ async function renderCintilloNoticioso() {
         });
     });
 
-    // Duplicamos el contenido (2x) para el loop infinito continuo
     track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
 
-    // Proyectar el aviso flotante al inicio de sesión
-    proyectarAvisoAlEntrarSesion(com, tieneAvisoActivo);
+    if (tieneAvisoActivo && typeof proyectarAvisoAlEntrarSesion === 'function') {
+        proyectarAvisoAlEntrarSesion(com, true);
+    }
 }
 
-// 3. Proyecta el mensaje flotante al iniciar sesión en la ventana principal
 function proyectarAvisoAlEntrarSesion(com, activo) {
     const toast = document.getElementById('toastAvisoDirectivoFlotante');
     if (!toast || !activo || !com) return;
-
     if (!currentUser) return;
 
     const elTitulo = document.getElementById('toastAvisoTitulo');
@@ -4196,9 +4063,8 @@ function proyectarAvisoAlEntrarSesion(com, activo) {
     toast.classList.remove('hidden');
 }
 
-// 4. Abre el modal formal con la información completa capturada en auditoría
-window.abrirModalComunicadoVigente = async function() {
-    const com = await obtenerComunicadoDirectivoVigente();
+window.abrirModalComunicadoVigente = function() {
+    const com = obtenerComunicadoDirectivoVigente();
     if (!com) {
         alert("No hay ningún comunicado emitido por Auditoría en este momento.");
         return;
@@ -4513,27 +4379,7 @@ window.abrirModalComunicadoVigente = async function() {
                 renderTableroGanttEjecutivo();
             }
         }
-
-// =========================================================================
-        // CONSTANTES GLOBALES DE TEMPORALIDAD Y CATÁLOGO DE ÁREAS (GANTT)
-        // =========================================================================
-        var FECHA_INICIO_DECRETO = new Date('2024-10-01T00:00:00');
-        var FECHA_CORTE_HOY = new Date('2026-10-19T00:00:00');
-
-        var catalogoAreasEstrategicas = [
-            { panel: 'A', id: 'RH_E-H-0001', prefijoAccion: 'RH_E', nombre: 'Recursos Humanos (Finiquitos, Convenios y Plazas)', inicio: '2024-10-01', fin: '2025-06-30', color: '#10b981', estatus: 'Concluido', avance: 100, dependencia: 'Tribunal de Conciliación y Arbitraje' },
-            { panel: 'B', id: 'JUR_C-H-0001', prefijoAccion: 'JUR_C', nombre: 'Asuntos Jurídicos (Juicios en Trámite y Poderes)', inicio: '2024-10-15', fin: '2026-02-26', color: '#3b82f6', estatus: 'En Proceso', avance: 75, dependencia: 'Consejería Jurídica del Ejecutivo' },
-            { panel: 'C', id: 'PTR_I-H-0002', prefijoAccion: 'PTR_I', nombre: 'Patrimonio Inmueble (Acuerdos de Destino de Recintos)', inicio: '2024-11-01', fin: '2026-11-30', color: '#f59e0b', estatus: 'En Espera Tercero (Art. 6)', avance: 70, dependencia: 'Secretaría de Finanzas / Consejería' },
-            { panel: 'D', id: 'FID_F-H-0001', prefijoAccion: 'FID_F', nombre: 'Fideicomisos (Convenio FIARCA Banorte)', inicio: '2024-12-01', fin: '2026-10-30', color: '#6366f1', estatus: 'En Espera Tercero (Art. 6)', avance: 60, dependencia: 'Fiduciaria Banorte / Finanzas' },
-            { panel: 'E', id: 'PTR_M-H-0001', prefijoAccion: 'PTR_M', nombre: 'Control Patrimonial (2,570 Bienes no localizados)', inicio: '2024-10-01', fin: '2026-11-30', color: '#065f46', estatus: 'En Proceso', avance: 65, dependencia: 'Secretaría de Finanzas' },
-            { panel: 'F', id: 'FIN_P-H-0003', prefijoAccion: 'FIN_P', nombre: 'Financiero & Fiscal (Cancelación de RFC ante SAT)', inicio: '2024-11-15', fin: '2026-10-30', color: '#d97706', estatus: 'En Espera Tercero (Art. 6)', avance: 50, dependencia: 'SAT / Secretaría de Finanzas' },
-            { panel: 'G', id: 'TIT_S-H-0001', prefijoAccion: 'TIT_S', nombre: 'Tecnologías de la Información (Sistemas y Servidores)', inicio: '2025-01-15', fin: '2025-12-15', color: '#059669', estatus: 'Concluido', avance: 100, dependencia: 'DGTIT Secretaría de Finanzas' },
-            { panel: 'H', id: 'ACH_D-H-0001', prefijoAccion: 'ACH_D', nombre: 'Archivo & Concentración Documental', inicio: '2025-02-01', fin: '2026-11-30', color: '#8b5cf6', estatus: 'En Proceso', avance: 70, dependencia: 'Archivo General del Estado' },
-            { panel: 'I', id: 'AUD_F-H-0001', prefijoAccion: 'AUD_F', nombre: 'Fiscalización & ASEG (Solventación Pliegos)', inicio: '2025-06-01', fin: '2026-04-05', color: '#475569', estatus: 'En Proceso', avance: 60, dependencia: 'Auditoría Superior del Estado (ASEG)' },
-            { panel: 'J', id: 'ASI_P-H-0001', prefijoAccion: 'ASI_P', nombre: 'Gobernanza & Cierre (Acta Final y Libro Blanco)', inicio: '2026-01-10', fin: '2026-04-05', color: '#dc2626', estatus: 'Validación', avance: 45, dependencia: 'Comité de Extinción / SECUL' }
-        ];
-
-        var indiceAreaActiva = 0;
+        
 function diasDiff(d1, d2) {
     return Math.round((new Date(d2) - new Date(d1)) / (1000 * 60 * 60 * 24));
 }
