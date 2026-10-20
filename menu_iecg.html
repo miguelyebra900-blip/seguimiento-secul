@@ -5057,14 +5057,252 @@ window.renderBaseDatosGeneralJerarquica = function() {
                             ${h.acciones.map(a => {
                                 const idClave = a.clave_accion || a.id;
                                 const tieneDrive = Boolean(a.driveUrl && a.driveUrl.trim() !== '');
-
-                                return `
+return `
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">${idClave}</td>
                                         <td class="p-2 text-slate-800 font-medium">${a.accion}</td>
                                         <td class="p-2 text-slate-600">${a.responsable || 'Comisión'}</td>
                                         <td class="p-2 text-center">
                                             <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold ${ a.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (a.estatus === 'Validación' ? 'bg-purple-100 text-purple-800' : (a.estatus && a.estatus.includes('Tercero') ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800')) }">${a.estatus}</span>
+                                        </td>
+                                        <td class="p-2 text-center font-mono font-black ${Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600'}">
+                                            ${a.avance}%
+                                        </td>
+                                        <!-- Carga / Verificación Drive -->
+                                        <td class="p-2 text-center whitespace-nowrap">
+                                            ${tieneDrive ? `
+                                                <a href="${a.driveUrl}" target="_blank" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 border border-emerald-200">
+                                                    <i class="fa-brands fa-google-drive"></i> Ver Documental
+                                                </a>
+                                            ` : `
+                                                <button type="button" onclick="cargarArchivoDirectoDesdeExcel('${idClave}', '${h.panel}')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 border border-indigo-200">
+                                                    <i class="fa-solid fa-cloud-arrow-up"></i> Subir PDF
+                                                </button>
+                                            `}
+                                        </td>
+                                        <!-- Botón de Solicitud de Edición con Candado -->
+                                        <td class="p-2 text-center whitespace-nowrap">
+                                            <button type="button" onclick="solicitarModificacionAccionGeneral('${idClave}', '${a.accion.replace(/'/g, "\\'")}', ${a.avance}, '${a.estatus}')" 
+                                                    class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition">
+                                                <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar Acción
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        `;
+    }).join('');
+};
+
+// =========================================================================
+// CANDADO DE SEGURIDAD: WORKFLOW DE SOLICITUD A AUDITORÍA (AUDITORIA.HTML)
+// =========================================================================
+
+// 3. Solicitar Modificación de Hito
+window.solicitarModificacionHitoGeneral = function(claveHito, tituloHito) {
+    const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    const nuevoTitulo = prompt(`[CANDADO DE GOBERNANZA]\nModificar Hito: ${claveHito}\n\nIngrese el nuevo título normativo:`, tituloHito);
+    if (!nuevoTitulo || nuevoTitulo.trim() === '' || nuevoTitulo === tituloHito) return;
+
+    const motivo = prompt("Motivo o sustento técnico para la modificación (Obligatorio para auditoría):");
+    if (!motivo || motivo.trim() === '') {
+        alert("Operación cancelada: Todo cambio debe justificar su causa raíz conforme al Art. 6.");
+        return;
+    }
+
+    if (esAdmin) {
+        accionesDataset.forEach(a => {
+            if ((a.clave_hito === claveHito) || (a.id.startsWith(claveHito))) {
+                a.hito = nuevoTitulo.trim();
+            }
+        });
+        guardarDataset();
+        registrarAuditoria('Modificación Directa de Hito (Admin)', { claveHito, nuevoTitulo, motivo });
+        alert(`¡Hito ${claveHito} actualizado con éxito por Administrador!`);
+        actualizarDashboard();
+        renderBaseDatosGeneralJerarquica();
+    } else {
+        registrarSolicitudAuditoria({
+            tipo: 'MODIFICAR_HITO',
+            clave: claveHito,
+            campo: 'hito',
+            valorAnterior: tituloHito,
+            valorPropuesto: nuevoTitulo.trim(),
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
+
+        alert(`🔒 SOLICITUD ENVIADA A AUDITORÍA:\n\nTu propuesta de cambio para el Hito ${claveHito} ha sido registrada con éxito.\nUn Administrador debe autorizarla en 'auditoria.html' para reflejarse en el sistema.`);
+    }
+};
+
+// 4. Solicitar Modificación de Acción
+window.solicitarModificacionAccionGeneral = function(claveAccion, accionDesc, avanceActual, estatusActual) {
+    const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    const nuevoAvance = prompt(`[CANDADO DE GOBERNANZA]\nAcción: ${claveAccion}\n\nIngrese nuevo porcentaje de avance (0 a 100):`, avanceActual);
+    if (nuevoAvance === null) return;
+    
+    const avanceNum = parseInt(nuevoAvance, 10);
+    if (isNaN(avanceNum) || avanceNum < 0 || avanceNum > 100) {
+        alert("Error: Ingrese un porcentaje válido de 0 a 100.");
+        return;
+    }
+
+    const motivo = prompt("Motivo o número de oficio que acredita este avance:");
+    if (!motivo || motivo.trim() === '') {
+        alert("Operación cancelada: Debe indicar la evidencia documental del avance.");
+        return;
+    }
+
+    if (esAdmin) {
+        const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+        if (act) {
+            act.avance = avanceNum;
+            if (avanceNum === 100) act.estatus = 'Concluido';
+            guardarDataset();
+            registrarAuditoria('Modificación Directa de Acción (Admin)', { claveAccion, avanceNum, motivo });
+            alert(`¡Acción ${claveAccion} actualizada exitosamente!`);
+            actualizarDashboard();
+            renderBaseDatosGeneralJerarquica();
+        }
+    } else {
+        registrarSolicitudAuditoria({
+            tipo: 'MODIFICAR_ACCION',
+            clave: claveAccion,
+            campo: 'avance',
+            valorAnterior: avanceActual,
+            valorPropuesto: avanceNum,
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
+
+        alert(`🔒 SOLICITUD CANALIZADA A AUDITORÍA:\n\nEl cambio de avance (${avanceActual}% ➔ ${avanceNum}%) ha sido enviado a la mesa de control de 'auditoria.html'.`);
+    }
+};
+
+// 5. Registrar solicitudes para auditoria.html
+function registrarSolicitudAuditoria(solicitud) {
+    let solicitudes = JSON.parse(localStorage.getItem('secul_solicitudes_cambio')) || [];
+    solicitud.id = 'SOL-' + Date.now().toString().slice(-4);
+    solicitudes.unshift(solicitud);
+    localStorage.setItem('secul_solicitudes_cambio', JSON.stringify(solicitudes));
+
+    if (supabaseClient) {
+        try {
+            supabaseClient.from('solicitudes_auditoria').insert([solicitud]);
+        } catch (e) {
+            console.warn("Solicitud guardada en cola local:", e);
+        }
+    }
+}
+
+// =========================================================================
+// DESCARGA Y CARGA MASIVA DE PLANTILLA EXCEL / CSV
+// =========================================================================
+
+// 6. Descargar Plantilla Oficial CSV / Excel
+window.descargarPlantillaGobernanzaExcel = function() {
+    const encabezados = ["PANEL", "CLAVE_HITO", "TITULO_HITO", "CLAVE_ACCION", "ACCION_DETALLADA", "RESPONSABLE", "ESTATUS", "AVANCE_PORCENTAJE", "EXPEDIENTE_DRIVE", "MOTIVO_CAMBIO"];
+    
+    const filas = accionesDataset.map(a => {
+        const idHito = a.clave_hito || a.id.split('-A-')[0];
+        const idClave = a.clave_accion || a.id;
+        return [
+            `"${a.panel}"`,
+            `"${idHito}"`,
+            `"${(a.hito || '').replace(/"/g, '""')}"`,
+            `"${idClave}"`,
+            `"${(a.accion || '').replace(/"/g, '""')}"`,
+            `"${(a.responsable || '').replace(/"/g, '""')}"`,
+            `"${a.estatus || 'En Proceso'}"`,
+            `${a.avance || 0}`,
+            `"${a.driveUrl || ''}"`,
+            `""`
+        ].join(',');
+    });
+
+    const csvContent = "\uFEFF" + [encabezados.join(','), ...filas].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Matriz_Gobernanza_IECG_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+};
+
+// 7. Procesar Importación de Archivo Excel / CSV
+window.procesarImportacionExcelGeneral = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const lineas = e.target.result.split(/\r\n|\n/).filter(l => l.trim() !== '');
+        if (lineas.length < 2) {
+            alert("Error: El archivo no contiene filas de datos.");
+            return;
+        }
+
+        const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+        let actualizados = 0;
+
+        for (let i = 1; i < lineas.length; i++) {
+            const cols = lineas[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"\vert{}"$/g, '').trim());
+            
+            if (cols.length >= 8) {
+                const claveAccion = cols[3];
+                const nuevoAvance = parseInt(cols[7], 10) || 0;
+                const nuevoEstatus = cols[6] || 'En Proceso';
+                const motivo = cols[9] || 'Carga masiva por archivo Excel';
+
+                const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+                if (act) {
+                    if (esAdmin) {
+                        act.avance = nuevoAvance;
+                        act.estatus = nuevoEstatus;
+                        actualizados++;
+                    } else {
+                        registrarSolicitudAuditoria({
+                            tipo: 'CARGA_MASIVA_EXCEL',
+                            clave: claveAccion,
+                            campo: 'avance_estatus',
+                            valorAnterior: `${act.avance}% (${act.estatus})`,
+                            valorPropuesto: `${nuevoAvance}% (${nuevoEstatus})`,
+                            motivo: motivo,
+                            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                            fecha: new Date().toLocaleString(),
+                            estatus: 'Pendiente de Autorización'
+                        });
+                        actualizados++;
+                    }
+                }
+            }
+        }
+
+        if (esAdmin) {
+            guardarDataset();
+            actualizarDashboard();
+            renderBaseDatosGeneralJerarquica();
+            alert(`¡Importación procesada con éxito!\nSe actualizaron directamente ${actualizados} registros.`);
+        } else {
+            alert(`🔒 IMPORTACIÓN ENVIADA A AUDITORÍA:\nSe generaron ${actualizados} solicitudes de cambio que deben ser validadas por los administradores en 'auditoria.html'.`);
+        }
+
+        event.target.value = '';
+    };
+
+    reader.readAsText(file, 'UTF-8');
+};
         
 </script>
 <!-- ========================================================================= -->
