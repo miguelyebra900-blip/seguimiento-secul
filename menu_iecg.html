@@ -166,6 +166,29 @@
             window.location.replace('index.html');
         }
     })();
+
+window.guardarContactoNotificaciones = async function(e) {
+    e.preventDefault();
+    const correo = document.getElementById('inputPerfilCorreo').value.trim();
+    const tel = document.getElementById('inputPerfilWhatsApp').value.trim();
+
+    if (!currentUser) return;
+
+    currentUser.correo_notificaciones = correo;
+    currentUser.telefono_whatsapp = tel;
+    localStorage.setItem('secul_user', JSON.stringify(currentUser));
+
+    if (supabaseClient && currentUser.id) {
+        await supabaseClient
+            .from('usuarios_acceso')
+            .update({ correo_notificaciones: correo, telefono_whatsapp: tel })
+            .eq('id', currentUser.id);
+    }
+
+    closeModal('modal-contacto-notificaciones');
+    alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
+};
+    
 </script>
 
     
@@ -237,7 +260,13 @@
             class="hidden btn-executive bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 border border-indigo-700/60 px-3 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 shadow-xs">
         <i class="fa-solid fa-link text-indigo-400"></i> Solicitar Vinculación
     </button>                  
-                    
+                  
+  <!-- ACCESO RÁPIDO A PERFIL DE NOTIFICACIONES EN LA CABECERA -->
+                <button type="button" onclick="openModal('modal-contacto-notificaciones')" 
+        class="text-amber-400 hover:text-amber-300 font-bold text-[11px] border-l border-slate-700 pl-2 transition" 
+        title="Configurar Correo y WhatsApp para Alertas">
+    <i class="fa-solid fa-bell me-1"></i> Notificaciones
+</button>    
     <!-- ESTADO DE SESIÓN DINÁMICO CON SUPABASE -->
     <div id="userSessionContainer" class="bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2.5 text-xs shadow-inner">
         <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
