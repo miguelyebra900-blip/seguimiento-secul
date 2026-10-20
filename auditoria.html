@@ -44,6 +44,210 @@
             window.location.replace('index.html');
         }
     })();
+
+    // =========================================================================
+// MÓDULO 1: GESTOR DE COMUNICADOS DIRECTIVOS AL CINTILLO NOTICIERO
+// =========================================================================
+
+function abrirModalEmisorCintillo() {
+    const com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
+    if (com) {
+        document.getElementById('comunicadoDestino').value = com.destino || 'AMBOS';
+        document.getElementById('comunicadoTitulo').value = com.titulo || '';
+        document.getElementById('comunicadoCuerpo').value = com.cuerpo || '';
+    } else {
+        document.getElementById('comunicadoTitulo').value = '';
+        document.getElementById('comunicadoCuerpo').value = '';
+    }
+    openModal('modal-emisor-cintillo');
+}
+
+async function publicarComunicadoDirectivo(e) {
+    e.preventDefault();
+    const destino = document.getElementById('comunicadoDestino').value;
+    const titulo = document.getElementById('comunicadoTitulo').value.trim();
+    const cuerpo = document.getElementById('comunicadoCuerpo').value.trim();
+
+    const comunicado = {
+        id: 'COM-' + Date.now(),
+        destino: destino, // 'AMBOS', 'IECG', 'FORUM'
+        titulo: titulo,
+        cuerpo: cuerpo,
+        emisor: (currentUser && currentUser.nombre) ? currentUser.nombre : 'Dirección General / Auditoría',
+        fecha: new Date().toLocaleString(),
+        activo: true
+    };
+
+    // 1. Persistencia local inmediata
+    localStorage.setItem('secul_comunicado_directivo', JSON.stringify(comunicado));
+
+    // 2. Persistencia en Supabase para sincronizar clientes remotos
+    if (supabaseClient) {
+        try {
+            await supabaseClient.from('auditoria_trazabilidad').insert([{
+                usuario: comunicado.emisor,
+                accion: `[COMUNICADO DIRECTIVO] ${comunicado.titulo}`,
+                detalles: comunicado,
+                fecha_hora: new Date().toISOString()
+            }]);
+        } catch(err) {
+            console.warn("Aviso comunicado local:", err);
+        }
+    }
+
+    closeModal('modal-emisor-cintillo');
+    alert(`📢 COMUNICADO ENVIADO CON ÉXITO:\n\nEl aviso "${titulo}" ha sido inyectado al cintillo con destello en ${destino}.\nLos usuarios en menu_iecg y menu_forum podrán visualizarlo y consultar la instrucción oficial.`);
+}
+
+function retirarComunicadoActivo() {
+    if (confirm("¿Deseas retirar el comunicado activo del cintillo de todas las pantallas?")) {
+        localStorage.removeItem('secul_comunicado_directivo');
+        closeModal('modal-emisor-cintillo');
+        alert("Aviso retirado del cintillo.");
+    }
+}
+
+// =========================================================================
+// MÓDULO 2: GENERADOR DE INFORME EJECUTIVO OFICIAL DE EXTINCIÓN
+// =========================================================================
+
+function generarInformeEjecutivoExtincion() {
+    // 1. Recopilar datos reales de la estructura viva
+    const accionesIEC = JSON.parse(localStorage.getItem('secul_30_acciones')) || [];
+    const solicitudes = (typeof getSolicitudesConsolidadas === 'function') ? getSolicitudesConsolidadas() : [];
+    
+    // Cálculo de avance consolidado
+    const totalAcciones = accionesIEC.length || 30;
+    const concluidas = accionesIEC.filter(a => a.estatus === 'Concluido' || a.avance === 100).length;
+    const enProceso = accionesIEC.filter(a => a.estatus === 'En Proceso').length;
+    const conSoporteDrive = accionesIEC.filter(a => a.driveUrl && a.driveUrl.trim() !== '').length;
+    const amparadasArt6 = accionesIEC.filter(a => a.tercero && a.tercero !== 'Interna').length;
+    
+    const sumaAvances = accionesIEC.reduce((acc, curr) => acc + (Number(curr.avance) || 0), 0);
+    const pctPromedioGlobal = Math.round(sumaAvances / (totalAcciones || 1));
+
+    // Desglose por comisiones
+    const nombresPaneles = {
+        'A': 'Recursos Humanos & Estructura', 'B': 'Asuntos Jurídicos & Contencioso',
+        'C': 'Patrimonio Inmobiliario & Predios', 'D': 'Fideicomisos & Fondos (FIARCA)',
+        'E': 'Control Patrimonial & Bienes Muebles', 'F': 'Financiero, Presupuestal & Fiscal (SAT)',
+        'G': 'Tecnologías de la Información (TI)', 'H': 'Archivo & Gestión Documental',
+        'I': 'Fiscalización & Auditorías (ASEG)', 'J': 'Asuntos Internos / Líder de Proyecto'
+    };
+
+    let filasAreasHTML = ['A','B','C','D','E','F','G','H','I','J'].map(p => {
+        const delPanel = accionesIEC.filter(a => a.panel === p);
+        const promArea = delPanel.length ? Math.round(delPanel.reduce((s, x) => s + (Number(x.avance) || 0), 0) / delPanel.length) : 0;
+        return `
+            <tr class="border-b border-slate-200">
+                <td class="p-2 font-mono font-bold text-center text-slate-900">${p}</td>
+                <td class="p-2 font-bold text-slate-800">${nombresPaneles[p]}</td>
+                <td class="p-2 text-center font-mono">${delPanel.length}</td>
+                <td class="p-2 text-center font-mono font-bold ${promArea === 100 ? 'text-emerald-700' : 'text-indigo-700'}">${promArea}%</td>
+                <td class="p-2 text-center">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${promArea === 100 ? 'bg-emerald-100 text-emerald-800' : (promArea >= 70 ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-100 text-amber-800')}">
+                        ${promArea === 100 ? 'Concluido' : (promArea >= 70 ? 'En Rango' : 'Salvedad Art. 6')}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Construcción del documento formal
+    const contenedor = document.getElementById('contenidoInformeFormal');
+    contenedor.innerHTML = `
+        <!-- Membrete Oficial -->
+        <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-start">
+            <div>
+                <span class="text-[10px] font-black uppercase text-indigo-900 tracking-widest block">GOBIERNO DEL ESTADO DE GUANAJUATO</span>
+                <h2 class="text-lg font-black text-slate-950 mt-0.5">INFORME DIRECTIVO CONSOLIDADO DE EXTINCIÓN Y CIERRE</h2>
+                <span class="text-xs text-slate-600 block mt-0.5">Comité de Extinción y Liquidación | Decreto Legislativo No. 345</span>
+            </div>
+            <div class="text-right">
+                <span class="text-[11px] font-mono font-bold text-slate-700 block">Folio: INF-EXT-${new Date().toISOString().slice(0,10)}</span>
+                <span class="text-[10px] text-slate-500 block">Fecha de Emisión: ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px] uppercase border border-emerald-300 mt-1 inline-block">Estado: Oficial</span>
+            </div>
+        </div>
+
+        <!-- Resumen Ejecutivo -->
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+            <h3 class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-pie text-indigo-600"></i> 1. Síntesis Cuantitativa de Liquidación
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-center font-mono">
+                <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+                    <span class="block text-2xl font-black text-indigo-700">${pctPromedioGlobal}%</span>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase">Avance Global Ponderado</span>
+                </div>
+                <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+                    <span class="block text-2xl font-black text-emerald-700">${concluidas} / ${totalAcciones}</span>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase">Acciones Concluidas</span>
+                </div>
+                <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+                    <span class="block text-2xl font-black text-amber-600">${amparadasArt6}</span>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase">Salvedades Art. 6 (Terceros)</span>
+                </div>
+                <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+                    <span class="block text-2xl font-black text-slate-800">${conSoporteDrive} / ${totalAcciones}</span>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase">Expedientes en Drive</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Marco Normativo -->
+        <div class="space-y-1.5 text-[11px] text-slate-700 leading-normal">
+            <h3 class="font-black text-slate-900 text-xs uppercase tracking-wider">2. Fundamento Jurídico & Justificación de Salvedad</h3>
+            <p>
+                El presente informe dictamina el estado del proceso de liquidación patrimonial del Instituto Estatal de la Cultura en apego al <strong>Decreto No. 345</strong> y sus Lineamientos rectores. Las acciones en estatus de validación o trámite ante instancias externas (SAT Celaya, Fiduciaria Banorte, Dirección General de Recursos Humanos y Consejería del Ejecutivo) se encuentran expresamente amparadas bajo la <strong>salvedad temporal del Artículo 6 de los Lineamientos</strong>, no imputable a rezago operativo de este organismo.
+            </p>
+        </div>
+
+        <!-- Tabla Desglosada de las 10 Áreas -->
+        <div class="space-y-2">
+            <h3 class="font-black text-slate-900 text-xs uppercase tracking-wider">3. Estado de Cumplimiento por Comisión Estratégica (10 Paneles)</h3>
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <table class="w-full text-left text-[11px] border-collapse">
+                    <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[9.5px]">
+                        <tr>
+                            <th class="p-2 text-center">Panel</th>
+                            <th class="p-2">Comisión / Área Estratégica</th>
+                            <th class="p-2 text-center">No. Acciones</th>
+                            <th class="p-2 text-center">Avance Ponderado</th>
+                            <th class="p-2 text-center">Diagnóstico</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">${filasAreasHTML}</tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bloque de Firmas Institucionales -->
+        <div class="pt-8 grid grid-cols-3 gap-6 text-center text-xs font-semibold text-slate-800 border-t border-slate-300">
+            <div class="space-y-1">
+                <div class="border-b border-slate-400 w-4/5 mx-auto h-12"></div>
+                <strong class="block text-[11px] text-slate-950">Dirección General de Administración</strong>
+                <span class="text-[10px] text-slate-500 block">Secretaría de Cultura</span>
+            </div>
+            <div class="space-y-1">
+                <div class="border-b border-slate-400 w-4/5 mx-auto h-12"></div>
+                <strong class="block text-[11px] text-slate-950">Líder del Proyecto de Extinción</strong>
+                <span class="text-[10px] text-slate-500 block">Mesa de Control y Seguimiento</span>
+            </div>
+            <div class="space-y-1">
+                <div class="border-b border-slate-400 w-4/5 mx-auto h-12"></div>
+                <strong class="block text-[11px] text-slate-950">Persona Liquidadora</strong>
+                <span class="text-[10px] text-slate-500 block">Instituto Estatal de la Cultura</span>
+            </div>
+        </div>
+    `;
+
+    openModal('modal-informe-ejecutivo');
+}
+
+function imprimirInformeEjecutivo() {
+    window.print();
+}
 </script>
     
 </head>
@@ -113,11 +317,18 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button onclick="abrirModalMaestroNuevoHito()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-plus text-sm"></i> Crear Hito Institucional
-                </button>
-            </div>
+           <!-- BOTONES DE MANDO: COMUNICADO A CINTILLO E INFORME EJECUTIVO -->
+<div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+    <!-- BOTÓN 1: EMITIR MENSAJE AL CINTILLO NOTICIERO -->
+    <button onclick="abrirModalEmisorCintillo()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black rounded-xl text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+        <i class="fa-solid fa-bullhorn text-sm animate-bounce"></i> Emitir Comunicado a Cintillo
+    </button>
+
+    <!-- BOTÓN 2: GENERAR INFORME EJECUTIVO OFICIAL -->
+    <button onclick="generarInformeEjecutivoExtincion()" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black rounded-xl text-xs shadow-lg shadow-indigo-600/25 transition flex items-center gap-2 border border-indigo-400/30">
+        <i class="fa-solid fa-file-contract text-sm text-indigo-200"></i> Generar Informe Ejecutivo
+    </button>
+</div>
         </section>
 
         <!-- TARJETAS DE IMPACTO EN GOBERNANZA (KPIS CONSOLIDADOS) -->
@@ -793,5 +1004,94 @@
         // Inicialización
         setAmbitoFiltro('GLOBAL');
     </script>
+<!-- ========================================================================= -->
+<!-- MODAL: EMISOR DE COMUNICADO DIRECTIVO A CINTILLOS (IECG Y FORUM)          -->
+<!-- ========================================================================= -->
+<div id="modal-emisor-cintillo" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-slate-950 text-white rounded-3xl max-w-lg w-full shadow-2xl border border-amber-500/30 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="p-5 bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-b border-amber-500/30 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-lg border border-amber-400/30 shadow-inner">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-300 block">DIFUSIÓN EN TIEMPO REAL</span>
+                    <h3 class="font-extrabold text-sm text-white">Publicar Aviso en Cintillo Bursátil</h3>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-emisor-cintillo')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <form onsubmit="publicarComunicadoDirectivo(event)" class="p-6 space-y-4 text-xs text-slate-300">
+            <div>
+                <label class="block font-bold text-slate-200 mb-1">Destino del Comunicado:</label>
+                <select id="comunicadoDestino" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-amber-300">
+                    <option value="AMBOS">🏛️ Difundir en Ambos Sistemas (menu_iecg y menu_forum)</option>
+                    <option value="IECG">Exclusivo: Extinción IECG (menu_iecg.html)</option>
+                    <option value="FORUM">Exclusivo: Cierre Fórum Cultural (menu_forum.html)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-200 mb-1">Título / Encabezado del Comunicado (Llamativo):</label>
+                <input type="text" id="comunicadoTitulo" placeholder="Ej. AVISO URGENTE: CIERRE DE FASE DE CONCILIACIÓN" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-black text-amber-300" required>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-200 mb-1">Mensaje Completo (Lo que leerá el usuario al dar clic):</label>
+                <textarea id="comunicadoCuerpo" rows="4" placeholder="Redactar la instrucción oficial, fecha límite o directriz emitida por el Comité de Extinción..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white" required></textarea>
+            </div>
+
+            <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-[11px] text-amber-200">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-amber-400 animate-pulse"></i> Aparecerá resaltado con destello continuo.</span>
+                <button type="button" onclick="retirarComunicadoActivo()" class="text-rose-400 hover:text-rose-300 underline font-bold">Retirar Aviso</button>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button type="button" onclick="closeModal('modal-emisor-cintillo')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Transmitir en Vivo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: VISOR DEL INFORME EJECUTIVO OFICIAL DEL PROCESO DE EXTINCIÓN        -->
+<!-- ========================================================================= -->
+<div id="modal-informe-ejecutivo" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white text-slate-900 rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-300 overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header del Visor -->
+        <div class="p-4 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800 no-print shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30">
+                    <i class="fa-solid fa-file-contract"></i>
+                </div>
+                <div>
+                    <h4 class="font-black text-sm">Dictamen Ejecutivo Oficial del Proceso de Extinción</h4>
+                    <p class="text-[11px] text-slate-400">Generado con base en la estructura viva y el Decreto No. 345</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="imprimirInformeEjecutivo()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-print"></i> Imprimir / Guardar PDF
+                </button>
+                <button onclick="closeModal('modal-informe-ejecutivo')" class="text-slate-400 hover:text-white text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Documento Formal Imprimible -->
+        <div id="contenidoInformeFormal" class="p-8 sm:p-10 overflow-y-auto space-y-6 text-xs text-slate-800 font-sans leading-relaxed">
+            <!-- Inyectado dinámicamente con la información del sistema -->
+        </div>
+
+    </div>
+</div>
+    
 </body>
 </html>
