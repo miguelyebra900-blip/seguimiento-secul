@@ -6497,7 +6497,7 @@ function registrarSolicitudAuditoria(solicitud) {
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Recuperación segura de sesión (sin bloqueos abruptos)
+    // Recuperación segura de sesión
     const sesionGuardada = localStorage.getItem('secul_user');
     if (sesionGuardada) {
         try {
@@ -6510,7 +6510,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Si no hay usuario autenticado simulamos un modo consulta para que no rompa el DOM
     if (!currentUser) {
         currentUser = {
             id: 'consulta-local',
@@ -6522,45 +6521,41 @@ window.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 2. Refrescar interfaz y permisos
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 3. Inicialización centralizada y sincronizada de todas las vistas
-    if (typeof mostrarSeccionTab === 'function') {
-        mostrarSeccionTab('tab-dashboard');
-    }
-    if (typeof actualizarDashboard === 'function') {
-        actualizarDashboard();
-    }
-    if (typeof renderCintilloNoticioso === 'function') {
-        renderCintilloNoticioso();
-    }
-    if (typeof verificarYProyectarAvisoDirectivo === 'function') {
-        verificarYProyectarAvisoDirectivo();
-    }
+    // Forzar la ejecución de todo el motor visual con un leve respiro de carga
+    setTimeout(() => {
+        if (typeof mostrarSeccionTab === 'function') {
+            mostrarSeccionTab('tab-dashboard');
+        }
+        if (typeof actualizarDashboard === 'function') {
+            actualizarDashboard();
+        }
+        if (typeof renderCintilloNoticioso === 'function') {
+            renderCintilloNoticioso();
+        }
+        if (typeof verificarYProyectarAvisoDirectivo === 'function') {
+            verificarYProyectarAvisoDirectivo();
+        }
+    }, 150);
 });
         
 </script>
 <!-- ========================================================================= -->
     <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
     <!-- ========================================================================= -->
-    <footer class="ticker-footer-container">
-        <!-- Badge fijo a la izquierda -->
-        <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <i class="fa-solid fa-bullhorn text-amber-400"></i>
-            <span class="hidden sm:inline">Hitos & Acciones IECG</span>
-        </div>
-
-        <!-- Pista de desplazamiento continuo -->
-        <div class="overflow-hidden w-full flex">
-            <div id="tickerTrack" class="ticker-track">
-                <!-- Se inyecta dinámicamente con JavaScript -->
-            </div>
-        </div>
-    </footer>
+  <footer class="ticker-footer-container">
+    <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <i class="fa-solid fa-bullhorn text-amber-400"></i>
+        <span class="hidden sm:inline">Hitos & Acciones IECG</span>
+    </div>
+    <div class="overflow-hidden w-full flex">
+        <div id="tickerTrack" class="ticker-track"></div>
+    </div>
+</footer>
 
     <!-- ========================================================================= -->
 <!-- MODAL DE DESGLOSE DIRECTIVO DE METRICAS KPI                              -->
