@@ -312,6 +312,25 @@
 
     <!-- JAVASCRIPT: LÓGICA CONSOLIDADORA MAESTRA -->
     <script>
+(function verificarAccesoProtegido() {
+        const sesion = localStorage.getItem('secul_user');
+        if (!sesion) {
+            // No hay sesión activa: Redirige de inmediato al login principal
+            window.location.replace('index.html');
+            return;
+        }
+        try {
+            const usuario = JSON.parse(sesion);
+            if (!usuario || !usuario.usuario) {
+                localStorage.removeItem('secul_user');
+                window.location.replace('index.html');
+            }
+        } catch (e) {
+            localStorage.removeItem('secul_user');
+            window.location.replace('index.html');
+        }
+    })();
+        
         const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
         const SUPABASE_KEY = "sb_publishable_Fpfii6S04VVIuhWw8ycekw_yQqud-us";
 
