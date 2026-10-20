@@ -145,6 +145,22 @@
     color: #ffffff;
     transform: translateY(-1px);
 }
+/* EFECTO DESTELLO PARA EL COMUNICADO DEL ADMINISTRADOR EN EL CINTILLO */
+.ticker-comunicado-destello {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95)) !important;
+    color: #0f172a !important;
+    border: 2px solid #fde68a !important;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.9), 0 0 30px rgba(245, 158, 11, 0.6) !important;
+    animation: pulse-destello-admin 1.5s infinite alternate !important;
+    cursor: pointer;
+    font-weight: 900 !important;
+}
+
+@keyframes pulse-destello-admin {
+    0% { transform: scale(1); filter: brightness(1); }
+    100% { transform: scale(1.05); filter: brightness(1.3); }
+}
+        
     </style>
 <!-- PEGAR DENTRO DE <head> EN menu_iecg.html Y menu_forum.html -->
 <script>
@@ -3866,22 +3882,40 @@ window.addEventListener('DOMContentLoaded', () => {
 // =========================================================================
         // RENDER DINÁMICO DEL CINTILLO TIPO NOTICIARIO (HITOS CANÓNICOS 30+)
         // =========================================================================
-        function renderCintilloNoticioso() {
+   function renderCintilloNoticioso() {
             const track = document.getElementById('tickerTrack');
             if (!track) return;
 
-            // Diccionario de Iconos representativos por Panel / Área
+            // 1. Verificar si hay comunicado directivo emitido desde auditoria.html
+            let comunicadoHTML = '';
+            const com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
+            if (com && com.activo) {
+                const aplicaEsteSistema = (com.destino === 'AMBOS' || com.destino === ORIGEN_SISTEMA_ACTUAL);
+                if (aplicaEsteSistema) {
+                    comunicadoHTML = `
+                        <div class="ticker-pill-item ticker-comunicado-destello" onclick="mostrarModalComunicadoAdmin('${encodeURIComponent(com.titulo)}', '${encodeURIComponent(com.cuerpo)}', '${encodeURIComponent(com.emisor)}', '${encodeURIComponent(com.fecha)}')">
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-950 animate-ping"></span>
+                            <i class="fa-solid fa-bullhorn text-slate-950 text-sm"></i>
+                            <span class="font-black uppercase tracking-wider text-[11px] text-slate-950">[AVISO DIRECTIVO]:</span>
+                            <strong class="font-extrabold text-slate-950">${com.titulo}</strong>
+                            <span class="bg-slate-950 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">Ver Mensaje →</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // 2. Diccionario y mapeo habitual de los 30 hitos
             const iconMap = {
-                'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },       // Recursos Humanos
-                'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },     // Jurídico
-                'C': { icon: 'fa-landmark', color: 'text-cyan-400' },           // Inmuebles
-                'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },      // FIARCA Banorte
-                'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },       // Bienes Muebles (R-01)
-                'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},// SAT / Finanzas
-                'G': { icon: 'fa-server', color: 'text-blue-400' },             // TI / Servidores
-                'H': { icon: 'fa-box-archive', color: 'text-teal-400' },        // Archivo AGEG
-                'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },     // ASEG / Fiscalización
-                'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }    // Gobernanza Líder
+                'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
+                'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
+                'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
+                'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
+                'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
+                'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
+                'G': { icon: 'fa-server', color: 'text-blue-400' },
+                'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
+                'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
+                'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
             };
 
             const htmlItems = accionesDataset.map(act => {
@@ -3901,9 +3935,15 @@ window.addEventListener('DOMContentLoaded', () => {
                 `;
             }).join('');
 
-            // Duplicamos el contenido (2x) para crear un loop de desplazamiento infinito perfecto
-            track.innerHTML = htmlItems + htmlItems;
+            // Inyectamos el comunicado al frente de la regleta
+            const contenidoCompleto = comunicadoHTML + htmlItems;
+            track.innerHTML = contenidoCompleto + contenidoCompleto;
         }
+
+        // Función que abre el mensaje completo al pulsar sobre el destello
+        window.mostrarModalComunicadoAdmin = function(titulo, cuerpo, emisor, fecha) {
+            alert(`📢 COMUNICADO INSTITUCIONAL:\n\n• Asunto: ${decodeURIComponent(titulo)}\n• Emitido por: ${decodeURIComponent(emisor)}\n• Fecha: ${decodeURIComponent(fecha)}\n\n${decodeURIComponent(cuerpo)}`);
+        }; }
 
 // =========================================================================
         // APERTURA Y RENDER DINÁMICO DE LA MEMORIA DE CÁLCULO DIRECTIVA
