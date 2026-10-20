@@ -2830,8 +2830,41 @@ function renderTarjetas10Areas(avancesPorArea) {
             const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
             const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
-            const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
-            if (!act) return;
+          const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
+    if (!act) return;
+
+    // =========================================================================
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 2)
+    // =========================================================================
+    const puedeEditarAccion = currentUser && (
+        currentUser.esAdmin || 
+        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(act.panel))
+    );
+
+    if (!puedeEditarAccion) {
+        const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nLa acción pertenece al Panel ${act.panel} (${act.area}), fuera de tu asignación directa.\nIngrese el sustento o motivo de vinculación para enviar a Auditoría:`);
+        if (!motivo || motivo.trim() === '') {
+            alert("Operación cancelada: Debe justificar la propuesta interinstitucional.");
+            return;
+        }
+
+        registrarSolicitudAuditoria({
+            tipo: 'MODIFICAR_ACCION_VINCULADA',
+            clave: claveAccionFinal,
+            campo: 'accion_vinculada',
+            valorPropuesto: { accion: tituloAccion || act.accion, responsable: respAccion || act.responsable, estatus: nuevoEstatus, avance: nuevoAvance },
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
+
+        alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nEl cambio sobre la acción vinculada [${claveAccionFinal}] ha sido remitido a 'auditoria.html' para su autorización.`);
+        closeModal('modal-buzon-universal');
+        return;
+    }
+
+    // Continúa con la subida a Drive y guardado normal...
 
             let driveUrlFinal = act.driveUrl || '';
             const fileInput = document.getElementById('buzonFileInputAccion');
@@ -3404,16 +3437,40 @@ async function guardarNuevoHitoConAcciones(e) {
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    const claveArea = MAPA_PREFIJOS_AREA[panel] || 'RH_E';
+    // =========================================================================
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
+    // =========================================================================
+    const puedeEditar = currentUser && (
+        currentUser.esAdmin || 
+        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(panel))
+    );
 
-    // 1. Extraer las acciones dinámicas (mínimo 1 obligatoria)
-    const contenedor = document.getElementById('contenedorAccionesObligatorias');
-    const filasAcciones = contenedor ? contenedor.querySelectorAll('.fila-accion-item') : [];
-    
-    if (filasAcciones.length === 0) {
-        alert("Error: Todo hito requiere definir al menos una acción obligatoria.");
+    if (!puedeEditar) {
+        const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
+        if (!motivo || motivo.trim() === '') {
+            alert("Operación cancelada: Se requiere motivo para proponer hitos vinculados.");
+            return;
+        }
+
+        const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
+
+        registrarSolicitudAuditoria({
+            tipo: 'NUEVO_HITO_VINCULADO',
+            clave: claveHitoGenerada,
+            campo: 'nuevo_hito_propuesto',
+            valorPropuesto: { titulo, area, norma, panel },
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
+
+        alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nTu propuesta para registrar el Hito ${claveHitoGenerada} en el Panel ${panel} ha sido canalizada a la mesa de control de 'auditoria.html'.`);
+        closeModal('modal-buzon-universal');
         return;
     }
+
+    // Continúa con la lógica normal existente de creación directa...
 
     // 2. Generación del siguiente consecutivo analizando el número máximo real
     const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
@@ -5579,6 +5636,92 @@ window.enviarSolicitudVinculacionPanel = async function(e) {
     btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
     closeModal('modal-solicitar-vinculacion');
 };
+
+        // =========================================================================
+// MÓDULO DE VINCULACIÓN EN BASE DE DATOS GENERAL Y PROPAGACIÓN TOTAL
+// =========================================================================
+
+// 1. Abrir Modal de Vinculación para Hito o Acción
+window.abrirModalVincularElemento = function(tipo, claveId) {
+    const modal = document.getElementById('modal-vincular-elemento');
+    if (!modal) return;
+
+    document.getElementById('vinculoTipoItem').value = tipo;
+    document.getElementById('vinculoClaveItem').value = claveId;
+    document.getElementById('lblElementoSeleccionado').innerText = `[${tipo}] ${claveId}`;
+
+    let textoDesc = '';
+    if (tipo === 'HITO') {
+        const item = accionesDataset.find(a => (a.clave_hito === claveId) || a.id.startsWith(claveId));
+        textoDesc = item ? item.hito : 'Hito Normativo';
+    } else {
+        const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+        textoDesc = act ? act.accion : 'Acción Operativa';
+    }
+
+    document.getElementById('descElementoSeleccionado').innerText = textoDesc;
+    document.getElementById('selPanelVinculadoDestino').selectedIndex = 0;
+    document.getElementById('txtFundamentoVinculo').value = '';
+
+    openModal('modal-vincular-elemento');
+};
+
+// 2. Procesar Vinculación y Propagar a Todo el Ecosistema
+window.ejecutarVinculacionElementoGlobal = function(e) {
+    e.preventDefault();
+
+    const tipo = document.getElementById('vinculoTipoItem').value;
+    const claveId = document.getElementById('vinculoClaveItem').value;
+    const panelDestino = document.getElementById('selPanelVinculadoDestino').value;
+    const fundamento = document.getElementById('txtFundamentoVinculo').value.trim();
+
+    const esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
+
+    if (esAdmin) {
+        if (tipo === 'HITO') {
+            accionesDataset.forEach(a => {
+                if ((a.clave_hito === claveId) || a.id.startsWith(claveId)) {
+                    a.panel_coresponsable = panelDestino;
+                    a.vinculo_fundamento = fundamento;
+                }
+            });
+        } else {
+            const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+            if (act) {
+                act.panel_coresponsable = panelDestino;
+                act.vinculo_fundamento = fundamento;
+            }
+        }
+
+        // Persistencia y propagación en tiempo real
+        guardarDataset();
+        registrarAuditoria(`Vinculación Interinstitucional Directa (${tipo})`, {
+            claveId,
+            panelDestino,
+            fundamento
+        });
+
+        alert(`¡Vinculación aplicada exitosamente!\n\n• Registro: ${claveId}\n• Co-responsable asignado: Panel ${panelDestino}\nLos tableros y reportes se han recalculado en vivo.`);
+    } else {
+        // Enlace operativo: Se canaliza como solicitud formal a auditoria.html
+        registrarSolicitudAuditoria({
+            tipo: 'VINCULACION_ELEMENTO',
+            clave: claveId,
+            campo: 'panel_coresponsable',
+            valorPropuesto: panelDestino,
+            motivo: fundamento,
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
+
+        alert(`🔒 SOLICITUD DE VINCULACIÓN REGISTRADA:\n\nLa propuesta de co-responsabilidad con el Panel ${panelDestino} fue enviada a la mesa de control de 'auditoria.html' para validación administrativa.`);
+    }
+
+    closeModal('modal-vincular-elemento');
+    actualizarDashboard();
+    renderBaseDatosGeneralJerarquica();
+};
         
 </script>
 <!-- ========================================================================= -->
@@ -6095,6 +6238,68 @@ window.enviarSolicitudVinculacionPanel = async function(e) {
                 </button>
                 <button type="submit" id="btnSubmitVinculacion" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-paper-plane"></i> Enviar Petición
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+    <!-- ========================================================================= -->
+<!-- MODAL DE VINCULACIÓN INTERINSTITUCIONAL DE HITO / ACCIÓN                  -->
+<!-- ========================================================================= -->
+<div id="modal-vincular-elemento" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <div>
+                    <span id="badgeTipoVinculoElemento" class="text-[10px] font-black uppercase text-indigo-300 tracking-wider block">VINCULACIÓN DE ÁREA</span>
+                    <h3 id="tituloVinculoElemento" class="font-bold text-base leading-snug">Vincular con otra Comisión</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-vincular-elemento')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form onsubmit="ejecutarVinculacionElementoGlobal(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <input type="hidden" id="vinculoTipoItem">
+            <input type="hidden" id="vinculoClaveItem">
+
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Elemento Seleccionado:</span>
+                <span id="lblElementoSeleccionado" class="font-mono font-black text-indigo-950 text-xs block">--</span>
+                <p id="descElementoSeleccionado" class="text-[11px] text-slate-600 font-medium">--</p>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">Comisión / Panel con el que se vincula:</label>
+                <select id="selPanelVinculadoDestino" class="w-full p-2.5 border rounded-xl bg-white font-bold text-indigo-900 text-xs focus:ring-2 focus:ring-indigo-500" required>
+                    <option value="" disabled selected>Seleccione un Panel...</option>
+                    <option value="A">Panel A - Recursos Humanos & Estructura</option>
+                    <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
+                    <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
+                    <option value="D">Panel D - Fideicomisos & Fondos Especiales (FIARCA)</option>
+                    <option value="E">Panel E - Control Patrimonial & Bienes Muebles</option>
+                    <option value="F">Panel F - Financiero, Presupuestal & Fiscal (SAT)</option>
+                    <option value="G">Panel G - Tecnologías de la Información (TI)</option>
+                    <option value="H">Panel H - Archivo & Gestión Documental</option>
+                    <option value="I">Panel I - Fiscalización & Auditorías (ASEG)</option>
+                    <option value="J">Panel J - Asuntos Internos / Líder de Proyecto</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">Causa o Fundamento de Co-responsabilidad (Art. 6):</label>
+                <textarea id="txtFundamentoVinculo" rows="3" placeholder="Indicar el acuerdo, oficio o proceso compartido que fundamenta la corresponsabilidad..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white text-xs" required></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-vincular-elemento')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" id="btnGuardarVinculo" class="btn-executive px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-link"></i> Aplicar Vinculación
                 </button>
             </div>
         </form>
