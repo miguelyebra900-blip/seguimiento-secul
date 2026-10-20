@@ -6243,6 +6243,68 @@ window.regenerarSiguienteConsecutivoParaEdicion = function() {
     const panel = document.getElementById('selectPanelEdicionDinamica').value;
     cambiarPanelYRecalcularClave(panel);
 };      
+
+// Variable identificadora del sistema actual
+const ORIGEN_SISTEMA_ACTUAL = "IECG"; // En menu_forum.html se cambia a "FORUM"
+
+// Verificar contacto al iniciar sesión
+function verificarContactoObligatorio() {
+    if (!currentUser) return;
+    if (!currentUser.correo_notificaciones || !currentUser.telefono_whatsapp) {
+        document.getElementById('inputPerfilCorreo').value = currentUser.correo_notificaciones || '';
+        document.getElementById('inputPerfilWhatsApp').value = currentUser.telefono_whatsapp || '';
+        openModal('modal-contacto-notificaciones');
+    }
+}
+
+// Guardar en Supabase y sesión local
+async function guardarContactoNotificaciones(e) {
+    e.preventDefault();
+    const correo = document.getElementById('inputPerfilCorreo').value.trim();
+    const tel = document.getElementById('inputPerfilWhatsApp').value.trim();
+
+    currentUser.correo_notificaciones = correo;
+    currentUser.telefono_whatsapp = tel;
+    localStorage.setItem('secul_user', JSON.stringify(currentUser));
+
+    if (supabaseClient && currentUser.id) {
+        await supabaseClient
+            .from('usuarios_acceso')
+            .update({ correo_notificaciones: correo, telefono_whatsapp: tel })
+            .eq('id', currentUser.id);
+    }
+
+    closeModal('modal-contacto-notificaciones');
+    alert("✅ Canales de notificación registrados correctamente.");
+}
+
+function registrarSolicitudAuditoria(solicitud) {
+    solicitud.id = 'SOL-' + Date.now().toString().slice(-4);
+    solicitud.origen_sistema = ORIGEN_SISTEMA_ACTUAL; // 'IECG' o 'FORUM'
+    solicitud.correo_contacto = currentUser ? currentUser.correo_notificaciones : '';
+    solicitud.telefono_contacto = currentUser ? currentUser.telefono_whatsapp : '';
+    solicitud.fecha = new Date().toLocaleString();
+
+    let solicitudes = JSON.parse(localStorage.getItem('secul_solicitudes_cambio')) || [];
+    solicitudes.unshift(solicitud);
+    localStorage.setItem('secul_solicitudes_cambio', JSON.stringify(solicitudes));
+
+    if (supabaseClient) {
+        supabaseClient.from('solicitudes_auditoria').insert([{
+            id: solicitud.id,
+            origen_sistema: solicitud.origen_sistema,
+            tipo: solicitud.tipo,
+            clave: solicitud.clave,
+            campo: solicitud.campo,
+            valor_propuesto: typeof solicitud.valorPropuesto === 'object' ? JSON.stringify(solicitud.valorPropuesto) : solicitud.valorPropuesto,
+            motivo: solicitud.motivo,
+            solicitante: solicitud.solicitante,
+            correo_contacto: solicitud.correo_contacto,
+            telefono_contacto: solicitud.telefono_contacto,
+            estatus: solicitud.estatus || 'Pendiente de Autorización'
+        }]).then();
+    }
+}        
         
 </script>
 <!-- ========================================================================= -->
@@ -6838,7 +6900,38 @@ window.regenerarSiguienteConsecutivoParaEdicion = function() {
 
     </div>
 </div>
-
+<!-- MODAL DE CONTACTO OBLIGATORIO PARA NOTIFICACIONES -->
+<div id="modal-contacto-notificaciones" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-lg border border-amber-400/30">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-sm">Canales de Notificación Oficial</h3>
+                <p class="text-[11px] text-slate-300">Requerido para dictámenes de Mesa de Control</p>
+            </div>
+        </div>
+        <form onsubmit="guardarContactoNotificaciones(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <p class="text-slate-600 leading-snug">
+                Conforme al protocolo de control interno, debes registrar tu correo y número celular para recibir las resoluciones de solicitudes de cambio vía <strong>Email o WhatsApp</strong>.
+            </p>
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">Correo Electrónico Institucional:</label>
+                <input type="email" id="inputPerfilCorreo" class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white text-xs font-semibold" placeholder="enlace@guanajuato.gob.mx" required>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">Teléfono Móvil (WhatsApp a 10 dígitos):</label>
+                <input type="tel" id="inputPerfilWhatsApp" maxlength="10" pattern="[0-9]{10}" class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white text-xs font-mono font-bold" placeholder="4771234567" required>
+            </div>
+            <div class="pt-2">
+                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Confirmar y Acceder al Sistema
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
     
 </body>
 </html>
