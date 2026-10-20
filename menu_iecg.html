@@ -3993,12 +3993,12 @@ window.addEventListener('DOMContentLoaded', () => {
             'J': 'ASI_P'
         };
 
-       // 1. Obtener el siguiente consecutivo de HITO para un panel dado
+    
+        // 1. Obtener el siguiente consecutivo de HITO para un panel dado
         function obtenerSiguienteClaveHito(panelLetra) {
             const prefijo = MAPA_PREFIJOS_AREA[(panelLetra || 'A').toUpperCase()] || 'RH_E';
             let maxNum = 0;
 
-            // Recorremos todo el dataset para encontrar el número más alto existente del área
             accionesDataset.forEach(item => {
                 const clave = item.clave_hito || item.id || '';
                 if (clave.startsWith(prefijo + '-H-')) {
@@ -4037,7 +4037,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const siguienteNum = maxNum + 1;
             return `${claveHitoPadre}-A-${String(siguienteNum).padStart(4, '0')}`;
         }
-
+        
         // 3. Reactividad en el Modal: asigna en vivo el siguiente folio según el panel
         function actualizarFolioSiguienteSugerido() {
             const selectPanel = document.getElementById('nuevoHitoPanel');
