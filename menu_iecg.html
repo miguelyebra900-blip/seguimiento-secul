@@ -2580,29 +2580,35 @@ if (btnVinculo) {
         }
 
     function actualizarDashboard() {
-            const metricas = calcularMetricas();
-            const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
-            const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
-            const elKpiTerceros = document.getElementById('kpiTercerosTop');
+        const metricas = calcularMetricas();
+        const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
+        const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
+        const elKpiTerceros = document.getElementById('kpiTercerosTop');
 
-            if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
-            if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
-            if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
+        if (elKpiGlobal) elKpiGlobal.innerText = `${metricas.avanceGlobal}%`;
+        if (elKpiDocs) elKpiDocs.innerText = `${metricas.docsAcreditados} / 30`;
+        if (elKpiTerceros) elKpiTerceros.innerText = `${metricas.enEsperaTerceros} Acciones`;
 
-            // 1. Vistas originales
-            renderTarjetas10Areas(metricas.avancesPorArea);
-            renderTablaMatriz();
-            renderCharts(metricas);
-            renderCintilloNoticioso();
+        // 1. Vistas y eventos de clic indispensables
+        renderTarjetas10Areas(metricas.avancesPorArea);
+        renderTablaMatriz();
+        renderCharts(metricas);
 
-            // 2. SINCRONIZACIÓN MAESTRA: TABLERO GANTT, DONA Y BARRAS
-            if (typeof renderTableroGanttEjecutivo === 'function') {
-                renderTableroGanttEjecutivo();
-            }
-            if (typeof seleccionarAreaEstrategica === 'function') {
-                seleccionarAreaEstrategica(indiceAreaActiva);
-            }
+        // 2. Sincronización de Tableros
+        if (typeof renderTableroGanttEjecutivo === 'function') {
+            renderTableroGanttEjecutivo();
         }
+        if (typeof seleccionarAreaEstrategica === 'function') {
+            seleccionarAreaEstrategica(indiceAreaActiva);
+        }
+
+        // 3. Ejecución segura del cintillo sin congelar la interfaz
+        setTimeout(() => {
+            if (typeof renderCintilloNoticioso === 'function') {
+                renderCintilloNoticioso();
+            }
+        }, 50);
+    }
 
 function renderTarjetas10Areas(avancesPorArea) {
             // Alias de respaldo para compatibilidad
@@ -6572,22 +6578,19 @@ window.addEventListener('DOMContentLoaded', () => {
 });
         
 </script>
-<!-- ========================================================================= -->
-    <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
+
+    <!-- ========================================================================= -->
+    <!-- CINTILLO INFORMATIVO INFERIOR TIPO TICKER BURSÁTIL / NOTICIARIO          -->
     <!-- ========================================================================= -->
     <footer class="ticker-footer-container">
-        <!-- Badge fijo a la izquierda -->
-        <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
+        <div class="px-3 py-1 bg-indigo-950 border-r border-indigo-700/50 flex items-center gap-2 shrink-0 z-10 shadow-lg">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <i class="fa-solid fa-bullhorn text-amber-400"></i>
-            <span class="hidden sm:inline">Hitos & Acciones IECG</span>
+            <span class="text-[10px] font-black uppercase tracking-wider text-amber-300 whitespace-nowrap">
+                <i class="fa-solid fa-tower-broadcast me-1"></i> MONITOR EN VIVO
+            </span>
         </div>
-
-        <!-- Pista de desplazamiento continuo -->
-        <div class="overflow-hidden w-full flex">
-            <div id="tickerTrack" class="ticker-track">
-                <!-- Se inyecta dinámicamente con JavaScript -->
-            </div>
+        <div id="tickerTrack" class="ticker-track">
+            <!-- Aquí JavaScript inyecta los hitos y los 5 avisos directivos -->
         </div>
     </footer>
 
