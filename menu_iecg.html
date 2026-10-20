@@ -1980,23 +1980,91 @@ window.guardarContactoNotificaciones = async function(e) {
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                    <div id="contenedorAccionesObligatorias" class="space-y-2.5">
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
-                            </div>
-                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
-                                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
-                                    <option value="En Proceso">En Proceso</option>
-                                    <option value="Validación">En Validación</option>
-                                    <option value="Concluido">Concluido al 100%</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <!-- CONTENEDOR DINÁMICO DE ACCIONES OBLIGATORIAS ESTRUCTURADAS -->
+<div id="contenedorAccionesObligatorias" class="space-y-3">
+    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item">
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
+                <i class="fa-solid fa-circle-check text-[9px]"></i> Acción Inicial (Obligatoria)
+            </span>
+        </div>
+
+        <!-- Descripción de la acción -->
+        <div>
+            <label class="block font-bold text-slate-700 text-[11px] mb-0.5">Descripción de la Acción Operativa:</label>
+            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-xl text-xs font-semibold bg-white" required>
+        </div>
+
+        <!-- Matriz de Responsabilidad, Co-responsabilidad y Terceros -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <!-- 1. Instancia Responsable (A - J) -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Área Responsable Principal:</label>
+                <select name="selAccionRespHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-bold text-indigo-900" required>
+                    <option value="Panel A - Recursos Humanos & Estructura">Panel A - Recursos Humanos & Estructura</option>
+                    <option value="Panel B - Asuntos Jurídicos & Contencioso">Panel B - Asuntos Jurídicos & Contencioso</option>
+                    <option value="Panel C - Patrimonio Inmobiliario & Predios">Panel C - Patrimonio Inmobiliario & Predios</option>
+                    <option value="Panel D - Fideicomisos & Fondos (FIARCA)">Panel D - Fideicomisos & Fondos (FIARCA)</option>
+                    <option value="Panel E - Control Patrimonial & Bienes">Panel E - Control Patrimonial & Bienes</option>
+                    <option value="Panel F - Financiero, Presupuestal & Fiscal">Panel F - Financiero, Presupuestal & Fiscal</option>
+                    <option value="Panel G - Tecnologías de la Información (TI)">Panel G - Tecnologías de la Información (TI)</option>
+                    <option value="Panel H - Archivo & Gestión Documental">Panel H - Archivo & Gestión Documental</option>
+                    <option value="Panel I - Fiscalización & Auditorías">Panel I - Fiscalización & Auditorías</option>
+                    <option value="Panel J - Asuntos Internos Líder Proyecto">Panel J - Asuntos Internos Líder Proyecto</option>
+                </select>
+            </div>
+
+            <!-- 2. Área Co-responsable (Vinculación) -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Comisión Co-responsable (Vincular):</label>
+                <select name="selAccionCoresponsable" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-purple-900">
+                    <option value="Ninguna">Sin Co-responsabilidad (Área Única)</option>
+                    <option value="Panel A">Panel A - Recursos Humanos</option>
+                    <option value="Panel B">Panel B - Asuntos Jurídicos</option>
+                    <option value="Panel C">Panel C - Patrimonio Inmueble</option>
+                    <option value="Panel D">Panel D - Fideicomisos</option>
+                    <option value="Panel E">Panel E - Bienes Muebles</option>
+                    <option value="Panel F">Panel F - Finanzas & SAT</option>
+                    <option value="Panel G">Panel G - Tecnologías</option>
+                    <option value="Panel H">Panel H - Archivo</option>
+                    <option value="Panel I">Panel I - Auditoría ASEG</option>
+                    <option value="Panel J">Panel J - Gobernanza</option>
+                </select>
+            </div>
+
+            <!-- 3. Entidad Externa / Terceros (Art. 6) -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Dependencia Externa (Art. 6):</label>
+                <select name="selAccionTercero" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-amber-900">
+                    <option value="Interna">Interna (Trámite 100% Directo)</option>
+                    <option value="Secretaría de Finanzas (DGRH/DGTIT)">Secretaría de Finanzas (DGRH / DGTIT)</option>
+                    <option value="SAT Celaya / SHCP">SAT Celaya / SHCP</option>
+                    <option value="Fiduciaria Banorte">Fiduciaria Banorte</option>
+                    <option value="Consejería Jurídica del Ejecutivo">Consejería Jurídica del Ejecutivo</option>
+                    <option value="Tribunal de Conciliación y Arbitraje">Tribunal de Conciliación y Arbitraje</option>
+                    <option value="Registro Público de la Propiedad / Notarías">Registro Público / Notarías</option>
+                    <option value="Archivo General del Estado (AGEG)">Archivo General del Estado (AGEG)</option>
+                    <option value="ASEG (Fiscalización Superior)">ASEG (Fiscalización Superior)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
+            <div>
+                <label class="block font-bold text-slate-600 text-[10px]">Estatus Operativo:</label>
+                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold">
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Validación">En Validación</option>
+                    <option value="Concluido">Concluido al 100%</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-600 text-[10px]">Expediente Documental Sugerido:</label>
+                <input type="text" name="txtAccionDocHito" placeholder="Ej. Acta de entrega, oficio o convenio..." class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-medium">
+            </div>
+        </div>
+    </div>
+</div>
 
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
@@ -3839,19 +3907,25 @@ function renderListaCompromisosDetalle(act) {
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value; // 'A', 'B', ... 'J'
+    const panel = document.getElementById('nuevoHitoPanel').value;
     const vertiente = document.getElementById('nuevoHitoVertiente').value;
     const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    // =========================================================================
-    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
-    // =========================================================================
-    const puedeEditar = currentUser && (
-        currentUser.esAdmin || 
-        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(panel))
-    );
+    // DEFINICIÓN DE LAS FILAS DE ACCIONES (Corrige el ReferenceError)
+    const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item');
+    if (!filasAcciones || filasAcciones.length === 0) {
+        alert("Debe definir al menos una acción obligatoria.");
+        return;
+    }
+
+    // Validación de permisos por panel
+    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
+        ? resolverPanelesUsuario(currentUser) 
+        : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditar = esAdmin || misPaneles.includes(panel);
 
     if (!puedeEditar) {
         const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
@@ -3878,16 +3952,17 @@ async function guardarNuevoHitoConAcciones(e) {
         return;
     }
 
-    // Continúa con la lógica normal existente de creación directa...
-
-    // 2. Generación del siguiente consecutivo analizando el número máximo real
+    // Generar la clave de hito consecutiva
     const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
 
-    // 3. Registrar cada acción vinculada con su correlativo: A-0001, A-0002, etc.
+    // Iterar cada acción capturada
     filasAcciones.forEach((fila, idx) => {
-        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
-        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
-        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
+        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]')?.value.trim() || 'Acción Operativa';
+        const respAccion = fila.querySelector('select[name="selAccionRespHito"]')?.value || `${area} (Panel ${panel})`;
+        const coresponsable = fila.querySelector('select[name="selAccionCoresponsable"]')?.value || 'Ninguna';
+        const tercero = fila.querySelector('select[name="selAccionTercero"]')?.value || 'Interna';
+        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]')?.value || 'En Proceso';
+        const docSug = fila.querySelector('input[name="txtAccionDocHito"]')?.value.trim() || `Soporte Oficial ${claveHitoGenerada}`;
 
         const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
 
@@ -3899,49 +3974,46 @@ async function guardarNuevoHitoConAcciones(e) {
             area: `${area} (Panel ${panel})`,
             hito: titulo,
             accion: titAccion,
-            responsable: respAccion || area,
+            responsable: respAccion,
+            panel_coresponsable: coresponsable !== 'Ninguna' ? coresponsable : null,
+            tercero: tercero !== 'Interna' ? 'Tercero Estatal' : 'Interna',
+            terceroNombre: tercero,
             peso: 33.33,
             estatus: estatusAccion,
             avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            tercero: "Interna",
-            terceroNombre: "Comité de Transición IECG",
-            docRequerido: `Soporte Oficial ${cAccion}`,
+            docRequerido: docSug,
             driveUrl: ""
         };
 
         accionesDataset.push(nuevoRegistro);
     });
 
-    // 4. Sincronización persistente en Supabase (si está configurada la tabla)
+    // Sincronizar en Supabase si está disponible
     if (supabaseClient) {
         try {
             await supabaseClient.from('hitos_transicion').insert([{
                 clave_hito: claveHitoGenerada,
-                clave_area: claveArea,
                 panel: panel,
-                consecutivo_num: parseInt(claveHitoGenerada.slice(-4), 10),
                 titulo: titulo,
                 normativa: norma,
-                detalle_operativo: `Registrado desde Tablero en Panel ${panel}`,
+                detalle_operativo: `Registrado en Panel ${panel}`,
                 estatus: 'En Proceso',
                 avance_porcentaje: 40
             }]);
         } catch (errSupabase) {
-            console.warn("Sincronización en hitos_transicion guardada localmente:", errSupabase);
+            console.warn("Sincronización en hitos_transicion local:", errSupabase);
         }
     }
 
     guardarDataset();
-
-    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
+    alert(`¡Hito y Acciones registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
 
     document.getElementById('tab-hitos').reset();
     closeModal('modal-buzon-universal');
 
     actualizarDashboard();
-    if (typeof renderCronogramaRoadmap === 'function') {
-        renderCronogramaRoadmap();
-    }
+    if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 }
         
         function abrirPestañaAccionDesdeHito() {
@@ -4072,27 +4144,82 @@ function abrirModalAltaAccionVinculadaDesdeDetalle() {
     poblarSelectBuzon(claveSel);
 }
         
-        // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
-function agregarFilaAccionHito() {
+    function agregarFilaAccionHito() {
     const contenedor = document.getElementById('contenedorAccionesObligatorias');
     if (!contenedor) return;
     const numFila = contenedor.querySelectorAll('.fila-accion-item').length + 1;
     
     const div = document.createElement('div');
-    div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item relative";
+    div.className = "p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item relative animate-in fade-in duration-150";
     div.innerHTML = `
         <div class="flex items-center justify-between">
             <span class="text-[10px] font-bold uppercase text-indigo-700">• Acción Adicional #${numFila}</span>
-            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-trash-can"></i></button>
+            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold p-1"><i class="fa-solid fa-trash-can"></i></button>
         </div>
-        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
-        <div class="grid grid-cols-2 gap-2">
-            <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
-            <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
-                <option value="En Proceso">En Proceso</option>
-                <option value="Validación">En Validación</option>
-                <option value="Concluido">Concluido al 100%</option>
-            </select>
+        <div>
+            <label class="block font-bold text-slate-700 text-[11px] mb-0.5">Descripción de la Acción Operativa:</label>
+            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-xl text-xs font-semibold bg-white" required>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Área Responsable Principal:</label>
+                <select name="selAccionRespHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-bold text-indigo-900" required>
+                    <option value="Panel A - Recursos Humanos & Estructura">Panel A - Recursos Humanos & Estructura</option>
+                    <option value="Panel B - Asuntos Jurídicos & Contencioso">Panel B - Asuntos Jurídicos & Contencioso</option>
+                    <option value="Panel C - Patrimonio Inmobiliario & Predios">Panel C - Patrimonio Inmobiliario & Predios</option>
+                    <option value="Panel D - Fideicomisos & Fondos (FIARCA)">Panel D - Fideicomisos & Fondos (FIARCA)</option>
+                    <option value="Panel E - Control Patrimonial & Bienes">Panel E - Control Patrimonial & Bienes</option>
+                    <option value="Panel F - Financiero, Presupuestal & Fiscal">Panel F - Financiero, Presupuestal & Fiscal</option>
+                    <option value="Panel G - Tecnologías de la Información (TI)">Panel G - Tecnologías de la Información (TI)</option>
+                    <option value="Panel H - Archivo & Gestión Documental">Panel H - Archivo & Gestión Documental</option>
+                    <option value="Panel I - Fiscalización & Auditorías">Panel I - Fiscalización & Auditorías</option>
+                    <option value="Panel J - Asuntos Internos Líder Proyecto">Panel J - Asuntos Internos Líder Proyecto</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Comisión Co-responsable:</label>
+                <select name="selAccionCoresponsable" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-purple-900">
+                    <option value="Ninguna">Sin Co-responsabilidad</option>
+                    <option value="Panel A">Panel A - Recursos Humanos</option>
+                    <option value="Panel B">Panel B - Asuntos Jurídicos</option>
+                    <option value="Panel C">Panel C - Patrimonio Inmueble</option>
+                    <option value="Panel D">Panel D - Fideicomisos</option>
+                    <option value="Panel E">Panel E - Bienes Muebles</option>
+                    <option value="Panel F">Panel F - Finanzas & SAT</option>
+                    <option value="Panel G">Panel G - Tecnologías</option>
+                    <option value="Panel H">Panel H - Archivo</option>
+                    <option value="Panel I">Panel I - Auditoría ASEG</option>
+                    <option value="Panel J">Panel J - Gobernanza</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Dependencia Externa (Art. 6):</label>
+                <select name="selAccionTercero" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-amber-900">
+                    <option value="Interna">Interna (Trámite Directo)</option>
+                    <option value="Secretaría de Finanzas (DGRH/DGTIT)">Secretaría de Finanzas</option>
+                    <option value="SAT Celaya / SHCP">SAT Celaya / SHCP</option>
+                    <option value="Fiduciaria Banorte">Fiduciaria Banorte</option>
+                    <option value="Consejería Jurídica del Ejecutivo">Consejería Jurídica</option>
+                    <option value="Tribunal de Conciliación y Arbitraje">Tribunal Conciliación</option>
+                    <option value="Registro Público de la Propiedad / Notarías">Registro Público / Notarías</option>
+                    <option value="Archivo General del Estado (AGEG)">Archivo AGEG</option>
+                    <option value="ASEG (Fiscalización Superior)">ASEG</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
+            <div>
+                <label class="block font-bold text-slate-600 text-[10px]">Estatus Operativo:</label>
+                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold">
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Validación">En Validación</option>
+                    <option value="Concluido">Concluido al 100%</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-600 text-[10px]">Expediente Documental:</label>
+                <input type="text" name="txtAccionDocHito" placeholder="Ej. Acta circunstanciada..." class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-medium">
+            </div>
         </div>
     `;
     contenedor.appendChild(div);
