@@ -3882,29 +3882,13 @@ window.addEventListener('DOMContentLoaded', () => {
 // =========================================================================
         // RENDER DINÁMICO DEL CINTILLO TIPO NOTICIARIO (HITOS CANÓNICOS 30+)
         // =========================================================================
-   function renderCintilloNoticioso() {
+// =========================================================================
+        // RENDER DINÁMICO DEL CINTILLO TIPO NOTICIARIO (HITOS CANÓNICOS 30+)
+        // =========================================================================
+        function renderCintilloNoticioso() {
             const track = document.getElementById('tickerTrack');
             if (!track) return;
 
-            // 1. Verificar si hay comunicado directivo emitido desde auditoria.html
-            let comunicadoHTML = '';
-            const com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
-            if (com && com.activo) {
-                const aplicaEsteSistema = (com.destino === 'AMBOS' || com.destino === ORIGEN_SISTEMA_ACTUAL);
-                if (aplicaEsteSistema) {
-                    comunicadoHTML = `
-                        <div class="ticker-pill-item ticker-comunicado-destello" onclick="mostrarModalComunicadoAdmin('${encodeURIComponent(com.titulo)}', '${encodeURIComponent(com.cuerpo)}', '${encodeURIComponent(com.emisor)}', '${encodeURIComponent(com.fecha)}')">
-                            <span class="w-2.5 h-2.5 rounded-full bg-slate-950 animate-ping"></span>
-                            <i class="fa-solid fa-bullhorn text-slate-950 text-sm"></i>
-                            <span class="font-black uppercase tracking-wider text-[11px] text-slate-950">[AVISO DIRECTIVO]:</span>
-                            <strong class="font-extrabold text-slate-950">${com.titulo}</strong>
-                            <span class="bg-slate-950 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">Ver Mensaje →</span>
-                        </div>
-                    `;
-                }
-            }
-
-            // 2. Diccionario y mapeo habitual de los 30 hitos
             const iconMap = {
                 'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
                 'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
@@ -3935,17 +3919,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 `;
             }).join('');
 
-            // Inyectamos el comunicado al frente de la regleta
-            const contenidoCompleto = comunicadoHTML + htmlItems;
-            track.innerHTML = contenidoCompleto + contenidoCompleto;
+            track.innerHTML = htmlItems + htmlItems;
         }
 
-        // Función que abre el mensaje completo al pulsar sobre el destello
-        window.mostrarModalComunicadoAdmin = function(titulo, cuerpo, emisor, fecha) {
-            alert(`📢 COMUNICADO INSTITUCIONAL:\n\n• Asunto: ${decodeURIComponent(titulo)}\n• Emitido por: ${decodeURIComponent(emisor)}\n• Fecha: ${decodeURIComponent(fecha)}\n\n${decodeURIComponent(cuerpo)}`);
-        }; }
-
-// =========================================================================
+        // =========================================================================
         // APERTURA Y RENDER DINÁMICO DE LA MEMORIA DE CÁLCULO DIRECTIVA
         // =========================================================================
         function abrirModalMemoriaCalculo() {
@@ -3958,8 +3935,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     const acciones = accionesDataset.filter(a => a.panel === p);
                     if (acciones.length === 0) return;
                     const nombreArea = acciones[0].area;
-                    
-                    // Suma nominal de ponderaciones de las acciones del panel
                     const sumaPesos = acciones.reduce((acc, curr) => acc + (Number(curr.peso) || 0), 0);
 
                     tbody.innerHTML += `
@@ -3977,7 +3952,7 @@ window.addEventListener('DOMContentLoaded', () => {
             openModal('modal-memoria-calculo');
         }
 
-// =========================================================================
+        // =========================================================================
         // GENERADOR DE CONSECUTIVOS ATÓMICOS ([ÁREA]-H-[000X]-A-[000X])
         // =========================================================================
         const MAPA_PREFIJOS_AREA = {
@@ -3993,8 +3968,6 @@ window.addEventListener('DOMContentLoaded', () => {
             'J': 'ASI_P'
         };
 
-    
-        // 1. Obtener el siguiente consecutivo de HITO para un panel dado
         function obtenerSiguienteClaveHito(panelLetra) {
             const prefijo = MAPA_PREFIJOS_AREA[(panelLetra || 'A').toUpperCase()] || 'RH_E';
             let maxNum = 0;
@@ -4016,7 +3989,6 @@ window.addEventListener('DOMContentLoaded', () => {
             return `${prefijo}-H-${String(siguienteNum).padStart(4, '0')}`;
         }
 
-        // 2. Obtener el siguiente consecutivo de ACCIÓN para un Hito Padre dado
         function obtenerSiguienteClaveAccion(claveHitoPadre) {
             if (!claveHitoPadre) return 'ACC_0001';
             let maxNum = 0;
@@ -4036,16 +4008,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
             const siguienteNum = maxNum + 1;
             return `${claveHitoPadre}-A-${String(siguienteNum).padStart(4, '0')}`;
-        }
-        
-        // 3. Reactividad en el Modal: asigna en vivo el siguiente folio según el panel
-        function actualizarFolioSiguienteSugerido() {
-            const selectPanel = document.getElementById('nuevoHitoPanel');
-            const inputFolio = document.getElementById('nuevoHitoId');
-            if (selectPanel && inputFolio) {
-                const panel = selectPanel.value;
-                inputFolio.value = obtenerSiguienteClaveHito(panel);
-            }
         }
 
 // =========================================================================
