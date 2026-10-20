@@ -22,6 +22,30 @@
             .rounded-3xl, .rounded-2xl { border-radius: 0 !important; border: 1px solid #ccc !important; }
         }
     </style>
+<!-- PEGAR DENTRO DE <head> EN auditoria.html -->
+<script>
+    (function verificarAccesoAuditoria() {
+        const sesion = localStorage.getItem('secul_user');
+        if (!sesion) {
+            window.location.replace('index.html');
+            return;
+        }
+        try {
+            const usuario = JSON.parse(sesion);
+            const rol = (usuario.rol || '').toLowerCase();
+            const esAdmin = rol.includes('admin') || rol.includes('super');
+            
+            if (!esAdmin) {
+                alert("⛔ ACCESO DENEGADO\n\nEl portal de Auditoría y Mesa de Control está reservado para la Dirección General de Administración y el Líder de Proyecto.");
+                window.location.replace('menu_iecg.html');
+            }
+        } catch (e) {
+            localStorage.removeItem('secul_user');
+            window.location.replace('index.html');
+        }
+    })();
+</script>
+    
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col">
 
@@ -311,26 +335,7 @@
     </div>
 
     <!-- JAVASCRIPT: LÓGICA CONSOLIDADORA MAESTRA -->
-    <script>
-(function verificarAccesoProtegido() {
-        const sesion = localStorage.getItem('secul_user');
-        if (!sesion) {
-            // No hay sesión activa: Redirige de inmediato al login principal
-            window.location.replace('index.html');
-            return;
-        }
-        try {
-            const usuario = JSON.parse(sesion);
-            if (!usuario || !usuario.usuario) {
-                localStorage.removeItem('secul_user');
-                window.location.replace('index.html');
-            }
-        } catch (e) {
-            localStorage.removeItem('secul_user');
-            window.location.replace('index.html');
-        }
-    })();
-        
+    <script>        
         const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
         const SUPABASE_KEY = "sb_publishable_Fpfii6S04VVIuhWw8ycekw_yQqud-us";
 
