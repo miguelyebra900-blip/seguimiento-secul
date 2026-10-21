@@ -6118,57 +6118,6 @@ window.actualizarAccionesParaVinculoUniversal = function(accionPreseleccionada =
     }
 };
 
-window.procesarVinculacionUniversalOficial = async function(e) {
-    e.preventDefault();
-
-    const hitoId = document.getElementById('selVinculoHitoObjetivo').value;
-    const accionId = document.getElementById('selVinculoAccionObjetivo').value;
-    const motivo = document.getElementById('txtVinculoMotivoOficial').value.trim();
-    const fileInput = document.getElementById('fileVinculoDocumental');
-    const btn = document.getElementById('btnSubmitVinculoOficial');
-
-    const misPaneles = currentUser ? (currentUser.paneles_autorizados || [currentUser.panel_origen || 'A']) : [];
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Enviando...';
-    }
-
-    let urlSoporte = '';
-    try {
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            const panelOrigen = misPaneles[0] || 'A';
-            urlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, `[VINC-${hitoId}] ${fileInput.files[0].name}`);
-        }
-
-      const ticketVinculacion = {
-            tipo: 'VINCULACION_INTERINSTITUCIONAL',
-            clave: accionId === 'TODAS' ? hitoId : accionId,
-            campo: 'panel_coresponsable',
-            hito_objetivo: hitoId,
-            accion_objetivo: accionId,
-            motivo: motivo,
-            url_soporte: urlSoporte,
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        };
-
-        if (typeof registrarSolicitudAuditoria === 'function') {
-            registrarSolicitudAuditoria(ticketVinculacion);
-        }
-
-        alert("¡Solicitud de vinculación interinstitucional enviada exitosamente a la mesa de control!");
-        closeModal('modal-vinculacion-universal');
-    } catch (err) {
-        alert("Error al procesar la vinculación: " + err.message);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
-        }
-    }
-};
         // Función para inferir paneles del usuario de forma infalible
 function resolverPanelesUsuario(user) {
     if (!user) return ['A'];
@@ -6283,10 +6232,10 @@ window.actualizarAccionesParaVinculoUniversal = function(accionForzada = null) {
 window.procesarVinculacionUniversalOficial = async function(e) {
     e.preventDefault();
 
-    const hitoId = document.getElementById('selVinculoHitoObjetivo').value;
-    const accionId = document.getElementById('selVinculoAccionObjetivo').value;
-    const tipoCoesp = document.getElementById('selTipoCorresponsabilidad').value;
-    const motivo = document.getElementById('txtVinculoMotivoOficial').value.trim();
+    const hitoId = document.getElementById('selVinculoHitoObjetivo')?.value;
+    const accionId = document.getElementById('selVinculoAccionObjetivo')?.value;
+    const tipoCoesp = document.getElementById('selTipoCorresponsabilidad')?.value || 'Co-responsable';
+    const motivo = document.getElementById('txtVinculoMotivoOficial')?.value.trim();
     const fileInput = document.getElementById('fileVinculoDocumental');
     const btn = document.getElementById('btnSubmitVinculoOficial');
 
@@ -6301,19 +6250,19 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         let driveUrlSoporte = '';
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const panelOrigen = misPaneles[0] || 'A';
-            const nombreArchivo = `[VINC-${accionId === 'TODAS' ? hitoId : accionId}] ${fileInput.files[0].name}`;
-            driveUrlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, nombreArchivo);
+            driveUrlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, `[VINC-${hitoId}] ${fileInput.files[0].name}`);
         }
 
-       const ticketVinculacion = {
+        const ticketVinculacion = {
             tipo: 'VINCULACION_INTERINSTITUCIONAL',
             clave: accionId === 'TODAS' ? hitoId : accionId,
             campo: 'panel_coresponsable',
             hito_objetivo: hitoId,
             accion_objetivo: accionId,
+            tipo_corresponsabilidad: tipoCoesp,
             motivo: motivo,
-            url_soporte: urlSoporte,
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            url_soporte: driveUrlSoporte,
+            solicitante: currentUser ? `${currentUser.nombre} (${currentUser.usuario})` : 'Enlace Institucional',
             fecha: new Date().toLocaleString(),
             estatus: 'Pendiente de Autorización'
         };
@@ -6910,57 +6859,7 @@ window.agregarCampoArchivoBase = function() {
     contenedor.appendChild(div);
 };
 
-    window.procesarVinculacionUniversalOficial = async function(e) {
-    e.preventDefault();
-
-    const hitoId = document.getElementById('selVinculoHitoObjetivo')?.value;
-    const accionId = document.getElementById('selVinculoAccionObjetivo')?.value;
-    const motivo = document.getElementById('txtVinculoMotivoOficial')?.value.trim();
-    const fileInput = document.getElementById('fileVinculoDocumental');
-    const btn = document.getElementById('btnSubmitVinculoOficial');
-
-    const misPaneles = currentUser ? (currentUser.paneles_autorizados || [currentUser.panel_origen || 'A']) : [];
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Enviando...';
-    }
-
-    let urlSoporte = '';
-    try {
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            const panelOrigen = misPaneles[0] || 'A';
-            urlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, `[VINC-${hitoId}] ${fileInput.files[0].name}`);
-        }
-
-        const ticketVinculacion = {
-            tipo: 'VINCULACION_INTERINSTITUCIONAL',
-            clave: accionId === 'TODAS' ? hitoId : accionId,
-            campo: 'panel_coresponsable',
-            hito_objetivo: hitoId,
-            accion_objetivo: accionId,
-            motivo: motivo,
-            url_soporte: urlSoporte,
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        };
-
-      if (typeof registrarSolicitudAuditoria === 'function') {
-            registrarSolicitudAuditoria(ticketVinculacion);
-        }
-
-        alert("¡Solicitud de vinculación interinstitucional enviada exitosamente!");
-        closeModal('modal-vinculacion-universal');
-    } catch (err) {
-        alert("Error al procesar la vinculación: " + err.message);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
-        }
-    }
-}; // <-- Asegúrate de que esta llave y punto y coma cierren la función procesarVinculacionUniversalOficial
+   
     
 </script>
 
