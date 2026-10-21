@@ -6809,9 +6809,14 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
       var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
 
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            for (let i = 0; i < fileInput.files.length; i++) {
-                var archivoFisico = fileInput.files[i];
+      // Obtener todos los campos de archivos independientes generados dinámicamente
+        var inputsArchivosDinamicos = document.querySelectorAll('.input-archivo-dinamico');
+        var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
+
+        // Recorrer cada cajita de archivo agregada por el usuario
+        for (let inputEl of inputsArchivosDinamicos) {
+            if (inputEl.files && inputEl.files.length > 0) {
+                var archivoFisico = inputEl.files[0];
                 var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
                 var urlGenerada = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
                 if (urlGenerada) {
@@ -6819,6 +6824,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
         }
+
+        var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
+        act.driveUrl = driveUrlFinal;
+        act.historialDrive = enlacesDriveActuales;
 
         var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
         act.driveUrl = driveUrlFinal;
@@ -6882,7 +6891,23 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     }
     html += `</ul>`;
     contenedorPreview.innerHTML = html;
-};        
+};   
+        
+window.agregarCampoArchivoBase = function() {
+    const contenedor = document.getElementById('contenedorCamposArchivosBase');
+    if (!contenedor) return;
+
+    const div = document.createElement('div');
+    div.className = "flex items-center gap-2 campo-archivo-item bg-white p-2 rounded-xl border border-amber-100 shadow-2xs";
+    div.innerHTML = `
+        <input type="file" class="input-archivo-dinamico w-full text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 cursor-pointer">
+        <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs" title="Eliminar campo">
+            <i class="fa-solid fa-trash-can"></i>
+        </button>
+    `;
+    contenedor.appendChild(div);
+};
+        
 </script>
 
     <!-- ========================================================================= -->
@@ -7363,22 +7388,32 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 </div>
             </div>
 
-            <!-- Expediente Drive -->
-            <div class="p-3 bg-amber-50/60 border border-amber-200 rounded-2xl space-y-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="font-bold text-amber-950 text-[11px] flex items-center gap-1.5">
-                        <i class="fa-brands fa-google-drive text-amber-600 text-sm"></i> Expediente Probatorio (Drive):
-                    </span>
-                    <button type="button" onclick="abrirCarpetaDrivePanel(document.getElementById('editItemPanel').value)" class="text-[10px] font-bold text-indigo-600 hover:underline">
-                        Abrir Carpeta del Panel <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
-                    </button>
-                </div>
-               <!-- Input múltiple y previsualización para "n" archivos -->
-    <input type="file" id="inputFileEditDinamico" multiple onchange="mostrarArchivosSeleccionadosBase(this)" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 cursor-pointer">
-    
-    <div id="listaArchivosSeleccionadosPreview" class="text-[10.5px] text-slate-600 space-y-1 pt-1">
-        <span class="italic text-slate-400">Ningún archivo nuevo seleccionado (se conservan los anteriores).</span>
+    <!-- Expediente Probatorio (Drive) con campos dinámicos independientes -->
+<div class="p-3 bg-amber-50/60 border border-amber-200 rounded-2xl space-y-2">
+    <div class="flex items-center justify-between">
+        <span class="font-bold text-amber-950 text-[11px] flex items-center gap-1.5">
+            <i class="fa-brands fa-google-drive text-amber-600 text-sm"></i> Expedientes Probatorios en Drive (Múltiples Documentos):
+        </span>
+        <button type="button" onclick="abrirCarpetaDrivePanel(document.getElementById('editItemPanel').value)" class="text-[10px] font-bold text-indigo-600 hover:underline">
+            Abrir Carpeta del Panel <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+        </button>
     </div>
+
+    <!-- Contenedor dinámico donde se agregan los campos de archivo -->
+    <div id="contenedorCamposArchivosBase" class="space-y-2">
+        <!-- Campo inicial por defecto -->
+        <div class="flex items-center gap-2 campo-archivo-item bg-white p-2 rounded-xl border border-amber-100 shadow-2xs">
+            <input type="file" class="input-archivo-dinamico w-full text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 cursor-pointer">
+            <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs" title="Eliminar campo">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Botón para agregar otro documento -->
+    <button type="button" onclick="agregarCampoArchivoBase()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[11px] font-bold transition flex items-center gap-1.5 shadow-2xs">
+        <i class="fa-solid fa-plus"></i> Agregar otro documento
+    </button>
 </div>
             <!-- Justificación Obligatoria -->
             <div>
