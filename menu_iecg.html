@@ -6425,16 +6425,17 @@ function registrarSolicitudAuditoria(solicitud) {
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
     // 1. Recuperación segura de sesión
-    const sesionGuardada = localStorage.getItem('secul_user');
-    if (sesionGuardada) {
-        try {
+    let currentUser = null;
+    try {
+        const sesionGuardada = localStorage.getItem('secul_user');
+        if (sesionGuardada) {
             currentUser = JSON.parse(sesionGuardada);
             if (currentUser && typeof resolverPanelesUsuario === 'function') {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
-        } catch (e) {
-            currentUser = null;
         }
+    } catch (e) {
+        currentUser = null;
     }
 
     if (!currentUser) {
@@ -6452,7 +6453,7 @@ window.addEventListener('DOMContentLoaded', () => {
         updateAuthUI();
     }
 
-  // 2. Arranque blindado de componentes visuales y cintillo en vivo
+    // 2. Arranque seguro de componentes visuales, gráficas y cintillo
     setTimeout(() => {
         try {
             // Asegurar que el contenedor del cintillo exista siempre en el DOM
@@ -6467,15 +6468,24 @@ window.addEventListener('DOMContentLoaded', () => {
                 document.body.appendChild(footerDinamico);
             }
 
-            if (typeof mostrarSeccionTab === 'function') mostrarSeccionTab('tab-dashboard');
-            if (typeof actualizarDashboard === 'function') actualizarDashboard();
-            if (typeof renderCintilloNoticioso === 'function') renderCintilloNoticioso();
-            if (typeof verificarYProyectarAvisoDirectivo === 'function') verificarYProyectarAvisoDirectivo();
+            if (typeof mostrarSeccionTab === 'function') {
+                mostrarSeccionTab('tab-dashboard');
+            }
+            if (typeof actualizarDashboard === 'function') {
+                actualizarDashboard();
+            }
+            if (typeof renderCintilloNoticioso === 'function') {
+                renderCintilloNoticioso();
+            }
+            if (typeof verificarYProyectarAvisoDirectivo === 'function') {
+                verificarYProyectarAvisoDirectivo();
+            }
         } catch (err) {
             console.error("Error en el arranque visual:", err);
         }
     }, 150);
 });
+
 </script>
 
     <!-- ========================================================================= -->
