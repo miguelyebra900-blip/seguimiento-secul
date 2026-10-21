@@ -5530,7 +5530,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var panel = document.getElementById('editItemPanel').value;
     var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
-    var fileInput = document.getElementById('inputFileEditDinamico');
+    
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
     var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
@@ -6855,7 +6855,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }], { onConflict: 'clave_accion' });
         }
 
-        registrarAuditoria('Edición Completa desde Base de Datos', {
+      registrarAuditoria('Edición Completa desde Base de Datos', {
             claveAnterior: claveId,
             nuevaClave: nuevaClaveCanonica,
             nuevoPanel: nuevoPanel,
@@ -6866,7 +6866,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         closeModal('modal-edicion-dinamica');
         
-        // RECARGAR Y PROPAGAR EN TODO EL SISTEMA
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') {
             renderBaseDatosGeneralJerarquica();
@@ -6875,13 +6874,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             renderTablaExcelEnVivo();
         }
 
-} catch (err) {
+    } catch (err) {
         alert("Error al actualizar la acción: " + err.message);
     } finally {
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '<i class="fa-solid fa-check"></i> Aplicar y Propagar a Todo el Sistema';
     }
-}
 };
 window.mostrarArchivosSeleccionadosBase = function(inputEl) {
     const contenedorPreview = document.getElementById('listaArchivosSeleccionadosPreview');
