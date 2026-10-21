@@ -6823,24 +6823,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
         act.driveUrl = driveUrlFinal;
         act.historialDrive = enlacesDriveActuales;
-        }
-
-        // Actualizar propiedades (incluyendo cambio de panel y clave si se modificó)
-        act.panel = nuevoPanel;
-        act.area = `Panel ${nuevoPanel} - Actualizado`;
-        act.id = nuevaClaveCanonica;
-        act.clave_accion = nuevaClaveCanonica;
-        act.accion = nuevoTitulo;
-        act.responsable = nuevoResp;
-        act.estatus = nuevoEstatus;
-        act.avance = nuevoAvance;
-        if (driveUrlFinal) act.driveUrl = driveUrlFinal;
         act.observaciones = motivo;
 
-        // Persistir en LocalStorage
         guardarDataset();
 
-        // Sincronizar en Supabase si está disponible
         if (supabaseClient) {
             await supabaseClient.from('acciones_transicion').upsert([{
                 clave_accion: nuevaClaveCanonica,
@@ -6855,7 +6841,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }], { onConflict: 'clave_accion' });
         }
 
-      registrarAuditoria('Edición Completa desde Base de Datos', {
+        registrarAuditoria('Edición Completa desde Base de Datos', {
             claveAnterior: claveId,
             nuevaClave: nuevaClaveCanonica,
             nuevoPanel: nuevoPanel,
@@ -6874,14 +6860,14 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             renderTablaExcelEnVivo();
         }
 
-   } catch (err) {
+    } catch (err) {
         alert("Error al actualizar la acción: " + err.message);
     } finally {
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '<i class="fa-solid fa-check"></i> Aplicar y Propagar a Todo el Sistema';
     }
 };
-window.mostrarArchivosSeleccionadosBase = function(inputEl) {
+        window.mostrarArchivosSeleccionadosBase = function(inputEl) {
     const contenedorPreview = document.getElementById('listaArchivosSeleccionadosPreview');
     if (!contenedorPreview) return;
 
