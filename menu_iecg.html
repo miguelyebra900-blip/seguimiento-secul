@@ -3619,36 +3619,25 @@ function renderListaCompromisosDetalle(act) {
                 actualizarFolioAccionSugerido();
             }
         }
-// =========================================================================
-// 1. GUARDAR NUEVO HITO / ACCIÓN DESDE EL MODAL MAESTRO (CON PONDERACIÓN)
-// =========================================================================
-// =========================================================================
-// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CLAVES ATÓMICAS EN SUPABASE)
-// =========================================================================
+
 // =========================================================================
 // 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CONSECUTIVOS CANÓNICOS)
 // =========================================================================
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    // 1. Leer de forma estricta el select del panel del formulario
-    const selectPanelEl = document.getElementById('nuevoHitoPanel');
-    const panel = selectPanelEl ? selectPanelEl.value : 'A'; // Garantiza que si existe, tome su valor exacto (I, A, B, etc.)
-    
+    const panel = document.getElementById('nuevoHitoPanel').value; 
+    const vertiente = document.getElementById('nuevoHitoVertiente').value;
     const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    // 2. Obtener el prefijo exacto del mapa oficial según el panel seleccionado
+    const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item') || [];
     const claveArea = MAPA_PREFIJOS_AREA[panel] || 'RH_E';
 
-    // 3. Generar la clave del hito usando el prefijo real del panel (ej. AUD_F-H-0005)
+    // Declaración única y oficial de la clave del hito
     const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
-    
-    // ... resto del código de guardado ...
-    // =========================================================================
-    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
-    // =========================================================================
+
     const puedeEditar = currentUser && (
         currentUser.esAdmin || 
         (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(panel))
@@ -3660,8 +3649,6 @@ async function guardarNuevoHitoConAcciones(e) {
             alert("Operación cancelada: Se requiere motivo para proponer hitos vinculados.");
             return;
         }
-
-        const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
 
         registrarSolicitudAuditoria({
             tipo: 'NUEVO_HITO_VINCULADO',
@@ -3679,12 +3666,7 @@ async function guardarNuevoHitoConAcciones(e) {
         return;
     }
 
-    // Continúa con la lógica normal existente de creación directa...
-
-    // 2. Generación del siguiente consecutivo analizando el número máximo real
-    const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
-
-    // 3. Registrar cada acción vinculada con su correlativo: A-0001, A-0002, etc.
+    // Registrar cada acción vinculada con su correlativo
     filasAcciones.forEach((fila, idx) => {
         const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
         const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
@@ -3712,25 +3694,6 @@ async function guardarNuevoHitoConAcciones(e) {
 
         accionesDataset.push(nuevoRegistro);
     });
-
-    // 4. Sincronización persistente en Supabase (si está configurada la tabla)
-    if (supabaseClient) {
-        try {
-            await supabaseClient.from('hitos_transicion').insert([{
-                clave_hito: claveHitoGenerada,
-                clave_area: claveArea,
-                panel: panel,
-                consecutivo_num: parseInt(claveHitoGenerada.slice(-4), 10),
-                titulo: titulo,
-                normativa: norma,
-                detalle_operativo: `Registrado desde Tablero en Panel ${panel}`,
-                estatus: 'En Proceso',
-                avance_porcentaje: 40
-            }]);
-        } catch (errSupabase) {
-            console.warn("Sincronización en hitos_transicion guardada localmente:", errSupabase);
-        }
-    }
 
     guardarDataset();
 
