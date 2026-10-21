@@ -4321,24 +4321,42 @@ if (toast) toast.classList.add('hidden');
 // =========================================================================
         // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
         // =========================================================================
-       function actualizarFolioAccionSugerido() {
-            const selectPadre = document.getElementById('buzonSelectAccion');
-            const inputAccion = document.getElementById('nuevaAccionClavePreview');
-            if (selectPadre && inputAccion) {
-                const valSeleccionado = selectPadre.value;
-                if (!valSeleccionado) {
-                    inputAccion.value = "SELECCIONA UN HITO...";
-                    return;
-                }
-
-                // Encontrar el registro o extraer el hito base
-                const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
-                const claveHitoBase = act ? (act.clave_hito || act.id.split('-A-')[0]) : valSeleccionado.split('-A-')[0];
-
-                // Generar la siguiente acción para ese hito específico
-                inputAccion.value = obtenerSiguienteClaveAccion(claveHitoBase);
-            }
+function actualizarFolioAccionSugerido() {
+    const selectPadre = document.getElementById('buzonSelectAccion');
+    const inputAccion = document.getElementById('nuevaAccionClavePreview');
+    
+    if (selectPadre && inputAccion) {
+        const valSeleccionado = selectPadre.value;
+        if (!valSeleccionado) {
+            inputAccion.value = "SELECCIONA UN HITO...";
+            return;
         }
+
+        // 1. Encontrar la acción o hito seleccionado en el dataset
+        const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
+        if (!act) {
+            inputAccion.value = "SELECCIONA UN HITO...";
+            return;
+        }
+
+        // 2. Obtener el prefijo exacto según el panel real del hito (ej. Panel I -> AUD_F)
+        const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
+        
+        // 3. Extraer el número consecutivo del hito padre (ej. H-0005)
+        let numeroHitoPart = '0001';
+        const claveHitoBaseOriginal = act.clave_hito || act.id.split('-A-')[0];
+        const matchHito = claveHitoBaseOriginal.match(/-H-(\d+)/);
+        if (matchHito && matchHito[1]) {
+            numeroHitoPart = matchHito[1];
+        }
+
+        // 4. Construir la base canónica limpia del hito (ej. AUD_F-H-0005)
+        const hitoCanonicalBase = `${prefijoArea}-H-${numeroHitoPart}`;
+
+        // 5. Generar la siguiente clave de acción consecutiva
+        inputAccion.value = obtenerSiguienteClaveAccion(hitoCanonicalBase);
+    }
+}
 // =========================================================================
         // CONTROL DE SUB-PESTAÑAS Y TABLERO GANTT EJECUTIVO
         // =========================================================================
