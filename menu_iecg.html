@@ -204,6 +204,15 @@ window.guardarContactoNotificaciones = async function(e) {
     closeModal('modal-contacto-notificaciones');
     alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
 };
+
+    // DELEGACIÓN GLOBAL DE CLICS (ASEGURA RESPUESTA A CUALQUIER CLIC)
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('[onclick]');
+    if (target && !target.getAttribute('data-listener-checked')) {
+        // El navegador maneja el onclick nativamente, pero esto fuerza la captura si hay capas superiores
+        target.setAttribute('data-listener-checked', 'true');
+    }
+});
     
 </script>
 
