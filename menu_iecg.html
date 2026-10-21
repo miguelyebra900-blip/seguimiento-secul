@@ -6674,6 +6674,190 @@ window.agregarFilaAccionHito = function() {
     `;
     contenedor.appendChild(div);
 };
+
+        // 1. Manejo de la Instancia Responsable con texto personalizado
+function manejarCambioInstanciaBaseEdit(selectEl) {
+    const inputTexto = document.getElementById('inputOtraInstanciaBaseEdit');
+    const inputOculto = document.getElementById('inputRespEdit');
+    let val = selectEl.value;
+
+    if (val === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+        val = inputTexto.value.trim() || 'Otra Instancia';
+    } else {
+        inputTexto.classList.add('hidden');
+    }
+    if (inputOculto) inputOculto.value = val;
+}
+
+// 2. Manejo de Área SECUL con texto personalizado
+function manejarCambioSeculBaseEdit(selectEl) {
+    const inputTexto = document.getElementById('inputOtraSeculBaseEdit');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+// 3. Manejo de Área Externa con texto personalizado
+function manejarCambioExternaBaseEdit(selectEl) {
+    const inputTexto = document.getElementById('inputOtraExternaBaseEdit');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+// 4. Poblado inteligente al abrir el Modal de Edición desde la Base de Datos
+const _abrirEdicionOriginalBase = window.abrirModalEdicionDinamica;
+window.abrirModalEdicionDinamica = function(tipo, claveId) {
+    var modal = document.getElementById('modal-edicion-dinamica');
+    var inputTipo = document.getElementById('editItemTipo');
+    var inputClave = document.getElementById('editItemClave');
+    var inputPanel = document.getElementById('editItemPanel');
+    var selectPanel = document.getElementById('selectPanelEdicionDinamica');
+    var inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
+    var txtTitulo = document.getElementById('inputTituloEdit');
+    var txtMotivo = document.getElementById('inputMotivoEdit');
+
+    if (!modal) return;
+    if (txtMotivo) txtMotivo.value = '';
+    if (inputTipo) inputTipo.value = tipo;
+    if (inputClave) inputClave.value = claveId;
+    if (inputClaveCanonica) inputClaveCanonica.value = claveId;
+
+    var act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+    if (!act) return;
+
+    if (inputPanel) inputPanel.value = act.panel || 'A';
+    if (selectPanel) selectPanel.value = act.panel || 'A';
+    if (txtTitulo) txtTitulo.value = act.accion || '';
+
+    // Sincronizar combobox de instancia responsable
+    var selInstancia = document.getElementById('selectInstanciaRespBaseEdit');
+    var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit');
+    var inputResp = document.getElementById('inputRespEdit');
+    if (inputResp) inputResp.value = act.responsable || '';
+
+    let encontradoInstancia = false;
+    for (let opt of selInstancia.options) {
+        if (opt.value === act.responsable) {
+            selInstancia.value = act.responsable;
+            encontradoInstancia = true;
+            break;
+        }
+    }
+    if (!encontradoInstancia && act.responsable) {
+        selInstancia.value = 'OTRA';
+        inputOtraInstancia.classList.remove('hidden');
+        inputOtraInstancia.value = act.responsable;
+    } else {
+        inputOtraInstancia.classList.add('hidden');
+    }
+
+    // Estatus y avance
+    var elEst = document.getElementById('selectEstatusEdit');
+    if (elEst) elEst.value = act.estatus || 'En Proceso';
+    var elSlider = document.getElementById('inputAvanceSliderEdit');
+    if (elSlider) elSlider.value = act.avance || 0;
+    var elLblAvance = document.getElementById('labelAvanceSliderEdit');
+    if (elLblAvance) elLblAvance.innerText = (act.avance || 0) + '%';
+
+    openModal('modal-edicion-dinamica');
+};
+
+// 5. Guardar y propagar en todo el sistema (gráficas, tarjetas, cronogramas y tablas)
+window.guardarFormularioEdicionDinamica = async function(e) {
+    e.preventDefault();
+
+    var claveId = document.getElementById('editItemClave').value;
+    var nuevoPanel = document.getElementById('selectPanelEdicionDinamica').value;
+    var nuevaClaveCanonica = document.getElementById('inputClaveCanonicaEditable').value.trim().toUpperCase();
+    var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
+    var selInstancia = document.getElementById('selectInstanciaRespBaseEdit');
+    var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit');
+    var nuevoResp = selInstancia.value === 'OTRA' ? (inputOtraInstancia.value.trim() || 'Otra Instancia') : selInstancia.value;
+    var nuevoEstatus = document.getElementById('selectEstatusEdit').value;
+    var nuevoAvance = parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0;
+    var motivo = document.getElementById('inputMotivoEdit').value.trim();
+    var fileInput = document.getElementById('inputFileEditDinamico');
+    var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Propagando en el Sistema...';
+
+    try {
+        var act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
+        if (!act) throw new Error("Acción no encontrada en el dataset.");
+
+        var driveUrlFinal = act.driveUrl || '';
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            var archivoFisico = fileInput.files[0];
+            var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
+            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
+        }
+
+        // Actualizar propiedades (incluyendo cambio de panel y clave si se modificó)
+        act.panel = nuevoPanel;
+        act.area = `Panel ${nuevoPanel} - Actualizado`;
+        act.id = nuevaClaveCanonica;
+        act.clave_accion = nuevaClaveCanonica;
+        act.accion = nuevoTitulo;
+        act.responsable = nuevoResp;
+        act.estatus = nuevoEstatus;
+        act.avance = nuevoAvance;
+        if (driveUrlFinal) act.driveUrl = driveUrlFinal;
+        act.observaciones = motivo;
+
+        // Persistir en LocalStorage
+        guardarDataset();
+
+        // Sincronizar en Supabase si está disponible
+        if (supabaseClient) {
+            await supabaseClient.from('acciones_transicion').upsert([{
+                clave_accion: nuevaClaveCanonica,
+                panel: nuevoPanel,
+                hito: act.hito,
+                accion: nuevoTitulo,
+                responsable: nuevoResp,
+                estatus: nuevoEstatus,
+                avance: nuevoAvance,
+                drive_url: driveUrlFinal,
+                updated_at: new Date().toISOString()
+            }], { onConflict: 'clave_accion' });
+        }
+
+        registrarAuditoria('Edición Completa desde Base de Datos', {
+            claveAnterior: claveId,
+            nuevaClave: nuevaClaveCanonica,
+            nuevoPanel: nuevoPanel,
+            motivo: motivo
+        });
+
+        alert(`✅ ACCIÓN ACTUALIZADA Y PROPAGADA EXITOSAMENTE:\n\n• Clave: ${nuevaClaveCanonica}\n• Nuevo Panel: ${nuevoPanel}\n• Avance: ${nuevoAvance}%\n\nSe han actualizado las tarjetas, gráficas, cronogramas y tablas en tiempo real.`);
+
+        closeModal('modal-edicion-dinamica');
+        
+        // RECARGAR Y PROPAGAR EN TODO EL SISTEMA
+        actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+            renderBaseDatosGeneralJerarquica();
+        }
+        if (typeof renderTablaExcelEnVivo === 'function') {
+            renderTablaExcelEnVivo();
+        }
+
+    } catch (err) {
+        alert("Error al actualizar la acción: " + err.message);
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-check"></i> Aplicar y Propagar a Todo el Sistema';
+    }
+};
         
 </script>
 
@@ -7004,18 +7188,21 @@ window.agregarFilaAccionHito = function() {
     <!-- ========================================================================= -->
 <!-- MODAL DINÁMICO DE EDICIÓN Y GOBERNANZA (HITO / ACCIÓN)                     -->
 <!-- ========================================================================= -->
+<!-- ========================================================================= -->
+<!-- MODAL DE EDICIÓN DE ACCIÓN EN BASE (ÚNICO Y EXCLUSIVO)                    -->
+<!-- ========================================================================= -->
 <div id="modal-edicion-dinamica" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         
         <!-- Header Dinámico -->
-        <div id="headerEdicionDinamica" class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex items-center justify-between shrink-0">
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-                <div id="iconoEdicionDinamica" class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
+                <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 text-lg border border-white/10">
                     <i class="fa-solid fa-pen-ruler"></i>
                 </div>
                 <div>
-                    <span id="badgeTipoEdicion" class="text-[10px] uppercase font-black tracking-wider text-amber-300 block">MODIFICACIÓN NORMATIVA</span>
-                    <h3 id="tituloEdicionDinamica" class="font-bold text-base leading-snug">Editar Registro</h3>
+                    <span id="badgeTipoEdicion" class="text-[10px] uppercase font-black tracking-wider text-amber-300 block">MODIFICACIÓN DE ACCIÓN EN BASE</span>
+                    <h3 id="tituloEdicionDinamica" class="font-bold text-base leading-snug">Gestión de Acción Operativa</h3>
                 </div>
             </div>
             <button type="button" onclick="closeModal('modal-edicion-dinamica')" class="text-slate-300 hover:text-white text-lg transition">
@@ -7023,14 +7210,13 @@ window.agregarFilaAccionHito = function() {
             </button>
         </div>
 
-        <!-- Formulario Interactivo -->
+        <!-- Formulario Interactivo con Comboboxes Homologados -->
         <form id="formEdicionDinamica" onsubmit="guardarFormularioEdicionDinamica(event)" class="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
             <input type="hidden" id="editItemTipo">
             <input type="hidden" id="editItemClave">
             <input type="hidden" id="editItemPanel">
 
-            <!-- Ficha Técnica de la Clave -->
-     <!-- Ficha Interactiva de Clave Canónica y Panel -->
+            <!-- Ficha Interactiva de Clave Canónica y Panel -->
             <div class="bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase block">Clave Canónica (Cronológica):</label>
@@ -7044,8 +7230,8 @@ window.agregarFilaAccionHito = function() {
                     </div>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase block">Comisión / Panel Asignado:</label>
-                    <select id="selectPanelEdicionDinamica" onchange="cambiarPanelYRecalcularClave(this.value)" class="w-full p-2 bg-white border border-indigo-200 rounded-xl font-bold text-xs text-indigo-900 mt-0.5 focus:ring-2 focus:ring-indigo-500">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase block">Comisión / Panel Asignado (Reasignación Global):</label>
+                    <select id="selectPanelEdicionDinamica" onchange="cambiarPanelYRecalcularClave(this.value)" class="w-full p-2 bg-white border border-indigo-200 rounded-xl font-bold text-xs text-indigo-900 mt-0.5 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
                         <option value="A">Panel A - Recursos Humanos & Estructura</option>
                         <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
                         <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
@@ -7060,76 +7246,133 @@ window.agregarFilaAccionHito = function() {
                 </div>
             </div>
 
-            <!-- Campo Principal (Título del Hito o Acción) -->
+            <!-- Descripción de la Acción -->
             <div>
-                <label id="lblTituloPrincipalEdit" class="block font-bold text-slate-800 mb-1">Descripción / Título Oficial:</label>
+                <label id="lblTituloPrincipalEdit" class="block font-bold text-slate-800 mb-1">Descripción de la Acción / Entregable Específico:</label>
                 <textarea id="inputTituloEdit" rows="2" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
             </div>
 
-            <!-- Controles Exclusivos para Acciones -->
-            <div id="bloqueCamposAccion" class="space-y-4">
+            <!-- BLOQUE DE COMBOBOXES SOLICITADOS -->
+            <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                
+                <!-- 1. Instancia Responsable (Con opción de texto personalizado) -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Instancia Ejecutora / Responsable:</label>
+                    <select id="selectInstanciaRespBaseEdit" onchange="manejarCambioInstanciaBaseEdit(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold mb-1 shadow-2xs">
+                        <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura -CRH-SECUL</option>
+                        <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL</option>
+                        <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL</option>
+                        <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL</option>
+                        <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL</option>
+                        <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL</option>
+                        <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI) -CTI-SECUL</option>
+                        <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental – LIQ-IECG</option>
+                        <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías -LPS-SECUL</option>
+                        <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG</option>
+                        <option value="OTRA">Otra Área (Escribir Texto)</option>
+                    </select>
+                    <input type="text" id="inputOtraInstanciaBaseEdit" placeholder="Escriba la instancia responsable..." class="w-full p-2 border rounded-xl bg-white text-xs hidden">
+                    <input type="hidden" id="inputRespEdit">
+                </div>
+
+                <!-- 2. Vincular con Área Interna SECUL -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Responsable Institucional:</label>
-                        <input type="text" id="inputRespEdit" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-xs">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Estatus Normativo:</label>
-                        <select id="selectEstatusEdit" class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs">
-                            <option value="En Proceso">🔵 En Proceso</option>
-                            <option value="Validación">🟣 Validación</option>
-                            <option value="En Espera Tercero (Art. 6)">🟡 En Espera Tercero (Art. 6)</option>
-                            <option value="Concluido">🟢 Concluido (100%)</option>
+                        <label class="block font-bold text-indigo-700 mb-1">Vincular con Área SECUL:</label>
+                        <select id="selectVinculoSeculBaseEdit" onchange="manejarCambioSeculBaseEdit(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1 shadow-2xs">
+                            <option value="Ninguna">Ninguna / Directa</option>
+                            <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+                            <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+                            <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+                            <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+                            <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+                            <option value="Panel F - Financiero">Panel F - Financiero</option>
+                            <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+                            <option value="Panel H - Archivo">Panel H - Archivo</option>
+                            <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+                            <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+                            <option value="OTRA">Otra Área SECUL (Escribir)</option>
                         </select>
+                        <input type="text" id="inputOtraSeculBaseEdit" placeholder="Especifique área SECUL..." class="w-full p-1.5 border rounded-xl bg-white text-xs hidden">
+                    </div>
+
+                    <!-- 3. Vincular con Área Externa (Art. 6 Lineamientos) -->
+                    <div>
+                        <label class="block font-bold text-amber-700 mb-1">Área Externa (Art. 6 Lineamientos):</label>
+                        <select id="selectAreaExternaBaseEdit" onchange="manejarCambioExternaBaseEdit(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1 shadow-2xs">
+                            <option value="Ninguna">Ninguna (Interna)</option>
+                            <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+                            <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+                            <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+                            <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+                            <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+                            <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+                            <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+                            <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+                            <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+                            <option value="OTRA">Otra área externa (Escribir)</option>
+                        </select>
+                        <input type="text" id="inputOtraExternaBaseEdit" placeholder="Especifique área externa..." class="w-full p-1.5 border rounded-xl bg-white text-xs hidden">
                     </div>
                 </div>
 
-                <!-- Slider de Avance -->
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-                    <div class="flex justify-between items-center">
+            </div>
+
+            <!-- Estatus y Avance -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Estatus Normativo:</label>
+                    <select id="selectEstatusEdit" class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs shadow-2xs">
+                        <option value="En Proceso">🔵 En Proceso</option>
+                        <option value="Validación">🟣 Validación</option>
+                        <option value="En Espera Tercero (Art. 6)">🟡 En Espera Tercero (Art. 6)</option>
+                        <option value="Concluido">🟢 Concluido (100%)</option>
+                    </select>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
                         <label class="font-bold text-slate-700 text-[11px]">Porcentaje de Avance Acreditado:</label>
                         <span id="labelAvanceSliderEdit" class="font-black text-indigo-700 text-sm">0%</span>
                     </div>
                     <input type="range" id="inputAvanceSliderEdit" min="0" max="100" step="5" class="w-full accent-indigo-600 cursor-pointer"
                            oninput="document.getElementById('labelAvanceSliderEdit').innerText = this.value + '%'">
                 </div>
-
-                <!-- Carga directa a Google Drive vía Apps Script -->
-                <div class="p-3 bg-amber-50/60 border border-amber-200 rounded-2xl space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-amber-950 text-[11px] flex items-center gap-1.5">
-                            <i class="fa-brands fa-google-drive text-amber-600 text-sm"></i> Expediente Probatorio (Drive):
-                        </span>
-                        <button type="button" onclick="abrirCarpetaDrivePanel(document.getElementById('editItemPanel').value)" class="text-[10px] font-bold text-indigo-600 hover:underline">
-                            Abrir Carpeta del Panel <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
-                        </button>
-                    </div>
-                    <input type="file" id="inputFileEditDinamico" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700">
-                </div>
             </div>
 
-            <!-- Justificación Obligatoria para Auditoría (Art. 6) -->
+            <!-- Expediente Drive -->
+            <div class="p-3 bg-amber-50/60 border border-amber-200 rounded-2xl space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-amber-950 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-brands fa-google-drive text-amber-600 text-sm"></i> Expediente Probatorio (Drive):
+                    </span>
+                    <button type="button" onclick="abrirCarpetaDrivePanel(document.getElementById('editItemPanel').value)" class="text-[10px] font-bold text-indigo-600 hover:underline">
+                        Abrir Carpeta del Panel <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                    </button>
+                </div>
+                <input type="file" id="inputFileEditDinamico" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700">
+            </div>
+
+            <!-- Justificación Obligatoria -->
             <div>
                 <label class="block font-bold text-slate-800 mb-1">
                     <i class="fa-solid fa-shield-halved text-indigo-600 me-1"></i> Sustento Técnico / Justificación del Cambio (Auditoría):
                 </label>
-                <textarea id="inputMotivoEdit" rows="2" placeholder="Describa el motivo, oficio u observación que respalda esta actualización..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
+                <textarea id="inputMotivoEdit" rows="2" placeholder="Describa el motivo u oficio que respalda esta actualización..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
             </div>
 
-            <!-- Footer con Botones -->
+            <!-- Footer -->
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                 <button type="button" onclick="closeModal('modal-edicion-dinamica')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">
                     Cancelar
                 </button>
                 <button type="submit" id="btnGuardarEdicionDinamica" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-check"></i> Aplicar y Propagar
+                    <i class="fa-solid fa-check"></i> Aplicar y Propagar a Todo el Sistema
                 </button>
             </div>
         </form>
 
     </div>
 </div>
-
     <!-- ========================================================================= -->
 <!-- MODAL UNIVERSAL INTEGRAL DE VINCULACIÓN Y CO-RESPONSABILIDAD (OFICIAL)    -->
 <!-- ========================================================================= -->
