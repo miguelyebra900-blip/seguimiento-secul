@@ -5479,13 +5479,38 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando con Supabase...';
     }
 
     try {
-        // Asegurar lectura fresca del dataset desde localStorage por si acaso
-        accionesDataset = JSON.parse(localStorage.getItem('secul_30_acciones')) || ACCIONES_INICIALES;
+        // 1. Buscar en el dataset local primero
+        var elementoLocal = accionesDataset.find(function(a) {
+            return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId) || (a.id && a.id.includes(claveId));
+        });
 
+        // 2. Si no está localmente y tenemos cliente de Supabase, consultamos directamente allá
+        if (!elementoLocal && supabaseClient) {
+            const tablaConsulta = tipo === 'HITO' ? 'hitos_transicion' : 'acciones_transicion';
+            const campoClave = tipo === 'HITO' ? 'clave_hito' : 'clave_accion';
+            
+            const { data: dataSupabase, error: errSupabase } = await supabaseClient
+                .from(tablaConsulta)
+                .select('*')
+                .or(`${campoClave}.eq.${claveId},id.eq.${claveId}`)
+                .maybeSingle();
+
+            if (!errSupabase && dataSupabase) {
+                // Lo encontramos en Supabase, lo inyectamos al dataset temporalmente
+                elementoLocal = dataSupabase;
+                accionesDataset.push(elementoLocal);
+            }
+        }
+
+        if (!elementoLocal) {
+            throw new Error("El registro con clave [" + claveId + "] no existe ni en memoria local ni en Supabase.");
+        }
+
+        // 3. Actualizar los valores en el objeto encontrado
         if (tipo === 'HITO') {
             accionesDataset.forEach(function(a) {
                 if ((a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId))) {
@@ -5493,32 +5518,47 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             });
         } else {
-            var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveId) || (a.id === claveId) || (a.id && a.id.includes(claveId));
-            });
-
-            if (!act) {
-                throw new Error("Acción no encontrada en el dataset.");
-            }
-
-            act.accion = nuevoTitulo;
+            elementoLocal.accion = nuevoTitulo;
             var elResp = document.getElementById('inputRespEdit');
-            if (elResp) act.responsable = elResp.value.trim();
+            if (elResp) elementoLocal.responsable = elResp.value.trim();
             var elEst = document.getElementById('selectEstatusEdit');
-            if (elEst) act.estatus = elEst.value;
+            if (elEst) elementoLocal.estatus = elEst.value;
             var elSlider = document.getElementById('inputAvanceSliderEdit');
-            if (elSlider) act.avance = parseInt(elSlider.value, 10) || 0;
+            if (elSlider) elementoLocal.avance = parseInt(elSlider.value, 10) || 0;
         }
 
+        // 4. Guardar localmente
         guardarDataset();
-        alert('¡Actualización guardada correctamente en el sistema!');
+
+        // 5. Propagar cambios directamente a Supabase
+        if (supabaseClient) {
+            if (tipo === 'HITO') {
+                await supabaseClient
+                    .from('hitos_transicion')
+                    .update({ hito: nuevoTitulo })
+                    .eq('clave_hito', claveId);
+            } else {
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .update({
+                        accion: elementoLocal.accion,
+                        responsable: elementoLocal.responsable,
+                        estatus: elementoLocal.estatus,
+                        avance: elementoLocal.avance,
+                        updated_at: new Date().toISOString()
+                    })
+                    .or(`clave_accion.eq.${claveId},id.eq.${claveId}`);
+            }
+        }
+
+        alert('¡Actualización guardada y sincronizada con Supabase exitosamente!');
         closeModal('modal-edicion-dinamica');
         
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert('Error al actualizar la acción: ' + err.message);
+        alert('Error al actualizar: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
