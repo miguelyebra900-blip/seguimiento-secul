@@ -6205,12 +6205,13 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA CON ÉXITO:\n\nTu petición para vincular [${ticketVinculacion.clave}] con tu comisión ha sido registrada en el sistema.\n\n⚠️ Deberá estar sujeta a validación y autorización del Director General de Administración y el Líder del Proyecto de Seguimiento a la Extinción.`);
 
         closeModal('modal-vinculacion-universal');
-    } catch (err) {
-        alert("Error al procesar la vinculación: " + err.message);
+  } catch (err) {
+        console.error("Error en vinculación:", err);
+        alert("Error al procesar la solicitud de vinculación.");
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Enviar a Validación';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
         }
     }
 };
