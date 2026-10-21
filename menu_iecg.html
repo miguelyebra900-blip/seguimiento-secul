@@ -5477,92 +5477,52 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
-    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super' || currentUser.esAdmin);
-
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando...';
     }
 
     try {
-        var driveUrlFinal = null;
+        // Asegurar lectura fresca del dataset desde localStorage por si acaso
+        accionesDataset = JSON.parse(localStorage.getItem('secul_30_acciones')) || ACCIONES_INICIALES;
 
         if (tipo === 'HITO') {
-            if (esAdmin) {
-                var encontrados = 0;
-                accionesDataset.forEach(function(a) {
-                    if ((a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId)) || (a.clave_accion === claveId)) {
-                        a.hito = nuevoTitulo;
-                        encontrados++;
-                    }
-                });
-                if (encontrados === 0) {
-                    throw new Error("Hito con clave [" + claveId + "] no encontrado en el dataset.");
+            accionesDataset.forEach(function(a) {
+                if ((a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId))) {
+                    a.hito = nuevoTitulo;
                 }
-                guardarDataset();
-                registrarAuditoria('Modificación de Hito (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, motivo: motivo });
-                alert('¡Hito [' + claveId + '] actualizado y sincronizado en todo el sistema!');
-            } else {
-                registrarSolicitudAuditoria({
-                    tipo: 'MODIFICAR_HITO',
-                    clave: claveId,
-                    campo: 'hito',
-                    valorPropuesto: nuevoTitulo,
-                    motivo: motivo,
-                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-                    fecha: new Date().toLocaleString(),
-                    estatus: 'Pendiente de Autorización'
-                });
-                alert('🔒 SOLICITUD CANALIZADA A AUDITORÍA:\nLa propuesta para el Hito [' + claveId + '] fue enviada a la mesa de control de "auditoria.html".');
-            }
-        } else {
-            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
-            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
-            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
-
-            // Búsqueda flexible que evita que falle por diferencias de formato
-            var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
             });
-            
+        } else {
+            var act = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveId) || (a.id === claveId) || (a.id && a.id.includes(claveId));
+            });
+
             if (!act) {
-                throw new Error("Acción con clave [" + claveId + "] no encontrada en el dataset.");
+                throw new Error("Acción no encontrada en el dataset.");
             }
 
-            if (esAdmin) {
-                act.accion = nuevoTitulo;
-                if (nuevoResp) act.responsable = nuevoResp;
-                act.estatus = nuevoEstatus;
-                act.avance = nuevoAvance;
-                if (driveUrlFinal) act.driveUrl = driveUrlFinal;
-
-                guardarDataset();
-                registrarAuditoria('Modificación de Acción (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, nuevoAvance: nuevoAvance, nuevoEstatus: nuevoEstatus, motivo: motivo });
-                alert('¡Acción [' + claveId + '] actualizada exitosamente!');
-            } else {
-                registrarSolicitudAuditoria({
-                    tipo: 'MODIFICAR_ACCION',
-                    clave: claveId,
-                    campo: 'datos_completos',
-                    valorPropuesto: { accion: nuevoTitulo, responsable: nuevoResp, estatus: nuevoEstatus, avance: nuevoAvance, driveUrl: driveUrlFinal },
-                    motivo: motivo,
-                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-                    fecha: new Date().toLocaleString(),
-                    estatus: 'Pendiente de Autorización'
-                });
-                alert('🔒 SOLICITUD ENVIADA A AUDITORÍA:\nLos cambios propuestos para la Acción [' + claveId + '] han sido registrados y esperan validación en "auditoria.html".');
-            }
+            act.accion = nuevoTitulo;
+            var elResp = document.getElementById('inputRespEdit');
+            if (elResp) act.responsable = elResp.value.trim();
+            var elEst = document.getElementById('selectEstatusEdit');
+            if (elEst) act.estatus = elEst.value;
+            var elSlider = document.getElementById('inputAvanceSliderEdit');
+            if (elSlider) act.avance = parseInt(elSlider.value, 10) || 0;
         }
 
+        guardarDataset();
+        alert('¡Actualización guardada correctamente en el sistema!');
         closeModal('modal-edicion-dinamica');
+        
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+
     } catch (err) {
-        alert('Error al procesar la actualización: ' + err.message);
+        alert('Error al actualizar la acción: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
+            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar a Todo el Sistema';
         }
     }
 };
