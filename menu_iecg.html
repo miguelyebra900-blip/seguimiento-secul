@@ -4324,7 +4324,6 @@ if (toast) toast.classList.add('hidden');
 function actualizarFolioAccionSugerido() {
     const selectPadre = document.getElementById('buzonSelectAccion');
     const inputAccion = document.getElementById('nuevaAccionClavePreview');
-    
     if (selectPadre && inputAccion) {
         const valSeleccionado = selectPadre.value;
         if (!valSeleccionado) {
@@ -4332,7 +4331,7 @@ function actualizarFolioAccionSugerido() {
             return;
         }
 
-        // 1. Encontrar la acción o hito seleccionado en el dataset
+        // 1. Encontrar el registro seleccionado en el dataset
         const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
         if (!act) {
             inputAccion.value = "SELECCIONA UN HITO...";
@@ -4341,20 +4340,38 @@ function actualizarFolioAccionSugerido() {
 
         // 2. Obtener el prefijo exacto según el panel real del hito (ej. Panel I -> AUD_F)
         const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
-        
-        // 3. Extraer el número consecutivo del hito padre (ej. H-0005)
+
+        // 3. Extraer el número real del hito (ej. 0004) para no alterarlo
         let numeroHitoPart = '0001';
-        const claveHitoBaseOriginal = act.clave_hito || act.id.split('-A-')[0];
-        const matchHito = claveHitoBaseOriginal.match(/-H-(\d+)/);
+        const hitoBaseOriginal = act.clave_hito || act.id.split('-A-')[0];
+        const matchHito = hitoBaseOriginal.match(/-H-(\d+)/);
         if (matchHito && matchHito[1]) {
             numeroHitoPart = matchHito[1];
         }
 
-        // 4. Construir la base canónica limpia del hito (ej. AUD_F-H-0005)
+        // 4. Construir la base canónica limpia del hito respetando su número (ej. AUD_F-H-0004)
         const hitoCanonicalBase = `${prefijoArea}-H-${numeroHitoPart}`;
 
-        // 5. Generar la siguiente clave de acción consecutiva
-        inputAccion.value = obtenerSiguienteClaveAccion(hitoCanonicalBase);
+        // 5. Buscar cuántas acciones ya existen para este hito para asignar el siguiente consecutivo (0002, 0003...)
+        let maxAccionNum = 0;
+        accionesDataset.forEach(item => {
+            const claveAccionItem = item.clave_accion || item.id || '';
+            const itemHitoBase = item.clave_hito || item.id.split('-A-')[0];
+            
+            if (claveAccionItem.startsWith(hitoCanonicalBase + '-A-') || itemHitoBase === hitoCanonicalBase || itemHitoBase === hitoBaseOriginal) {
+                const matchAccion = claveAccionItem.match(/-A-(\d+)/);
+                if (matchAccion && matchAccion[1]) {
+                    const num = parseInt(matchAccion[1], 10);
+                    if (!isNaN(num) && num > maxAccionNum) {
+                        maxAccionNum = num;
+                    }
+                }
+            }
+        });
+
+        // 6. Asignar la siguiente clave correcta con el consecutivo incremental
+        const siguienteAccionNum = maxAccionNum + 1;
+        inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
     }
 }
 // =========================================================================
