@@ -6685,7 +6685,7 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
 
     if (tipo === 'HITO') {
         var hitoItems = accionesDataset.filter(function(a) {
-            return (a.clave_hito === claveId) || a.id.startsWith(claveId);
+            return (a.clave_hito === claveId) || a.id.startsWith(claveId) || a.id === claveId;
         });
         var item = hitoItems[0] || {};
 
@@ -6700,9 +6700,16 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         var tit = document.getElementById('tituloEdicionDinamica');
         if (tit) tit.innerText = 'Gestión del Hito [' + claveId + ']';
     } else {
+        // BÚSQUEDA FLEXIBLE Y SEGURA
         var act = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveId) || (a.id === claveId);
+            return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
         });
+        if (!act) {
+            console.warn("Elemento no hallado de inmediato, buscando coincidencia parcial para:", claveId);
+            act = accionesDataset.find(function(a) {
+                return (a.id && a.id.includes(claveId)) || (a.clave_accion && a.clave_accion.includes(claveId));
+            });
+        }
         if (!act) return;
 
         if (inputPanel) inputPanel.value = act.panel || 'A';
