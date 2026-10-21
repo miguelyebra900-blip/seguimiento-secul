@@ -5542,9 +5542,22 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         var driveUrlFinal = null;
 
         if (tipo === 'ACCION' && fileInput && fileInput.files && fileInput.files.length > 0) {
-            var archivoFisico = fileInput.files[0];
-            var nombreNominal = '[' + claveId + '] ' + archivoFisico.name;
-            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, panel, nombreNominal);
+           var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
+
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            for (let i = 0; i < fileInput.files.length; i++) {
+                var archivoFisico = fileInput.files[i];
+                var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
+                var urlGenerada = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
+                if (urlGenerada) {
+                    enlacesDriveActuales.push(urlGenerada);
+                }
+            }
+        }
+
+        var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
+        act.driveUrl = driveUrlFinal;
+        act.historialDrive = enlacesDriveActuales;
         }
 
         if (tipo === 'HITO') {
@@ -6794,11 +6807,22 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         var act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
         if (!act) throw new Error("Acción no encontrada en el dataset.");
 
-        var driveUrlFinal = act.driveUrl || '';
+      var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
+
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            var archivoFisico = fileInput.files[0];
-            var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
-            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
+            for (let i = 0; i < fileInput.files.length; i++) {
+                var archivoFisico = fileInput.files[i];
+                var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
+                var urlGenerada = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
+                if (urlGenerada) {
+                    enlacesDriveActuales.push(urlGenerada);
+                }
+            }
+        }
+
+        var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
+        act.driveUrl = driveUrlFinal;
+        act.historialDrive = enlacesDriveActuales;
         }
 
         // Actualizar propiedades (incluyendo cambio de panel y clave si se modificó)
@@ -6858,7 +6882,22 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         btnGuardar.innerHTML = '<i class="fa-solid fa-check"></i> Aplicar y Propagar a Todo el Sistema';
     }
 };
-        
+window.mostrarArchivosSeleccionadosBase = function(inputEl) {
+    const contenedorPreview = document.getElementById('listaArchivosSeleccionadosPreview');
+    if (!contenedorPreview) return;
+
+    if (!inputEl.files || inputEl.files.length === 0) {
+        contenedorPreview.innerHTML = '<span class="italic text-slate-400">Ningún archivo nuevo seleccionado (se conservan los anteriores).</span>';
+        return;
+    }
+
+    let html = `<strong class="text-indigo-900 block">Archivos listos para subir (${inputEl.files.length}):</strong><ul class="list-disc list-inside space-y-0.5 font-mono text-[10px]">`;
+    for (let i = 0; i < inputEl.files.length; i++) {
+        html += `<li>📄 ${inputEl.files[i].name}</li>`;
+    }
+    html += `</ul>`;
+    contenedorPreview.innerHTML = html;
+};        
 </script>
 
     <!-- ========================================================================= -->
@@ -7349,9 +7388,13 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                         Abrir Carpeta del Panel <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
                     </button>
                 </div>
-                <input type="file" id="inputFileEditDinamico" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700">
-            </div>
-
+               <!-- Input múltiple y previsualización para "n" archivos -->
+    <input type="file" id="inputFileEditDinamico" multiple onchange="mostrarArchivosSeleccionadosBase(this)" class="w-full p-1.5 border border-slate-200 rounded-xl text-xs bg-white file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 cursor-pointer">
+    
+    <div id="listaArchivosSeleccionadosPreview" class="text-[10.5px] text-slate-600 space-y-1 pt-1">
+        <span class="italic text-slate-400">Ningún archivo nuevo seleccionado (se conservan los anteriores).</span>
+    </div>
+</div>
             <!-- Justificación Obligatoria -->
             <div>
                 <label class="block font-bold text-slate-800 mb-1">
