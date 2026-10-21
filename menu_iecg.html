@@ -3571,6 +3571,9 @@ async function guardarNuevoHitoConAcciones(e) {
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
+    // ── Declaración de variables faltantes que causaban el error ──
+    const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item') || [];
+    const claveArea = MAPA_PREFIJOS_AREA[panel] || 'RH_E';
     // =========================================================================
     // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
     // =========================================================================
