@@ -5509,32 +5509,53 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
 
         // 3. Actualizar los valores en el objeto encontrado
-        if (tipo === 'HITO') {
+  if (tipo === 'HITO') {
+            var nuevaClaveHito = document.getElementById('inputClaveCanonicaEditable') ? document.getElementById('inputClaveCanonicaEditable').value.trim().toUpperCase() : claveId;
+            var nuevoPanel = document.getElementById('editItemPanel') ? document.getElementById('editItemPanel').value : 'I';
+
+            // Actualizar todas las acciones y registros del dataset que pertenezcan a este hito
             accionesDataset.forEach(function(a) {
-                if ((a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId))) {
+                var hitoBase = a.clave_hito || a.id.split('-A-')[0];
+                if (hitoBase === claveId || a.id.startsWith(claveId)) {
                     a.hito = nuevoTitulo;
+                    a.panel = nuevoPanel;
+                    if (nuevaClaveHito && nuevaClaveHito !== claveId) {
+                        a.clave_hito = nuevaClaveHito;
+                        // Actualizar el prefijo en el ID y clave de acción hija
+                        a.id = a.id.replace(claveId, nuevaClaveHito);
+                        if (a.clave_accion) {
+                            a.clave_accion = a.clave_accion.replace(claveId, nuevaClaveHito);
+                        }
+                    }
                 }
             });
-        } else {
-            elementoLocal.accion = nuevoTitulo;
-            var elResp = document.getElementById('inputRespEdit');
-            if (elResp) elementoLocal.responsable = elResp.value.trim();
-            var elEst = document.getElementById('selectEstatusEdit');
-            if (elEst) elementoLocal.estatus = elEst.value;
-            var elSlider = document.getElementById('inputAvanceSliderEdit');
-            if (elSlider) elementoLocal.avance = parseInt(elSlider.value, 10) || 0;
-        }
 
-        // 4. Guardar localmente
-        guardarDataset();
+            guardarDataset();
 
-        // 5. Propagar cambios directamente a Supabase
-        if (supabaseClient) {
-            if (tipo === 'HITO') {
+            // Sincronización directa con Supabase para hitos y sus acciones
+            if (supabaseClient) {
                 await supabaseClient
                     .from('hitos_transicion')
-                    .update({ hito: nuevoTitulo })
+                    .update({ 
+                        hito: nuevoTitulo, 
+                        panel: nuevoPanel, 
+                        clave_hito: nuevaClaveHito 
+                    })
                     .eq('clave_hito', claveId);
+
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .update({ 
+                        panel: nuevoPanel, 
+                        clave_hito: nuevaClaveHito 
+                    })
+                    .eq('clave_hito', claveId);
+            }
+
+            alert('¡Hito [' + nuevaClaveHito + '] y sus acciones asociadas actualizadas exitosamente!');
+        }
+
+                
             } else {
                 await supabaseClient
                     .from('acciones_transicion')
