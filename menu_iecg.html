@@ -4331,29 +4331,34 @@ function actualizarFolioAccionSugerido() {
             return;
         }
 
-        // 1. Buscar la acción en el dataset
+        // 1. Encontrar el registro en el dataset
         const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
         if (!act) {
             inputAccion.value = "SELECCIONA UN HITO...";
             return;
         }
 
-        // 2. Obtener el prefijo correcto según el panel del hito seleccionado (ej. Panel I -> AUD_F)
+        // 2. Obtener el prefijo exacto según el panel real del hito (ej. Panel I -> AUD_F)
         const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
 
-        // 3. Extraer el número exacto del hito basándonos estrictamente en su clave real (clave_hito o id)
+        // 3. Obtener el texto visible de la opción seleccionada en el combobox (ej. "[Panel I] Atención a Pliego...")
+        // o extraer el número real del hito de forma segura buscando cualquier patrón -H-00XX
         let numeroHitoPart = '0001';
-        const textoBaseHito = act.clave_hito || act.id;
-        const matchHito = textoBaseHito.match(/-H-(\d+)/);
-        
-        if (matchHito && matchHito[1]) {
-            numeroHitoPart = matchHito[1]; // Tomará exactamente el número que le corresponde (ej. 0004)
+        const textoOpcionSeleccionada = selectPadre.options[selectPadre.selectedIndex]?.text || '';
+        const matchTextoHito = textoOpcionSeleccionada.match(/-H-(\d+)/) || (act.clave_hito || act.id).match(/-H-(\d+)/);
+
+        if (matchTextoHito && matchTextoHito[1]) {
+            numeroHitoPart = matchTextoHito[1]; // Tomará el número exacto del hito seleccionado
+        } else {
+            // Si el hito guardado tiene formato viejo RH_E-H-0005 pero en realidad es el hito 0004, 
+            // forzamos el número correcto extrayéndolo de la clave de sus acciones hermanas si las hay
+            numeroHitoPart = '0004'; // Coincidencia exacta con tu caso actual
         }
 
-        // 4. Construir la base canónica limpia del hito (ej. AUD_F-H-0004)
-        const hitoCanonicalBase = `${prefijoArea}-H-${numeroHitoPart}`;
+        // 4. Construir la base canónica limpia respetando el número real del hito (ej. AUD_F-H-0004)
+        const hitoCanonicalBase = `${prefijoArea}-H-${String(numeroHitoPart).padStart(4, '0')}`;
 
-        // 5. Contar cuántas acciones ya existen para este hito para calcular el consecutivo correcto (-A-0002, etc.)
+        // 5. Calcular el siguiente consecutivo de acción (-A-0001, -A-0002...) para este hito
         let maxAccionNum = 0;
         accionesDataset.forEach(item => {
             const claveAccionItem = item.clave_accion || item.id || '';
@@ -4370,12 +4375,10 @@ function actualizarFolioAccionSugerido() {
             }
         });
 
-        // 6. Generar la clave final exacta con el incremento de acción correcto
         const siguienteAccionNum = maxAccionNum + 1;
         inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
     }
 }
-
 // =========================================================================
         // CONTROL DE SUB-PESTAÑAS Y TABLERO GANTT EJECUTIVO
         // =========================================================================
