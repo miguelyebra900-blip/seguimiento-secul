@@ -6099,48 +6099,6 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
 // FUNCIONES GLOBALES DEL MODAL UNIVERSAL DE VINCULACIÓN
 // =========================================================================
 
-window.abrirModalVinculacionUniversalDirecta = function(hitoPreseleccionado = null, accionPreseleccionada = null) {
-    if (!currentUser) {
-        alert("Debe iniciar sesión para solicitar la vinculación de un hito o acción.");
-        openModal('modal-auth');
-        return;
-    }
-
-    const misPaneles = currentUser.paneles_autorizados || [currentUser.panel_origen || 'A'];
-    document.getElementById('vinculoMiPanelTexto').innerText = `Panel ${misPaneles.join(', ')}`;
-    document.getElementById('vinculoMiNombreTexto').innerText = `${currentUser.nombre} (${currentUser.usuario})`;
-    document.getElementById('txtVinculoMotivoOficial').value = '';
-
-    const selHito = document.getElementById('selVinculoHitoObjetivo');
-    if (selHito) {
-        const hitosMap = {};
-        accionesDataset.forEach(a => {
-            const hId = a.clave_hito || a.id.split('-A-')[0];
-            if (!hitosMap[hId]) {
-                hitosMap[hId] = { id: hId, panel: a.panel, hito: a.hito };
-            }
-        });
-
-        selHito.innerHTML = '<option value="" disabled selected>Seleccione el Hito Rector...</option>' +
-            Object.values(hitosMap).map(h => 
-                `<option value="${h.id}">[Panel ${h.panel}] ${h.id} - ${h.hito}</option>`
-            ).join('');
-
-        if (hitoPreseleccionado && hitosMap[hitoPreseleccionado]) {
-            selHito.value = hitoPreseleccionado;
-        } else {
-            const buzonVal = document.getElementById('buzonSelectAccion')?.value;
-            if (buzonVal) {
-                const act = accionesDataset.find(a => (a.clave_accion === buzonVal) || (a.id === buzonVal));
-                const baseHito = act ? (act.clave_hito || act.id.split('-A-')[0]) : null;
-                if (baseHito && hitosMap[baseHito]) selHito.value = baseHito;
-            }
-        }
-    }
-
-    actualizarAccionesParaVinculoUniversal(accionPreseleccionada);
-    openModal('modal-vinculacion-universal');
-};
 
 window.actualizarAccionesParaVinculoUniversal = function(accionPreseleccionada = null) {
     const selHito = document.getElementById('selVinculoHitoObjetivo');
