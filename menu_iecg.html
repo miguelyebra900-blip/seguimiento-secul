@@ -3631,15 +3631,21 @@ function renderListaCompromisosDetalle(act) {
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value; // 'A', 'B', ... 'J'
-    const vertiente = document.getElementById('nuevoHitoVertiente').value;
+    // 1. Leer de forma estricta el select del panel del formulario
+    const selectPanelEl = document.getElementById('nuevoHitoPanel');
+    const panel = selectPanelEl ? selectPanelEl.value : 'A'; // Garantiza que si existe, tome su valor exacto (I, A, B, etc.)
+    
     const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    // ── Declaración de variables faltantes que causaban el error ──
-    const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item') || [];
+    // 2. Obtener el prefijo exacto del mapa oficial según el panel seleccionado
     const claveArea = MAPA_PREFIJOS_AREA[panel] || 'RH_E';
+
+    // 3. Generar la clave del hito usando el prefijo real del panel (ej. AUD_F-H-0005)
+    const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
+    
+    // ... resto del código de guardado ...
     // =========================================================================
     // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
     // =========================================================================
