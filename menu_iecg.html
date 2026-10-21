@@ -6347,39 +6347,35 @@ window.procesarVinculacionUniversalOficial = async function(e) {
             driveUrlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, nombreArchivo);
         }
 
-        const ticketVinculacion = {
+       const ticketVinculacion = {
             tipo: 'VINCULACION_INTERINSTITUCIONAL',
             clave: accionId === 'TODAS' ? hitoId : accionId,
-            nivel_vinculacion: accionId === 'TODAS' ? 'Hito Integral' : 'Acción Específica',
-            tipo_corresponsabilidad: tipoCoesp,
+            campo: 'panel_coresponsable',
             hito_objetivo: hitoId,
             accion_objetivo: accionId,
-            panel_solicitante: misPaneles.join(', '),
             motivo: motivo,
-            drive_url: driveUrlSoporte,
-            solicitante: `${currentUser.nombre} (${currentUser.usuario})`,
+            url_soporte: urlSoporte,
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
             fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Validación y Autorización'
+            estatus: 'Pendiente de Autorización'
         };
 
         if (typeof registrarSolicitudAuditoria === 'function') {
             registrarSolicitudAuditoria(ticketVinculacion);
         }
 
-        // MENSAJE OFICIAL EXIGIDO
-        alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA CON ÉXITO:\n\nTu petición para vincular [${ticketVinculacion.clave}] (${ticketVinculacion.tipo_corresponsabilidad}) con tu comisión ha sido registrada en el sistema.\n\n⚠️ Deberá estar sujeta a validación y autorización del Director General de Administración y el Líder del Proyecto de Seguimiento a la Extinción.`);
-
+        alert("¡Solicitud de vinculación interinstitucional enviada exitosamente!");
         closeModal('modal-vinculacion-universal');
     } catch (err) {
-        alert("Error al tramitar la vinculación: " + err.message);
+        alert("Error al procesar la vinculación: " + err.message);
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Enviar a Validación';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
         }
     }
 };
-
+    
   // Hook para conectar la clave editable al abrir el modal de edición
 const _abrirEdicionOriginal = window.abrirModalEdicionDinamica;
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
