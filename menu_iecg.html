@@ -1879,56 +1879,25 @@ window.guardarContactoNotificaciones = async function(e) {
                     </div>
                 </div>
 
-<!-- Instancia Responsable y Comboboxes de Vinculación y Áreas Externas -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
                         <input type="text" id="nuevaAccionResp" placeholder="Ej. Control Patrimonial / Jurídico" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" required>
                     </div>
-
-                    <div>
-                        <label class="block font-bold text-indigo-700 mb-1">Vincular Área SECUL:</label>
-                        <select id="buzonVinculoSeculInput" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
-                            <option value="Ninguna">Ninguna / Directa</option>
-                            <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
-                            <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
-                            <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
-                            <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
-                            <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
-                            <option value="Panel F - Financiero">Panel F - Financiero</option>
-                            <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
-                            <option value="Panel H - Archivo">Panel H - Archivo</option>
-                            <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
-                            <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-amber-700 mb-1">Área Externa (Art. 6):</label>
-                        <select id="buzonAreaExternaInput" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
-                            <option value="Ninguna">Ninguna (Interna)</option>
-                            <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
-                            <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
-                            <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
-                            <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
-                            <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
-                            <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
-                            <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
-                            <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
-                            <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
-                        </select>
-                    </div>
+                    <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+    <div class="flex items-center justify-between">
+        <label class="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
+            <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Adjuntar Soporte / Documento Oficial (PDF, Excel, Word):
+        </label>
+        <span id="labelPanelDestinoDrive" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">Panel Automático</span>
+    </div>
+    <input type="file" id="buzonFileInputAccion" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+</div>
                 </div>
 
-                <!-- Bloque de Archivo independiente abajo de los selects -->
-                <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                    <div class="flex items-center justify-between">
-                        <label class="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
-                            <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Adjuntar Soporte / Documento Oficial (PDF, Excel, Word):
-                        </label>
-                        <span id="labelPanelDestinoDrive" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">Panel Automático</span>
-                    </div>
-                    <input type="file" id="buzonFileInputAccion" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación Técnica:</label>
+                    <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo o número de oficio que fundamenta esta acción..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
                 </div>
 
                 <!-- Botones de Acción con Botón Regresar -->
@@ -2998,36 +2967,27 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
         select.appendChild(opt);
     });
 
-    function actualizarFolioAccionSugerido() {
-            const selectPadre = document.getElementById('buzonSelectAccion');
-            const inputAccion = document.getElementById('nuevaAccionClavePreview');
-            if (selectPadre && inputAccion) {
-                const valSeleccionado = selectPadre.value;
-                if (!valSeleccionado) {
-                    inputAccion.value = "SELECCIONA UN HITO...";
-                    return;
-                }
+    actualizarFolioAccionSugerido();
+    if (typeof actualizarInfoAccionBuzon === 'function') actualizarInfoAccionBuzon();
+};
+        
+      function actualizarInfoAccionBuzon() {
+    const select = document.getElementById('buzonSelectAccion');
+    if (!select) return;
 
-                // Encontrar el registro seleccionado en el dataset
-                const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
-                if (!act) {
-                    inputAccion.value = "SELECCIONA UN HITO...";
-                    return;
-                }
+    const id = select.value;
+    const act = accionesDataset.find(a => a.id === id);
+    if (!act) return;
 
-                // Forzar el prefijo correcto según el panel real del hito seleccionado (Panel I -> AUD_F)
-                const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
-                
-                let numeroHitoPart = '0001';
-                const matchHito = (act.clave_hito || act.id).match(/-H-(\d+)/);
-                if (matchHito && matchHito[1]) {
-                    numeroHitoPart = matchHito[1];
-                }
-                const hitoCanonicalBase = `${prefijoArea}-H-${numeroHitoPart}`;
+    const lblPanel = document.getElementById('labelBuzonPanel');
+    const lblDocReq = document.getElementById('labelBuzonDocReq');
+    const inputAvance = document.getElementById('buzonAvanceInput');
+    const inputEstatus = document.getElementById('buzonEstatusInput');
 
-                // Generar la siguiente acción con el prefijo y número de hito correctos
-                inputAccion.value = obtenerSiguienteClaveAccion(hitoCanonicalBase);
-            }
+    if (lblPanel) lblPanel.innerText = `Panel ${act.panel} (${act.area})`;
+    if (lblDocReq) lblDocReq.innerText = act.docRequerido || "Documento oficial requerido";
+    if (inputAvance) inputAvance.value = act.avance;
+    if (inputEstatus) inputEstatus.value = act.estatus;
         }
 
 // =========================================================================
@@ -3083,12 +3043,8 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
             const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
             const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
             const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
-           const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
-             const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
-
-        // Capturar los valores de los nuevos selectores de la Pestaña 2
-        const vinculoSecul = document.getElementById('buzonVinculoSeculInput')?.value || 'Ninguna';
-        const areaExternaArt6 = document.getElementById('buzonAreaExternaInput')?.value || 'Ninguna';;
+            const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
+            const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
           const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!act) return;
@@ -3130,16 +3086,12 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
                 }
 
                 // Actualizar o insertar la acción en el dataset
-               act.estatus = nuevoEstatus;
+                act.estatus = nuevoEstatus;
                 act.avance = nuevoAvance;
                 act.driveUrl = driveUrlFinal;
-                act.vinculoSecul = vinculoSecul;
-                act.tercero = areaExternaArt6 !== 'Ninguna' ? 'Tercero Externo' : 'Interna';
-                act.terceroNombre = areaExternaArt6;
                 if (tituloAccion) act.accion = tituloAccion;
                 if (respAccion) act.responsable = respAccion;
                 if (notaAuditoria) act.observaciones = notaAuditoria;
-
                 
                 guardarDataset();
 
@@ -5569,6 +5521,7 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
     openModal('modal-edicion-dinamica');
 };
 
+// 7. Guardar Formulario de Edición Dinámica
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
@@ -5579,29 +5532,23 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+
     var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
 
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
 
     try {
-        var enlacesDriveActuales = [];
-        var act = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveId) || (a.id === claveId);
-        });
+        var driveUrlFinal = null;
 
-        if (act && act.driveUrl) {
-            enlacesDriveActuales = Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl];
-        }
+        if (tipo === 'ACCION' && fileInput && fileInput.files && fileInput.files.length > 0) {
+           var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
 
-        // Obtener todos los campos de archivos independientes agregados con "+ Agregar otro documento"
-        var inputsArchivosDinamicos = document.querySelectorAll('.input-archivo-dinamico');
-
-        for (let inputEl of inputsArchivosDinamicos) {
-            if (inputEl.files && inputEl.files.length > 0) {
-                var archivoFisico = inputEl.files[0];
-                var nombreNominal = `[${claveId}] ${archivoFisico.name}`;
-                var urlGenerada = await window.subirArchivoADrive(archivoFisico, panel, nombreNominal);
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            for (let i = 0; i < fileInput.files.length; i++) {
+                var archivoFisico = fileInput.files[i];
+                var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
+                var urlGenerada = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
                 if (urlGenerada) {
                     enlacesDriveActuales.push(urlGenerada);
                 }
@@ -5609,6 +5556,9 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
 
         var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
+        act.driveUrl = driveUrlFinal;
+        act.historialDrive = enlacesDriveActuales;
+        }
 
         if (tipo === 'HITO') {
             if (esAdmin) {
@@ -5638,7 +5588,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             var nuevoEstatus = document.getElementById('selectEstatusEdit').value;
             var nuevoAvance = parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0;
 
-            if (!act) throw new Error("Acción no encontrada en el dataset.");
+            var act = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveId) || (a.id === claveId);
+            });
+            if (!act) return;
 
             if (esAdmin) {
                 act.accion = nuevoTitulo;
@@ -5646,7 +5599,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 act.estatus = nuevoEstatus;
                 act.avance = nuevoAvance;
                 if (driveUrlFinal) act.driveUrl = driveUrlFinal;
-                act.historialDrive = enlacesDriveActuales;
 
                 guardarDataset();
                 registrarAuditoria('Modificación de Acción (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, nuevoAvance: nuevoAvance, nuevoEstatus: nuevoEstatus, motivo: motivo });
@@ -5668,10 +5620,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         closeModal('modal-edicion-dinamica');
         actualizarDashboard();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
-            renderBaseDatosGeneralJerarquica();
-        }
-
+        renderBaseDatosGeneralJerarquica();
     } catch (err) {
         alert('Error al procesar la actualización: ' + err.message);
     } finally {
@@ -6099,6 +6048,48 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
 // FUNCIONES GLOBALES DEL MODAL UNIVERSAL DE VINCULACIÓN
 // =========================================================================
 
+window.abrirModalVinculacionUniversalDirecta = function(hitoPreseleccionado = null, accionPreseleccionada = null) {
+    if (!currentUser) {
+        alert("Debe iniciar sesión para solicitar la vinculación de un hito o acción.");
+        openModal('modal-auth');
+        return;
+    }
+
+    const misPaneles = currentUser.paneles_autorizados || [currentUser.panel_origen || 'A'];
+    document.getElementById('vinculoMiPanelTexto').innerText = `Panel ${misPaneles.join(', ')}`;
+    document.getElementById('vinculoMiNombreTexto').innerText = `${currentUser.nombre} (${currentUser.usuario})`;
+    document.getElementById('txtVinculoMotivoOficial').value = '';
+
+    const selHito = document.getElementById('selVinculoHitoObjetivo');
+    if (selHito) {
+        const hitosMap = {};
+        accionesDataset.forEach(a => {
+            const hId = a.clave_hito || a.id.split('-A-')[0];
+            if (!hitosMap[hId]) {
+                hitosMap[hId] = { id: hId, panel: a.panel, hito: a.hito };
+            }
+        });
+
+        selHito.innerHTML = '<option value="" disabled selected>Seleccione el Hito Rector...</option>' +
+            Object.values(hitosMap).map(h => 
+                `<option value="${h.id}">[Panel ${h.panel}] ${h.id} - ${h.hito}</option>`
+            ).join('');
+
+        if (hitoPreseleccionado && hitosMap[hitoPreseleccionado]) {
+            selHito.value = hitoPreseleccionado;
+        } else {
+            const buzonVal = document.getElementById('buzonSelectAccion')?.value;
+            if (buzonVal) {
+                const act = accionesDataset.find(a => (a.clave_accion === buzonVal) || (a.id === buzonVal));
+                const baseHito = act ? (act.clave_hito || act.id.split('-A-')[0]) : null;
+                if (baseHito && hitosMap[baseHito]) selHito.value = baseHito;
+            }
+        }
+    }
+
+    actualizarAccionesParaVinculoUniversal(accionPreseleccionada);
+    openModal('modal-vinculacion-universal');
+};
 
 window.actualizarAccionesParaVinculoUniversal = function(accionPreseleccionada = null) {
     const selHito = document.getElementById('selVinculoHitoObjetivo');
@@ -6118,6 +6109,60 @@ window.actualizarAccionesParaVinculoUniversal = function(accionPreseleccionada =
     }
 };
 
+window.procesarVinculacionUniversalOficial = async function(e) {
+    e.preventDefault();
+
+    const hitoId = document.getElementById('selVinculoHitoObjetivo').value;
+    const accionId = document.getElementById('selVinculoAccionObjetivo').value;
+    const motivo = document.getElementById('txtVinculoMotivoOficial').value.trim();
+    const fileInput = document.getElementById('fileVinculoDocumental');
+    const btn = document.getElementById('btnSubmitVinculoOficial');
+
+    const misPaneles = currentUser ? (currentUser.paneles_autorizados || [currentUser.panel_origen || 'A']) : [];
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Enviando...';
+    }
+
+    let urlSoporte = '';
+    try {
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            const panelOrigen = misPaneles[0] || 'A';
+            urlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, `[VINC-${hitoId}] ${fileInput.files[0].name}`);
+        }
+
+        const ticketVinculacion = {
+            tipo: 'VINCULACION_INTERINSTITUCIONAL',
+            clave: accionId === 'TODAS' ? hitoId : accionId,
+            campo: 'panel_coresponsable',
+            hito_objetivo: hitoId,
+            accion_objetivo: accionId,
+            panel_solicitante: misPaneles.join(', '),
+            motivo: motivo,
+            url_documento: urlSoporte,
+            solicitante: `${currentUser.nombre} (${currentUser.usuario})`,
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Validación y Autorización'
+        };
+
+        if (typeof registrarSolicitudAuditoria === 'function') {
+            registrarSolicitudAuditoria(ticketVinculacion);
+        }
+
+        // MENSAJE OFICIAL SOLICITADO
+        alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA CON ÉXITO:\n\nTu petición para vincular [${ticketVinculacion.clave}] con tu comisión ha sido registrada en el sistema.\n\n⚠️ Deberá estar sujeta a validación y autorización del Director General de Administración y el Líder del Proyecto de Seguimiento a la Extinción.`);
+
+        closeModal('modal-vinculacion-universal');
+    } catch (err) {
+        alert("Error al procesar la vinculación: " + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Enviar a Validación';
+        }
+    }
+};
         // Función para inferir paneles del usuario de forma infalible
 function resolverPanelesUsuario(user) {
     if (!user) return ['A'];
@@ -6232,10 +6277,10 @@ window.actualizarAccionesParaVinculoUniversal = function(accionForzada = null) {
 window.procesarVinculacionUniversalOficial = async function(e) {
     e.preventDefault();
 
-    const hitoId = document.getElementById('selVinculoHitoObjetivo')?.value;
-    const accionId = document.getElementById('selVinculoAccionObjetivo')?.value;
-    const tipoCoesp = document.getElementById('selTipoCorresponsabilidad')?.value || 'Co-responsable';
-    const motivo = document.getElementById('txtVinculoMotivoOficial')?.value.trim();
+    const hitoId = document.getElementById('selVinculoHitoObjetivo').value;
+    const accionId = document.getElementById('selVinculoAccionObjetivo').value;
+    const tipoCoesp = document.getElementById('selTipoCorresponsabilidad').value;
+    const motivo = document.getElementById('txtVinculoMotivoOficial').value.trim();
     const fileInput = document.getElementById('fileVinculoDocumental');
     const btn = document.getElementById('btnSubmitVinculoOficial');
 
@@ -6250,39 +6295,43 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         let driveUrlSoporte = '';
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const panelOrigen = misPaneles[0] || 'A';
-            driveUrlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, `[VINC-${hitoId}] ${fileInput.files[0].name}`);
+            const nombreArchivo = `[VINC-${accionId === 'TODAS' ? hitoId : accionId}] ${fileInput.files[0].name}`;
+            driveUrlSoporte = await window.subirArchivoADrive(fileInput.files[0], panelOrigen, nombreArchivo);
         }
 
         const ticketVinculacion = {
             tipo: 'VINCULACION_INTERINSTITUCIONAL',
             clave: accionId === 'TODAS' ? hitoId : accionId,
-            campo: 'panel_coresponsable',
+            nivel_vinculacion: accionId === 'TODAS' ? 'Hito Integral' : 'Acción Específica',
+            tipo_corresponsabilidad: tipoCoesp,
             hito_objetivo: hitoId,
             accion_objetivo: accionId,
-            tipo_corresponsabilidad: tipoCoesp,
+            panel_solicitante: misPaneles.join(', '),
             motivo: motivo,
-            url_soporte: driveUrlSoporte,
-            solicitante: currentUser ? `${currentUser.nombre} (${currentUser.usuario})` : 'Enlace Institucional',
+            drive_url: driveUrlSoporte,
+            solicitante: `${currentUser.nombre} (${currentUser.usuario})`,
             fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
+            estatus: 'Pendiente de Validación y Autorización'
         };
 
         if (typeof registrarSolicitudAuditoria === 'function') {
             registrarSolicitudAuditoria(ticketVinculacion);
         }
 
-        alert("¡Solicitud de vinculación interinstitucional enviada exitosamente!");
+        // MENSAJE OFICIAL EXIGIDO
+        alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA CON ÉXITO:\n\nTu petición para vincular [${ticketVinculacion.clave}] (${ticketVinculacion.tipo_corresponsabilidad}) con tu comisión ha sido registrada en el sistema.\n\n⚠️ Deberá estar sujeta a validación y autorización del Director General de Administración y el Líder del Proyecto de Seguimiento a la Extinción.`);
+
         closeModal('modal-vinculacion-universal');
     } catch (err) {
-        alert("Error al procesar la vinculación: " + err.message);
+        alert("Error al tramitar la vinculación: " + err.message);
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Petición';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Enviar a Validación';
         }
     }
 };
-    
+
   // Hook para conectar la clave editable al abrir el modal de edición
 const _abrirEdicionOriginal = window.abrirModalEdicionDinamica;
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
@@ -6665,7 +6714,6 @@ function manejarCambioSeculBaseEdit(selectEl) {
     }
 }
 
-
 // 3. Manejo de Área Externa con texto personalizado
 function manejarCambioExternaBaseEdit(selectEl) {
     const inputTexto = document.getElementById('inputOtraExternaBaseEdit');
@@ -6675,7 +6723,7 @@ function manejarCambioExternaBaseEdit(selectEl) {
         inputTexto.classList.add('hidden');
         inputTexto.value = '';
     }
-} // <--- Asegúrate de cerrar esta llave aquí
+}
 
 // 4. Poblado inteligente al abrir el Modal de Edición desde la Base de Datos
 const _abrirEdicionOriginalBase = window.abrirModalEdicionDinamica;
@@ -6859,9 +6907,7 @@ window.agregarCampoArchivoBase = function() {
     `;
     contenedor.appendChild(div);
 };
-
-   
-    
+        
 </script>
 
     <!-- ========================================================================= -->
