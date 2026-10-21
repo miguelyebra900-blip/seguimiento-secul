@@ -1879,25 +1879,56 @@ window.guardarContactoNotificaciones = async function(e) {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<!-- Instancia Responsable y Comboboxes de Vinculación y Áreas Externas -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
                         <input type="text" id="nuevaAccionResp" placeholder="Ej. Control Patrimonial / Jurídico" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold" required>
                     </div>
-                    <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-    <div class="flex items-center justify-between">
-        <label class="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
-            <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Adjuntar Soporte / Documento Oficial (PDF, Excel, Word):
-        </label>
-        <span id="labelPanelDestinoDrive" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">Panel Automático</span>
-    </div>
-    <input type="file" id="buzonFileInputAccion" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-</div>
+
+                    <div>
+                        <label class="block font-bold text-indigo-700 mb-1">Vincular Área SECUL:</label>
+                        <select id="buzonVinculoSeculInput" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
+                            <option value="Ninguna">Ninguna / Directa</option>
+                            <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+                            <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+                            <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+                            <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+                            <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+                            <option value="Panel F - Financiero">Panel F - Financiero</option>
+                            <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+                            <option value="Panel H - Archivo">Panel H - Archivo</option>
+                            <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+                            <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-amber-700 mb-1">Área Externa (Art. 6):</label>
+                        <select id="buzonAreaExternaInput" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
+                            <option value="Ninguna">Ninguna (Interna)</option>
+                            <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+                            <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+                            <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+                            <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+                            <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+                            <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+                            <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+                            <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+                            <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación Técnica:</label>
-                    <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo o número de oficio que fundamenta esta acción..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
+                <!-- Bloque de Archivo independiente abajo de los selects -->
+                <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <label class="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
+                            <i class="fa-brands fa-google-drive text-amber-500 text-sm"></i> Adjuntar Soporte / Documento Oficial (PDF, Excel, Word):
+                        </label>
+                        <span id="labelPanelDestinoDrive" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">Panel Automático</span>
+                    </div>
+                    <input type="file" id="buzonFileInputAccion" class="w-full p-2 border rounded-xl text-xs bg-white text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                 </div>
 
                 <!-- Botones de Acción con Botón Regresar -->
@@ -3043,8 +3074,12 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
             const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
             const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
             const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
-            const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
-            const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
+           const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
+             const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
+
+        // Capturar los valores de los nuevos selectores de la Pestaña 2
+        const vinculoSecul = document.getElementById('buzonVinculoSeculInput')?.value || 'Ninguna';
+        const areaExternaArt6 = document.getElementById('buzonAreaExternaInput')?.value || 'Ninguna';;
 
           const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!act) return;
@@ -3086,12 +3121,16 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
                 }
 
                 // Actualizar o insertar la acción en el dataset
-                act.estatus = nuevoEstatus;
+               act.estatus = nuevoEstatus;
                 act.avance = nuevoAvance;
                 act.driveUrl = driveUrlFinal;
+                act.vinculoSecul = vinculoSecul;
+                act.tercero = areaExternaArt6 !== 'Ninguna' ? 'Tercero Externo' : 'Interna';
+                act.terceroNombre = areaExternaArt6;
                 if (tituloAccion) act.accion = tituloAccion;
                 if (respAccion) act.responsable = respAccion;
                 if (notaAuditoria) act.observaciones = notaAuditoria;
+
                 
                 guardarDataset();
 
