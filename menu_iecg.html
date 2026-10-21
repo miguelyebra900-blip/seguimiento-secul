@@ -5521,7 +5521,6 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
     openModal('modal-edicion-dinamica');
 };
 
-// 7. Guardar Formulario de Edición Dinámica
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
@@ -5532,23 +5531,29 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
-
     var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
 
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
 
     try {
-        var driveUrlFinal = null;
+        var enlacesDriveActuales = [];
+        var act = accionesDataset.find(function(a) {
+            return (a.clave_accion === claveId) || (a.id === claveId);
+        });
 
-        if (tipo === 'ACCION' && fileInput && fileInput.files && fileInput.files.length > 0) {
-           var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
+        if (act && act.driveUrl) {
+            enlacesDriveActuales = Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl];
+        }
 
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            for (let i = 0; i < fileInput.files.length; i++) {
-                var archivoFisico = fileInput.files[i];
-                var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
-                var urlGenerada = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
+        // Obtener todos los campos de archivos independientes agregados con "+ Agregar otro documento"
+        var inputsArchivosDinamicos = document.querySelectorAll('.input-archivo-dinamico');
+
+        for (let inputEl of inputsArchivosDinamicos) {
+            if (inputEl.files && inputEl.files.length > 0) {
+                var archivoFisico = inputEl.files[0];
+                var nombreNominal = `[${claveId}] ${archivoFisico.name}`;
+                var urlGenerada = await window.subirArchivoADrive(archivoFisico, panel, nombreNominal);
                 if (urlGenerada) {
                     enlacesDriveActuales.push(urlGenerada);
                 }
@@ -5556,9 +5561,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
 
         var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
-        act.driveUrl = driveUrlFinal;
-        act.historialDrive = enlacesDriveActuales;
-        }
 
         if (tipo === 'HITO') {
             if (esAdmin) {
@@ -5588,10 +5590,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             var nuevoEstatus = document.getElementById('selectEstatusEdit').value;
             var nuevoAvance = parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0;
 
-            var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveId) || (a.id === claveId);
-            });
-            if (!act) return;
+            if (!act) throw new Error("Acción no encontrada en el dataset.");
 
             if (esAdmin) {
                 act.accion = nuevoTitulo;
@@ -5599,6 +5598,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 act.estatus = nuevoEstatus;
                 act.avance = nuevoAvance;
                 if (driveUrlFinal) act.driveUrl = driveUrlFinal;
+                act.historialDrive = enlacesDriveActuales;
 
                 guardarDataset();
                 registrarAuditoria('Modificación de Acción (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, nuevoAvance: nuevoAvance, nuevoEstatus: nuevoEstatus, motivo: motivo });
@@ -5620,7 +5620,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         closeModal('modal-edicion-dinamica');
         actualizarDashboard();
-        renderBaseDatosGeneralJerarquica();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+            renderBaseDatosGeneralJerarquica();
+        }
+
     } catch (err) {
         alert('Error al procesar la actualización: ' + err.message);
     } finally {
