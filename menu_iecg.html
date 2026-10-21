@@ -5466,52 +5466,39 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 
 // 6. Abrir Modal de Edición Dinámica
 
-// 7. Guardar Formulario de Edición Dinámica
+
+// 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
     var tipo = document.getElementById('editItemTipo').value;
     var claveId = document.getElementById('editItemClave').value;
-    var panel = document.getElementById('editItemPanel').value;
     var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super' || currentUser.esAdmin);
 
-    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super');
-
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
+    }
 
     try {
         var driveUrlFinal = null;
 
-        if (tipo === 'ACCION' && fileInput && fileInput.files && fileInput.files.length > 0) {
-           var enlacesDriveActuales = act.driveUrl ? (Array.isArray(act.driveUrl) ? act.driveUrl : [act.driveUrl]) : [];
-
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            for (let i = 0; i < fileInput.files.length; i++) {
-                var archivoFisico = fileInput.files[i];
-                var nombreNominal = `[${nuevaClaveCanonica}] ${archivoFisico.name}`;
-                var urlGenerada = await window.subirArchivoADrive(archivoFisico, nuevoPanel, nombreNominal);
-                if (urlGenerada) {
-                    enlacesDriveActuales.push(urlGenerada);
-                }
-            }
-        }
-
-        var driveUrlFinal = enlacesDriveActuales.length > 0 ? enlacesDriveActuales[enlacesDriveActuales.length - 1] : '';
-        act.driveUrl = driveUrlFinal;
-        act.historialDrive = enlacesDriveActuales;
-        }
-
         if (tipo === 'HITO') {
             if (esAdmin) {
+                var encontrados = 0;
                 accionesDataset.forEach(function(a) {
-                    if ((a.clave_hito === claveId) || a.id.startsWith(claveId)) {
+                    if ((a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId)) || (a.clave_accion === claveId)) {
                         a.hito = nuevoTitulo;
+                        encontrados++;
                     }
                 });
+                if (encontrados === 0) {
+                    throw new Error("Hito con clave [" + claveId + "] no encontrado en el dataset.");
+                }
                 guardarDataset();
                 registrarAuditoria('Modificación de Hito (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, motivo: motivo });
                 alert('¡Hito [' + claveId + '] actualizado y sincronizado en todo el sistema!');
@@ -5529,18 +5516,22 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 alert('🔒 SOLICITUD CANALIZADA A AUDITORÍA:\nLa propuesta para el Hito [' + claveId + '] fue enviada a la mesa de control de "auditoria.html".');
             }
         } else {
-            var nuevoResp = document.getElementById('inputRespEdit').value.trim();
-            var nuevoEstatus = document.getElementById('selectEstatusEdit').value;
-            var nuevoAvance = parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0;
+            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
+            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
+            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
 
+            // Búsqueda flexible que evita que falle por diferencias de formato
             var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveId) || (a.id === claveId);
+                return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
             });
-            if (!act) return;
+            
+            if (!act) {
+                throw new Error("Acción con clave [" + claveId + "] no encontrada en el dataset.");
+            }
 
             if (esAdmin) {
                 act.accion = nuevoTitulo;
-                act.responsable = nuevoResp;
+                if (nuevoResp) act.responsable = nuevoResp;
                 act.estatus = nuevoEstatus;
                 act.avance = nuevoAvance;
                 if (driveUrlFinal) act.driveUrl = driveUrlFinal;
@@ -5564,16 +5555,17 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
 
         closeModal('modal-edicion-dinamica');
-        actualizarDashboard();
-        renderBaseDatosGeneralJerarquica();
+        if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
     } catch (err) {
         alert('Error al procesar la actualización: ' + err.message);
     } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
+        }
     }
 };
-
 // 8. Solicitar Baja de Acción
 window.solicitarEliminacionAccion = function(claveAccion) {
     var act = accionesDataset.find(function(a) {
