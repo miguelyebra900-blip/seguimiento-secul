@@ -5465,70 +5465,6 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 };
 
 // 6. Abrir Modal de Edición Dinámica
-window.abrirModalEdicionDinamica = function(tipo, claveId) {
-    var modal = document.getElementById('modal-edicion-dinamica');
-    var inputTipo = document.getElementById('editItemTipo');
-    var inputClave = document.getElementById('editItemClave');
-    var inputPanel = document.getElementById('editItemPanel');
-    var lblClave = document.getElementById('labelClaveActivaEdit');
-    var lblPanel = document.getElementById('labelPanelActivoEdit');
-    var lblTitulo = document.getElementById('lblTituloPrincipalEdit');
-    var txtTitulo = document.getElementById('inputTituloEdit');
-    var bloqueAccion = document.getElementById('bloqueCamposAccion');
-    var txtMotivo = document.getElementById('inputMotivoEdit');
-
-    if (!modal) return;
-    if (txtMotivo) txtMotivo.value = '';
-
-    if (inputTipo) inputTipo.value = tipo;
-    if (inputClave) inputClave.value = claveId;
-    if (lblClave) lblClave.innerText = claveId;
-
-    if (tipo === 'HITO') {
-        var hitoItems = accionesDataset.filter(function(a) {
-            return (a.clave_hito === claveId) || a.id.startsWith(claveId);
-        });
-        var item = hitoItems[0] || {};
-
-        if (inputPanel) inputPanel.value = item.panel || 'A';
-        if (lblPanel) lblPanel.innerText = 'Panel ' + (item.panel || 'A') + ' (' + (item.area || '') + ')';
-        if (lblTitulo) lblTitulo.innerText = 'Título Oficial del Hito Normativo:';
-        if (txtTitulo) txtTitulo.value = item.hito || '';
-        
-        if (bloqueAccion) bloqueAccion.classList.add('hidden');
-        var badge = document.getElementById('badgeTipoEdicion');
-        if (badge) badge.innerText = 'MODIFICACIÓN DE HITO NORMATIVO';
-        var tit = document.getElementById('tituloEdicionDinamica');
-        if (tit) tit.innerText = 'Gestión del Hito [' + claveId + ']';
-    } else {
-        var act = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveId) || (a.id === claveId);
-        });
-        if (!act) return;
-
-        if (inputPanel) inputPanel.value = act.panel || 'A';
-        if (lblPanel) lblPanel.innerText = 'Panel ' + act.panel + ' (' + act.area + ')';
-        if (lblTitulo) lblTitulo.innerText = 'Descripción de la Acción / Entregable Específico:';
-        if (txtTitulo) txtTitulo.value = act.accion || '';
-
-        var elResp = document.getElementById('inputRespEdit');
-        if (elResp) elResp.value = act.responsable || '';
-        var elEst = document.getElementById('selectEstatusEdit');
-        if (elEst) elEst.value = act.estatus || 'En Proceso';
-        var elSlider = document.getElementById('inputAvanceSliderEdit');
-        if (elSlider) elSlider.value = act.avance || 0;
-        var elLblAvance = document.getElementById('labelAvanceSliderEdit');
-        if (elLblAvance) elLblAvance.innerText = (act.avance || 0) + '%';
-
-        if (bloqueAccion) bloqueAccion.classList.remove('hidden');
-        var badge2 = document.getElementById('badgeTipoEdicion');
-        if (badge2) badge2.innerText = 'MODIFICACIÓN DE ACCIÓN OPERATIVA';
-        var tit2 = document.getElementById('tituloEdicionDinamica');
-        if (tit2) tit2.innerText = 'Gestión de Acción [' + claveId + ']';
-    }
-
-    openModal('modal-edicion-dinamica');
-};
 
 // 7. Guardar Formulario de Edición Dinámica
 window.guardarFormularioEdicionDinamica = async function(e) {
@@ -6741,57 +6677,65 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var inputTipo = document.getElementById('editItemTipo');
     var inputClave = document.getElementById('editItemClave');
     var inputPanel = document.getElementById('editItemPanel');
-    var selectPanel = document.getElementById('selectPanelEdicionDinamica');
-    var inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
+    var lblClave = document.getElementById('labelClaveActivaEdit');
+    var lblPanel = document.getElementById('labelPanelActivoEdit');
+    var lblTitulo = document.getElementById('lblTituloPrincipalEdit');
     var txtTitulo = document.getElementById('inputTituloEdit');
+    var bloqueAccion = document.getElementById('bloqueCamposAccion');
     var txtMotivo = document.getElementById('inputMotivoEdit');
 
     if (!modal) return;
     if (txtMotivo) txtMotivo.value = '';
+
     if (inputTipo) inputTipo.value = tipo;
     if (inputClave) inputClave.value = claveId;
-    if (inputClaveCanonica) inputClaveCanonica.value = claveId;
+    if (lblClave) lblClave.innerText = claveId;
 
-    var act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
-    if (!act) return;
+    if (tipo === 'HITO') {
+        var hitoItems = accionesDataset.filter(function(a) {
+            return (a.clave_hito === claveId) || a.id.startsWith(claveId);
+        });
+        var item = hitoItems[0] || {};
 
-    if (inputPanel) inputPanel.value = act.panel || 'A';
-    if (selectPanel) selectPanel.value = act.panel || 'A';
-    if (txtTitulo) txtTitulo.value = act.accion || '';
-
-    // Sincronizar combobox de instancia responsable
-    var selInstancia = document.getElementById('selectInstanciaRespBaseEdit');
-    var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit');
-    var inputResp = document.getElementById('inputRespEdit');
-    if (inputResp) inputResp.value = act.responsable || '';
-
-    let encontradoInstancia = false;
-    for (let opt of selInstancia.options) {
-        if (opt.value === act.responsable) {
-            selInstancia.value = act.responsable;
-            encontradoInstancia = true;
-            break;
-        }
-    }
-    if (!encontradoInstancia && act.responsable) {
-        selInstancia.value = 'OTRA';
-        inputOtraInstancia.classList.remove('hidden');
-        inputOtraInstancia.value = act.responsable;
+        if (inputPanel) inputPanel.value = item.panel || 'A';
+        if (lblPanel) lblPanel.innerText = 'Panel ' + (item.panel || 'A') + ' (' + (item.area || '') + ')';
+        if (lblTitulo) lblTitulo.innerText = 'Título Oficial del Hito Normativo:';
+        if (txtTitulo) txtTitulo.value = item.hito || '';
+        
+        if (bloqueAccion) bloqueAccion.classList.add('hidden');
+        var badge = document.getElementById('badgeTipoEdicion');
+        if (badge) badge.innerText = 'MODIFICACIÓN DE HITO NORMATIVO';
+        var tit = document.getElementById('tituloEdicionDinamica');
+        if (tit) tit.innerText = 'Gestión del Hito [' + claveId + ']';
     } else {
-        inputOtraInstancia.classList.add('hidden');
-    }
+        var act = accionesDataset.find(function(a) {
+            return (a.clave_accion === claveId) || (a.id === claveId);
+        });
+        if (!act) return;
 
-    // Estatus y avance
-    var elEst = document.getElementById('selectEstatusEdit');
-    if (elEst) elEst.value = act.estatus || 'En Proceso';
-    var elSlider = document.getElementById('inputAvanceSliderEdit');
-    if (elSlider) elSlider.value = act.avance || 0;
-    var elLblAvance = document.getElementById('labelAvanceSliderEdit');
-    if (elLblAvance) elLblAvance.innerText = (act.avance || 0) + '%';
+        if (inputPanel) inputPanel.value = act.panel || 'A';
+        if (lblPanel) lblPanel.innerText = 'Panel ' + act.panel + ' (' + act.area + ')';
+        if (lblTitulo) lblTitulo.innerText = 'Descripción de la Acción / Entregable Específico:';
+        if (txtTitulo) txtTitulo.value = act.accion || '';
+
+        var elResp = document.getElementById('inputRespEdit');
+        if (elResp) elResp.value = act.responsable || '';
+        var elEst = document.getElementById('selectEstatusEdit');
+        if (elEst) elEst.value = act.estatus || 'En Proceso';
+        var elSlider = document.getElementById('inputAvanceSliderEdit');
+        if (elSlider) elSlider.value = act.avance || 0;
+        var elLblAvance = document.getElementById('labelAvanceSliderEdit');
+        if (elLblAvance) elLblAvance.innerText = (act.avance || 0) + '%';
+
+        if (bloqueAccion) bloqueAccion.classList.remove('hidden');
+        var badge2 = document.getElementById('badgeTipoEdicion');
+        if (badge2) badge2.innerText = 'MODIFICACIÓN DE ACCIÓN OPERATIVA';
+        var tit2 = document.getElementById('tituloEdicionDinamica');
+        if (tit2) tit2.innerText = 'Gestión de Acción [' + claveId + ']';
+    }
 
     openModal('modal-edicion-dinamica');
 };
-
 // 5. Guardar y propagar en todo el sistema (gráficas, tarjetas, cronogramas y tablas)
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
