@@ -1629,13 +1629,13 @@ window.guardarContactoNotificaciones = async function(e) {
 
         <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
             
-            <!-- ========================================== -->
+   <!-- ========================================== -->
             <!-- PESTAÑA 1: NUEVO HITO (+ ACCIONES)         -->
             <!-- ========================================== -->
             <form id="tab-hitos" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-4">
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center gap-2 text-indigo-900 text-[11px]">
                     <i class="fa-solid fa-circle-info text-indigo-600 text-sm"></i>
-                    <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> para garantizar su cumplimiento operativo.</span>
+                    <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> con su respectiva vinculación institucional y externa.</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1684,9 +1684,25 @@ window.guardarContactoNotificaciones = async function(e) {
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- PUNTO 1: COMBOBOX DE ÁREA EJECUTORA CON OPCIÓN DE ESCRITURA -->
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Área Ejecutora / Responsable:</label>
-                        <input type="text" id="nuevoHitoArea" placeholder="Ej. Dirección General de Administración" class="w-full p-2.5 border rounded-xl bg-slate-50" required>
+                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutora(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold mb-1">
+                            <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura -CRH-SECUL</option>
+                            <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL</option>
+                            <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL</option>
+                            <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL</option>
+                            <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL</option>
+                            <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL</option>
+                            <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI) -CTI-SECUL</option>
+                            <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental – LIQ-IECG</option>
+                            <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías -LPS-SECUL</option>
+                            <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG</option>
+                            <option value="OTRA">Otra Área (Escribir Texto)</option>
+                        </select>
+                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden">
+                        <!-- Campo oculto para mantener compatibilidad con el sistema anterior -->
+                        <input type="hidden" id="nuevoHitoArea" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Fundamento Legal / Oficio:</label>
@@ -1704,19 +1720,69 @@ window.guardarContactoNotificaciones = async function(e) {
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                    <div id="contenedorAccionesObligatorias" class="space-y-2.5">
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item">
+                    <div id="contenedorAccionesObligatorias" class="space-y-3">
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 fila-accion-item">
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
                             </div>
                             <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
-                                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
-                                    <option value="En Proceso">En Proceso</option>
-                                    <option value="Validación">En Validación</option>
-                                    <option value="Concluido">Concluido al 100%</option>
-                                </select>
+                            
+                            <!-- PUNTOS 2, 3, 4 y 5: INSTANCIA, VINCULACIÓN SECUL, ÁREAS EXTERNAS Y ESTATUS -->
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                <!-- PUNTO 2: Instancia ejecutora replicada (bloqueada) -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Instancia Ejecutora:</label>
+                                    <input type="text" name="txtAccionRespHito" readonly class="w-full p-1.5 border rounded-lg text-[11px] bg-slate-100 font-semibold text-slate-700 cursor-not-allowed" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+                                </div>
+
+                                <!-- PUNTO 3: Vincular con área SECUL (con opción de texto si selecciona otra) -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-indigo-700 mb-0.5">Vincular Área SECUL:</label>
+                                    <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
+                                        <option value="Ninguna">Ninguna / Directa</option>
+                                        <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+                                        <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+                                        <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+                                        <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+                                        <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+                                        <option value="Panel F - Financiero">Panel F - Financiero</option>
+                                        <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+                                        <option value="Panel H - Archivo">Panel H - Archivo</option>
+                                        <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+                                        <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+                                        <option value="OTRA">Otra Área SECUL (Escribir)</option>
+                                    </select>
+                                    <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
+                                </div>
+
+                                <!-- PUNTO 4: Áreas Externas (Art. 6 Lineamientos) con opción de texto -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-amber-700 mb-0.5">Área Externa (Art. 6):</label>
+                                    <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
+                                        <option value="Ninguna">Ninguna (Interna)</option>
+                                        <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+                                        <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+                                        <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+                                        <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+                                        <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+                                        <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+                                        <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+                                        <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+                                        <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+                                        <option value="OTRA">Otra área externa (Escribir)</option>
+                                    </select>
+                                    <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
+                                </div>
+
+                                <!-- PUNTO 5: Estatus operativo (reubicado) -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Estatus Operativo:</label>
+                                    <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                                        <option value="En Proceso">En Proceso</option>
+                                        <option value="Validación">En Validación</option>
+                                        <option value="Concluido">Concluido al 100%</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1724,9 +1790,9 @@ window.guardarContactoNotificaciones = async function(e) {
 
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
-      <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
-    <i class="fa-solid fa-arrow-left"></i> Regresar
-</button>
+                    <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Regresar
+                    </button>
                     <div class="flex gap-2">
                         <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
                         <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
@@ -6478,6 +6544,136 @@ if (typeof renderCintilloNoticioso === 'function') {
 }
     
 });
+
+        // 1 y 2. Control de Área Ejecutora y réplica automática en filas
+function manejarCambioAreaEjecutora(selectEl) {
+    const inputTextoLibre = document.getElementById('inputOtraAreaEjecutora');
+    const inputOcultoGeneral = document.getElementById('nuevoHitoArea');
+    let valorFinal = selectEl.value;
+
+    if (valorFinal === 'OTRA') {
+        inputTextoLibre.classList.remove('hidden');
+        valorFinal = inputTextoLibre.value.trim() || 'Otra Área';
+    } else {
+        inputTextoLibre.classList.add('hidden');
+    }
+
+    if (inputOcultoGeneral) inputOcultoGeneral.value = valorFinal;
+
+    // Replicar automáticamente en todas las instancias ejecutoras de las acciones hijas
+    document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item').forEach(fila => {
+        const inputResp = fila.querySelector('input[name="txtAccionRespHito"]');
+        if (inputResp) inputResp.value = valorFinal;
+    });
+}
+
+function sincronizarTextoLibreArea(inputEl) {
+    const inputOcultoGeneral = document.getElementById('nuevoHitoArea');
+    const val = inputEl.value.trim();
+    if (inputOcultoGeneral) inputOcultoGeneral.value = val;
+
+    document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item').forEach(fila => {
+        const inputResp = fila.querySelector('input[name="txtAccionRespHito"]');
+        if (inputResp) inputResp.value = val;
+    });
+}
+
+// 3. Manejo de Área SECUL con texto personalizado
+function manejarCambioSeculFila(selectEl) {
+    const fila = selectEl.closest('.fila-accion-item');
+    const inputTexto = fila.querySelector('input[name="txtOtraSecul"]');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+// 4. Manejo de Área Externa (Art. 6) con texto personalizado
+function manejarCambioExternaFila(selectEl) {
+    const fila = selectEl.closest('.fila-accion-item');
+    const inputTexto = fila.querySelector('input[name="txtOtraExterna"]');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+// Actualización dinámica al agregar filas adicionales
+const _originalAgregarFilaAccionHito = window.agregarFilaAccionHito || function(){};
+window.agregarFilaAccionHito = function() {
+    const contenedor = document.getElementById('contenedorAccionesObligatorias');
+    if (!contenedor) return;
+    const numFila = contenedor.querySelectorAll('.fila-accion-item').length + 1;
+    
+    // Obtener la instancia ejecutora actual seleccionada arriba
+    const selectArea = document.getElementById('selectAreaEjecutoraHito');
+    const inputTextoArea = document.getElementById('inputOtraAreaEjecutora');
+    let instanciaActual = selectArea.value === 'OTRA' ? (inputTextoArea.value.trim() || 'Otra Área') : selectArea.value;
+
+    const div = document.createElement('div');
+    div.className = "p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 fila-accion-item relative";
+    div.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-indigo-700">• Acción Adicional #${numFila}</span>
+            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Instancia Ejecutora:</label>
+                <input type="text" name="txtAccionRespHito" readonly class="w-full p-1.5 border rounded-lg text-[11px] bg-slate-100 font-semibold text-slate-700 cursor-not-allowed" value="${instanciaActual}">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-indigo-700 mb-0.5">Vincular Área SECUL:</label>
+                <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
+                    <option value="Ninguna">Ninguna / Directa</option>
+                    <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+                    <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+                    <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+                    <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+                    <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+                    <option value="Panel F - Financiero">Panel F - Financiero</option>
+                    <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+                    <option value="Panel H - Archivo">Panel H - Archivo</option>
+                    <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+                    <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+                    <option value="OTRA">Otra Área SECUL (Escribir)</option>
+                </select>
+                <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-amber-700 mb-0.5">Área Externa (Art. 6):</label>
+                <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
+                    <option value="Ninguna">Ninguna (Interna)</option>
+                    <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+                    <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+                    <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+                    <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+                    <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+                    <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+                    <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+                    <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+                    <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+                    <option value="OTRA">Otra área externa (Escribir)</option>
+                </select>
+                <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Estatus Operativo:</label>
+                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Validación">En Validación</option>
+                    <option value="Concluido">Concluido al 100%</option>
+                </select>
+            </div>
+        </div>
+    `;
+    contenedor.appendChild(div);
+};
         
 </script>
 
