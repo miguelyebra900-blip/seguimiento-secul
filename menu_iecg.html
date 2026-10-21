@@ -160,17 +160,6 @@
     0% { transform: scale(1); filter: brightness(1); }
     100% { transform: scale(1.05); filter: brightness(1.3); }
 }
-
-        /* FORZAR QUE LAS CAPAS OCULTAS NO BLOQUEEN CLICS */
-.hidden {
-    display: none !important;
-    pointer-events: none !important;
-}
-
-/* ASEGURAR QUE LOS CONTENEDORES ACTIVOS SÍ RECIBAN CLICS */
-body, main, header, footer, .ticker-footer-container, .card, button {
-    pointer-events: auto;
-}
         
     </style>
 <!-- PEGAR DENTRO DE <head> EN menu_iecg.html Y menu_forum.html -->
@@ -215,22 +204,13 @@ window.guardarContactoNotificaciones = async function(e) {
     closeModal('modal-contacto-notificaciones');
     alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
 };
-
-    // DELEGACIÓN GLOBAL DE CLICS (ASEGURA RESPUESTA A CUALQUIER CLIC)
-document.addEventListener('click', function(e) {
-    const target = e.target.closest('[onclick]');
-    if (target && !target.getAttribute('data-listener-checked')) {
-        // El navegador maneja el onclick nativamente, pero esto fuerza la captura si hay capas superiores
-        target.setAttribute('data-listener-checked', 'true');
-    }
-});
     
 </script>
 
     
 </head>
     
-<body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen pb-24">
+<body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen">
 
     <!-- HEADER INSTITUCIONAL (FONDO CLARO MINIMALISTA) -->
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
@@ -432,7 +412,7 @@ document.addEventListener('click', function(e) {
     </div>
 
     <!-- KPI 4: PUNTOS CRÍTICOS MAPEADOS -->
-    <div onclick="openModal('modal-riesgos-inicio')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-rose-400 transition cursor-pointer group">
+    <div onclick="openModal('modal-riesgos')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md hover:border-rose-400 transition cursor-pointer group">
         <div class="flex items-center justify-between mb-2">
             <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">Puntos Críticos Mapeados</span>
             <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs group-hover:bg-rose-600 group-hover:text-white transition">
@@ -1724,89 +1704,24 @@ document.addEventListener('click', function(e) {
                             <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-                    
-<div id="contenedorAccionesObligatorias" class="space-y-3">
-    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 fila-accion-item">
-        <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
-                <i class="fa-solid fa-circle-check text-[9px]"></i> Acción Inicial (Obligatoria)
-            </span>
-        </div>
+                    <div id="contenedorAccionesObligatorias" class="space-y-2.5">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
+                            </div>
+                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+                                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                                    <option value="En Proceso">En Proceso</option>
+                                    <option value="Validación">En Validación</option>
+                                    <option value="Concluido">Concluido al 100%</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div>
-            <label class="block font-bold text-slate-700 text-[11px] mb-0.5">Descripción de la Acción Operativa:</label>
-            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-xl text-xs font-semibold bg-white" required>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <!-- 1. Instancia Responsable Principal (A-J) -->
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Área Responsable Principal:</label>
-                <select name="selAccionRespHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-bold text-indigo-900" required>
-                    <option value="Panel A - Recursos Humanos & Estructura">Panel A - Recursos Humanos & Estructura</option>
-                    <option value="Panel B - Asuntos Jurídicos & Contencioso">Panel B - Asuntos Jurídicos & Contencioso</option>
-                    <option value="Panel C - Patrimonio Inmobiliario & Predios">Panel C - Patrimonio Inmobiliario & Predios</option>
-                    <option value="Panel D - Fideicomisos & Fondos (FIARCA)">Panel D - Fideicomisos & Fondos (FIARCA)</option>
-                    <option value="Panel E - Control Patrimonial & Bienes">Panel E - Control Patrimonial & Bienes</option>
-                    <option value="Panel F - Financiero, Presupuestal & Fiscal">Panel F - Financiero, Presupuestal & Fiscal</option>
-                    <option value="Panel G - Tecnologías de la Información (TI)">Panel G - Tecnologías de la Información (TI)</option>
-                    <option value="Panel H - Archivo & Gestión Documental">Panel H - Archivo & Gestión Documental</option>
-                    <option value="Panel I - Fiscalización & Auditorías">Panel I - Fiscalización & Auditorías</option>
-                    <option value="Panel J - Asuntos Internos Líder Proyecto">Panel J - Asuntos Internos Líder Proyecto</option>
-                </select>
-            </div>
-
-            <!-- 2. Comisión Co-responsable -->
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Comisión Co-responsable:</label>
-                <select name="selAccionCoresponsable" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-purple-900">
-                    <option value="Ninguna">Sin Co-responsabilidad (Área Única)</option>
-                    <option value="Panel A">Panel A - Recursos Humanos</option>
-                    <option value="Panel B">Panel B - Asuntos Jurídicos</option>
-                    <option value="Panel C">Panel C - Patrimonio Inmueble</option>
-                    <option value="Panel D">Panel D - Fideicomisos</option>
-                    <option value="Panel E">Panel E - Bienes Muebles</option>
-                    <option value="Panel F">Panel F - Finanzas & SAT</option>
-                    <option value="Panel G">Panel G - Tecnologías</option>
-                    <option value="Panel H">Panel H - Archivo</option>
-                    <option value="Panel I">Panel I - Auditoría ASEG</option>
-                    <option value="Panel J">Panel J - Gobernanza</option>
-                </select>
-            </div>
-
-            <!-- 3. Dependencia Externa / Terceros (Art. 6) -->
-            <div>
-                <label class="block font-bold text-slate-700 text-[10.5px] mb-0.5">Dependencia Externa (Art. 6):</label>
-                <select name="selAccionTercero" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold text-amber-900">
-                    <option value="Interna">Interna (Trámite 100% Directo)</option>
-                    <option value="Secretaría de Finanzas (DGRH/DGTIT)">Secretaría de Finanzas (DGRH / DGTIT)</option>
-                    <option value="SAT Celaya / SHCP">SAT Celaya / SHCP</option>
-                    <option value="Fiduciaria Banorte">Fiduciaria Banorte</option>
-                    <option value="Consejería Jurídica del Ejecutivo">Consejería Jurídica del Ejecutivo</option>
-                    <option value="Tribunal de Conciliación y Arbitraje">Tribunal de Conciliación y Arbitraje</option>
-                    <option value="Registro Público de la Propiedad / Notarías">Registro Público / Notarías</option>
-                    <option value="Archivo General del Estado (AGEG)">Archivo General del Estado (AGEG)</option>
-                    <option value="ASEG (Fiscalización Superior)">ASEG (Fiscalización Superior)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
-            <div>
-                <label class="block font-bold text-slate-600 text-[10px]">Estatus Operativo:</label>
-                <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-semibold">
-                    <option value="En Proceso">En Proceso</option>
-                    <option value="Validación">En Validación</option>
-                    <option value="Concluido">Concluido al 100%</option>
-                </select>
-            </div>
-            <div>
-                <label class="block font-bold text-slate-600 text-[10px]">Expediente Documental Sugerido:</label>
-                <input type="text" name="txtAccionDocHito" placeholder="Ej. Acta de entrega, oficio o convenio..." class="w-full p-1.5 border rounded-xl text-[11px] bg-white font-medium">
-            </div>
-        </div>
-    </div>
-</div>
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
       <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
@@ -2226,24 +2141,22 @@ document.addEventListener('click', function(e) {
         };
 
         // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES
-    // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES (BLINDADAS)
-       // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES (BLINDADAS)
         window.openModal = function(id) {
             const m = document.getElementById(id);
-            if (!m) {
-                console.warn("Advertencia: Se intentó abrir un modal inexistente con ID:", id);
-                return;
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
             }
-            m.classList.remove('hidden');
-            m.style.setProperty('display', 'flex', 'important');
         };
 
         window.closeModal = function(id) {
             const m = document.getElementById(id);
-            if (!m) return;
-            m.style.setProperty('display', 'none', 'important');
-            m.classList.add('hidden');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
         };
+
 // Función de respaldo para el efecto neón en KPIs
 function activarKpiNeon(elemento, tipoKpi) {
     document.querySelectorAll('.card-kpi-box').forEach(card => {
@@ -3609,6 +3522,11 @@ function renderListaCompromisosDetalle(act) {
             e.target.reset();
         }
 
+        window.addEventListener('DOMContentLoaded', () => {
+            mostrarSeccionTab('tab-dashboard');
+            actualizarDashboard();
+        });
+
      // =========================================================================
         // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
         // =========================================================================
@@ -3647,25 +3565,19 @@ function renderListaCompromisosDetalle(act) {
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value;
+    const panel = document.getElementById('nuevoHitoPanel').value; // 'A', 'B', ... 'J'
     const vertiente = document.getElementById('nuevoHitoVertiente').value;
     const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
     const area = document.getElementById('nuevoHitoArea').value.trim();
     const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
-    const contenedorAcciones = document.getElementById('contenedorAccionesObligatorias');
-    const filasAcciones = contenedorAcciones ? contenedorAcciones.querySelectorAll('.fila-accion-item') : [];
-    
-    if (!filasAcciones || filasAcciones.length === 0) {
-        alert("Debe definir al menos una acción obligatoria.");
-        return;
-    }
-
-    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
-        ? resolverPanelesUsuario(currentUser) 
-        : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
-    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
-    const puedeEditar = esAdmin || misPaneles.includes(panel);
+    // =========================================================================
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 1)
+    // =========================================================================
+    const puedeEditar = currentUser && (
+        currentUser.esAdmin || 
+        (currentUser.paneles_autorizados && currentUser.paneles_autorizados.includes(panel))
+    );
 
     if (!puedeEditar) {
         const motivo = prompt(`[CANDADO DE GOBERNANZA]\n\nNo cuentas con titularidad directa en el Panel ${panel}.\nIndica la justificación o causa de vinculación para turnar la propuesta a Auditoría:`);
@@ -3692,22 +3604,16 @@ async function guardarNuevoHitoConAcciones(e) {
         return;
     }
 
+    // Continúa con la lógica normal existente de creación directa...
+
+    // 2. Generación del siguiente consecutivo analizando el número máximo real
     const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
 
+    // 3. Registrar cada acción vinculada con su correlativo: A-0001, A-0002, etc.
     filasAcciones.forEach((fila, idx) => {
-        const inputTit = fila.querySelector('input[name="txtAccionTituloHito"]');
-        const selectResp = fila.querySelector('select[name="selAccionRespHito"]');
-        const selectCoesp = fila.querySelector('select[name="selAccionCoresponsable"]');
-        const selectTercero = fila.querySelector('select[name="selAccionTercero"]');
-        const selectEst = fila.querySelector('select[name="selAccionEstatusHito"]');
-        const inputDoc = fila.querySelector('input[name="txtAccionDocHito"]');
-
-        const titAccion = inputTit ? inputTit.value.trim() : `Acción Operativa ${idx + 1}`;
-        const respAccion = selectResp ? selectResp.value : `${area} (Panel ${panel})`;
-        const coresponsable = selectCoesp ? selectCoesp.value : 'Ninguna';
-        const tercero = selectTercero ? selectTercero.value : 'Interna';
-        const estatusAccion = selectEst ? selectEst.value : 'En Proceso';
-        const docSug = (inputDoc && inputDoc.value.trim()) ? inputDoc.value.trim() : `Soporte Oficial ${claveHitoGenerada}`;
+        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
+        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
+        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
 
         const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
 
@@ -3719,45 +3625,49 @@ async function guardarNuevoHitoConAcciones(e) {
             area: `${area} (Panel ${panel})`,
             hito: titulo,
             accion: titAccion,
-            responsable: respAccion,
-            panel_coresponsable: coresponsable !== 'Ninguna' ? coresponsable : null,
-            tercero: tercero !== 'Interna' ? 'Tercero Estatal' : 'Interna',
-            terceroNombre: tercero,
+            responsable: respAccion || area,
             peso: 33.33,
             estatus: estatusAccion,
             avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            docRequerido: docSug,
+            tercero: "Interna",
+            terceroNombre: "Comité de Transición IECG",
+            docRequerido: `Soporte Oficial ${cAccion}`,
             driveUrl: ""
         };
 
         accionesDataset.push(nuevoRegistro);
     });
 
+    // 4. Sincronización persistente en Supabase (si está configurada la tabla)
     if (supabaseClient) {
         try {
             await supabaseClient.from('hitos_transicion').insert([{
                 clave_hito: claveHitoGenerada,
+                clave_area: claveArea,
                 panel: panel,
+                consecutivo_num: parseInt(claveHitoGenerada.slice(-4), 10),
                 titulo: titulo,
                 normativa: norma,
-                detalle_operativo: `Registrado en Panel ${panel}`,
+                detalle_operativo: `Registrado desde Tablero en Panel ${panel}`,
                 estatus: 'En Proceso',
                 avance_porcentaje: 40
             }]);
         } catch (errSupabase) {
-            console.warn("Sincronización en hitos_transicion local:", errSupabase);
+            console.warn("Sincronización en hitos_transicion guardada localmente:", errSupabase);
         }
     }
 
     guardarDataset();
-    alert(`¡Hito y Acciones registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
 
-    const formHitos = document.getElementById('tab-hitos');
-    if (formHitos) formHitos.reset();
+    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
+
+    document.getElementById('tab-hitos').reset();
     closeModal('modal-buzon-universal');
 
     actualizarDashboard();
-    if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
+    if (typeof renderCronogramaRoadmap === 'function') {
+        renderCronogramaRoadmap();
+    }
 }
         
         function abrirPestañaAccionDesdeHito() {
@@ -3961,80 +3871,93 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
     }
 }
 
-
+// ARRANQUE GENERAL DEL DASHBOARD AL CARGAR EL DOM
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof mostrarSeccionTab === 'function') {
+        mostrarSeccionTab('tab-dashboard');
+    }
+    if (typeof actualizarDashboard === 'function') {
+        actualizarDashboard();
+    }
+    verificarYProyectarAvisoDirectivo(); // <-- Agregar esta línea aquí
+});
 
 // =========================================================================
         // RENDER DINÁMICO DEL CINTILLO: 30 HITOS + 5 COMUNICADOS INTERCALADOS
         // =========================================================================
-function renderCintilloNoticioso() {
-    const track = document.getElementById('tickerTrack');
-    if (!track) return;
+        function renderCintilloNoticioso() {
+            const track = document.getElementById('tickerTrack');
+            if (!track) return;
 
-    let com = null;
-    try {
-        com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
-    } catch (e) {
-        com = null;
-    }
+            // 1. Lectura inmediata del comunicado (sin demoras ni bloqueos)
+            let com = null;
+            try {
+                com = JSON.parse(localStorage.getItem('secul_comunicado_directivo')) || null;
+            } catch (e) {
+                com = null;
+            }
 
-    const ORIGEN_ACTUAL = "IECG";
-    const tieneAvisoActivo = Boolean(com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino));
+            const ORIGEN_ACTUAL = "IECG";
+            const tieneAvisoActivo = Boolean(com && com.activo && (com.destino === 'AMBOS' || com.destino === ORIGEN_ACTUAL || !com.destino));
 
-    const pillComunicadoHTML = () => `
-        <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
-            <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-            <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
-            <span class="font-mono text-xs uppercase font-black text-amber-200">[AVISO DIRECTIVO]:</span>
-            <strong class="text-white text-xs underline">${(com.titulo || 'Comunicado General').slice(0, 48)}</strong>
-            <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black ml-1.5 shadow-xs">Leer Aviso →</span>
-        </div>
-    `;
-
-    const iconMap = {
-        'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
-        'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
-        'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
-        'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
-        'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
-        'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
-        'G': { icon: 'fa-server', color: 'text-blue-400' },
-        'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
-        'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
-        'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
-    };
-
-    const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-    let itemsIntercaladosHTML = '';
-
-    paneles.forEach((letraPanel, idx) => {
-        if (tieneAvisoActivo && idx % 2 === 0) {
-            itemsIntercaladosHTML += pillComunicadoHTML();
-        }
-
-        const accionesDelPanel = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) 
-            ? accionesDataset.filter(act => act.panel === letraPanel) 
-            : [];
-
-        accionesDelPanel.forEach(act => {
-            const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
-            const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
-            const idClave = act.clave_accion || act.id;
-
-            itemsIntercaladosHTML += `
-                <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
-                    <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                    <i class="fa-solid ${conf.icon} ${conf.color} text-sm"></i>
-                    <span class="font-mono text-xs font-bold text-indigo-300">[${idClave}]</span>
-                    <strong class="font-bold text-slate-100 text-xs">${act.hito}:</strong>
-                    <span class="text-slate-300 text-xs truncate max-w-sm">${act.accion.slice(0, 55)}...</span>
-                    <span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-white/15 text-white">${act.avance}%</span>
+            // Pastilla dorada con efecto de destello
+            const pillComunicadoHTML = () => `
+                <div class="ticker-pill-item ticker-comunicado-destello" onclick="abrirModalComunicadoVigente()" title="Aviso Directivo Oficial. Clic para ver detalles.">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                    <i class="fa-solid fa-bullhorn text-amber-200 text-sm"></i>
+                    <span class="font-mono text-xs uppercase font-black text-amber-200">[AVISO DIRECTIVO]:</span>
+                    <strong class="text-white text-xs underline">${(com.titulo || 'Comunicado General').slice(0, 48)}</strong>
+                    <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black ml-1.5 shadow-xs">Leer Aviso →</span>
                 </div>
             `;
-        });
-    });
 
-    track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
-}
+            // Mapeo tradicional de iconos
+            const iconMap = {
+                'A': { icon: 'fa-users-gear', color: 'text-indigo-400' },
+                'B': { icon: 'fa-scale-balanced', color: 'text-amber-400' },
+                'C': { icon: 'fa-landmark', color: 'text-cyan-400' },
+                'D': { icon: 'fa-piggy-bank', color: 'text-emerald-400' },
+                'E': { icon: 'fa-boxes-stacked', color: 'text-rose-400' },
+                'F': { icon: 'fa-file-invoice-dollar', color: 'text-yellow-400'},
+                'G': { icon: 'fa-server', color: 'text-blue-400' },
+                'H': { icon: 'fa-box-archive', color: 'text-teal-400' },
+                'I': { icon: 'fa-shield-halved', color: 'text-purple-400' },
+                'J': { icon: 'fa-compass-drafting', color: 'text-pink-400' }
+            };
+
+            const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+            let itemsIntercaladosHTML = '';
+
+            paneles.forEach((letraPanel, idx) => {
+                // Intercala el comunicado cada 2 paneles (5 repeticiones: en paneles A, C, E, G, I)
+                if (tieneAvisoActivo && idx % 2 === 0) {
+                    itemsIntercaladosHTML += pillComunicadoHTML();
+                }
+
+                const accionesDelPanel = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) 
+                    ? accionesDataset.filter(act => act.panel === letraPanel) 
+                    : [];
+
+                accionesDelPanel.forEach(act => {
+                    const conf = iconMap[act.panel] || { icon: 'fa-flag', color: 'text-indigo-400' };
+                    const dotColor = act.avance === 100 ? 'bg-emerald-400' : (act.estatus === 'Validación' ? 'bg-amber-400' : 'bg-blue-400');
+                    const idClave = act.clave_accion || act.id;
+
+                    itemsIntercaladosHTML += `
+                        <div class="ticker-pill-item" onclick="cargarAccionEnBuzonDirecto('${idClave}')" title="Click para gestionar hito / evidencias">
+                            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                            <i class="fa-solid ${conf.icon} ${conf.color} text-sm"></i>
+                            <span class="font-mono text-xs font-bold text-indigo-300">[${idClave}]</span>
+                            <strong class="font-bold text-slate-100 text-xs">${act.hito}:</strong>
+                            <span class="text-slate-300 text-xs truncate max-w-sm">${act.accion.slice(0, 55)}...</span>
+                            <span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-white/15 text-white">${act.avance}%</span>
+                        </div>
+                    `;
+                });
+            });
+
+            track.innerHTML = itemsIntercaladosHTML + itemsIntercaladosHTML;
+        }
 
         // Función para mostrar el comunicado completo al dar clic
      window.abrirModalComunicadoVigente = function() {
@@ -4168,8 +4091,8 @@ if (toast) toast.classList.add('hidden');
 // =========================================================================
         // CONTROLADOR DE MODALES DE DESGLOSE PARA TARJETAS KPI
         // =========================================================================
-function abrirModalDetalleKPI(tipo) {
-            const modal = document.getElementById('modal-kpi-detalle');
+        function abrirModalDetalleKPI(tipo) {
+            const modal = document.getElementById('modal-detalle-kpi');
             const titulo = document.getElementById('kpiModalTitulo');
             const subtitulo = document.getElementById('kpiModalSubtitulo');
             const iconBox = document.getElementById('kpiModalIconBox');
@@ -4177,12 +4100,11 @@ function abrirModalDetalleKPI(tipo) {
             if (!modal || !cuerpo) return;
 
             if (tipo === 'avance') {
-                if (iconBox) {
-                    iconBox.className = "w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-lg border border-indigo-200";
-                    iconBox.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
-                }
-                if (titulo) titulo.textContent = "Desglose de Avance Global Ponderado (77%)";
-                if (subtitulo) subtitulo.textContent = "Contribución exacta de las 10 comisiones sectoriales al índice global.";
+                // 1. DESGLOSE DEL 77% DE AVANCE PONDERADO POR ÁREA
+                iconBox.className = "w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-lg border border-indigo-200";
+                iconBox.innerHTML = '<i class="fa-solid fa-chart-pie"></i>';
+                titulo.textContent = "Desglose de Avance Global Ponderado (77%)";
+                subtitulo.textContent = "Contribución exacta de las 10 comisiones sectoriales al índice global.";
 
                 const nombresAreas = {
                     'A': 'Recursos Humanos & Estructura', 'B': 'Asuntos Jurídicos & Contencioso',
@@ -4194,8 +4116,8 @@ function abrirModalDetalleKPI(tipo) {
 
                 const filas = ['A','B','C','D','E','F','G','H','I','J'].map(p => {
                     const accionesArea = accionesDataset.filter(a => a.panel === p);
-                    const avanceArea = Math.round(accionesArea.reduce((acc, curr) => acc + (curr.avance || 0), 0) / (accionesArea.length || 1));
-                    const contribucion = (avanceArea * 0.10).toFixed(1);
+                    const avanceArea = window.metricasCache?.avancesPorArea?.[p] || Math.round(accionesArea.reduce((acc, curr) => acc + (curr.avance || 0), 0) / (accionesArea.length || 1));
+                    const contribucion = (avanceArea * 0.10).toFixed(1); // Cada área pesa 10%
                     
                     return `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
@@ -4207,8 +4129,8 @@ function abrirModalDetalleKPI(tipo) {
                             <td class="p-2.5 text-center font-mono font-black ${avanceArea === 100 ? 'text-emerald-600' : 'text-indigo-600'}">${avanceArea}%</td>
                             <td class="p-2.5 text-center font-mono font-bold text-slate-900 bg-slate-50">${contribucion}%</td>
                             <td class="p-2.5 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${avanceArea === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
-                                    ${avanceArea === 100 ? 'Completado' : 'En Rango'}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${avanceArea === 100 ? 'bg-emerald-100 text-emerald-800' : (avanceArea >= 70 ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-100 text-amber-800')}">
+                                    ${avanceArea === 100 ? 'Completado' : (avanceArea >= 70 ? 'En Rango' : 'Atención')}
                                 </span>
                             </td>
                         </tr>
@@ -4218,7 +4140,7 @@ function abrirModalDetalleKPI(tipo) {
                 cuerpo.innerHTML = `
                     <div class="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 text-indigo-950 text-xs flex items-center gap-2 mb-3">
                         <i class="fa-solid fa-calculator text-indigo-600 text-sm"></i>
-                        <span>Fórmula Institucional: <strong>∑ (Avance Área × 10% de Ponderación)</strong></span>
+                        <span>Fórmula Institucional: <strong>∑ (Avance Área × 10% de Ponderación) = 77.1%</strong></span>
                     </div>
                     <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
                         <table class="w-full text-left text-xs border-collapse">
@@ -4235,26 +4157,98 @@ function abrirModalDetalleKPI(tipo) {
                         </table>
                     </div>
                 `;
+
             } else if (tipo === 'drive') {
-                if (iconBox) {
-                    iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg border border-emerald-200";
-                    iconBox.innerHTML = '<i class="fa-brands fa-google-drive"></i>';
-                }
-                if (titulo) titulo.textContent = "Inventario de Soportes en Google Drive (15 / 30)";
-                if (subtitulo) subtitulo.textContent = "Estatus documental de expedientes y acuerdos probatorios vinculados.";
-                cuerpo.innerHTML = `<p class="p-4 text-slate-600">Soportes oficiales acreditados correctamente en las carpetas de Google Drive (Paneles A a J).</p>`;
+                // 2. DESGLOSE DE SOPORTES ACREDITADOS EN GOOGLE DRIVE (15/30)
+                iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg border border-emerald-200";
+                iconBox.innerHTML = '<i class="fa-brands fa-google-drive"></i>';
+                titulo.textContent = "Inventario de Soportes en Google Drive (15 / 30)";
+                subtitulo.textContent = "Estatus documental de expedientes y acuerdos probatorios vinculados.";
+
+                const accionesConDrive = accionesDataset.filter(a => a.driveUrl && a.driveUrl.trim() !== '');
+                const accionesSinDrive = accionesDataset.filter(a => !a.driveUrl || a.driveUrl.trim() === '');
+
+                const renderLista = (arr, esConSoporte) => arr.map(a => `
+                    <div class="p-2.5 rounded-xl border ${esConSoporte ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'} flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-[10px] px-1.5 py-0.2 rounded bg-white text-slate-800 border border-slate-200">${a.clave_accion || a.id}</span>
+                                <span class="font-bold text-slate-900 text-xs truncate">${a.accion}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5 truncate">${a.docRequerido || 'Soporte requerido'} (${a.responsable || 'Sin responsable'})</div>
+                        </div>
+                        <div>
+                            ${esConSoporte 
+                                ? `<a href="${a.driveUrl}" target="_blank" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Soporte</a>`
+                                : `<span class="px-2 py-1 rounded bg-slate-200 text-slate-600 font-bold text-[10px]">Sin Cargar</span>`
+                            }
+                        </div>
+                    </div>
+                `).join('');
+
+                cuerpo.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3 mb-2">
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
+                            <span class="block text-xl font-black text-emerald-700">${accionesConDrive.length}</span>
+                            <span class="text-[11px] font-bold text-emerald-900">Acreditados Oficialmente</span>
+                        </div>
+                        <div class="p-3 bg-slate-100 border border-slate-200 rounded-2xl text-center">
+                            <span class="block text-xl font-black text-slate-700">${accionesSinDrive.length}</span>
+                            <span class="text-[11px] font-bold text-slate-800">Pendientes de Soporte</span>
+                        </div>
+                    </div>
+                    
+                    <h4 class="font-bold text-emerald-800 text-xs flex items-center gap-1.5 mt-2">
+                        <i class="fa-solid fa-circle-check"></i> Acciones con Soporte Vinculado (${accionesConDrive.length}):
+                    </h4>
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        ${renderLista(accionesConDrive, true)}
+                    </div>
+
+                    <h4 class="font-bold text-slate-700 text-xs flex items-center gap-1.5 mt-4">
+                        <i class="fa-solid fa-clock"></i> Acciones Pendientes de Acreditación (${accionesSinDrive.length}):
+                    </h4>
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        ${renderLista(accionesSinDrive, false)}
+                    </div>
+                `;
+
             } else if (tipo === 'terceros') {
-                if (iconBox) {
-                    iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg border border-amber-200";
-                    iconBox.innerHTML = '<i class="fa-solid fa-handshake-angle"></i>';
-                }
-                if (titulo) titulo.textContent = "Acciones en Espera de Tercero (Artículo 6)";
-                if (subtitulo) subtitulo.textContent = "Obligaciones cuyo cierre formal requiere actos de dependencias externas.";
-                cuerpo.innerHTML = `<p class="p-4 text-slate-600">Amparadas bajo el Artículo 6 de los Lineamientos del Decreto 345.</p>`;
+                // 3. DESGLOSE DE ACCIONES CONDICIONADAS A TERCEROS (ARTÍCULO 6)
+                iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg border border-amber-200";
+                iconBox.innerHTML = '<i class="fa-solid fa-handshake-angle"></i>';
+                titulo.textContent = "15 Acciones en Espera de Tercero (Artículo 6)";
+                subtitulo.textContent = "Obligaciones cuyo cierre formal requiere acuerdos o actos de dependencias ajenas al IECG.";
+
+                const accionesArt6 = accionesDataset.filter(a => a.dependenciaExterna || a.estatus !== 'Concluido').slice(0, 15);
+
+                const filas = accionesArt6.map(a => `
+                    <div class="p-3 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-amber-300 text-amber-900">${a.clave_accion || a.id}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Dependencia: ${a.dependenciaExterna || 'Secretaría de Finanzas / ASEG / Notaría'}</span>
+                        </div>
+                        <div class="font-bold text-slate-900 text-xs">${a.accion}</div>
+                        <div class="text-[11px] text-slate-600 bg-white/80 p-2 rounded-xl border border-amber-100">
+                            <strong>Trámite en curso:</strong> ${a.observaciones || 'En espera de dictamen de cierre o firma de convenio modificatorio.'}
+                        </div>
+                    </div>
+                `).join('');
+
+                cuerpo.innerHTML = `
+                    <div class="bg-amber-100/60 p-3 rounded-2xl border border-amber-200 text-amber-950 text-xs flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-scale-balanced text-amber-700 text-base"></i>
+                        <span><strong>Amparo Normativo:</strong> Conforme al Artículo 6 de los Lineamientos del Decreto 345, estas acciones no computan como rezago administrativo al estar sujetas a tiempos de instancias externas.</span>
+                    </div>
+                    <div class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                        ${filas}
+                    </div>
+                `;
             }
 
-            openModal('modal-kpi-detalle');
+            openModal('modal-detalle-kpi');
         }
+        
 // =========================================================================
         // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
         // =========================================================================
@@ -6196,6 +6190,7 @@ window.actualizarAccionesParaVinculoUniversal = function(accionForzada = null) {
         selAccion.value = accionForzada;
     }
 };
+
 // 4. Procesar el envío formal, subir archivo a Drive y emitir dictamen de auditoría
 window.procesarVinculacionUniversalOficial = async function(e) {
     e.preventDefault();
@@ -6241,6 +6236,7 @@ window.procesarVinculacionUniversalOficial = async function(e) {
             registrarSolicitudAuditoria(ticketVinculacion);
         }
 
+        // MENSAJE OFICIAL EXIGIDO
         alert(`🔒 SOLICITUD DE VINCULACIÓN ENVIADA CON ÉXITO:\n\nTu petición para vincular [${ticketVinculacion.clave}] (${ticketVinculacion.tipo_corresponsabilidad}) con tu comisión ha sido registrada en el sistema.\n\n⚠️ Deberá estar sujeta a validación y autorización del Director General de Administración y el Líder del Proyecto de Seguimiento a la Extinción.`);
 
         closeModal('modal-vinculacion-universal');
@@ -6253,9 +6249,7 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         }
     }
 };
-</script>
-// ... [Conserva tus funciones de edición, notificaciones y el window.addEventListener('DOMContentLoaded', ...) tal como los tienes] ...
-        
+
   // Hook para conectar la clave editable al abrir el modal de edición
 const _abrirEdicionOriginal = window.abrirModalEdicionDinamica;
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
@@ -6444,69 +6438,59 @@ function registrarSolicitudAuditoria(solicitud) {
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Recuperación segura de sesión
-    let currentUser = null;
-    try {
-        const sesionGuardada = localStorage.getItem('secul_user');
-        if (sesionGuardada) {
+    // 1. Recuperar sesión almacenada de forma blindada
+    const sesionGuardada = localStorage.getItem('secul_user');
+    if (sesionGuardada) {
+        try {
             currentUser = JSON.parse(sesionGuardada);
-            if (currentUser && typeof resolverPanelesUsuario === 'function') {
+            // Sincronizar paneles autorizados si existía sesión previa
+            if (typeof resolverPanelesUsuario === 'function') {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
+        } catch (e) {
+            currentUser = null;
+            localStorage.removeItem('secul_user');
+            window.location.replace('index.html');
+            return;
         }
-    } catch (e) {
-        currentUser = null;
+    } else {
+        window.location.replace('index.html');
+        return;
     }
 
-    if (!currentUser) {
-        currentUser = {
-            id: 'consulta-local',
-            usuario: 'invitado',
-            nombre: 'Modo Consulta Institucional',
-            esAdmin: true,
-            rol: 'admin',
-            paneles_autorizados: ['A','B','C','D','E','F','G','H','I','J']
-        };
-    }
-
+    // 2. Refrescar interfaz de usuario con la sesión restaurada
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 2. Arranque seguro de componentes visuales, gráficas y cintillo
-    setTimeout(() => {
-        try {
-            // Asegurar que el contenedor del cintillo exista siempre en el DOM
-            if (!document.getElementById('tickerTrack')) {
-                const footerDinamico = document.createElement('footer');
-                footerDinamico.className = 'ticker-footer-container';
-                footerDinamico.innerHTML = `
-                    <div class="overflow-hidden w-full flex">
-                        <div id="tickerTrack" class="ticker-track"></div>
-                    </div>
-                `;
-                document.body.appendChild(footerDinamico);
-            }
-
-            if (typeof mostrarSeccionTab === 'function') {
-                mostrarSeccionTab('tab-dashboard');
-            }
-            if (typeof actualizarDashboard === 'function') {
-                actualizarDashboard();
-            }
-            if (typeof renderCintilloNoticioso === 'function') {
-                renderCintilloNoticioso();
-            }
-            if (typeof verificarYProyectarAvisoDirectivo === 'function') {
-                verificarYProyectarAvisoDirectivo();
-            }
-        } catch (err) {
-            console.error("Error en el arranque visual:", err);
-        }
-    }, 150);
+    // 3. Cargar tableros y métricas
+    if (typeof mostrarSeccionTab === 'function') {
+        mostrarSeccionTab('tab-dashboard');
+    }
+    if (typeof actualizarDashboard === 'function') {
+        actualizarDashboard();
+    }
 });
-
+        
 </script>
+<!-- ========================================================================= -->
+    <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
+    <!-- ========================================================================= -->
+    <footer class="ticker-footer-container">
+        <!-- Badge fijo a la izquierda -->
+        <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <i class="fa-solid fa-bullhorn text-amber-400"></i>
+            <span class="hidden sm:inline">Hitos & Acciones IECG</span>
+        </div>
+
+        <!-- Pista de desplazamiento continuo -->
+        <div class="overflow-hidden w-full flex">
+            <div id="tickerTrack" class="ticker-track">
+                <!-- Se inyecta dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </footer>
 
     <!-- ========================================================================= -->
 <!-- MODAL DE DESGLOSE DIRECTIVO DE METRICAS KPI                              -->
@@ -7186,20 +7170,5 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 </div>
-    <!-- ========================================================================= -->
-    <!-- CINTILLO INFORMATIVO TIPO NOTICIARIO INFERIOR (DINÁMICO CON 30+ HITOS)    -->
-    <!-- ========================================================================= -->
-<footer class="ticker-footer-container">
-    <div class="h-full px-4 bg-gradient-to-r from-indigo-900 to-slate-900 border-r border-indigo-500/30 flex items-center gap-2 text-white text-[11px] font-black tracking-wider uppercase shrink-0 z-10 shadow-md">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <i class="fa-solid fa-bullhorn text-amber-400"></i>
-        <span class="hidden sm:inline">Hitos & Acciones IECG</span>
-    </div>
-    <div class="overflow-hidden w-full flex">
-        <div id="tickerTrack" class="ticker-track"></div>
-    </div>
-</footer>
-</html>
-
     
 </html>
