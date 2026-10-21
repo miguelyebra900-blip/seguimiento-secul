@@ -4084,48 +4084,46 @@ if (toast) toast.classList.add('hidden');
             'J': 'ASI_P'
         };
 
-        function obtenerSiguienteClaveHito(panelLetra) {
-            const prefijo = MAPA_PREFIJOS_AREA[(panelLetra || 'A').toUpperCase()] || 'RH_E';
-            let maxNum = 0;
+  function obtenerSiguienteClaveHito(panelLetra) {
+    // 1. Asegurar que leemos el panel correcto del selector superior o deducirlo del área ejecutora si hace falta
+    const selectPanelEl = document.getElementById('nuevoHitoPanel');
+    let panelReal = selectPanelEl ? selectPanelEl.value : (panelLetra || 'A');
 
-            accionesDataset.forEach(item => {
-                const clave = item.clave_hito || item.id || '';
-                if (clave.startsWith(prefijo + '-H-')) {
-                    const match = clave.match(/-H-(\d+)/);
-                    if (match && match[1]) {
-                        const num = parseInt(match[1], 10);
-                        if (!isNaN(num) && num > maxNum) {
-                            maxNum = num;
-                        }
-                    }
+    // Validación cruzada por seguridad: Si el select superior dice A pero el área dice Panel I, corregimos automáticamente
+    const selectAreaEl = document.getElementById('selectAreaEjecutoraHito');
+    if (selectAreaEl && selectAreaEl.value) {
+        const textoArea = selectAreaEl.value;
+        if (textoArea.includes('Panel I') || textoArea.includes('Fiscalización')) panelReal = 'I';
+        else if (textoArea.includes('Panel A') || textoArea.includes('Recursos Humanos')) panelReal = 'A';
+        else if (textoArea.includes('Panel B') || textoArea.includes('Jurídico')) panelReal = 'B';
+        else if (textoArea.includes('Panel C') || textoArea.includes('Patrimonio Inmobiliario')) panelReal = 'C';
+        else if (textoArea.includes('Panel D') || textoArea.includes('Fideicomisos')) panelReal = 'D';
+        else if (textoArea.includes('Panel E') || textoArea.includes('Control Patrimonial')) panelReal = 'E';
+        else if (textoArea.includes('Panel F') || textoArea.includes('Financiero')) panelReal = 'F';
+        else if (textoArea.includes('Panel G') || textoArea.includes('Tecnologías')) panelReal = 'G';
+        else if (textoArea.includes('Panel H') || textoArea.includes('Archivo')) panelReal = 'H';
+        else if (textoArea.includes('Panel J') || textoArea.includes('Asuntos Internos')) panelReal = 'J';
+    }
+
+    const prefijo = MAPA_PREFIJOS_AREA[panelReal.toUpperCase()] || 'RH_E';
+    let maxNum = 0;
+
+    accionesDataset.forEach(item => {
+        const clave = item.clave_hito || item.id || '';
+        if (clave.startsWith(prefijo + '-H-')) {
+            const match = clave.match(/-H-(\d+)/);
+            if (match && match[1]) {
+                const num = parseInt(match[1], 10);
+                if (!isNaN(num) && num > maxNum) {
+                    maxNum = num;
                 }
-            });
-
-            const siguienteNum = maxNum + 1;
-            return `${prefijo}-H-${String(siguienteNum).padStart(4, '0')}`;
+            }
         }
+    });
 
-        function obtenerSiguienteClaveAccion(claveHitoPadre) {
-            if (!claveHitoPadre) return 'ACC_0001';
-            let maxNum = 0;
-
-            accionesDataset.forEach(item => {
-                const clave = item.clave_accion || item.id || '';
-                if (clave.startsWith(claveHitoPadre + '-A-')) {
-                    const match = clave.match(/-A-(\d+)/);
-                    if (match && match[1]) {
-                        const num = parseInt(match[1], 10);
-                        if (!isNaN(num) && num > maxNum) {
-                            maxNum = num;
-                        }
-                    }
-                }
-            });
-
-            const siguienteNum = maxNum + 1;
-            return `${claveHitoPadre}-A-${String(siguienteNum).padStart(4, '0')}`;
-        }
-
+    const siguienteNum = maxNum + 1;
+    return `${prefijo}-H-${String(siguienteNum).padStart(4, '0')}`;
+}
 // =========================================================================
         // CONTROLADOR DE MODALES DE DESGLOSE PARA TARJETAS KPI
         // =========================================================================
