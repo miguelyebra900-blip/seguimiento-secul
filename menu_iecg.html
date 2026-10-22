@@ -5505,58 +5505,32 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 
 
 // 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
-
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
     var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
     var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
     
-    // Leemos la nueva clave directamente del campo limpio y unificado
+    // Leemos la clave del nuevo campo limpio
     var inputNuevaClave = document.getElementById('inputClaveCanonicaEditable');
     var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
+    var motivo = document.getElementById('inputMotivoEdit') ? document.getElementById('inputMotivoEdit').value.trim() : '';
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando Hito...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando...';
     }
 
     try {
         if (tipo === 'HITO') {
-            // 1. Localizar todas las acciones hijas asociadas al hito original
             var accionesHito = accionesDataset.filter(function(a) {
                 var hitoBase = a.clave_hito || a.id.split('-A-')[0];
                 return hitoBase === claveOriginal;
             });
 
-            if (accionesHito.length === 0 && supabaseClient) {
-                const { data: dbData } = await supabaseClient
-                    .from('acciones_transicion')
-                    .select('*')
-                    .or(`clave_hito.eq.${claveOriginal},clave_accion.like.${claveOriginal}%`);
-                
-                if (dbData && dbData.length > 0) {
-                    dbData.forEach(d => {
-                        accionesDataset.push({
-                            id: d.clave_accion,
-                            clave_accion: d.clave_accion,
-                            clave_hito: d.clave_hito || claveOriginal,
-                            panel: d.panel || 'I',
-                            hito: d.hito || nuevoTitulo,
-                            accion: d.accion_especifica || '',
-                            responsable: d.instancia_responsable || 'Comisión',
-                            estatus: d.estatus || 'En Proceso',
-                            avance: Number(d.avance) || 0
-                        });
-                    });
-                    accionesHito = accionesDataset.filter(a => (a.clave_hito || a.id.split('-A-')[0]) === claveOriginal);
-                }
-            }
-
-            // Si es un hito nuevo o ajustado que no existía en memoria, se crea de forma consecutiva
             if (accionesHito.length === 0) {
                 accionesHito.push({
                     id: `${nuevaClave}-A-0001`,
@@ -5564,7 +5538,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     clave_hito: nuevaClave,
                     panel: 'I',
                     hito: nuevoTitulo,
-                    accion: 'Acción inicial del nuevo hito',
+                    accion: 'Acción inicial',
                     responsable: 'Comisión',
                     estatus: 'En Proceso',
                     avance: 0
@@ -5572,7 +5546,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 accionesDataset.push(accionesHito[0]);
             }
 
-            // 2. Aplicar la modificación de clave y título en memoria
             accionesHito.forEach(function(act) {
                 if (nuevoTitulo) act.hito = nuevoTitulo;
                 if (nuevaClave !== claveOriginal) {
@@ -5584,7 +5557,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             guardarDataset();
 
-            // 3. Sincronización limpia con Supabase (sin tocar paneles de reasignación global)
             if (supabaseClient) {
                 for (let act of accionesHito) {
                     await supabaseClient
@@ -5602,26 +5574,27 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
-            alert('¡Hito [' + nuevaClave + '] actualizado y sincronizado correctamente con Supabase!');
+            alert('¡Hito [' + nuevaClave + '] actualizado exitosamente!');
         } else {
-            // Lógica intacta para acciones individuales (aislada del flujo de hitos)
-            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
-            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
-            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
-
+            // Búsqueda flexible para acciones que evita el error del dataset
             var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
+                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
             });
 
+            // Si no se encuentra en memoria, la creamos de inmediato para evitar que falle
             if (!act) {
-                act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0] };
+                act = {
+                    id: claveOriginal,
+                    clave_accion: claveOriginal,
+                    clave_hito: claveOriginal.split('-A-')[0] || claveOriginal,
+                    panel: 'I'
+                };
                 accionesDataset.push(act);
             }
 
             act.accion = nuevoTitulo;
-            if (nuevoResp) act.responsable = nuevoResp;
-            act.estatus = nuevoEstatus;
-            act.avance = nuevoAvance;
+            act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
+            act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
 
             guardarDataset();
 
@@ -5632,14 +5605,14 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                         clave_accion: act.clave_accion || act.id,
                         clave_hito: act.clave_hito || act.id.split('-A-')[0],
                         accion_especifica: act.accion,
-                        instancia_responsable: act.responsable,
+                        instancia_responsable: act.responsable || 'Comisión',
                         estatus: act.estatus,
                         avance: act.avance,
                         panel: act.panel || 'I'
                     }], { onConflict: 'clave_accion' });
             }
 
-            alert('¡Acción [' + claveOriginal + '] actualizada con éxito!');
+            alert('¡Acción [' + claveOriginal + '] actualizada y sincronizada exitosamente!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -5655,6 +5628,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
     }
 };
+
         // 8. Solicitar Baja de Acción
 window.solicitarEliminacionAccion = function(claveAccion) {
     var act = accionesDataset.find(function(a) {
