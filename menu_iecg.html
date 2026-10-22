@@ -5506,11 +5506,15 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 
 // 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
 
-        window.guardarFormularioEdicionDinamica = async function(e) {
+window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
-    var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'ACCION';
-    var claveId = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
+    var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
+    var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
+    // Si agregaste un input para editar la clave canónica, lo leemos de ahí; si no, mantenemos la original
+    var inputNuevaClave = document.getElementById('inputClaveEdit');
+    var claveId = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
+
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
     var motivo = document.getElementById('inputMotivoEdit') ? document.getElementById('inputMotivoEdit').value.trim() : '';
     
@@ -5519,94 +5523,90 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando en Supabase...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando...';
     }
 
     try {
-        var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
-        var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
-        var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
+        if (tipo === 'HITO') {
+            // Buscamos todas las acciones que correspondan a este hito usando la clave original
+            var accionesHito = accionesDataset.filter(function(a) {
+                return (a.clave_hito === claveOriginal) || (a.id && a.id.startsWith(claveOriginal));
+            });
 
-        // 1. Buscar en memoria local
-        var act = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
-        });
-
-        // 2. Si no está en memoria, rescatarlo directamente de Supabase
-        if (!act && supabaseClient) {
-            const { data: dbData } = await supabaseClient
-                .from('acciones_transicion')
-                .select('*')
-                .or(`clave_accion.eq.${claveId},id.eq.${claveId}`)
-                .maybeSingle();
-
-            if (dbData) {
-                act = {
-                    id: dbData.clave_accion,
-                    clave_accion: dbData.clave_accion,
-                    clave_hito: dbData.clave_hito || '',
-                    panel: dbData.panel || 'I',
-                    hito: dbData.hito || 'Hito Rector',
-                    accion: dbData.accion_especifica || '',
-                    responsable: dbData.instancia_responsable || 'Comisión',
-                    estatus: dbData.estatus || 'En Proceso',
-                    avance: Number(dbData.avance) || 0,
-                    driveUrl: dbData.drive_url || ''
-                };
-                accionesDataset.push(act);
+            if (accionesHito.length === 0 && supabaseClient) {
+                // Rescatar desde Supabase si no están en memoria
+                const { data: dbData } = await supabaseClient
+                    .from('acciones_transicion')
+                    .select('*')
+                    .or(`clave_hito.eq.${claveOriginal},clave_accion.eq.${claveOriginal}`);
+                
+                if (dbData && dbData.length > 0) {
+                    dbData.forEach(d => {
+                        accionesDataset.push({
+                            id: d.clave_accion,
+                            clave_accion: d.clave_accion,
+                            clave_hito: d.clave_hito || claveOriginal,
+                            panel: d.panel || 'I',
+                            hito: d.hito || nuevoTitulo,
+                            accion: d.accion_especifica || '',
+                            responsable: d.instancia_responsable || 'Comisión',
+                            estatus: d.estatus || 'En Proceso',
+                            avance: Number(d.avance) || 0,
+                            driveUrl: d.drive_url || ''
+                        });
+                    });
+                    accionesHito = accionesDataset.filter(a => a.clave_hito === claveOriginal || a.id.startsWith(claveOriginal));
+                }
             }
+
+            if (accionesHito.length === 0) {
+                throw new Error("No se encontraron registros asociados al hito [" + claveOriginal + "] en el dataset.");
+            }
+
+            // Actualizar el título y la clave del hito en todas sus acciones asociadas
+            accionesHito.forEach(function(act) {
+                act.hito = nuevoTitulo;
+                if (claveId !== claveOriginal) {
+                    act.clave_hito = claveId;
+                    // Actualizar también el prefijo del ID si cambió la clave del hito
+                    act.id = act.id.replace(claveOriginal, claveId);
+                    act.clave_accion = act.clave_accion.replace(claveOriginal, claveId);
+                }
+            });
+
+            guardarDataset();
+
+            // Sincronización masiva con Supabase para este hito
+            if (supabaseClient) {
+                for (let act of accionesHito) {
+                    await supabaseClient
+                        .from('acciones_transicion')
+                        .upsert([{
+                            id: act.clave_accion,
+                            clave_accion: act.clave_accion,
+                            clave_hito: act.clave_hito,
+                            hito: act.hito,
+                            accion_especifica: act.accion,
+                            instancia_responsable: act.responsable,
+                            estatus: act.estatus,
+                            avance: act.avance,
+                            panel: act.panel || 'I'
+                        }], { onConflict: 'clave_accion' });
+                }
+            }
+
+            alert('¡Hito [' + claveId + '] actualizado correctamente en el sistema y Supabase!');
         }
-
-        // Si de plano no existe en ningún lado, evitamos el error crítico y lo creamos al vuelo para salvar el cambio
-        if (!act) {
-            act = {
-                id: claveId,
-                clave_accion: claveId,
-                clave_hito: claveId.split('-A-')[0] || claveId,
-                panel: 'I',
-                hito: 'Hito Actualizado',
-                accion: nuevoTitulo,
-                responsable: nuevoResp || 'Comisión',
-                estatus: nuevoEstatus,
-                avance: nuevoAvance
-            };
-            accionesDataset.push(act);
-        }
-
-        // Aplicar cambios en memoria
-        act.accion = nuevoTitulo;
-        if (nuevoResp) act.responsable = nuevoResp;
-        act.estatus = nuevoEstatus;
-        act.avance = nuevoAvance;
-
-        guardarDataset();
-
-        // 3. Sincronización robusta directa con Supabase
-        if (supabaseClient) {
-            await supabaseClient
-                .from('acciones_transicion')
-                .upsert([{ 
-                    clave_accion: act.clave_accion || claveId,
-                    clave_hito: act.clave_hito || claveId.split('-A-')[0],
-                    accion_especifica: act.accion, 
-                    instancia_responsable: act.responsable, 
-                    estatus: act.estatus, 
-                    avance: act.avance,
-                    panel: act.panel || 'I'
-                }], { onConflict: 'clave_accion' });
-        }
-
-        alert('¡Acción [' + claveId + '] actualizada y sincronizada en Supabase con éxito!');
 
         closeModal('modal-edicion-dinamica');
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
     } catch (err) {
-        alert('Error al procesar la actualización: ' + err.message);
+        alert('Error al procesar la actualización del hito: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar a Todo el Sistema';
+            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
         }
     }
 };
