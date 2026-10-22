@@ -5512,8 +5512,8 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
     var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
     
-    // Leemos la nueva clave directamente del campo limpio
-    var inputNuevaClave = document.getElementById('inputClaveEdit');
+    // Leemos la nueva clave directamente del campo limpio y unificado
+    var inputNuevaClave = document.getElementById('inputClaveCanonicaEditable');
     var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
@@ -5556,8 +5556,8 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
+            // Si es un hito nuevo o ajustado que no existía en memoria, se crea de forma consecutiva
             if (accionesHito.length === 0) {
-                // Si es un hito nuevo que no existía, lo creamos con consecutivo
                 accionesHito.push({
                     id: `${nuevaClave}-A-0001`,
                     clave_accion: `${nuevaClave}-A-0001`,
@@ -5584,7 +5584,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             guardarDataset();
 
-            // 3. Sincronización limpia con Supabase
+            // 3. Sincronización limpia con Supabase (sin tocar paneles de reasignación global)
             if (supabaseClient) {
                 for (let act of accionesHito) {
                     await supabaseClient
@@ -5603,6 +5603,43 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }
 
             alert('¡Hito [' + nuevaClave + '] actualizado y sincronizado correctamente con Supabase!');
+        } else {
+            // Lógica intacta para acciones individuales (aislada del flujo de hitos)
+            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
+            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
+            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
+
+            var act = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
+            });
+
+            if (!act) {
+                act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0] };
+                accionesDataset.push(act);
+            }
+
+            act.accion = nuevoTitulo;
+            if (nuevoResp) act.responsable = nuevoResp;
+            act.estatus = nuevoEstatus;
+            act.avance = nuevoAvance;
+
+            guardarDataset();
+
+            if (supabaseClient) {
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .upsert([{
+                        clave_accion: act.clave_accion || act.id,
+                        clave_hito: act.clave_hito || act.id.split('-A-')[0],
+                        accion_especifica: act.accion,
+                        instancia_responsable: act.responsable,
+                        estatus: act.estatus,
+                        avance: act.avance,
+                        panel: act.panel || 'I'
+                    }], { onConflict: 'clave_accion' });
+            }
+
+            alert('¡Acción [' + claveOriginal + '] actualizada con éxito!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -7272,6 +7309,7 @@ window.agregarCampoArchivoBase = function() {
 
 <!-- Ficha Interactiva de Clave Canónica y Panel -->
 <!-- CONTENEDOR AISLADO Y LIMPIO (FUERA DE COLUMNAS DIVIDIDAS) -->
+<!-- CONTENEDOR AISLADO Y LIMPIO DEL HITO (SIN PANELES) -->
 <div style="grid-column: 1 / -1; width: 100%; margin-bottom: 1rem; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
     <label style="display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; letter-spacing: 0.05em;">
         Clave Canónica (Cronológica del Hito):
