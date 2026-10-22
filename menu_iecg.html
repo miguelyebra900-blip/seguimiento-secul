@@ -5470,8 +5470,11 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
     var inputTipoEl = document.getElementById('editItemTipo');
-    var tipo = inputTipoEl ? inputTipoEl.value.trim().toUpperCase() : 'ACCION';
     var claveId = document.getElementById('editItemClave').value;
+    
+    // Detección blindada: Si el input dice HITO o la clave contiene '-H-', lo tratamos estrictamente como HITO
+    var tipo = (inputTipoEl && inputTipoEl.value.trim().toUpperCase() === 'HITO') || (claveId && claveId.includes('-H-')) ? 'HITO' : 'ACCION';
+    
     var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
@@ -6682,6 +6685,7 @@ const _abrirEdicionOriginalBase = window.abrirModalEdicionDinamica;
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var modal = document.getElementById('modal-edicion-dinamica');
     var inputTipo = document.getElementById('editItemTipo');
+    if (inputTipo) inputTipo.value = tipo; // <--- Asegúrate de tener esta línea aquí
     var inputClave = document.getElementById('editItemClave');
     var inputPanel = document.getElementById('editItemPanel');
     var lblClave = document.getElementById('labelClaveActivaEdit');
