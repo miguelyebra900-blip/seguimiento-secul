@@ -2513,7 +2513,7 @@ if (btnVinculo) {
                 btnSubmit.disabled = false;
             }
         }
-// Función para cargar los datos reales directamente desde Supabase al iniciar
+// Función para cargar los datos reales directamente desde Supabase al iniciar (Fuente Única de Verdad)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
         console.warn("Supabase no está disponible. Usando almacenamiento local.");
@@ -2527,49 +2527,30 @@ async function inicializarDatosDesdeSupabase() {
 
         if (error) throw error;
 
+        // Si Supabase tiene datos, se convierten en la verdad absoluta sin pisar con valores de fábrica
         if (accionesSupabase && accionesSupabase.length > 0) {
-            // Combinamos de forma segura con ACCIONES_INICIALES para no perder ningún texto (evitando el "undefined")
-            accionesDataset = ACCIONES_INICIALES.map(function(itemOriginal) {
-                const claveBuscar = itemOriginal.clave_accion || itemOriginal.id;
-                const datoSupabase = accionesSupabase.find(s => s.clave_accion === claveBuscar || s.id === claveBuscar || s.clave_accion === itemOriginal.id);
-
-                if (datoSupabase) {
-                    return {
-                        ...itemOriginal, // Mantiene el título del hito, área, peso y descripciones originales
-                        estatus: datoSupabase.estatus || itemOriginal.estatus,
-                        avance: (datoSupabase.avance !== null && datoSupabase.avance !== undefined) ? Number(datoSupabase.avance) : itemOriginal.avance,
-                        driveUrl: datoSupabase.drive_url || datoSupabase.driveUrl || itemOriginal.driveUrl,
-                        responsable: datoSupabase.instancia_responsable || datoSupabase.responsable || itemOriginal.responsable,
-                        accion: datoSupabase.accion_especifica || datoSupabase.accion || itemOriginal.accion,
-                        hito: datoSupabase.hito || itemOriginal.hito
-                    };
-                }
-                return itemOriginal;
+            accionesDataset = accionesSupabase.map(function(item) {
+                return {
+                    id: item.clave_accion || item.id,
+                    clave_accion: item.clave_accion || item.id,
+                    clave_hito: item.clave_hito || (item.clave_accion ? item.clave_accion.split('-A-')[0] : ''),
+                    panel: item.panel || 'I',
+                    area: item.area || 'Fiscalización & Auditorías',
+                    hito: item.hito || 'Hito normativo',
+                    accion: item.accion_especifica || item.accion || 'Acción operativa',
+                    responsable: item.instancia_responsable || item.responsable || 'Comisión',
+                    area_externa: item.area_externa || 'Ninguna (Interna)',
+                    vinculo_secul: item.vinculo_secul || 'Ninguna / Directa',
+                    estatus: item.estatus || 'En Proceso',
+                    avance: (item.avance !== null && item.avance !== undefined) ? Number(item.avance) : 0,
+                    peso: item.peso || 33.33,
+                    driveUrl: item.drive_url || item.driveUrl || ''
+                };
             });
 
-            // Si Supabase tiene registros totalmente nuevos que no están en las iniciales, los agregamos
-            accionesSupabase.forEach(function(itemSup) {
-                const existe = accionesDataset.some(a => (a.clave_accion === itemSup.clave_accion) || (a.id === itemSup.clave_accion));
-                if (!existe) {
-                    accionesDataset.push({
-                        id: itemSup.clave_accion,
-                        clave_accion: itemSup.clave_accion,
-                        clave_hito: itemSup.clave_hito || itemSup.clave_accion.split('-A-')[0],
-                        panel: itemSup.panel || 'I',
-                        area: itemSup.area || 'Fiscalización & Auditorías',
-                        hito: itemSup.hito || 'Hito general',
-                        accion: itemSup.accion_especifica || itemSup.accion || 'Acción operativa',
-                        responsable: itemSup.instancia_responsable || 'Comisión',
-                        estatus: itemSup.estatus || 'En Proceso',
-                        avance: Number(itemSup.avance) || 0,
-                        peso: 33.33,
-                        driveUrl: itemSup.drive_url || ''
-                    });
-                }
-            });
-
+            // Sincronizamos el almacenamiento local con los datos reales de la nube
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados y protegidos contra 'undefined' exitosamente!");
+            console.log("¡Datos cargados directamente desde Supabase sin sobrescribir con valores de fábrica!");
         }
     } catch (err) {
         console.warn("Aviso de red con Supabase, operando con respaldo local:", err.message);
