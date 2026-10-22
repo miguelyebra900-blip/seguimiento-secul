@@ -2430,27 +2430,27 @@ async function inicializarDatosDesdeSupabase() {
         if (accionesSupabase && accionesSupabase.length > 0) {
             accionesDataset = accionesSupabase.map(function(a) {
                 return {
-                    id: a.clave_accion || a.id,
-                    clave_accion: a.clave_accion || a.id,
+                    id: a.clave_accion,
+                    clave_accion: a.clave_accion,
                     clave_hito: a.clave_hito || '',
                     panel: a.panel || 'I',
                     area: a.area || 'Fiscalización & Auditorías',
-                    hito: a.hito || 'Requerimiento Normativo',
-                    accion: a.accion || '',
-                    responsable: a.responsable || 'Comisión',
+                    hito: a.hito || 'Hito Rector',
+                    accion: a.accion_especifica || a.accion || '', // Mapeo correcto desde Supabase
+                    responsable: a.instancia_responsable || a.responsable || 'Comisión',
                     estatus: a.estatus || 'En Proceso',
                     avance: Number(a.avance) || 0,
                     peso: Number(a.peso) || 33.33,
-                    driveUrl: a.drive_url || a.driveUrl || '',
+                    driveUrl: a.drive_url || '',
                     docRequerido: a.doc_requerido || 'Expediente oficial'
                 };
             });
 
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados exitosamente desde Supabase!");
+            console.log("¡Datos sincronizados y mapeados exitosamente desde Supabase!");
         }
     } catch (err) {
-        console.warn("No se pudo conectar a Supabase en el inicio, usando caché local:", err.message);
+        console.warn("Error al sincronizar con Supabase:", err.message);
     }
 }
         async function registrarAuditoria(tipoAccion, detalles) {
