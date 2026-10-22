@@ -5469,7 +5469,8 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
-    var tipo = document.getElementById('editItemTipo').value;
+    var inputTipoEl = document.getElementById('editItemTipo');
+    var tipo = inputTipoEl ? inputTipoEl.value.trim().toUpperCase() : 'ACCION';
     var claveId = document.getElementById('editItemClave').value;
     var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
@@ -5479,7 +5480,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando con Supabase...';
     }
 
     try {
@@ -5487,62 +5488,83 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             var nuevaClaveHito = document.getElementById('inputClaveCanonicaEditable') ? document.getElementById('inputClaveCanonicaEditable').value.trim().toUpperCase() : claveId;
             var nuevoPanel = document.getElementById('editItemPanel') ? document.getElementById('editItemPanel').value : 'I';
 
+            // 1. Actualizar en el dataset local
+            var encontrados = 0;
             accionesDataset.forEach(function(a) {
-                var hitoBase = a.clave_hito || a.id.split('-A-')[0];
-                if (hitoBase === claveId || a.id.startsWith(claveId)) {
+                var hitoBase = a.clave_hito || (a.id ? a.id.split('-A-')[0] : '');
+                if (hitoBase === claveId || a.clave_hito === claveId || (a.id && a.id.startsWith(claveId))) {
                     a.hito = nuevoTitulo;
                     a.panel = nuevoPanel;
+                    encontrados++;
                     if (nuevaClaveHito && nuevaClaveHito !== claveId) {
                         a.clave_hito = nuevaClaveHito;
-                        a.id = a.id.replace(claveId, nuevaClaveHito);
-                        if (a.clave_accion) {
-                            a.clave_accion = a.clave_accion.replace(claveId, nuevaClaveHito);
-                        }
+                        if (a.id) a.id = a.id.replace(claveId, nuevaClaveHito);
+                        if (a.clave_accion) a.clave_accion = a.clave_accion.replace(claveId, nuevaClaveHito);
                     }
                 }
             });
 
             guardarDataset();
 
+            // 2. Sincronización directa y robusta con Supabase (hitos_transicion y acciones_transicion)
             if (supabaseClient) {
                 await supabaseClient
                     .from('hitos_transicion')
-                    .update({ 
-                        hito: nuevoTitulo, 
-                        panel: nuevoPanel, 
-                        clave_hito: nuevaClaveHito 
-                    })
+                    .update({ hito: nuevoTitulo, panel: nuevoPanel, clave_hito: nuevaClaveHito })
                     .eq('clave_hito', claveId);
 
                 await supabaseClient
                     .from('acciones_transicion')
-                    .update({ 
-                        panel: nuevoPanel, 
-                        clave_hito: nuevaClaveHito 
-                    })
+                    .update({ panel: nuevoPanel, clave_hito: nuevaClaveHito })
                     .eq('clave_hito', claveId);
             }
 
-            alert('¡Hito [' + nuevaClaveHito + '] y sus acciones asociadas actualizadas exitosamente!');
-        } else {
-            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
-            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
-            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
+            registrarAuditoria('Modificación de Hito (Admin)', { claveId: claveId, nuevaClave: nuevaClaveHito, nuevoTitulo: nuevoTitulo, motivo: motivo });
+            alert('¡Hito [' + nuevaClaveHito + '] actualizado y sincronizado en Supabase y el sistema!');
 
+        } else {
+            // Rama exclusiva para Acciones Operativas
             var act = accionesDataset.find(function(a) {
                 return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
             });
             
+            if (!act && supabaseClient) {
+                const { data: dataSupabase } = await supabaseClient
+                    .from('acciones_transicion')
+                    .select('*')
+                    .or(`clave_accion.eq.${claveId},id.eq.${claveId}`)
+                    .maybeSingle();
+
+                if (dataSupabase) {
+                    act = dataSupabase;
+                    accionesDataset.push(act);
+                }
+            }
+
             if (!act) {
-                throw new Error("Acción con clave [" + claveId + "] no encontrada en el dataset.");
+                throw new Error("Acción o Hito con clave [" + claveId + "] no encontrada ni en memoria ni en Supabase.");
             }
 
             act.accion = nuevoTitulo;
-            if (nuevoResp) act.responsable = nuevoResp;
-            act.estatus = nuevoEstatus;
-            act.avance = nuevoAvance;
+            act.responsable = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : act.responsable;
+            act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : act.estatus;
+            act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : act.avance;
 
             guardarDataset();
+
+            if (supabaseClient) {
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .update({ 
+                        accion: act.accion, 
+                        responsable: act.responsable, 
+                        estatus: act.estatus, 
+                        avance: act.avance,
+                        updated_at: new Date().toISOString()
+                    })
+                    .or(`clave_accion.eq.${claveId},id.eq.${claveId}`);
+            }
+
             alert('¡Acción [' + claveId + '] actualizada exitosamente!');
         }
 
@@ -5551,7 +5573,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        // BLOQUE CATCH OBLIGATORIO PARA EVITAR EL ERROR DE SINTAXIS
         alert('Error al procesar la actualización: ' + err.message);
     } finally {
         if (btnGuardar) {
