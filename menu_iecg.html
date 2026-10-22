@@ -5512,15 +5512,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
     var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
     
-    // Clave canónica editada por el usuario (sin paneles ni campos estorbosos)
+    // Leemos la nueva clave directamente del campo limpio
     var inputNuevaClave = document.getElementById('inputClaveEdit');
     var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
-    var motivo = document.getElementById('inputMotivoEdit') ? document.getElementById('inputMotivoEdit').value.trim() : '';
-    
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
-    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super' || currentUser.esAdmin);
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
@@ -5529,13 +5526,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     try {
         if (tipo === 'HITO') {
-            // 1. Filtrar las acciones hijas asociadas a este hito en memoria
+            // 1. Localizar todas las acciones hijas asociadas al hito original
             var accionesHito = accionesDataset.filter(function(a) {
                 var hitoBase = a.clave_hito || a.id.split('-A-')[0];
                 return hitoBase === claveOriginal;
             });
 
-            // Si no están en memoria local, buscarlas directamente en Supabase
             if (accionesHito.length === 0 && supabaseClient) {
                 const { data: dbData } = await supabaseClient
                     .from('acciones_transicion')
@@ -5553,16 +5549,15 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                             accion: d.accion_especifica || '',
                             responsable: d.instancia_responsable || 'Comisión',
                             estatus: d.estatus || 'En Proceso',
-                            avance: Number(d.avance) || 0,
-                            driveUrl: d.drive_url || ''
+                            avance: Number(d.avance) || 0
                         });
                     });
                     accionesHito = accionesDataset.filter(a => (a.clave_hito || a.id.split('-A-')[0]) === claveOriginal);
                 }
             }
 
-            // Si es un hito nuevo que no existía, lo inicializamos al vuelo
             if (accionesHito.length === 0) {
+                // Si es un hito nuevo que no existía, lo creamos con consecutivo
                 accionesHito.push({
                     id: `${nuevaClave}-A-0001`,
                     clave_accion: `${nuevaClave}-A-0001`,
@@ -5570,14 +5565,14 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     panel: 'I',
                     hito: nuevoTitulo,
                     accion: 'Acción inicial del nuevo hito',
-                    responsable: 'Comisión Responsable',
+                    responsable: 'Comisión',
                     estatus: 'En Proceso',
                     avance: 0
                 });
                 accionesDataset.push(accionesHito[0]);
             }
 
-            // 2. Actualizar las claves y títulos en el dataset local
+            // 2. Aplicar la modificación de clave y título en memoria
             accionesHito.forEach(function(act) {
                 if (nuevoTitulo) act.hito = nuevoTitulo;
                 if (nuevaClave !== claveOriginal) {
@@ -5589,7 +5584,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             guardarDataset();
 
-            // 3. Sincronización directa y limpia con Supabase (sin tocar paneles)
+            // 3. Sincronización limpia con Supabase
             if (supabaseClient) {
                 for (let act of accionesHito) {
                     await supabaseClient
@@ -5608,43 +5603,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }
 
             alert('¡Hito [' + nuevaClave + '] actualizado y sincronizado correctamente con Supabase!');
-        } else {
-            // Lógica para acciones individuales
-            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
-            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
-            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
-
-            var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
-            });
-
-            if (!act) {
-                act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0] };
-                accionesDataset.push(act);
-            }
-
-            act.accion = nuevoTitulo;
-            if (nuevoResp) act.responsable = nuevoResp;
-            act.estatus = nuevoEstatus;
-            act.avance = nuevoAvance;
-
-            guardarDataset();
-
-            if (supabaseClient) {
-                await supabaseClient
-                    .from('acciones_transicion')
-                    .upsert([{
-                        clave_accion: act.clave_accion || act.id,
-                        clave_hito: act.clave_hito || act.id.split('-A-')[0],
-                        accion_especifica: act.accion,
-                        instancia_responsable: act.responsable,
-                        estatus: act.estatus,
-                        avance: act.avance,
-                        panel: act.panel || 'I'
-                    }], { onConflict: 'clave_accion' });
-            }
-
-            alert('¡Acción [' + claveOriginal + '] actualizada con éxito!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -7313,18 +7271,20 @@ window.agregarCampoArchivoBase = function() {
             <input type="hidden" id="editItemPanel">
 
             <!-- Ficha Interactiva de Clave Canónica y Panel -->
-            <div class="bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase block">Clave Canónica (Cronológica):</label>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                        <input type="text" id="inputClaveCanonicaEditable" 
-                               onchange="validarYSustituirClaveCanonica(this.value)" 
-                               class="w-full p-2 bg-white border border-indigo-300 rounded-xl font-mono font-black text-xs text-indigo-950 focus:ring-2 focus:ring-indigo-500 uppercase shadow-inner">
-                        <button type="button" onclick="regenerarSiguienteConsecutivoParaEdicion()" class="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-2xs" title="Recalcular siguiente consecutivo cronológico">
-                            <i class="fa-solid fa-arrows-rotate"></i>
-                        </button>
-                    </div>
-                </div>
+          <!-- CONTENEDOR LIMPIO: ÚNICAMENTE CLAVE CANÓNICA DEL HITO -->
+<div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4">
+    <label class="block text-[10px] font-black uppercase text-slate-500 tracking-wider mb-1">
+        Clave Canónica (Cronológica del Hito):
+    </label>
+    <div class="relative">
+        <input type="text" id="inputClaveCanonicaEditable" 
+               class="w-full p-3 bg-white border border-slate-300 rounded-xl font-mono text-xs font-black text-indigo-950 focus:ring-2 focus:ring-indigo-500 shadow-2xs" 
+               placeholder="Ej. AUD_F-H-0001">
+    </div>
+    <span class="text-[10px] text-slate-400 mt-1 block">
+        💡 Nota: Modifica la clave cronológica de forma directa. Los cambios se propagarán limpiamente a las acciones asociadas.
+    </span>
+</div>
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase block">Comisión / Panel Asignado (Reasignación Global):</label>
                     <select id="selectPanelEdicionDinamica" onchange="cambiarPanelYRecalcularClave(this.value)" class="w-full p-2 bg-white border border-indigo-200 rounded-xl font-bold text-xs text-indigo-900 mt-0.5 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
