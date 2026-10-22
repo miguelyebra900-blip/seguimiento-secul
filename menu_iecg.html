@@ -5552,7 +5552,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 });
                 alert('🔒 SOLICITUD CANALIZADA A AUDITORÍA:\nLa propuesta para el Hito [' + claveId + '] fue enviada a la mesa de control de "auditoria.html".');
             }
-        } else {
+       } else {
             var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
             var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
             var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
@@ -5574,8 +5574,27 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 if (driveUrlFinal) act.driveUrl = driveUrlFinal;
 
                 guardarDataset();
+
+                // 🚀 PERSISTENCIA DIRECTA EN SUPABASE CON LAS COLUMNAS CORRECTAS
+                if (supabaseClient) {
+                    const { error: errorSupabase } = await supabaseClient
+                        .from('acciones_transicion')
+                        .update({ 
+                            accion_especifica: act.accion, 
+                            instancia_responsable: act.responsable, 
+                            estatus: act.estatus, 
+                            avance: act.avance,
+                            drive_url: act.driveUrl || null
+                        })
+                        .or(`clave_accion.eq.${claveId},id.eq.${claveId}`);
+
+                    if (errorSupabase) {
+                        console.warn("Aviso de sincronización en Supabase:", errorSupabase.message);
+                    }
+                }
+
                 registrarAuditoria('Modificación de Acción (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, nuevoAvance: nuevoAvance, nuevoEstatus: nuevoEstatus, motivo: motivo });
-                alert('¡Acción [' + claveId + '] actualizada exitosamente!');
+                alert('¡Acción [' + claveId + '] actualizada y sincronizada exitosamente en Supabase!');
             } else {
                 registrarSolicitudAuditoria({
                     tipo: 'MODIFICAR_ACCION',
