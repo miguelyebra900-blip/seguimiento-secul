@@ -535,9 +535,7 @@ window.guardarContactoNotificaciones = async function(e) {
     </div> <!-- FIN DE LA TARJETA DE ANALÍTICA -->
 
 </div> <!-- FIN DE TAB-DASHBOARD -->
-        <!-- ================================================================= -->
-        <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (8 ÁREAS A - H)  -->
-        <!-- ================================================================= -->
+
  <!-- ================================================================= -->
         <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (10 ÁREAS A - J) -->
         <!-- ================================================================= -->
@@ -2415,7 +2413,46 @@ if (btnVinculo) {
                 btnSubmit.disabled = false;
             }
         }
+// Función para cargar los datos reales directamente desde Supabase al iniciar
+async function inicializarDatosDesdeSupabase() {
+    if (!supabaseClient) {
+        console.warn("Supabase no está disponible. Usando almacenamiento local.");
+        return;
+    }
 
+    try {
+        const { data: accionesSupabase, error } = await supabaseClient
+            .from('acciones_transicion')
+            .select('*');
+
+        if (error) throw error;
+
+        if (accionesSupabase && accionesSupabase.length > 0) {
+            accionesDataset = accionesSupabase.map(function(a) {
+                return {
+                    id: a.clave_accion || a.id,
+                    clave_accion: a.clave_accion || a.id,
+                    clave_hito: a.clave_hito || '',
+                    panel: a.panel || 'I',
+                    area: a.area || 'Fiscalización & Auditorías',
+                    hito: a.hito || 'Requerimiento Normativo',
+                    accion: a.accion || '',
+                    responsable: a.responsable || 'Comisión',
+                    estatus: a.estatus || 'En Proceso',
+                    avance: Number(a.avance) || 0,
+                    peso: Number(a.peso) || 33.33,
+                    driveUrl: a.drive_url || a.driveUrl || '',
+                    docRequerido: a.doc_requerido || 'Expediente oficial'
+                };
+            });
+
+            localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
+            console.log("¡Datos sincronizados exitosamente desde Supabase!");
+        }
+    } catch (err) {
+        console.warn("No se pudo conectar a Supabase en el inicio, usando caché local:", err.message);
+    }
+}
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
@@ -4084,46 +4121,48 @@ if (toast) toast.classList.add('hidden');
             'J': 'ASI_P'
         };
 
-  function obtenerSiguienteClaveHito(panelLetra) {
-    // 1. Asegurar que leemos el panel correcto del selector superior o deducirlo del área ejecutora si hace falta
-    const selectPanelEl = document.getElementById('nuevoHitoPanel');
-    let panelReal = selectPanelEl ? selectPanelEl.value : (panelLetra || 'A');
+        function obtenerSiguienteClaveHito(panelLetra) {
+            const prefijo = MAPA_PREFIJOS_AREA[(panelLetra || 'A').toUpperCase()] || 'RH_E';
+            let maxNum = 0;
 
-    // Validación cruzada por seguridad: Si el select superior dice A pero el área dice Panel I, corregimos automáticamente
-    const selectAreaEl = document.getElementById('selectAreaEjecutoraHito');
-    if (selectAreaEl && selectAreaEl.value) {
-        const textoArea = selectAreaEl.value;
-        if (textoArea.includes('Panel I') || textoArea.includes('Fiscalización')) panelReal = 'I';
-        else if (textoArea.includes('Panel A') || textoArea.includes('Recursos Humanos')) panelReal = 'A';
-        else if (textoArea.includes('Panel B') || textoArea.includes('Jurídico')) panelReal = 'B';
-        else if (textoArea.includes('Panel C') || textoArea.includes('Patrimonio Inmobiliario')) panelReal = 'C';
-        else if (textoArea.includes('Panel D') || textoArea.includes('Fideicomisos')) panelReal = 'D';
-        else if (textoArea.includes('Panel E') || textoArea.includes('Control Patrimonial')) panelReal = 'E';
-        else if (textoArea.includes('Panel F') || textoArea.includes('Financiero')) panelReal = 'F';
-        else if (textoArea.includes('Panel G') || textoArea.includes('Tecnologías')) panelReal = 'G';
-        else if (textoArea.includes('Panel H') || textoArea.includes('Archivo')) panelReal = 'H';
-        else if (textoArea.includes('Panel J') || textoArea.includes('Asuntos Internos')) panelReal = 'J';
-    }
-
-    const prefijo = MAPA_PREFIJOS_AREA[panelReal.toUpperCase()] || 'RH_E';
-    let maxNum = 0;
-
-    accionesDataset.forEach(item => {
-        const clave = item.clave_hito || item.id || '';
-        if (clave.startsWith(prefijo + '-H-')) {
-            const match = clave.match(/-H-(\d+)/);
-            if (match && match[1]) {
-                const num = parseInt(match[1], 10);
-                if (!isNaN(num) && num > maxNum) {
-                    maxNum = num;
+            accionesDataset.forEach(item => {
+                const clave = item.clave_hito || item.id || '';
+                if (clave.startsWith(prefijo + '-H-')) {
+                    const match = clave.match(/-H-(\d+)/);
+                    if (match && match[1]) {
+                        const num = parseInt(match[1], 10);
+                        if (!isNaN(num) && num > maxNum) {
+                            maxNum = num;
+                        }
+                    }
                 }
-            }
-        }
-    });
+            });
 
-    const siguienteNum = maxNum + 1;
-    return `${prefijo}-H-${String(siguienteNum).padStart(4, '0')}`;
-}
+            const siguienteNum = maxNum + 1;
+            return `${prefijo}-H-${String(siguienteNum).padStart(4, '0')}`;
+        }
+
+        function obtenerSiguienteClaveAccion(claveHitoPadre) {
+            if (!claveHitoPadre) return 'ACC_0001';
+            let maxNum = 0;
+
+            accionesDataset.forEach(item => {
+                const clave = item.clave_accion || item.id || '';
+                if (clave.startsWith(claveHitoPadre + '-A-')) {
+                    const match = clave.match(/-A-(\d+)/);
+                    if (match && match[1]) {
+                        const num = parseInt(match[1], 10);
+                        if (!isNaN(num) && num > maxNum) {
+                            maxNum = num;
+                        }
+                    }
+                }
+            });
+
+            const siguienteNum = maxNum + 1;
+            return `${claveHitoPadre}-A-${String(siguienteNum).padStart(4, '0')}`;
+        }
+
 // =========================================================================
         // CONTROLADOR DE MODALES DE DESGLOSE PARA TARJETAS KPI
         // =========================================================================
@@ -5469,115 +5508,94 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
-    var inputTipoEl = document.getElementById('editItemTipo');
-    var tipo = inputTipoEl ? inputTipoEl.value.trim().toUpperCase() : 'ACCION';
-    var claveId = document.getElementById('editItemClave').value.trim();
+    var tipo = document.getElementById('editItemTipo').value;
+    var claveId = document.getElementById('editItemClave').value;
     var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super' || currentUser.esAdmin);
+
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando cambios...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
     }
 
     try {
+        var driveUrlFinal = null;
+
         if (tipo === 'HITO') {
-            // ==========================================
-            // LÓGICA EXCLUSIVA PARA MODIFICAR HITOS
-            // ==========================================
-            var inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
-            var nuevaClaveHito = inputClaveCanonica ? inputClaveCanonica.value.trim().toUpperCase() : claveId;
-            var nuevoPanel = document.getElementById('editItemPanel') ? document.getElementById('editItemPanel').value : 'I';
-
-            if (!nuevaClaveHito) {
-                throw new Error("La clave canónica del hito no puede estar vacía.");
-            }
-
-            var encontrados = 0;
-            accionesDataset.forEach(function(a) {
-                var hitoBase = a.clave_hito || (a.id ? a.id.split('-A-')[0] : '');
-                if (hitoBase === claveId || a.clave_hito === claveId || (a.id && a.id.startsWith(claveId))) {
-                    a.hito = nuevoTitulo;
-                    a.panel = nuevoPanel;
-                    encontrados++;
-                    
-                    if (nuevaClaveHito && nuevaClaveHito !== claveId) {
-                        a.clave_hito = nuevaClaveHito;
-                        if (a.id) {
-                            var sufijoAccion = a.id.includes('-A-') ? '-A-' + a.id.split('-A-')[1] : '';
-                            a.id = nuevaClaveHito + sufijoAccion;
-                        }
-                        if (a.clave_accion) {
-                            var sufijoAccion2 = a.clave_accion.includes('-A-') ? '-A-' + a.clave_accion.split('-A-')[1] : '';
-                            a.clave_accion = nuevaClaveHito + sufijoAccion2;
-                        }
+            if (esAdmin) {
+                var encontrados = 0;
+                accionesDataset.forEach(function(a) {
+                    if ((a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId)) || (a.clave_accion === claveId)) {
+                        a.hito = nuevoTitulo;
+                        encontrados++;
                     }
+                });
+                if (encontrados === 0) {
+                    throw new Error("Hito con clave [" + claveId + "] no encontrado en el dataset.");
                 }
-            });
-
-            if (encontrados === 0) {
-                throw new Error("No se encontró el hito [" + claveId + "] en el dataset local.");
+                guardarDataset();
+                registrarAuditoria('Modificación de Hito (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, motivo: motivo });
+                alert('¡Hito [' + claveId + '] actualizado y sincronizado en todo el sistema!');
+            } else {
+                registrarSolicitudAuditoria({
+                    tipo: 'MODIFICAR_HITO',
+                    clave: claveId,
+                    campo: 'hito',
+                    valorPropuesto: nuevoTitulo,
+                    motivo: motivo,
+                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                    fecha: new Date().toLocaleString(),
+                    estatus: 'Pendiente de Autorización'
+                });
+                alert('🔒 SOLICITUD CANALIZADA A AUDITORÍA:\nLa propuesta para el Hito [' + claveId + '] fue enviada a la mesa de control de "auditoria.html".');
             }
-
-            guardarDataset();
-
-            if (supabaseClient) {
-                await supabaseClient
-                    .from('hitos_transicion')
-                    .update({ hito: nuevoTitulo, panel: nuevoPanel, clave_hito: nuevaClaveHito })
-                    .eq('clave_hito', claveId);
-
-                await supabaseClient
-                    .from('acciones_transicion')
-                    .update({ panel: nuevoPanel, clave_hito: nuevaClaveHito })
-                    .eq('clave_hito', claveId);
-            }
-
-            alert('¡Hito [' + nuevaClaveHito + '] y sus acciones asociadas actualizadas correctamente!');
-
         } else {
-            // ==========================================
-            // LÓGICA EXCLUSIVA PARA ACCIONES OPERATIVAS (Tu imagen del modal de acción)
-            // ==========================================
+            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
+            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
+            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
+
+            // Búsqueda flexible que evita que falle por diferencias de formato
             var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveId) || (a.id === claveId);
+                return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
             });
             
             if (!act) {
-                throw new Error("Acción operativa no encontrada en el dataset.");
+                throw new Error("Acción con clave [" + claveId + "] no encontrada en el dataset.");
             }
 
-            // Mapeo seguro con los campos del modal de acción de tu imagen
-            act.accion = nuevoTitulo; // Descripción de la Acción / Entregable Específico
-            act.responsable = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : act.responsable;
-            act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : act.estatus;
-            act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : act.avance;
+            if (esAdmin) {
+                act.accion = nuevoTitulo;
+                if (nuevoResp) act.responsable = nuevoResp;
+                act.estatus = nuevoEstatus;
+                act.avance = nuevoAvance;
+                if (driveUrlFinal) act.driveUrl = driveUrlFinal;
 
-            guardarDataset();
-
-            if (supabaseClient) {
-                await supabaseClient
-                    .from('acciones_transicion')
-                    .update({ 
-                        accion: act.accion, 
-                        responsable: act.responsable, 
-                        estatus: act.estatus, 
-                        avance: act.avance,
-                        updated_at: new Date().toISOString()
-                    })
-                    .or(`clave_accion.eq.${claveId},id.eq.${claveId}`);
+                guardarDataset();
+                registrarAuditoria('Modificación de Acción (Admin)', { claveId: claveId, nuevoTitulo: nuevoTitulo, nuevoAvance: nuevoAvance, nuevoEstatus: nuevoEstatus, motivo: motivo });
+                alert('¡Acción [' + claveId + '] actualizada exitosamente!');
+            } else {
+                registrarSolicitudAuditoria({
+                    tipo: 'MODIFICAR_ACCION',
+                    clave: claveId,
+                    campo: 'datos_completos',
+                    valorPropuesto: { accion: nuevoTitulo, responsable: nuevoResp, estatus: nuevoEstatus, avance: nuevoAvance, driveUrl: driveUrlFinal },
+                    motivo: motivo,
+                    solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                    fecha: new Date().toLocaleString(),
+                    estatus: 'Pendiente de Autorización'
+                });
+                alert('🔒 SOLICITUD ENVIADA A AUDITORÍA:\nLos cambios propuestos para la Acción [' + claveId + '] han sido registrados y esperan validación en "auditoria.html".');
             }
-
-            alert('¡Acción operativa actualizada exitosamente!');
         }
 
         closeModal('modal-edicion-dinamica');
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-
     } catch (err) {
-        alert('Error al actualizar: ' + err.message);
+        alert('Error al procesar la actualización: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
@@ -6475,13 +6493,15 @@ function registrarSolicitudAuditoria(solicitud) {
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
-window.addEventListener('DOMContentLoaded', () => {
-    // 1. Recuperar sesión almacenada de forma blindada
-    const sesionGuardada = localStorage.getItem('secul_user');
-    if (sesionGuardada) {
+window.addEventListener('DOMContentLoaded', async () => {
+    // 1. Descargar los datos reales directo de Supabase al abrir la página
+    await inicializarDatosDesdeSupabase();
+
+    // 2. Recuperar sesión almacenada de forma blindada
+    const sesionGuarda = localStorage.getItem('secul_user');
+    if (sesionGuarda) {
         try {
-            currentUser = JSON.parse(sesionGuardada);
-            // Sincronizar paneles autorizados si existía sesión previa
+            currentUser = JSON.parse(sesionGuarda);
             if (typeof resolverPanelesUsuario === 'function') {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
@@ -6496,22 +6516,21 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 2. Refrescar interfaz de usuario con la sesión restaurada
+    // 3. Refrescar interfaz de usuario con la sesión restaurada
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 3. Cargar tableros y métricas
+    // 4. Cargar tableros y métricas con los datos frescos de Supabase
     if (typeof mostrarSeccionTab === 'function') {
         mostrarSeccionTab('tab-dashboard');
     }
     if (typeof actualizarDashboard === 'function') {
         actualizarDashboard();
     }
-if (typeof renderCintilloNoticioso === 'function') {
-    renderCintilloNoticioso();
-}
-    
+    if (typeof renderCintilloNoticioso === 'function') {
+        renderCintilloNoticioso();
+    }
 });
 
         // 1 y 2. Control de Área Ejecutora y réplica automática en filas
@@ -6686,7 +6705,6 @@ const _abrirEdicionOriginalBase = window.abrirModalEdicionDinamica;
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var modal = document.getElementById('modal-edicion-dinamica');
     var inputTipo = document.getElementById('editItemTipo');
-    if (inputTipo) inputTipo.value = tipo; // <--- Asegúrate de tener esta línea aquí
     var inputClave = document.getElementById('editItemClave');
     var inputPanel = document.getElementById('editItemPanel');
     var lblClave = document.getElementById('labelClaveActivaEdit');
