@@ -5637,6 +5637,25 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     try {
         if (tipo === 'HITO') {
+            // =========================================================================
+            // CAPTURAR EL RESPONSABLE, ESTATUS Y AVANCE EN EL MODAL DE EDICIÓN DE HITO
+            // =========================================================================
+            var selInstancia = document.getElementById('selectInstanciaBaseEdit') || document.getElementById('selectInstanciaResponsableBaseEdit');
+            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || document.getElementById('inputOtraInstanciaResponsableBaseEdit');
+            
+            var nuevoResponsableHito = 'Comisión';
+            if (selInstancia) {
+                nuevoResponsableHito = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
+                    ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
+                    : selInstancia.value;
+            }
+
+            var selEstatusHito = document.getElementById('selectEstatusEdit');
+            var nuevoEstatusHito = selEstatusHito ? selEstatusHito.value : 'En Proceso';
+
+            var sliderAvanceHito = document.getElementById('inputAvanceSliderEdit');
+            var nuevoAvanceHito = sliderAvanceHito ? (parseInt(sliderAvanceHito.value, 10) || 0) : 0;
+
             var accionesHito = accionesDataset.filter(function(a) {
                 var hitoBase = a.clave_hito || a.id.split('-A-')[0];
                 return hitoBase === claveOriginal;
@@ -5650,15 +5669,19 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     panel: 'I',
                     hito: nuevoTitulo,
                     accion: 'Acción inicial',
-                    responsable: 'Comisión',
-                    estatus: 'En Proceso',
-                    avance: 0
+                    responsable: nuevoResponsableHito,
+                    estatus: nuevoEstatusHito,
+                    avance: nuevoAvanceHito
                 });
                 accionesDataset.push(accionesHito[0]);
             }
 
             accionesHito.forEach(function(act) {
                 if (nuevoTitulo) act.hito = nuevoTitulo;
+                act.responsable = nuevoResponsableHito;
+                act.estatus = nuevoEstatusHito;
+                act.avance = nuevoAvanceHito;
+
                 if (nuevaClave !== claveOriginal) {
                     act.clave_hito = nuevaClave;
                     if (act.id) act.id = act.id.replace(claveOriginal, nuevaClave);
@@ -5685,7 +5708,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
-            alert('¡Hito [' + nuevaClave + '] actualizado exitosamente!');
+            alert('¡Hito [' + nuevaClave + '] actualizado y guardado exitosamente!');
         } else {
             // Búsqueda flexible para acciones que evita el error del dataset
             var act = accionesDataset.find(function(a) {
@@ -5706,7 +5729,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             act.accion = nuevoTitulo;
 
             // =========================================================================
-            // AQUÍ SE CAPTURA EL RESPONSABLE SELECCIONADO EN EL MODAL DE EDICIÓN
+            // CAPTURAR EL RESPONSABLE SELECCIONADO EN EL MODAL DE EDICIÓN DE ACCIÓN
             // =========================================================================
             var selInstancia = document.getElementById('selectInstanciaBaseEdit') || document.getElementById('selectInstanciaResponsableBaseEdit');
             var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || document.getElementById('inputOtraInstanciaResponsableBaseEdit');
