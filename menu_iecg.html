@@ -6358,20 +6358,14 @@ window.procesarVinculacionUniversalOficial = async function(e) {
     }
 };
 
-  // Hook para conectar la clave editable al abrir el modal de edición
+// Hook para conectar la clave editable al abrir el modal de edición
 const _abrirEdicionOriginal = window.abrirModalEdicionDinamica;
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
     if (typeof _abrirEdicionOriginal === 'function') {
         _abrirEdicionOriginal(tipo, claveId);
     }
     const inputClave = document.getElementById('inputClaveCanonicaEditable');
-    const selectPanel = document.getElementById('selectPanelEdicionDinamica');
     if (inputClave) inputClave.value = claveId;
-
-    const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
-    if (act && selectPanel) {
-        selectPanel.value = act.panel || 'A';
-    }
 };
 
 // Recalcula el siguiente número consecutivo cronológico consultando en Supabase
