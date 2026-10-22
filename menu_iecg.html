@@ -2428,26 +2428,26 @@ async function inicializarDatosDesdeSupabase() {
         if (error) throw error;
 
         if (accionesSupabase && accionesSupabase.length > 0) {
-            accionesDataset = accionesSupabase.map(function(a) {
-                return {
-                    id: a.clave_accion,
-                    clave_accion: a.clave_accion,
-                    clave_hito: a.clave_hito || '',
-                    panel: a.panel || 'I',
-                    area: a.area || 'Fiscalización & Auditorías',
-                    hito: a.hito || 'Hito Rector',
-                    accion: a.accion_especifica || a.accion || '', // Mapeo correcto desde Supabase
-                    responsable: a.instancia_responsable || a.responsable || 'Comisión',
-                    estatus: a.estatus || 'En Proceso',
-                    avance: Number(a.avance) || 0,
-                    peso: Number(a.peso) || 33.33,
-                    driveUrl: a.drive_url || '',
-                    docRequerido: a.doc_requerido || 'Expediente oficial'
-                };
+            // Combinar la estructura base y textos de ACCIONES_INICIALES con los datos dinámicos de Supabase
+            accionesDataset = ACCIONES_INICIALES.map(function(itemOriginal) {
+                const claveBuscar = itemOriginal.clave_accion || itemOriginal.id;
+                const datoSupabase = accionesSupabase.find(s => s.clave_accion === claveBuscar || s.id === claveBuscar);
+
+                if (datoSupabase) {
+                    return {
+                        ...itemOriginal, // Mantiene intactos hito, area, peso, docRequerido y descripciones
+                        estatus: datoSupabase.estatus || itemOriginal.estatus,
+                        avance: (datoSupabase.avance !== null && datoSupabase.avance !== undefined) ? Number(datoSupabase.avance) : itemOriginal.avance,
+                        driveUrl: datoSupabase.drive_url || itemOriginal.driveUrl,
+                        responsable: datoSupabase.instancia_responsable || itemOriginal.responsable,
+                        accion: datoSupabase.accion_especifica || itemOriginal.accion
+                    };
+                }
+                return itemOriginal;
             });
 
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados y mapeados exitosamente desde Supabase!");
+            console.log("¡Datos sincronizados y combinados exitosamente desde Supabase!");
         }
     } catch (err) {
         console.warn("Error al sincronizar con Supabase:", err.message);
