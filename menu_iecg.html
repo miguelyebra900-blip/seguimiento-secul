@@ -5616,6 +5616,7 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 
 
 // 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
+// 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
@@ -5636,26 +5637,38 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     }
 
     try {
+        // =========================================================================
+        // CAPTURA UNIVERSAL Y ROBUSTA (Aplica para Hitos y Acciones)
+        // =========================================================================
+        var selInstancia = document.getElementById('selectInstanciaBaseEdit') || 
+                           document.getElementById('selectInstanciaResponsableBaseEdit') || 
+                           document.getElementById('selectInstanciaResponsableBuzon') ||
+                           document.querySelector('#modal-edicion-dinamica select');
+
+        var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || 
+                                 document.getElementById('inputOtraInstanciaResponsableBaseEdit');
+
+        var responsableCapturado = 'Comisión';
+        if (selInstancia) {
+            responsableCapturado = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
+                ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
+                : selInstancia.value;
+        }
+
+        // Capturar Área Externa y Vínculo SECUL
+        var selAreaExterna = document.getElementById('buzonAreaExterna') || document.getElementById('selectAreaExternaEdit');
+        var areaExternaCapturada = selAreaExterna ? selAreaExterna.value : 'Ninguna (Interna)';
+
+        var selVinculoSecul = document.getElementById('buzonVinculoSecul') || document.getElementById('selectVinculoSeculEdit');
+        var vinculoSeculCapturado = selVinculoSecul ? selVinculoSecul.value : 'Ninguna / Directa';
+
+        var selEstatus = document.getElementById('selectEstatusEdit');
+        var estatusCapturado = selEstatus ? selEstatus.value : 'En Proceso';
+
+        var sliderAvance = document.getElementById('inputAvanceSliderEdit');
+        var avanceCapturado = sliderAvance ? (parseInt(sliderAvance.value, 10) || 0) : 0;
+
         if (tipo === 'HITO') {
-            // =========================================================================
-            // CAPTURAR EL RESPONSABLE, ESTATUS Y AVANCE EN EL MODAL DE EDICIÓN DE HITO
-            // =========================================================================
-            var selInstancia = document.getElementById('selectInstanciaBaseEdit') || document.getElementById('selectInstanciaResponsableBaseEdit');
-            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || document.getElementById('inputOtraInstanciaResponsableBaseEdit');
-            
-            var nuevoResponsableHito = 'Comisión';
-            if (selInstancia) {
-                nuevoResponsableHito = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
-                    ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
-                    : selInstancia.value;
-            }
-
-            var selEstatusHito = document.getElementById('selectEstatusEdit');
-            var nuevoEstatusHito = selEstatusHito ? selEstatusHito.value : 'En Proceso';
-
-            var sliderAvanceHito = document.getElementById('inputAvanceSliderEdit');
-            var nuevoAvanceHito = sliderAvanceHito ? (parseInt(sliderAvanceHito.value, 10) || 0) : 0;
-
             var accionesHito = accionesDataset.filter(function(a) {
                 var hitoBase = a.clave_hito || a.id.split('-A-')[0];
                 return hitoBase === claveOriginal;
@@ -5669,18 +5682,22 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     panel: 'I',
                     hito: nuevoTitulo,
                     accion: 'Acción inicial',
-                    responsable: nuevoResponsableHito,
-                    estatus: nuevoEstatusHito,
-                    avance: nuevoAvanceHito
+                    responsable: responsableCapturado,
+                    area_externa: areaExternaCapturada,
+                    vinculo_secul: vinculoSeculCapturado,
+                    estatus: estatusCapturado,
+                    avance: avanceCapturado
                 });
                 accionesDataset.push(accionesHito[0]);
             }
 
             accionesHito.forEach(function(act) {
                 if (nuevoTitulo) act.hito = nuevoTitulo;
-                act.responsable = nuevoResponsableHito;
-                act.estatus = nuevoEstatusHito;
-                act.avance = nuevoAvanceHito;
+                act.responsable = responsableCapturado;
+                act.area_externa = areaExternaCapturada;
+                act.vinculo_secul = vinculoSeculCapturado;
+                act.estatus = estatusCapturado;
+                act.avance = avanceCapturado;
 
                 if (nuevaClave !== claveOriginal) {
                     act.clave_hito = nuevaClave;
@@ -5701,6 +5718,8 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                             hito: act.hito,
                             accion_especifica: act.accion,
                             instancia_responsable: act.responsable,
+                            area_externa: act.area_externa,
+                            vinculo_secul: act.vinculo_secul,
                             estatus: act.estatus,
                             avance: act.avance,
                             panel: act.panel || 'I'
@@ -5727,33 +5746,11 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }
 
             act.accion = nuevoTitulo;
-
-          // =========================================================================
-            // CAPTURA ROBUSTA DEL RESPONSABLE Y CAMPOS ADICIONALES EN ACCIONES
-            // =========================================================================
-            var selInstancia = document.getElementById('selectInstanciaBaseEdit') || 
-                               document.getElementById('selectInstanciaResponsableBaseEdit') || 
-                               document.getElementById('selectInstanciaResponsableBuzon') ||
-                               document.querySelector('#modal-edicion-dinamica select');
-
-            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || 
-                                     document.getElementById('inputOtraInstanciaResponsableBaseEdit');
-
-            if (selInstancia) {
-                act.responsable = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
-                    ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
-                    : selInstancia.value;
-            }
-
-            // Capturar Área Externa y Vínculo SECUL si están presentes en el DOM
-            var selAreaExterna = document.getElementById('buzonAreaExterna') || document.getElementById('selectAreaExternaEdit');
-            if (selAreaExterna) act.area_externa = selAreaExterna.value;
-
-            var selVinculoSecul = document.getElementById('buzonVinculoSecul') || document.getElementById('selectVinculoSeculEdit');
-            if (selVinculoSecul) act.vinculo_secul = selVinculoSecul.value;
-
-            act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
-            act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
+            act.responsable = responsableCapturado;
+            act.area_externa = areaExternaCapturada;
+            act.vinculo_secul = vinculoSeculCapturado;
+            act.estatus = estatusCapturado;
+            act.avance = avanceCapturado;
 
             guardarDataset();
 
@@ -5789,7 +5786,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
     }
 };
-
         // 8. Solicitar Baja de Acción
 window.solicitarEliminacionAccion = function(claveAccion) {
     var act = accionesDataset.find(function(a) {
