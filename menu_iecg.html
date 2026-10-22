@@ -5708,8 +5708,8 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             // =========================================================================
             // AQUÍ SE CAPTURA EL RESPONSABLE SELECCIONADO EN EL MODAL DE EDICIÓN
             // =========================================================================
-            var selInstancia = document.getElementById('selectInstanciaResponsableBaseEdit');
-            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit');
+            var selInstancia = document.getElementById('selectInstanciaBaseEdit') || document.getElementById('selectInstanciaResponsableBaseEdit');
+            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || document.getElementById('inputOtraInstanciaResponsableBaseEdit');
 
             if (selInstancia) {
                 act.responsable = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
@@ -5723,17 +5723,17 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             guardarDataset();
 
             if (supabaseClient) {
-                await supabaseClient
-                    .from('acciones_transicion')
-                    .upsert([{
-                        clave_accion: act.clave_accion || act.id,
-                        clave_hito: act.clave_hito || act.id.split('-A-')[0],
-                        accion_especifica: act.accion,
-                        instancia_responsable: act.responsable || 'Comisión',
-                        estatus: act.estatus,
-                        avance: act.avance,
-                        panel: act.panel || 'I'
-                    }], { onConflict: 'clave_accion' });
+               await supabaseClient
+                .from('acciones_transicion')
+                .upsert([{
+                    clave_accion: act.clave_accion || act.id,
+                    clave_hito: act.clave_hito || act.id.split('-A-')[0],
+                    accion_especifica: act.accion,
+                    instancia_responsable: act.responsable || 'Comisión',
+                    estatus: act.estatus,
+                    avance: act.avance,
+                    panel: act.panel || 'I'
+                }], { onConflict: 'clave_accion' });
             }
 
             alert('¡Acción [' + claveOriginal + '] actualizada y sincronizada exitosamente!');
@@ -7187,8 +7187,7 @@ window.agregarCampoArchivoBase = function() {
 <!-- ========================================================================= -->
 <!-- MODAL DE BASE DE DATOS GENERAL, GOBERNANZA Y IMPORTACIÓN EXCEL            -->
 <!-- ========================================================================= -->
-<div id="modal-base-datos-general" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-3 sm:p-5">
-    <div class="bg-white rounded-3xl max-w-6xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
+<div class="bg-white rounded-3xl max-w-7xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
         
         <!-- Header con Identidad Oficial y Acciones Rápidas -->
         <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
