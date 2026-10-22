@@ -5511,9 +5511,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
     var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
-    // Si agregaste un input para editar la clave canónica, lo leemos de ahí; si no, mantenemos la original
+    
+    // Clave canónica editada por el usuario (sin paneles ni campos estorbosos)
     var inputNuevaClave = document.getElementById('inputClaveEdit');
-    var claveId = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
+    var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
     var motivo = document.getElementById('inputMotivoEdit') ? document.getElementById('inputMotivoEdit').value.trim() : '';
@@ -5523,22 +5524,23 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando Hito...';
     }
 
     try {
         if (tipo === 'HITO') {
-            // Buscamos todas las acciones que correspondan a este hito usando la clave original
+            // 1. Filtrar las acciones hijas asociadas a este hito en memoria
             var accionesHito = accionesDataset.filter(function(a) {
-                return (a.clave_hito === claveOriginal) || (a.id && a.id.startsWith(claveOriginal));
+                var hitoBase = a.clave_hito || a.id.split('-A-')[0];
+                return hitoBase === claveOriginal;
             });
 
+            // Si no están en memoria local, buscarlas directamente en Supabase
             if (accionesHito.length === 0 && supabaseClient) {
-                // Rescatar desde Supabase si no están en memoria
                 const { data: dbData } = await supabaseClient
                     .from('acciones_transicion')
                     .select('*')
-                    .or(`clave_hito.eq.${claveOriginal},clave_accion.eq.${claveOriginal}`);
+                    .or(`clave_hito.eq.${claveOriginal},clave_accion.like.${claveOriginal}%`);
                 
                 if (dbData && dbData.length > 0) {
                     dbData.forEach(d => {
@@ -5555,35 +5557,45 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                             driveUrl: d.drive_url || ''
                         });
                     });
-                    accionesHito = accionesDataset.filter(a => a.clave_hito === claveOriginal || a.id.startsWith(claveOriginal));
+                    accionesHito = accionesDataset.filter(a => (a.clave_hito || a.id.split('-A-')[0]) === claveOriginal);
                 }
             }
 
+            // Si es un hito nuevo que no existía, lo inicializamos al vuelo
             if (accionesHito.length === 0) {
-                throw new Error("No se encontraron registros asociados al hito [" + claveOriginal + "] en el dataset.");
+                accionesHito.push({
+                    id: `${nuevaClave}-A-0001`,
+                    clave_accion: `${nuevaClave}-A-0001`,
+                    clave_hito: nuevaClave,
+                    panel: 'I',
+                    hito: nuevoTitulo,
+                    accion: 'Acción inicial del nuevo hito',
+                    responsable: 'Comisión Responsable',
+                    estatus: 'En Proceso',
+                    avance: 0
+                });
+                accionesDataset.push(accionesHito[0]);
             }
 
-            // Actualizar el título y la clave del hito en todas sus acciones asociadas
+            // 2. Actualizar las claves y títulos en el dataset local
             accionesHito.forEach(function(act) {
-                act.hito = nuevoTitulo;
-                if (claveId !== claveOriginal) {
-                    act.clave_hito = claveId;
-                    // Actualizar también el prefijo del ID si cambió la clave del hito
-                    act.id = act.id.replace(claveOriginal, claveId);
-                    act.clave_accion = act.clave_accion.replace(claveOriginal, claveId);
+                if (nuevoTitulo) act.hito = nuevoTitulo;
+                if (nuevaClave !== claveOriginal) {
+                    act.clave_hito = nuevaClave;
+                    if (act.id) act.id = act.id.replace(claveOriginal, nuevaClave);
+                    if (act.clave_accion) act.clave_accion = act.clave_accion.replace(claveOriginal, nuevaClave);
                 }
             });
 
             guardarDataset();
 
-            // Sincronización masiva con Supabase para este hito
+            // 3. Sincronización directa y limpia con Supabase (sin tocar paneles)
             if (supabaseClient) {
                 for (let act of accionesHito) {
                     await supabaseClient
                         .from('acciones_transicion')
                         .upsert([{
-                            id: act.clave_accion,
-                            clave_accion: act.clave_accion,
+                            clave_accion: act.clave_accion || act.id,
                             clave_hito: act.clave_hito,
                             hito: act.hito,
                             accion_especifica: act.accion,
@@ -5595,14 +5607,52 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
-            alert('¡Hito [' + claveId + '] actualizado correctamente en el sistema y Supabase!');
+            alert('¡Hito [' + nuevaClave + '] actualizado y sincronizado correctamente con Supabase!');
+        } else {
+            // Lógica para acciones individuales
+            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
+            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
+            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
+
+            var act = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
+            });
+
+            if (!act) {
+                act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0] };
+                accionesDataset.push(act);
+            }
+
+            act.accion = nuevoTitulo;
+            if (nuevoResp) act.responsable = nuevoResp;
+            act.estatus = nuevoEstatus;
+            act.avance = nuevoAvance;
+
+            guardarDataset();
+
+            if (supabaseClient) {
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .upsert([{
+                        clave_accion: act.clave_accion || act.id,
+                        clave_hito: act.clave_hito || act.id.split('-A-')[0],
+                        accion_especifica: act.accion,
+                        instancia_responsable: act.responsable,
+                        estatus: act.estatus,
+                        avance: act.avance,
+                        panel: act.panel || 'I'
+                    }], { onConflict: 'clave_accion' });
+            }
+
+            alert('¡Acción [' + claveOriginal + '] actualizada con éxito!');
         }
 
         closeModal('modal-edicion-dinamica');
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+
     } catch (err) {
-        alert('Error al procesar la actualización del hito: ' + err.message);
+        alert('Error al procesar la actualización: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
