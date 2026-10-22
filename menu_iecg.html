@@ -5475,45 +5475,18 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
+    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super' || currentUser.esAdmin);
+
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando con Supabase...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando...';
     }
 
     try {
-        // 1. Buscar en el dataset local primero
-        var elementoLocal = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId) || (a.id && a.id.includes(claveId));
-        });
-
-        // 2. Si no está localmente y tenemos cliente de Supabase, consultamos directamente allá
-        if (!elementoLocal && supabaseClient) {
-            const tablaConsulta = tipo === 'HITO' ? 'hitos_transicion' : 'acciones_transicion';
-            const campoClave = tipo === 'HITO' ? 'clave_hito' : 'clave_accion';
-            
-            const { data: dataSupabase, error: errSupabase } = await supabaseClient
-                .from(tablaConsulta)
-                .select('*')
-                .or(`${campoClave}.eq.${claveId},id.eq.${claveId}`)
-                .maybeSingle();
-
-            if (!errSupabase && dataSupabase) {
-                // Lo encontramos en Supabase, lo inyectamos al dataset temporalmente
-                elementoLocal = dataSupabase;
-                accionesDataset.push(elementoLocal);
-            }
-        }
-
-        if (!elementoLocal) {
-            throw new Error("El registro con clave [" + claveId + "] no existe ni en memoria local ni en Supabase.");
-        }
-
-        // 3. Actualizar los valores en el objeto encontrado
-  if (tipo === 'HITO') {
+        if (tipo === 'HITO') {
             var nuevaClaveHito = document.getElementById('inputClaveCanonicaEditable') ? document.getElementById('inputClaveCanonicaEditable').value.trim().toUpperCase() : claveId;
             var nuevoPanel = document.getElementById('editItemPanel') ? document.getElementById('editItemPanel').value : 'I';
 
-            // Actualizar todas las acciones y registros del dataset que pertenezcan a este hito
             accionesDataset.forEach(function(a) {
                 var hitoBase = a.clave_hito || a.id.split('-A-')[0];
                 if (hitoBase === claveId || a.id.startsWith(claveId)) {
@@ -5521,7 +5494,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     a.panel = nuevoPanel;
                     if (nuevaClaveHito && nuevaClaveHito !== claveId) {
                         a.clave_hito = nuevaClaveHito;
-                        // Actualizar el prefijo en el ID y clave de acción hija
                         a.id = a.id.replace(claveId, nuevaClaveHito);
                         if (a.clave_accion) {
                             a.clave_accion = a.clave_accion.replace(claveId, nuevaClaveHito);
@@ -5532,7 +5504,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             guardarDataset();
 
-            // Sincronización directa con Supabase para hitos y sus acciones
             if (supabaseClient) {
                 await supabaseClient
                     .from('hitos_transicion')
@@ -5553,35 +5524,39 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }
 
             alert('¡Hito [' + nuevaClaveHito + '] y sus acciones asociadas actualizadas exitosamente!');
-        }
+        } else {
+            var nuevoResp = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : '';
+            var nuevoEstatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
+            var nuevoAvance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
 
-                
-            } else {
-                await supabaseClient
-                    .from('acciones_transicion')
-                    .update({
-                        accion: elementoLocal.accion,
-                        responsable: elementoLocal.responsable,
-                        estatus: elementoLocal.estatus,
-                        avance: elementoLocal.avance,
-                        updated_at: new Date().toISOString()
-                    })
-                    .or(`clave_accion.eq.${claveId},id.eq.${claveId}`);
+            var act = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
+            });
+            
+            if (!act) {
+                throw new Error("Acción con clave [" + claveId + "] no encontrada en el dataset.");
             }
+
+            act.accion = nuevoTitulo;
+            if (nuevoResp) act.responsable = nuevoResp;
+            act.estatus = nuevoEstatus;
+            act.avance = nuevoAvance;
+
+            guardarDataset();
+            alert('¡Acción [' + claveId + '] actualizada exitosamente!');
         }
 
-        alert('¡Actualización guardada y sincronizada con Supabase exitosamente!');
         closeModal('modal-edicion-dinamica');
-        
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert('Error al actualizar: ' + err.message);
+        // BLOQUE CATCH OBLIGATORIO PARA EVITAR EL ERROR DE SINTAXIS
+        alert('Error al procesar la actualización: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar a Todo el Sistema';
+            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
         }
     }
 };
