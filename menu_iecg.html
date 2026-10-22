@@ -2528,31 +2528,33 @@ async function inicializarDatosDesdeSupabase() {
         if (error) throw error;
 
         if (accionesSupabase && accionesSupabase.length > 0) {
-            // Combinar la estructura base y textos de ACCIONES_INICIALES con los datos dinámicos de Supabase
-            accionesDataset = ACCIONES_INICIALES.map(function(itemOriginal) {
-                const claveBuscar = itemOriginal.clave_accion || itemOriginal.id;
-                const datoSupabase = accionesSupabase.find(s => s.clave_accion === claveBuscar || s.id === claveBuscar);
-
-                if (datoSupabase) {
-                    return {
-                        ...itemOriginal, // Mantiene intactos hito, area, peso, docRequerido y descripciones
-                        estatus: datoSupabase.estatus || itemOriginal.estatus,
-                        avance: (datoSupabase.avance !== null && datoSupabase.avance !== undefined) ? Number(datoSupabase.avance) : itemOriginal.avance,
-                        driveUrl: datoSupabase.drive_url || itemOriginal.driveUrl,
-                        responsable: datoSupabase.instancia_responsable || itemOriginal.responsable,
-                        accion: datoSupabase.accion_especifica || itemOriginal.accion
-                    };
-                }
-                return itemOriginal;
+            accionesDataset = accionesSupabase.map(function(item) {
+                return {
+                    id: item.clave_accion,
+                    clave_accion: item.clave_accion,
+                    clave_hito: item.clave_hito,
+                    panel: item.panel || 'I',
+                    area: item.area || 'Fiscalización & Auditorías',
+                    hito: item.hito,
+                    accion: item.accion_especifica || item.accion,
+                    responsable: item.instancia_responsable || 'Comisión',
+                    area_externa: item.area_externa || 'Ninguna (Interna)',
+                    vinculo_secul: item.vinculo_secul || 'Ninguna / Directa',
+                    estatus: item.estatus || 'En Proceso',
+                    avance: (item.avance !== null && item.avance !== undefined) ? Number(item.avance) : 0,
+                    peso: item.peso || 33.33,
+                    driveUrl: item.drive_url || ''
+                };
             });
 
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados y combinados exitosamente desde Supabase!");
+            console.log("¡Datos sincronizados exitosamente desde Supabase al iniciar!");
         }
     } catch (err) {
         console.warn("Error al sincronizar con Supabase:", err.message);
     }
 }
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
@@ -6692,9 +6694,14 @@ function registrarSolicitudAuditoria(solicitud) {
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
+// =========================================================================
+// ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
+// =========================================================================
 window.addEventListener('DOMContentLoaded', async () => {
     // 1. Descargar los datos reales directo de Supabase al abrir la página
-    await inicializarDatosDesdeSupabase();
+    if (typeof inicializarDatosDesdeSupabase === 'function') {
+        await inicializarDatosDesdeSupabase();
+    }
 
     // 2. Recuperar sesión almacenada de forma blindada
     const sesionGuarda = localStorage.getItem('secul_user');
@@ -6707,12 +6714,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             currentUser = null;
             localStorage.removeItem('secul_user');
-            window.location.replace('index.html');
-            return;
         }
-    } else {
-        window.location.replace('index.html');
-        return;
     }
 
     // 3. Refrescar interfaz de usuario con la sesión restaurada
@@ -6730,8 +6732,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (typeof renderCintilloNoticioso === 'function') {
         renderCintilloNoticioso();
     }
+    if (typeof verificarYProyectarAvisoDirectivo === 'function') {
+        verificarYProyectarAvisoDirectivo();
+    }
 });
-
         // 1 y 2. Control de Área Ejecutora y réplica automática en filas
 function manejarCambioAreaEjecutora(selectEl) {
     const inputTextoLibre = document.getElementById('inputOtraAreaEjecutora');
