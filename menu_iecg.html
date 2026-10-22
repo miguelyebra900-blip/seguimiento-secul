@@ -5728,17 +5728,29 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             act.accion = nuevoTitulo;
 
+          // =========================================================================
+            // CAPTURA ROBUSTA DEL RESPONSABLE Y CAMPOS ADICIONALES EN ACCIONES
             // =========================================================================
-            // CAPTURAR EL RESPONSABLE SELECCIONADO EN EL MODAL DE EDICIÓN DE ACCIÓN
-            // =========================================================================
-            var selInstancia = document.getElementById('selectInstanciaBaseEdit') || document.getElementById('selectInstanciaResponsableBaseEdit');
-            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || document.getElementById('inputOtraInstanciaResponsableBaseEdit');
+            var selInstancia = document.getElementById('selectInstanciaBaseEdit') || 
+                               document.getElementById('selectInstanciaResponsableBaseEdit') || 
+                               document.getElementById('selectInstanciaResponsableBuzon') ||
+                               document.querySelector('#modal-edicion-dinamica select');
+
+            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || 
+                                     document.getElementById('inputOtraInstanciaResponsableBaseEdit');
 
             if (selInstancia) {
                 act.responsable = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
                     ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
                     : selInstancia.value;
             }
+
+            // Capturar Área Externa y Vínculo SECUL si están presentes en el DOM
+            var selAreaExterna = document.getElementById('buzonAreaExterna') || document.getElementById('selectAreaExternaEdit');
+            if (selAreaExterna) act.area_externa = selAreaExterna.value;
+
+            var selVinculoSecul = document.getElementById('buzonVinculoSecul') || document.getElementById('selectVinculoSeculEdit');
+            if (selVinculoSecul) act.vinculo_secul = selVinculoSecul.value;
 
             act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
             act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
@@ -5753,6 +5765,8 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     clave_hito: act.clave_hito || act.id.split('-A-')[0],
                     accion_especifica: act.accion,
                     instancia_responsable: act.responsable || 'Comisión',
+                    area_externa: act.area_externa || 'Ninguna (Interna)',
+                    vinculo_secul: act.vinculo_secul || 'Ninguna / Directa',
                     estatus: act.estatus,
                     avance: act.avance,
                     panel: act.panel || 'I'
