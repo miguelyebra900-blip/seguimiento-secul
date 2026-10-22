@@ -535,7 +535,9 @@ window.guardarContactoNotificaciones = async function(e) {
     </div> <!-- FIN DE LA TARJETA DE ANALÍTICA -->
 
 </div> <!-- FIN DE TAB-DASHBOARD -->
-
+        <!-- ================================================================= -->
+        <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (8 ÁREAS A - H)  -->
+        <!-- ================================================================= -->
  <!-- ================================================================= -->
         <!-- SECCIÓN 1: HITOS OPERATIVOS POR ÁREA ESTRATÉGICA (10 ÁREAS A - J) -->
         <!-- ================================================================= -->
@@ -2413,46 +2415,7 @@ if (btnVinculo) {
                 btnSubmit.disabled = false;
             }
         }
-// Función para cargar los datos reales directamente desde Supabase al iniciar
-async function inicializarDatosDesdeSupabase() {
-    if (!supabaseClient) {
-        console.warn("Supabase no está disponible. Usando almacenamiento local.");
-        return;
-    }
 
-    try {
-        const { data: accionesSupabase, error } = await supabaseClient
-            .from('acciones_transicion')
-            .select('*');
-
-        if (error) throw error;
-
-        if (accionesSupabase && accionesSupabase.length > 0) {
-            accionesDataset = accionesSupabase.map(function(a) {
-                return {
-                    id: a.clave_accion || a.id,
-                    clave_accion: a.clave_accion || a.id,
-                    clave_hito: a.clave_hito || '',
-                    panel: a.panel || 'I',
-                    area: a.area || 'Fiscalización & Auditorías',
-                    hito: a.hito || 'Requerimiento Normativo',
-                    accion: a.accion || '',
-                    responsable: a.responsable || 'Comisión',
-                    estatus: a.estatus || 'En Proceso',
-                    avance: Number(a.avance) || 0,
-                    peso: Number(a.peso) || 33.33,
-                    driveUrl: a.drive_url || a.driveUrl || '',
-                    docRequerido: a.doc_requerido || 'Expediente oficial'
-                };
-            });
-
-            localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados exitosamente desde Supabase!");
-        }
-    } catch (err) {
-        console.warn("No se pudo conectar a Supabase en el inicio, usando caché local:", err.message);
-    }
-}
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
@@ -6493,15 +6456,13 @@ function registrarSolicitudAuditoria(solicitud) {
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
-window.addEventListener('DOMContentLoaded', async () => {
-    // 1. Descargar los datos reales directo de Supabase al abrir la página
-    await inicializarDatosDesdeSupabase();
-
-    // 2. Recuperar sesión almacenada de forma blindada
-    const sesionGuarda = localStorage.getItem('secul_user');
-    if (sesionGuarda) {
+window.addEventListener('DOMContentLoaded', () => {
+    // 1. Recuperar sesión almacenada de forma blindada
+    const sesionGuardada = localStorage.getItem('secul_user');
+    if (sesionGuardada) {
         try {
-            currentUser = JSON.parse(sesionGuarda);
+            currentUser = JSON.parse(sesionGuardada);
+            // Sincronizar paneles autorizados si existía sesión previa
             if (typeof resolverPanelesUsuario === 'function') {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
@@ -6516,21 +6477,22 @@ window.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // 3. Refrescar interfaz de usuario con la sesión restaurada
+    // 2. Refrescar interfaz de usuario con la sesión restaurada
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 4. Cargar tableros y métricas con los datos frescos de Supabase
+    // 3. Cargar tableros y métricas
     if (typeof mostrarSeccionTab === 'function') {
         mostrarSeccionTab('tab-dashboard');
     }
     if (typeof actualizarDashboard === 'function') {
         actualizarDashboard();
     }
-    if (typeof renderCintilloNoticioso === 'function') {
-        renderCintilloNoticioso();
-    }
+if (typeof renderCintilloNoticioso === 'function') {
+    renderCintilloNoticioso();
+}
+    
 });
 
         // 1 y 2. Control de Área Ejecutora y réplica automática en filas
