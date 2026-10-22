@@ -5470,28 +5470,30 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
     var inputTipoEl = document.getElementById('editItemTipo');
-    var claveId = document.getElementById('editItemClave').value;
-    
-    // Detección blindada: Si el input dice HITO o la clave contiene '-H-', lo tratamos estrictamente como HITO
-    var tipo = (inputTipoEl && inputTipoEl.value.trim().toUpperCase() === 'HITO') || (claveId && claveId.includes('-H-')) ? 'HITO' : 'ACCION';
-    
+    var tipo = inputTipoEl ? inputTipoEl.value.trim().toUpperCase() : 'ACCION';
+    var claveId = document.getElementById('editItemClave').value.trim();
     var nuevoTitulo = document.getElementById('inputTituloEdit').value.trim();
     var motivo = document.getElementById('inputMotivoEdit').value.trim();
     
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
-    var esAdmin = currentUser && (currentUser.rol === 'admin' || currentUser.rol === 'super' || currentUser.esAdmin);
-
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando con Supabase...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando cambios...';
     }
 
     try {
         if (tipo === 'HITO') {
-            var nuevaClaveHito = document.getElementById('inputClaveCanonicaEditable') ? document.getElementById('inputClaveCanonicaEditable').value.trim().toUpperCase() : claveId;
+            // ==========================================
+            // LÓGICA EXCLUSIVA PARA MODIFICAR HITOS
+            // ==========================================
+            var inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
+            var nuevaClaveHito = inputClaveCanonica ? inputClaveCanonica.value.trim().toUpperCase() : claveId;
             var nuevoPanel = document.getElementById('editItemPanel') ? document.getElementById('editItemPanel').value : 'I';
 
-            // 1. Actualizar en el dataset local
+            if (!nuevaClaveHito) {
+                throw new Error("La clave canónica del hito no puede estar vacía.");
+            }
+
             var encontrados = 0;
             accionesDataset.forEach(function(a) {
                 var hitoBase = a.clave_hito || (a.id ? a.id.split('-A-')[0] : '');
@@ -5499,17 +5501,27 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     a.hito = nuevoTitulo;
                     a.panel = nuevoPanel;
                     encontrados++;
+                    
                     if (nuevaClaveHito && nuevaClaveHito !== claveId) {
                         a.clave_hito = nuevaClaveHito;
-                        if (a.id) a.id = a.id.replace(claveId, nuevaClaveHito);
-                        if (a.clave_accion) a.clave_accion = a.clave_accion.replace(claveId, nuevaClaveHito);
+                        if (a.id) {
+                            var sufijoAccion = a.id.includes('-A-') ? '-A-' + a.id.split('-A-')[1] : '';
+                            a.id = nuevaClaveHito + sufijoAccion;
+                        }
+                        if (a.clave_accion) {
+                            var sufijoAccion2 = a.clave_accion.includes('-A-') ? '-A-' + a.clave_accion.split('-A-')[1] : '';
+                            a.clave_accion = nuevaClaveHito + sufijoAccion2;
+                        }
                     }
                 }
             });
 
+            if (encontrados === 0) {
+                throw new Error("No se encontró el hito [" + claveId + "] en el dataset local.");
+            }
+
             guardarDataset();
 
-            // 2. Sincronización directa y robusta con Supabase (hitos_transicion y acciones_transicion)
             if (supabaseClient) {
                 await supabaseClient
                     .from('hitos_transicion')
@@ -5522,33 +5534,22 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     .eq('clave_hito', claveId);
             }
 
-            registrarAuditoria('Modificación de Hito (Admin)', { claveId: claveId, nuevaClave: nuevaClaveHito, nuevoTitulo: nuevoTitulo, motivo: motivo });
-            alert('¡Hito [' + nuevaClaveHito + '] actualizado y sincronizado en Supabase y el sistema!');
+            alert('¡Hito [' + nuevaClaveHito + '] y sus acciones asociadas actualizadas correctamente!');
 
         } else {
-            // Rama exclusiva para Acciones Operativas
+            // ==========================================
+            // LÓGICA EXCLUSIVA PARA ACCIONES OPERATIVAS (Tu imagen del modal de acción)
+            // ==========================================
             var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
+                return (a.clave_accion === claveId) || (a.id === claveId);
             });
             
-            if (!act && supabaseClient) {
-                const { data: dataSupabase } = await supabaseClient
-                    .from('acciones_transicion')
-                    .select('*')
-                    .or(`clave_accion.eq.${claveId},id.eq.${claveId}`)
-                    .maybeSingle();
-
-                if (dataSupabase) {
-                    act = dataSupabase;
-                    accionesDataset.push(act);
-                }
-            }
-
             if (!act) {
-                throw new Error("Acción o Hito con clave [" + claveId + "] no encontrada ni en memoria ni en Supabase.");
+                throw new Error("Acción operativa no encontrada en el dataset.");
             }
 
-            act.accion = nuevoTitulo;
+            // Mapeo seguro con los campos del modal de acción de tu imagen
+            act.accion = nuevoTitulo; // Descripción de la Acción / Entregable Específico
             act.responsable = document.getElementById('inputRespEdit') ? document.getElementById('inputRespEdit').value.trim() : act.responsable;
             act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : act.estatus;
             act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : act.avance;
@@ -5568,7 +5569,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     .or(`clave_accion.eq.${claveId},id.eq.${claveId}`);
             }
 
-            alert('¡Acción [' + claveId + '] actualizada exitosamente!');
+            alert('¡Acción operativa actualizada exitosamente!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -5576,7 +5577,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert('Error al procesar la actualización: ' + err.message);
+        alert('Error al actualizar: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
