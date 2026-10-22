@@ -5704,6 +5704,19 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }
 
             act.accion = nuevoTitulo;
+
+            // =========================================================================
+            // AQUÍ SE CAPTURA EL RESPONSABLE SELECCIONADO EN EL MODAL DE EDICIÓN
+            // =========================================================================
+            var selInstancia = document.getElementById('selectInstanciaResponsableBaseEdit');
+            var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit');
+
+            if (selInstancia) {
+                act.responsable = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
+                    ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
+                    : selInstancia.value;
+            }
+
             act.estatus = document.getElementById('selectEstatusEdit') ? document.getElementById('selectEstatusEdit').value : 'En Proceso';
             act.avance = document.getElementById('inputAvanceSliderEdit') ? (parseInt(document.getElementById('inputAvanceSliderEdit').value, 10) || 0) : 0;
 
