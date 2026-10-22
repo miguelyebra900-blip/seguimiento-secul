@@ -5615,20 +5615,19 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 // 6. Abrir Modal de Edición Dinámica
 
 
+
 // 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
-// 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
+// 7. Guardar Formulario de Edición Dinámica (Versión Definitiva)
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
     var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
     var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
     
-    // Leemos la clave del nuevo campo limpio
     var inputNuevaClave = document.getElementById('inputClaveCanonicaEditable');
     var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
-    var motivo = document.getElementById('inputMotivoEdit') ? document.getElementById('inputMotivoEdit').value.trim() : '';
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
     if (btnGuardar) {
@@ -5638,17 +5637,42 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     try {
         // =========================================================================
-        // CAPTURA UNIVERSAL Y ROBUSTA (Aplica para Hitos y Acciones)
+        // CAPTURA EXACTA DEL RESPONSABLE (Buscando el select de Instancia Ejecutora)
         // =========================================================================
         var selInstancia = document.getElementById('selectInstanciaBaseEdit') || 
                            document.getElementById('selectInstanciaResponsableBaseEdit') || 
-                           document.getElementById('selectInstanciaResponsableBuzon') ||
-                           document.querySelector('#modal-edicion-dinamica select');
+                           document.getElementById('selectInstanciaResponsableBuzon');
+
+        // Si aún no lo encuentra por ID, lo buscamos por su posición exacta debajo de la etiqueta de Instancia Ejecutora
+        if (!selInstancia) {
+            var labels = document.querySelectorAll('#modal-edicion-dinamica label, #modal-edicion-dinamica .text-xs, #modal-edicion-dinamica span');
+            for (let lbl of labels) {
+                if (lbl.textContent.includes('Instancia Ejecutora') || lbl.textContent.includes('Responsable')) {
+                    var container = lbl.closest('div');
+                    if (container) {
+                        selInstancia = container.querySelector('select');
+                        if (selInstancia) break;
+                    }
+                }
+            }
+        }
+
+        // Último respaldo: si hay varios selects, tomamos el que contenga opciones de paneles o el segundo/tercero según tu estructura
+        if (!selInstancia) {
+            var selects = document.querySelectorAll('#modal-edicion-dinamica select');
+            for (let s of selects) {
+                if (s.value && s.value.includes('Panel')) {
+                    selInstancia = s;
+                    break;
+                }
+            }
+            if (!selInstancia && selects.length > 0) selInstancia = selects[0];
+        }
 
         var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || 
                                  document.getElementById('inputOtraInstanciaResponsableBaseEdit');
 
-        var responsableCapturado = 'Comisión';
+        var responsableCapturado = 'Panel I - Fiscalización & Auditorías -LPS-SECUL'; // Valor por defecto seguro
         if (selInstancia) {
             responsableCapturado = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
                 ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
@@ -5657,10 +5681,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         // Capturar Área Externa y Vínculo SECUL
         var selAreaExterna = document.getElementById('buzonAreaExterna') || document.getElementById('selectAreaExternaEdit');
-        var areaExternaCapturada = selAreaExterna ? selAreaExterna.value : 'Ninguna (Interna)';
+        var areaExternaCapturada = selAreaExterna ? selAreaExterna.value : 'Secretaría de Finanzas (SF-CSF)';
 
         var selVinculoSecul = document.getElementById('buzonVinculoSecul') || document.getElementById('selectVinculoSeculEdit');
-        var vinculoSeculCapturado = selVinculoSecul ? selVinculoSecul.value : 'Ninguna / Directa';
+        var vinculoSeculCapturado = selVinculoSecul ? selVinculoSecul.value : 'Otra Área SECUL (Escribir)';
 
         var selEstatus = document.getElementById('selectEstatusEdit');
         var estatusCapturado = selEstatus ? selEstatus.value : 'En Proceso';
@@ -5729,12 +5753,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             alert('¡Hito [' + nuevaClave + '] actualizado y guardado exitosamente!');
         } else {
-            // Búsqueda flexible para acciones que evita el error del dataset
             var act = accionesDataset.find(function(a) {
                 return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
             });
 
-            // Si no se encuentra en memoria, la creamos de inmediato para evitar que falle
             if (!act) {
                 act = {
                     id: claveOriginal,
@@ -5755,19 +5777,19 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             guardarDataset();
 
             if (supabaseClient) {
-               await supabaseClient
-                .from('acciones_transicion')
-                .upsert([{
-                    clave_accion: act.clave_accion || act.id,
-                    clave_hito: act.clave_hito || act.id.split('-A-')[0],
-                    accion_especifica: act.accion,
-                    instancia_responsable: act.responsable || 'Comisión',
-                    area_externa: act.area_externa || 'Ninguna (Interna)',
-                    vinculo_secul: act.vinculo_secul || 'Ninguna / Directa',
-                    estatus: act.estatus,
-                    avance: act.avance,
-                    panel: act.panel || 'I'
-                }], { onConflict: 'clave_accion' });
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .upsert([{
+                        clave_accion: act.clave_accion || act.id,
+                        clave_hito: act.clave_hito || act.id.split('-A-')[0],
+                        accion_especifica: act.accion,
+                        instancia_responsable: act.responsable,
+                        area_externa: act.area_externa,
+                        vinculo_secul: act.vinculo_secul,
+                        estatus: act.estatus,
+                        avance: act.avance,
+                        panel: act.panel || 'I'
+                    }], { onConflict: 'clave_accion' });
             }
 
             alert('¡Acción [' + claveOriginal + '] actualizada y sincronizada exitosamente!');
