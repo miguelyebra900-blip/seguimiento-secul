@@ -3401,7 +3401,7 @@ async function ejecutarCargaUniversal(e) {
             const hitoBase = act.clave_hito || claveAccionFinal.split('-A-')[0];
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
 
-            // 1. Guardar la acción en 'acciones_transicion'
+            // 1. Guardar la acción en 'acciones_transicion' (Únicamente columnas reales)
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: hitoBase,
