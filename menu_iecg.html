@@ -3731,10 +3731,7 @@ function renderListaCompromisosDetalle(act) {
             e.target.reset();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            mostrarSeccionTab('tab-dashboard');
-            actualizarDashboard();
-        });
+     
 
      // =========================================================================
         // ALTERNANCIA DE PESTAÑAS DENTRO DEL MODAL (DISPARA FOLIOS EN VIVO)
@@ -4052,16 +4049,6 @@ function gestionarRiesgoDesdeHito(claveHito, riesgoId) {
     }
 }
 
-// ARRANQUE GENERAL DEL DASHBOARD AL CARGAR EL DOM
-window.addEventListener('DOMContentLoaded', () => {
-    if (typeof mostrarSeccionTab === 'function') {
-        mostrarSeccionTab('tab-dashboard');
-    }
-    if (typeof actualizarDashboard === 'function') {
-        actualizarDashboard();
-    }
-    verificarYProyectarAvisoDirectivo(); // <-- Agregar esta línea aquí
-});
 
 // =========================================================================
         // RENDER DINÁMICO DEL CINTILLO: 30 HITOS + 5 COMUNICADOS INTERCALADOS
@@ -6699,8 +6686,11 @@ function registrarSolicitudAuditoria(solicitud) {
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
+// ARRANQUE ÚNICO, MAESTRO Y DEFINITIVO DEL SISTEMA SECUL
 window.addEventListener('DOMContentLoaded', async () => {
-    // 1. Descargar los datos reales directo de Supabase al abrir la página
+    console.log("🚀 Iniciando sistema SECUL... Conectando con Supabase.");
+
+    // 1. Descargar obligatoriamente los datos de Supabase antes de pintar nada
     if (typeof inicializarDatosDesdeSupabase === 'function') {
         await inicializarDatosDesdeSupabase();
     }
@@ -6710,7 +6700,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (sesionGuarda) {
         try {
             currentUser = JSON.parse(sesionGuarda);
-            if (typeof resolverPanelesUsuario === 'function') {
+            if (typeof resolverPanelesUsuario === 'function' && currentUser) {
                 currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
             }
         } catch (e) {
@@ -6719,12 +6709,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 3. Refrescar interfaz de usuario con la sesión restaurada
+    // 3. Actualizar interfaz de usuario y autenticación
     if (typeof updateAuthUI === 'function') {
         updateAuthUI();
     }
 
-    // 4. Cargar tableros y métricas con los datos frescos de Supabase
+    // 4. Pintar de inmediato todas las vistas con los datos reales de Supabase
     if (typeof mostrarSeccionTab === 'function') {
         mostrarSeccionTab('tab-dashboard');
     }
@@ -6737,6 +6727,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (typeof verificarYProyectarAvisoDirectivo === 'function') {
         verificarYProyectarAvisoDirectivo();
     }
+
+    console.log("✅ Sistema sincronizado con éxito con las tablas de Supabase.");
 });
         // 1 y 2. Control de Área Ejecutora y réplica automática en filas
 function manejarCambioAreaEjecutora(selectEl) {
