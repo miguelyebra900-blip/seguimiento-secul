@@ -3271,7 +3271,7 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
-    // Validación de permisos del panel
+    // Validación de permisos de panel
     const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
     const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
     const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
@@ -3282,31 +3282,27 @@ async function ejecutarCargaUniversal(e) {
     }
 
     let driveUrlFinal = '';
-    
-    // BÚSQUEDA SEGURA DEL INPUT DE ARCHIVO (Revisa múltiples IDs posibles)
-    const fileInput = document.getElementById('buzonFileInput') || 
-                      document.getElementById('buzonFileInputAccion') || 
-                      document.querySelector('input[type="file"]');
+    const fileInput = document.getElementById('buzonFileInput');
     
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando y subiendo...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y Supabase...';
     }
 
     try {
-        // SI SE SELECCIONÓ UN ARCHIVO FÍSICO, SE SUBE A GOOGLE DRIVE
+        // 1. Validar y subir el archivo físico adjunto a Google Drive con nomenclatura canónica
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const archivoFisico = fileInput.files[0];
             const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
             driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
         } else {
-            // Si no subió archivo nuevo, heredamos la carpeta general del panel para que el botón funcione
+            // Respaldo por si no adjuntó archivo, usa la carpeta del panel
             const idFolderPanel = GOOGLE_DRIVE_PARENTS[(hitoPadre.panel || 'A').toUpperCase()] || GOOGLE_DRIVE_PARENTS["GENERAL"];
             driveUrlFinal = `https://drive.google.com/drive/folders/${idFolderPanel}`;
         }
 
-        // Crear la nueva acción en el dataset local
+        // 2. Crear el nuevo objeto de acción en memoria (suma sin borrar previas)
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3326,7 +3322,7 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // Persistencia en Supabase
+        // 3. Sincronización en Supabase (acciones_transicion y secuencias_claves)
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -3349,7 +3345,7 @@ async function ejecutarCargaUniversal(e) {
 
             if (errSupabase) throw errSupabase;
 
-            // Actualizar la tabla de control de folios 'secuencias_claves'
+            // Actualizar el consecutivo en la tabla de control de Supabase
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3360,7 +3356,7 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción registrada y sincronizada con éxito!\n\n• Clave: ${claveAccionFinal}`);
+        alert(`¡Acción [${claveAccionFinal}] registrada y sincronizada con éxito!`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
@@ -3375,6 +3371,7 @@ async function ejecutarCargaUniversal(e) {
         }
     }
 }
+        
         
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
@@ -7153,6 +7150,75 @@ window.agregarCampoArchivoBase = function() {
     `;
     contenedor.appendChild(div);
 };
+
+// =========================================================================
+// CONSULTA OFICIAL A SUPABASE: TABLA 'secuencias_claves'
+// =========================================================================
+async function actualizarFolioAccionSugerido() {
+    const selectPadre = document.getElementById('buzonSelectAccion');
+    const inputAccion = document.getElementById('nuevaAccionClavePreview');
+    if (!selectPadre || !inputAccion) return;
+
+    const valSeleccionado = selectPadre.value;
+    if (!valSeleccionado) {
+        inputAccion.value = "SELECCIONA UN HITO...";
+        return;
+    }
+
+    const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
+    if (!act) {
+        inputAccion.value = "SELECCIONA UN HITO...";
+        return;
+    }
+
+    const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
+    let numeroHitoPart = '0001';
+    const textoOpcionSeleccionada = selectPadre.options[selectPadre.selectedIndex]?.text || '';
+    const matchTextoHito = textoOpcionSeleccionada.match(/-H-(\d+)/) || (act.clave_hito || act.id).match(/-H-(\d+)/);
+
+    if (matchTextoHito && matchTextoHito[1]) {
+        numeroHitoPart = matchTextoHito[1];
+    }
+
+    const hitoCanonicalBase = `${prefijoArea}-H-${String(numeroHitoPart).padStart(4, '0')}`;
+
+    // CONSULTA DIRECTA A SUPABASE EN LA TABLA 'secuencias_claves'
+    let siguienteAccionNum = 1;
+    if (supabaseClient) {
+        try {
+            const { data: seqData, error: seqErr } = await supabaseClient
+                .from('secuencias_claves')
+                .select('ultimo_consecutivo')
+                .eq('prefijo_padre', hitoCanonicalBase)
+                .eq('tipo_entidad', 'ACCION')
+                .maybeSingle();
+
+            if (!seqErr && seqData && seqData.ultimo_consecutivo !== undefined) {
+                siguienteAccionNum = Number(seqData.ultimo_consecutivo) + 1;
+            } else {
+                // Respaldo en memoria si la tabla tuviera algún desfase
+                let maxNum = 0;
+                accionesDataset.forEach(item => {
+                    const claveAccionItem = item.clave_accion || item.id || '';
+                    const itemHitoBase = item.clave_hito || item.id.split('-A-')[0];
+                    if (itemHitoBase === hitoCanonicalBase || claveAccionItem.startsWith(hitoCanonicalBase)) {
+                        const matchAccion = claveAccionItem.match(/-A-(\d+)/);
+                        if (matchAccion && matchAccion[1]) {
+                            const num = parseInt(matchAccion[1], 10);
+                            if (!isNaN(num) && num > maxNum) maxNum = num;
+                        }
+                    }
+                });
+                siguienteAccionNum = maxNum + 1;
+            }
+        } catch (e) {
+            console.error("Error consultando secuencias_claves:", e);
+            siguienteAccionNum = 1;
+        }
+    }
+
+    inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
+}
         
 </script>
 
