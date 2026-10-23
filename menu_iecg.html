@@ -2473,7 +2473,7 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        // 1. Consultar las tres tablas maestras de Supabase en paralelo
+        // 1. Consultar las TRES tablas maestras en Supabase de forma paralela
         const [resAcciones, resHitos, resAreas] = await Promise.all([
             supabaseClient.from('acciones_transicion').select('*'),
             supabaseClient.from('hitos_transicion').select('*'),
@@ -2482,55 +2482,45 @@ async function inicializarDatosDesdeSupabase() {
 
         if (resAcciones.error) throw resAcciones.error;
 
-        // 2. Crear diccionario de Áreas Estratégicas (Clave Área / Panel -> Nombre Oficial)
+        const accionesSupabase = resAcciones.data || [];
+        const hitosSupabase = resHitos.data || [];
+        const areasSupabase = resAreas.data || [];
+
+        // 2. Crear mapa de Áreas Estratégicas (asociando clave_area y panel con nombre_area)
         const mapaAreas = {};
-        if (resAreas.data && resAreas.data.length > 0) {
-            resAreas.data.forEach(ar => {
-                const cArea = (ar.clave_area || '').trim();
-                const pnl = (ar.panel || '').trim();
-                const nombre = ar.nombre_area || ar.nombre || 'Área Estratégica';
-                if (cArea) mapaAreas[cArea] = nombre;
-                if (pnl) mapaAreas[pnl] = nombre;
-            });
-        }
+        areasSupabase.forEach(a => {
+            const claveA = (a.clave_area || '').trim();
+            const panelA = (a.panel || '').trim();
+            const nombreA = a.nombre_area || a.nombre || 'Área Estratégica';
+            if (claveA) mapaAreas[claveA] = nombreA;
+            if (panelA) mapaAreas[panelA] = nombreA;
+        });
 
-        // 3. Crear diccionario de Hitos (Clave Hito -> Título y Área)
+        // 3. Crear mapa de Hitos (asociando clave_hito con titulo, panel y clave_area)
         const mapaHitos = {};
-        if (resHitos.data && resHitos.data.length > 0) {
-            resHitos.data.forEach(h => {
-                const cHito = (h.clave_hito || '').trim();
-                mapaHitos[cHito] = {
-                    titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
-                    panel: h.panel || 'A',
-                    clave_area: h.clave_area || 'RH_E'
-                };
-            });
-        }
+        hitosSupabase.forEach(h => {
+            const claveH = (h.clave_hito || '').trim();
+            mapaHitos[claveH] = {
+                titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
+                panel: h.panel || 'A',
+                clave_area: h.clave_area || 'RH_E'
+            };
+        });
 
-        const PREFIJO_A_PANEL = {
-            'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
-            'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
-            'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
-        };
-
-        if (resAcciones.data && resAcciones.data.length > 0) {
-            accionesDataset = resAcciones.data.map(function(item) {
+        if (accionesSupabase.length > 0) {
+            accionesDataset = accionesSupabase.map(function(item) {
                 const claveAccion = (item.clave_accion || item.id || '').trim();
                 const claveHito = (item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
                 
-                // Obtener datos relacionados del hito
+                // Obtener datos del hito relacionado
                 const hitoInfo = mapaHitos[claveHito] || {};
                 
-                // Deducir Panel
-                let panelDetectado = hitoInfo.panel || item.panel;
-                if (!panelDetectado || panelDetectado.trim() === '' || panelDetectado === 'empty') {
-                    const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0];
-                    panelDetectado = PREFIJO_A_PANEL[prefijo] || 'A';
-                }
-
-                // Deducir Nombre del Área usando la tabla areas_estrategicas
-                const claveAreaRef = hitoInfo.clave_area || claveHito.split('-')[0] || 'RH_E';
-                const nombreAreaReal = mapaAreas[claveAreaRef] || mapaAreas[panelDetectado] || 'Área Estratégica';
+                // Obtener Panel y Clave de Área
+                let panelDetectado = hitoInfo.panel || item.panel || 'A';
+                const claveArea = hitoInfo.clave_area || claveHito.split('-')[0] || 'RH_E';
+                
+                // Obtener el NOMBRE REAL del área directamente de la tabla `areas_estrategicas`
+                const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelDetectado] || 'Área Estratégica';
 
                 // Homologar estatus
                 let estatusLimpio = item.estatus || 'En Proceso';
@@ -2552,8 +2542,8 @@ async function inicializarDatosDesdeSupabase() {
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
                     panel: panelDetectado,
-                    area: nombreAreaReal, // <--- Aquí se inyecta el nombre real de la tabla areas_estrategicas
-                    hito: hitoInfo.titulo || item.hito || item.titulo || 'Hito normativo',
+                    area: nombreAreaReal, // <-- Nombre real jalado de areas_estrategicas
+                    hito: hitoInfo.titulo || item.hito || item.titulo || 'Hito normativo', // <-- Título real jalado de hitos_transicion
                     accion: item.accion_especifica || item.accion || 'Acción operativa',
                     responsable: item.instancia_responsable || item.responsable || panelDetectado,
                     estatus: estatusLimpio,
@@ -2563,8 +2553,9 @@ async function inicializarDatosDesdeSupabase() {
                 };
             });
 
+            // Guardar en localStorage y actualizar la interfaz completa
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos cruzados con 'areas_estrategicas' e 'hitos_transicion' con éxito!");
+            console.log("¡Datos sincronizados cruzando areas_estrategicas, hitos_transicion y acciones_transicion!");
             
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
