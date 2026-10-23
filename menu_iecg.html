@@ -3250,73 +3250,72 @@ async function ejecutarCargaUniversal(e) {
     e.preventDefault();
     
     const accionId = document.getElementById('buzonSelectAccion').value;
-    const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || accionId;
+    const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || '';
+    if (!claveAccionFinal || claveAccionFinal.includes('SELECCIONA')) {
+        alert("Por favor seleccione un hito válido para generar la nueva acción.");
+        return;
+    }
+
     const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
     const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
     const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
     const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
     const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
-    const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
-    if (!act) return;
+    const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
+    if (!hitoPadre) return;
 
-    // =========================================================================
-    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (INTACTO)
-    // =========================================================================
-    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
-    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
-    const puedeEditarAccion = esAdmin || misPaneles.includes(act.panel);
-
-    if (!puedeEditarAccion) {
-        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${act.panel} (${act.area}).\nTu usuario (${currentUser ? currentUser.nombre : 'Enlace'}) únicamente está facultado para operar sobre: Panel ${misPaneles.join(', ')}.\n\nPara intervenir en esta acción, debes tramitar previamente la vinculación interinstitucional.`);
-        
-        if (typeof abrirModalVinculacionUniversalDirecta === 'function') {
-            abrirModalVinculacionUniversalDirecta(act.clave_hito || act.id.split('-A-')[0], claveAccionFinal);
-        }
-        return; // Detiene la subida y el guardado si no tiene permisos
-    }
-
-    let driveUrlFinal = act.driveUrl || '';
+    let driveUrlFinal = '';
     const fileInput = document.getElementById('buzonFileInputAccion') || document.getElementById('buzonFileInput');
     
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando con Supabase y Drive...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando nueva acción...';
     }
 
     try {
-        // 1. Subir a Google Drive si hay archivo físico seleccionado
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const archivoFisico = fileInput.files[0];
             const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
-            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
+            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
         }
 
-        // 2. Actualizar o insertar la acción en el dataset local
-        act.estatus = nuevoEstatus;
-        act.avance = nuevoAvance;
-        act.driveUrl = driveUrlFinal;
-        if (tituloAccion) act.accion = tituloAccion;
-        if (respAccion) act.responsable = respAccion;
-        if (notaAuditoria) act.observaciones = notaAuditoria;
-        
+        // Crear el NUEVO objeto de acción en memoria
+        const nuevaAccionObj = {
+            id: claveAccionFinal,
+            clave_accion: claveAccionFinal,
+            clave_hito: hitoPadre.clave_hito || hitoPadre.id.split('-A-')[0],
+            panel: hitoPadre.panel,
+            area: hitoPadre.area,
+            hito: hitoPadre.hito,
+            accion: tituloAccion || 'Acción operativa específica',
+            responsable: respAccion || hitoPadre.responsable,
+            estatus: nuevoEstatus,
+            avance: nuevoAvance,
+            peso: 33.33,
+            driveUrl: driveUrlFinal,
+            observaciones: notaAuditoria
+        };
+
+        accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // =========================================================================
-        // 3. PERSISTENCIA DIRECTA EN LA TABLA DE SUPABASE (NUEVO Y SEGURO)
-        // =========================================================================
-if (supabaseClient) {
+        if (supabaseClient) {
+            const hitoBase = nuevaAccionObj.clave_hito;
+            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
+
+            // 1. Guardar en 'acciones_transicion' (Únicamente columnas reales de la tabla)
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
-                clave_hito: act.clave_hito || claveAccionFinal.split('-A-')[0],
-                panel: act.panel || 'A',
-                hito: act.hito || 'Hito normativo',
-                accion_especifica: act.accion,
-                instancia_responsable: act.responsable,
-                estatus: nuevoAvance, // <--- Guardamos el porcentaje de avance directamente en la columna estatus de la base de datos
-                drive_url: act.driveUrl,
-                updated_at: new Date().toISOString()
+                clave_hito: hitoBase,
+                consecutivo_num: numConsecutivoActual,
+                accion_especifica: nuevaAccionObj.accion,
+                estatus: nuevoAvance,
+                prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
+                drive_url: driveUrlFinal,
+                nota_auditoria: notaAuditoria,
+                instancia_responsable: nuevaAccionObj.responsable
             };
 
             const { error: errSupabase } = await supabaseClient
@@ -3324,16 +3323,26 @@ if (supabaseClient) {
                 .upsert([payloadSupabase], { onConflict: 'clave_accion' });
 
             if (errSupabase) throw errSupabase;
+
+            // 2. Actualizar la tabla 'secuencias_claves' con el consecutivo correcto
+            await supabaseClient
+                .from('secuencias_claves')
+                .upsert([{
+                    tipo_entidad: 'ACCION',
+                    prefijo_padre: hitoBase,
+                    ultimo_consecutivo: numConsecutivoActual,
+                    updated_at: new Date().toISOString()
+                }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción guardada, propagada y sincronizada en Supabase y Drive con éxito!\n\n• Clave: ${claveAccionFinal}`);
+        alert(`¡Nueva acción registrada con éxito!\n\n• Clave: ${claveAccionFinal}`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert("Error al sincronizar con Supabase / Drive: " + err.message);
+        alert("Error al sincronizar con Supabase: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -3341,6 +3350,7 @@ if (supabaseClient) {
         }
     }
 }
+        
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
         const fileInput = document.getElementById('buzonFileInput');
