@@ -3302,12 +3302,11 @@ async function ejecutarCargaUniversal(e) {
         // =========================================================================
         // 3. PERSISTENCIA DIRECTA EN LA TABLA DE SUPABASE (NUEVO Y SEGURO)
         // =========================================================================
-        if (supabaseClient) {
+      if (supabaseClient) {
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: act.clave_hito || claveAccionFinal.split('-A-')[0],
                 panel: act.panel || 'A',
-                area: act.area || 'Área Estratégica',
                 hito: act.hito || 'Hito normativo',
                 accion_especifica: act.accion,
                 instancia_responsable: act.responsable,
