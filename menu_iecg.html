@@ -2525,12 +2525,11 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no está disponible. Usando almacenamiento local.");
+        console.warn("Supabase no disponible, usando localStorage.");
         return;
     }
 
     try {
-        // Consultamos la tabla acciones_transicion en Supabase
         const { data: accionesSupabase, error } = await supabaseClient
             .from('acciones_transicion')
             .select('*');
@@ -2545,7 +2544,8 @@ async function inicializarDatosDesdeSupabase() {
                     clave_hito: item.clave_hito || (item.clave_accion ? item.clave_accion.split('-A-')[0] : ''),
                     panel: item.panel || 'A',
                     area: item.area || 'Área Estratégica',
-                    hito: item.hito || 'Hito normativo',
+                    // Mapeo exacto de los nombres de tus columnas en Supabase:
+                    hito: item.hito || item.titulo || 'Hito normativo',
                     accion: item.accion_especifica || item.accion || 'Acción operativa',
                     responsable: item.instancia_responsable || item.responsable || 'Comisión',
                     estatus: item.estatus || 'En Proceso',
@@ -2556,10 +2556,13 @@ async function inicializarDatosDesdeSupabase() {
             });
 
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados exitosamente desde las tablas de Supabase!");
+            console.log("¡Datos de Supabase cargados y mapeados correctamente!");
+            
+            // Refrescar el dashboard de inmediato con los datos reales
+            actualizarDashboard();
         }
     } catch (err) {
-        console.warn("Aviso de red con Supabase, operando con respaldo local:", err.message);
+        console.warn("Error al conectar con Supabase:", err.message);
     }
 }
         async function registrarAuditoria(tipoAccion, detalles) {
@@ -6719,9 +6722,7 @@ function registrarSolicitudAuditoria(solicitud) {
         }]).then();
     }
 }        
-// =========================================================================
-// ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
-// =========================================================================
+
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
