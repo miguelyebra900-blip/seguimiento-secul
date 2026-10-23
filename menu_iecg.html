@@ -5775,65 +5775,43 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y Sincronizando...';
     }
 
     try {
-        // =========================================================================
-        // CAPTURA EXACTA DEL RESPONSABLE (Buscando el select de Instancia Ejecutora)
-        // =========================================================================
+        // 1. Verificar si se adjuntó un archivo PDF nuevo en este modal
+        const fileInput = document.getElementById('modalEdicionFileInput');
+        let driveUrlFinal = '';
+
+        // Buscar el objeto existente para heredar su URL de Drive si no se sube uno nuevo
+        var actExistente = accionesDataset.find(function(a) {
+            return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
+        });
+        if (actExistente && actExistente.driveUrl) {
+            driveUrlFinal = actExistente.driveUrl;
+        }
+
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            const archivoFisico = fileInput.files[0];
+            const panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
+            const nombreNominalDrive = `[${nuevaClave}] ${archivoFisico.name}`;
+            
+            // Subida directa al Apps Script de Google Drive
+            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
+        }
+
+        // 2. Captura de datos del formulario (Instancia, Estatus, Avance)
         var selInstancia = document.getElementById('selectInstanciaBaseEdit') || 
                            document.getElementById('selectInstanciaResponsableBaseEdit') || 
                            document.getElementById('selectInstanciaResponsableBuzon');
 
-        // Si aún no lo encuentra por ID, lo buscamos por su posición exacta debajo de la etiqueta de Instancia Ejecutora
-        if (!selInstancia) {
-            var labels = document.querySelectorAll('#modal-edicion-dinamica label, #modal-edicion-dinamica .text-xs, #modal-edicion-dinamica span');
-            for (let lbl of labels) {
-                if (lbl.textContent.includes('Instancia Ejecutora') || lbl.textContent.includes('Responsable')) {
-                    var container = lbl.closest('div');
-                    if (container) {
-                        selInstancia = container.querySelector('select');
-                        if (selInstancia) break;
-                    }
-                }
-            }
-        }
-
-        // Último respaldo: si hay varios selects, tomamos el que contenga opciones de paneles o el segundo/tercero según tu estructura
-        if (!selInstancia) {
-            var selects = document.querySelectorAll('#modal-edicion-dinamica select');
-            for (let s of selects) {
-                if (s.value && s.value.includes('Panel')) {
-                    selInstancia = s;
-                    break;
-                }
-            }
-            if (!selInstancia && selects.length > 0) selInstancia = selects[0];
-        }
-
-        var inputOtraInstancia = document.getElementById('inputOtraInstanciaBaseEdit') || 
-                                 document.getElementById('inputOtraInstanciaResponsableBaseEdit');
-
-        var responsableCapturado = 'Panel I - Fiscalización & Auditorías -LPS-SECUL'; // Valor por defecto seguro
-        if (selInstancia) {
-            responsableCapturado = (selInstancia.value === 'OTRA' && inputOtraInstancia) 
-                ? (inputOtraInstancia.value.trim() || 'Otra Instancia') 
-                : selInstancia.value;
-        }
-
-        // Capturar Área Externa y Vínculo SECUL
-        var selAreaExterna = document.getElementById('buzonAreaExterna') || document.getElementById('selectAreaExternaEdit');
-        var areaExternaCapturada = selAreaExterna ? selAreaExterna.value : 'Secretaría de Finanzas (SF-CSF)';
-
-        var selVinculoSecul = document.getElementById('buzonVinculoSecul') || document.getElementById('selectVinculoSeculEdit');
-        var vinculoSeculCapturado = selVinculoSecul ? selVinculoSecul.value : 'Otra Área SECUL (Escribir)';
-
+        var responsableCapturado = selInstancia ? selInstancia.value : (actExistente ? actExistente.responsable : 'Panel I - Fiscalización & Auditorías');
+        
         var selEstatus = document.getElementById('selectEstatusEdit');
-        var estatusCapturado = selEstatus ? selEstatus.value : 'En Proceso';
+        var estatusCapturado = selEstatus ? selEstatus.value : (actExistente ? actExistente.estatus : 'En Proceso');
 
         var sliderAvance = document.getElementById('inputAvanceSliderEdit');
-        var avanceCapturado = sliderAvance ? (parseInt(sliderAvance.value, 10) || 0) : 0;
+        var avanceCapturado = sliderAvance ? (parseInt(sliderAvance.value, 10) || 0) : (actExistente ? actExistente.avance : 100);
 
         if (tipo === 'HITO') {
             var accionesHito = accionesDataset.filter(function(a) {
@@ -5850,10 +5828,9 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     hito: nuevoTitulo,
                     accion: 'Acción inicial',
                     responsable: responsableCapturado,
-                    area_externa: areaExternaCapturada,
-                    vinculo_secul: vinculoSeculCapturado,
                     estatus: estatusCapturado,
-                    avance: avanceCapturado
+                    avance: avanceCapturado,
+                    driveUrl: driveUrlFinal
                 });
                 accionesDataset.push(accionesHito[0]);
             }
@@ -5861,10 +5838,9 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             accionesHito.forEach(function(act) {
                 if (nuevoTitulo) act.hito = nuevoTitulo;
                 act.responsable = responsableCapturado;
-                act.area_externa = areaExternaCapturada;
-                act.vinculo_secul = vinculoSeculCapturado;
                 act.estatus = estatusCapturado;
                 act.avance = avanceCapturado;
+                if (driveUrlFinal) act.driveUrl = driveUrlFinal;
 
                 if (nuevaClave !== claveOriginal) {
                     act.clave_hito = nuevaClave;
@@ -5882,24 +5858,17 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                         .upsert([{
                             clave_accion: act.clave_accion || act.id,
                             clave_hito: act.clave_hito,
-                            hito: act.hito,
                             accion_especifica: act.accion,
-                            instancia_responsable: act.responsable,
-                            area_externa: act.area_externa,
-                            vinculo_secul: act.vinculo_secul,
-                            estatus: act.estatus,
-                            avance: act.avance,
-                            panel: act.panel || 'I'
+                            estatus: act.avance,
+                            drive_url: act.driveUrl || '',
+                            instancia_responsable: act.responsable
                         }], { onConflict: 'clave_accion' });
                 }
             }
 
-            alert('¡Hito [' + nuevaClave + '] actualizado y guardado exitosamente!');
+            alert('¡Hito [' + nuevaClave + '] actualizado con éxito y respaldado en Drive!');
         } else {
-            var act = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
-            });
-
+            var act = actExistente;
             if (!act) {
                 act = {
                     id: claveOriginal,
@@ -5912,10 +5881,9 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
             act.accion = nuevoTitulo;
             act.responsable = responsableCapturado;
-            act.area_externa = areaExternaCapturada;
-            act.vinculo_secul = vinculoSeculCapturado;
             act.estatus = estatusCapturado;
             act.avance = avanceCapturado;
+            if (driveUrlFinal) act.driveUrl = driveUrlFinal;
 
             guardarDataset();
 
@@ -5926,16 +5894,13 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                         clave_accion: act.clave_accion || act.id,
                         clave_hito: act.clave_hito || act.id.split('-A-')[0],
                         accion_especifica: act.accion,
-                        instancia_responsable: act.responsable,
-                        area_externa: act.area_externa,
-                        vinculo_secul: act.vinculo_secul,
-                        estatus: act.estatus,
-                        avance: act.avance,
-                        panel: act.panel || 'I'
+                        estatus: act.avance,
+                        drive_url: act.driveUrl || '',
+                        instancia_responsable: act.responsable
                     }], { onConflict: 'clave_accion' });
             }
 
-            alert('¡Acción [' + claveOriginal + '] actualizada y sincronizada exitosamente!');
+            alert('¡Acción [' + claveOriginal + '] actualizada, archivo en Drive vinculado y sincronizada!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -7734,7 +7699,17 @@ async function actualizarFolioAccionSugerido() {
                 <button type="submit" id="btnGuardarEdicionDinamica" class="btn-executive px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
                     <i class="fa-solid fa-check"></i> Aplicar y Propagar a Todo el Sistema
                 </button>
-            </div>
+            </div>  
+        <!-- CAMPO DE CARGA DE ARCHIVO PARA GOOGLE DRIVE EN EL MODAL UNIFICADO -->
+<div style="grid-column: 1 / -1; margin-top: 0.75rem; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+    <label style="display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #475569; margin-bottom: 0.35rem;">
+        Evidencia Documental (PDF / Oficio para Google Drive):
+    </label>
+    <input type="file" id="modalEdicionFileInput" style="width: 100%; font-size: 11px; cursor: pointer;">
+    <span style="font-size: 10px; color: #64748b; display: block; margin-top: 0.25rem;">
+        Al adjuntar un archivo, se subirá automáticamente con su nomenclatura canónica.
+    </span>
+</div>
         </form>
 
     </div>
