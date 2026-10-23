@@ -2473,21 +2473,37 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        const { data: accionesSupabase, error: errAcciones } = await supabaseClient
-            .from('acciones_transicion')
-            .select('*');
+        // 1. Consultar las tres tablas maestras de Supabase en paralelo
+        const [resAcciones, resHitos, resAreas] = await Promise.all([
+            supabaseClient.from('acciones_transicion').select('*'),
+            supabaseClient.from('hitos_transicion').select('*'),
+            supabaseClient.from('areas_estrategicas').select('*')
+        ]);
 
-        const { data: hitosSupabase, error: errHitos } = await supabaseClient
-            .from('hitos_transicion')
-            .select('*');
+        if (resAcciones.error) throw resAcciones.error;
 
-        if (errAcciones) throw errAcciones;
+        // 2. Crear diccionario de Áreas Estratégicas (Clave Área / Panel -> Nombre Oficial)
+        const mapaAreas = {};
+        if (resAreas.data && resAreas.data.length > 0) {
+            resAreas.data.forEach(ar => {
+                const cArea = (ar.clave_area || '').trim();
+                const pnl = (ar.panel || '').trim();
+                const nombre = ar.nombre_area || ar.nombre || 'Área Estratégica';
+                if (cArea) mapaAreas[cArea] = nombre;
+                if (pnl) mapaAreas[pnl] = nombre;
+            });
+        }
 
-        let mapaHitosTextos = {};
-        if (hitosSupabase && hitosSupabase.length > 0) {
-            hitosSupabase.forEach(h => {
-                const claveH = h.clave_hito || '';
-                mapaHitosTextos[claveH] = h.titulo || h.detalle_operativo || 'Hito normativo';
+        // 3. Crear diccionario de Hitos (Clave Hito -> Título y Área)
+        const mapaHitos = {};
+        if (resHitos.data && resHitos.data.length > 0) {
+            resHitos.data.forEach(h => {
+                const cHito = (h.clave_hito || '').trim();
+                mapaHitos[cHito] = {
+                    titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
+                    panel: h.panel || 'A',
+                    clave_area: h.clave_area || 'RH_E'
+                };
             });
         }
 
@@ -2497,21 +2513,30 @@ async function inicializarDatosDesdeSupabase() {
             'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
         };
 
-        if (accionesSupabase && accionesSupabase.length > 0) {
-            accionesDataset = accionesSupabase.map(function(item) {
-                const claveAccion = item.clave_accion || item.id || '';
-                const claveHito = item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '');
+        if (resAcciones.data && resAcciones.data.length > 0) {
+            accionesDataset = resAcciones.data.map(function(item) {
+                const claveAccion = (item.clave_accion || item.id || '').trim();
+                const claveHito = (item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
                 
-                let panelDetectado = item.panel;
+                // Obtener datos relacionados del hito
+                const hitoInfo = mapaHitos[claveHito] || {};
+                
+                // Deducir Panel
+                let panelDetectado = hitoInfo.panel || item.panel;
                 if (!panelDetectado || panelDetectado.trim() === '' || panelDetectado === 'empty') {
                     const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0];
                     panelDetectado = PREFIJO_A_PANEL[prefijo] || 'A';
                 }
 
+                // Deducir Nombre del Área usando la tabla areas_estrategicas
+                const claveAreaRef = hitoInfo.clave_area || claveHito.split('-')[0] || 'RH_E';
+                const nombreAreaReal = mapaAreas[claveAreaRef] || mapaAreas[panelDetectado] || 'Área Estratégica';
+
+                // Homologar estatus
                 let estatusLimpio = item.estatus || 'En Proceso';
-                if (estatusLimpio.toLowerCase().includes('concluido') || Number(item.avance || item.avance_porcentaje) === 100) {
+                if (String(estatusLimpio) === '100' || String(estatusLimpio).toLowerCase().includes('concluid')) {
                     estatusLimpio = 'Concluido';
-                } else if (estatusLimpio.toLowerCase().includes('valid')) {
+                } else if (String(estatusLimpio).toLowerCase().includes('valid')) {
                     estatusLimpio = 'Validación';
                 } else {
                     estatusLimpio = 'En Proceso';
@@ -2527,10 +2552,10 @@ async function inicializarDatosDesdeSupabase() {
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
                     panel: panelDetectado,
-                    area: item.area || 'Área Estratégica de Seguimiento',
-                    hito: item.hito || item.titulo || mapaHitosTextos[claveHito] || 'Hito normativo',
+                    area: nombreAreaReal, // <--- Aquí se inyecta el nombre real de la tabla areas_estrategicas
+                    hito: hitoInfo.titulo || item.hito || item.titulo || 'Hito normativo',
                     accion: item.accion_especifica || item.accion || 'Acción operativa',
-                    responsable: item.instancia_responsable || item.responsable || 'Comisión',
+                    responsable: item.instancia_responsable || item.responsable || panelDetectado,
                     estatus: estatusLimpio,
                     avance: valorAvance,
                     peso: item.peso || 33.33,
@@ -2539,7 +2564,7 @@ async function inicializarDatosDesdeSupabase() {
             });
 
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados y homologados con Supabase!");
+            console.log("¡Datos cruzados con 'areas_estrategicas' e 'hitos_transicion' con éxito!");
             
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
