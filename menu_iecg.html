@@ -2473,47 +2473,71 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        // Consultamos la tabla principal de acciones en Supabase
-        const { data: accionesSupabase, error } = await supabaseClient
+        // 1. Consultar ambas tablas maestras en Supabase
+        const { data: accionesSupabase, error: errAcciones } = await supabaseClient
             .from('acciones_transicion')
             .select('*');
 
-        if (error) throw error;
+        const { data: hitosSupabase, error: errHitos } = await supabaseClient
+            .from('hitos_transicion')
+            .select('*');
+
+        if (errAcciones) throw errAcciones;
+
+        // Creamos un diccionario rápido de hitos usando las columnas reales: titulo o hito
+        let mapaHitosTextos = {};
+        if (hitosSupabase && hitosSupabase.length > 0) {
+            hitosSupabase.forEach(h => {
+                const claveH = h.clave_hito || '';
+                mapaHitosTextos[claveH] = h.titulo || h.hito || 'Hito normativo';
+            });
+        }
 
         if (accionesSupabase && accionesSupabase.length > 0) {
+            // Mapeo blindado con los nombres EXACTOS de tus columnas en Supabase (vistas en tu video)
             accionesDataset = accionesSupabase.map(function(item) {
+                const claveHitoActual = item.clave_hito || (item.clave_accion ? item.clave_accion.split('-A-')[0] : '');
+                
                 return {
                     id: item.clave_accion || item.id,
                     clave_accion: item.clave_accion || item.id,
-                    clave_hito: item.clave_hito || (item.clave_accion ? item.clave_accion.split('-A-')[0] : ''),
+                    clave_hito: claveHitoActual,
                     panel: item.panel || 'A',
                     area: item.area || 'Recursos Humanos & Estructura',
-                    // Mapeo blindado con los nombres exactos de tus columnas en Supabase:
-                    hito: item.hito || item.titulo || 'Hito normativo',
-                    accion: item.accion_especifica || item.accion || 'Acción operativa',
+                    
+                    // Columnas reales de Supabase: 'hito', 'titulo', o rescatado del maestro 'hitos_transicion'
+                    hito: item.hito || item.titulo || mapaHitosTextos[claveHitoActual] || 'Hito normativo',
+                    
+                    // Columna real en acciones_transicion: 'accion_especifica'
+                    accion: item.accion_especifica || item.accion || item.detalle_operativo || 'Acción operativa',
+                    
+                    // Columna real en acciones_transicion: 'instancia_responsable'
                     responsable: item.instancia_responsable || item.responsable || 'Comisión',
+                    
                     estatus: item.estatus || 'En Proceso',
-                    // Aseguramos leer 'avance' o 'avance_porcentaje' convertidos a número válido:
+                    
+                    // Columnas reales de avance: 'avance' o 'avance_porcentaje'
                     avance: (item.avance !== null && item.avance !== undefined) ? Number(item.avance) : 
                             ((item.avance_porcentaje !== null && item.avance_porcentaje !== undefined) ? Number(item.avance_porcentaje) : 0),
+                    
                     peso: item.peso || 33.33,
                     driveUrl: item.drive_url || item.driveUrl || ''
                 };
             });
 
-            // Guardamos en memoria local la verdad absoluta de Supabase
+            // Guardar la verdad absoluta en localStorage y refrescar la interfaz
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados y mapeados al 100% desde Supabase!");
+            console.log("¡Datos de Supabase mapeados exitosamente con columnas reales!");
             
-            // Forzar actualización inmediata de todos los componentes visuales
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
             if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
         }
     } catch (err) {
-        console.warn("Error crítico al conectar con Supabase:", err.message);
+        console.error("Error crítico al sincronizar con Supabase:", err.message);
     }
 }
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
