@@ -3274,7 +3274,7 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
-    // Validar permisos de panel
+    // Validación de permisos de panel
     const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
     const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
     const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
@@ -3284,7 +3284,7 @@ async function ejecutarCargaUniversal(e) {
         return;
     }
 
-    // Validación obligatoria del archivo físico
+    // OBLIGATORIO: Validar archivo físico PDF
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
@@ -3298,7 +3298,7 @@ async function ejecutarCargaUniversal(e) {
     }
 
     try {
-        // 1. Subir a Google Drive con el nombre canónico exacto [CLAVE] NombreArchivo
+        // 1. SUBIDA A GOOGLE DRIVE CON NOMENCLATURA [CLAVE] NombreArchivo.pdf
         const archivoFisico = fileInput.files[0];
         const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
         const driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
@@ -3307,7 +3307,7 @@ async function ejecutarCargaUniversal(e) {
             throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
         }
 
-        // 2. Crear el objeto de la nueva acción en memoria (suma sin borrar previas)
+        // 2. CREAR EL OBJETO EN MEMORIA (Suma sin borrar previas)
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3327,20 +3327,17 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 3. Persistencia en Supabase (acciones_transicion y actualización de secuencias_claves)
+        // 3. PERSISTENCIA SEGURA EN SUPABASE (Sin campos que generen error 400)
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
-            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
 
+            // Payload reducido estrictamente a las columnas oficiales de 'acciones_transicion'
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: hitoBase,
-                consecutivo_num: numConsecutivoActual,
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
-                prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
                 drive_url: driveUrlFinal,
-                nota_auditoria: notaAuditoria,
                 instancia_responsable: nuevaAccionObj.responsable
             };
 
@@ -3351,6 +3348,7 @@ async function ejecutarCargaUniversal(e) {
             if (errSupabase) throw errSupabase;
 
             // Actualizar la tabla de control de folios 'secuencias_claves'
+            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3361,13 +3359,14 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción [${claveAccionFinal}] registrada con éxito, respaldada en Drive y sincronizada!`);
+        alert(`¡Acción [${claveAccionFinal}] registrada y respaldada con éxito en Drive y Supabase!`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
+        console.error("Error detallado:", err);
         alert("Error al sincronizar con Supabase / Drive: " + err.message);
     } finally {
         if (btnSubmit) {
@@ -3376,7 +3375,6 @@ async function ejecutarCargaUniversal(e) {
         }
     }
 }
-        
         
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
