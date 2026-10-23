@@ -205,7 +205,7 @@ window.guardarContactoNotificaciones = async function(e) {
     alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
 };
     
-
+</script>
 
     
 </head>
@@ -1961,112 +1961,6 @@ function manejarCambioExternaBuzon(selectEl) {
         inputTexto.value = '';
     }
 }
-
-// =========================================================================
-// CÁLCULO Y CONSULTA DEL SIGUIENTE CONSECUTIVO DESDE 'secuencias_claves'
-// =========================================================================
-async function actualizarFolioAccionSugerido() {
-    const selectPadre = document.getElementById('buzonSelectAccion');
-    const inputAccion = document.getElementById('nuevaAccionClavePreview');
-    if (selectPadre && inputAccion) {
-        const valSeleccionado = selectPadre.value;
-        if (!valSeleccionado) {
-            inputAccion.value = "SELECCIONA UN HITO...";
-            return;
-        }
-
-        const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
-        if (!act) {
-            inputAccion.value = "SELECCIONA UN HITO...";
-            return;
-        }
-
-        const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
-        let numeroHitoPart = '0001';
-        const textoOpcionSeleccionada = selectPadre.options[selectPadre.selectedIndex]?.text || '';
-        const matchTextoHito = textoOpcionSeleccionada.match(/-H-(\d+)/) || (act.clave_hito || act.id).match(/-H-(\d+)/);
-
-        if (matchTextoHito && matchTextoHito[1]) {
-            numeroHitoPart = matchTextoHito[1];
-        }
-
-        const hitoCanonicalBase = `${prefijoArea}-H-${String(numeroHitoPart).padStart(4, '0')}`;
-
-        // CONSULTA DIRECTA A LA TABLA 'secuencias_claves' EN SUPABASE
-        let siguienteAccionNum = 1;
-        if (supabaseClient) {
-            try {
-                const { data: seqData, error: seqErr } = await supabaseClient
-                    .from('secuencias_claves')
-                    .select('ultimo_consecutivo')
-                    .eq('prefijo_padre', hitoCanonicalBase)
-                    .eq('tipo_entidad', 'ACCION')
-                    .maybeSingle();
-
-                if (!seqErr && seqData) {
-                    siguienteAccionNum = (Number(seqData.ultimo_consecutivo) || 0) + 1;
-                } else {
-                    let maxNum = 0;
-                    accionesDataset.forEach(item => {
-                        const claveAccionItem = item.clave_accion || item.id || '';
-                        const itemHitoBase = item.clave_hito || item.id.split('-A-')[0];
-                        if (itemHitoBase === hitoCanonicalBase || claveAccionItem.startsWith(hitoCanonicalBase)) {
-                            const matchAccion = claveAccionItem.match(/-A-(\d+)/);
-                            if (matchAccion && matchAccion[1]) {
-                                const num = parseInt(matchAccion[1], 10);
-                                if (!isNaN(num) && num > maxNum) maxNum = num;
-                            }
-                        }
-                    });
-                    siguienteAccionNum = maxNum + 1;
-                }
-            } catch (e) {
-                siguienteAccionNum = 1;
-            }
-        }
-
-        inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
-    }
-}
-```
-
-Y al guardar dentro de **`ejecutarCargaUniversal`**, asegúrate de que el bloque de Supabase incluya la actualización de la tabla `secuencias_claves` de esta forma:
-
-```javascript
-        if (supabaseClient) {
-            const hitoBase = act.clave_hito || claveAccionFinal.split('-A-')[0];
-            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
-
-            // 1. Guardar la acción en 'acciones_transicion'
-            const payloadSupabase = {
-                clave_accion: claveAccionFinal,
-                clave_hito: hitoBase,
-                consecutivo_num: numConsecutivoActual,
-                accion_especifica: act.accion,
-                estatus: nuevoAvance,
-                prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: act.driveUrl || '',
-                nota_auditoria: notaAuditoria,
-                instancia_responsable: respAccion || act.responsable
-            };
-
-            const { error: errSupabase } = await supabaseClient
-                .from('acciones_transicion')
-                .upsert([payloadSupabase], { onConflict: 'clave_accion' });
-
-            if (errSupabase) throw errSupabase;
-
-            // 2. Actualizar el último consecutivo en 'secuencias_claves'
-            await supabaseClient
-                .from('secuencias_claves')
-                .upsert([{
-                    tipo_entidad: 'ACCION',
-                    prefijo_padre: hitoBase,
-                    ultimo_consecutivo: numConsecutivoActual,
-                    updated_at: new Date().toISOString()
-                }], { onConflict: 'tipo_entidad,prefijo_padre' });
-        }
-    
 </script>
                 </div>
 
@@ -3362,14 +3256,20 @@ async function ejecutarCargaUniversal(e) {
     const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!act) return;
 
-    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL
+    // =========================================================================
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (INTACTO)
+    // =========================================================================
     const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
     const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
     const puedeEditarAccion = esAdmin || misPaneles.includes(act.panel);
 
     if (!puedeEditarAccion) {
-        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${act.panel} (${act.area}).\nTu usuario (${currentUser ? currentUser.nombre : 'Enlace'}) únicamente está facultado para operar sobre: Panel ${misPaneles.join(', ')}.`);
-        return;
+        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${act.panel} (${act.area}).\nTu usuario (${currentUser ? currentUser.nombre : 'Enlace'}) únicamente está facultado para operar sobre: Panel ${misPaneles.join(', ')}.\n\nPara intervenir en esta acción, debes tramitar previamente la vinculación interinstitucional.`);
+        
+        if (typeof abrirModalVinculacionUniversalDirecta === 'function') {
+            abrirModalVinculacionUniversalDirecta(act.clave_hito || act.id.split('-A-')[0], claveAccionFinal);
+        }
+        return; // Detiene la subida y el guardado si no tiene permisos
     }
 
     let driveUrlFinal = act.driveUrl || '';
@@ -3382,12 +3282,14 @@ async function ejecutarCargaUniversal(e) {
     }
 
     try {
+        // 1. Subir a Google Drive si hay archivo físico seleccionado
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const archivoFisico = fileInput.files[0];
             const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
             driveUrlFinal = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
         }
 
+        // 2. Actualizar o insertar la acción en el dataset local
         act.estatus = nuevoEstatus;
         act.avance = nuevoAvance;
         act.driveUrl = driveUrlFinal;
@@ -3397,21 +3299,20 @@ async function ejecutarCargaUniversal(e) {
         
         guardarDataset();
 
-        if (supabaseClient) {
-            const hitoBase = act.clave_hito || claveAccionFinal.split('-A-')[0];
-            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
-
-            // 1. Guardar la acción en 'acciones_transicion' (Únicamente columnas reales)
+        // =========================================================================
+        // 3. PERSISTENCIA DIRECTA EN LA TABLA DE SUPABASE (NUEVO Y SEGURO)
+        // =========================================================================
+if (supabaseClient) {
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
-                clave_hito: hitoBase,
-                consecutivo_num: numConsecutivoActual,
+                clave_hito: act.clave_hito || claveAccionFinal.split('-A-')[0],
+                panel: act.panel || 'A',
+                hito: act.hito || 'Hito normativo',
                 accion_especifica: act.accion,
-                estatus: nuevoAvance,
-                prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: act.driveUrl || '',
-                nota_auditoria: notaAuditoria,
-                instancia_responsable: respAccion || act.responsable
+                instancia_responsable: act.responsable,
+                estatus: nuevoAvance, // <--- Guardamos el porcentaje de avance directamente en la columna estatus de la base de datos
+                drive_url: act.driveUrl,
+                updated_at: new Date().toISOString()
             };
 
             const { error: errSupabase } = await supabaseClient
@@ -3419,16 +3320,6 @@ async function ejecutarCargaUniversal(e) {
                 .upsert([payloadSupabase], { onConflict: 'clave_accion' });
 
             if (errSupabase) throw errSupabase;
-
-            // 2. Actualizar el último consecutivo en 'secuencias_claves'
-            await supabaseClient
-                .from('secuencias_claves')
-                .upsert([{
-                    tipo_entidad: 'ACCION',
-                    prefijo_padre: hitoBase,
-                    ultimo_consecutivo: numConsecutivoActual,
-                    updated_at: new Date().toISOString()
-                }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
         alert(`¡Acción guardada, propagada y sincronizada en Supabase y Drive con éxito!\n\n• Clave: ${claveAccionFinal}`);
