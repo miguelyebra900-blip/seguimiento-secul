@@ -1975,8 +1975,8 @@ function manejarCambioExternaBuzon(selectEl) {
 
 <!-- CAMPO DE CARGA DE ARCHIVO PARA GOOGLE DRIVE -->
                 <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 mb-3">
-                    <label class="block font-bold text-slate-700 mb-1">Evidencia Documental (PDF / Oficio para Google Drive):</label>
-                    <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                <label class="block font-bold text-slate-700 mb-1">Evidencia Documental (PDF / Oficio para Google Drive):</label>
+                <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                 </div>
                 
                 <!-- Botones de Acción con Botón Regresar -->
@@ -3252,6 +3252,9 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
         function abrirCarpetaActualDesdeBuzon() { const act = accionesDataset.find(a => a.id === document.getElementById('buzonSelectAccion').value); if (act) window.abrirCarpetaDrivePanel(act.panel); }
 
         // CONTROLADOR DE SUBIDA AUTOMÁTICA DESDE EL BUZÓN UNIVERSAL
+// =========================================================================
+// GUARDADO CON SUBIDA A DRIVE Y ACTUALIZACIÓN EN SUPABASE
+// =========================================================================
 async function ejecutarCargaUniversal(e) {
     e.preventDefault();
     
@@ -3271,10 +3274,20 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
-    // OBLIGATORIO: Validar que se haya seleccionado un archivo PDF físico
+    // Validar permisos de panel
+    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
+
+    if (!puedeEditarAccion) {
+        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${hitoPadre.panel} (${hitoPadre.area}).`);
+        return;
+    }
+
+    // Validación obligatoria del archivo físico
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("⚠️ ATENCIÓN: Debe adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
+        alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
         return;
     }
 
@@ -3285,12 +3298,16 @@ async function ejecutarCargaUniversal(e) {
     }
 
     try {
-        // 1. SUBIDA REAL A GOOGLE DRIVE CON NOMENCLATURA [CLAVE] NombreArchivo.pdf
+        // 1. Subir a Google Drive con el nombre canónico exacto [CLAVE] NombreArchivo
         const archivoFisico = fileInput.files[0];
         const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
         const driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
 
-        // 2. CREAR EL NUEVO OBJETO DE ACCIÓN EN MEMORIA (Suma sin borrar previas)
+        if (!driveUrlFinal || !driveUrlFinal.startsWith('http')) {
+            throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
+        }
+
+        // 2. Crear el objeto de la nueva acción en memoria (suma sin borrar previas)
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3310,7 +3327,7 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 3. PERSISTENCIA EN SUPABASE (acciones_transicion y secuencias_claves)
+        // 3. Persistencia en Supabase (acciones_transicion y actualización de secuencias_claves)
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -3322,7 +3339,7 @@ async function ejecutarCargaUniversal(e) {
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: driveUrlFinal, // <--- Aquí va el enlace exacto del archivo subido a Google Drive
+                drive_url: driveUrlFinal,
                 nota_auditoria: notaAuditoria,
                 instancia_responsable: nuevaAccionObj.responsable
             };
@@ -3333,7 +3350,7 @@ async function ejecutarCargaUniversal(e) {
 
             if (errSupabase) throw errSupabase;
 
-            // Actualizar la tabla 'secuencias_claves' en Supabase
+            // Actualizar la tabla de control de folios 'secuencias_claves'
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3344,7 +3361,7 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción [${claveAccionFinal}] registrada, archivo respaldado en Drive con su clave y sincronizado!`);
+        alert(`¡Acción [${claveAccionFinal}] registrada con éxito, respaldada en Drive y sincronizada!`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
@@ -3359,6 +3376,7 @@ async function ejecutarCargaUniversal(e) {
         }
     }
 }
+        
         
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
@@ -7141,6 +7159,9 @@ window.agregarCampoArchivoBase = function() {
 // =========================================================================
 // CONSULTA OFICIAL A SUPABASE: TABLA 'secuencias_claves'
 // =========================================================================
+// =========================================================================
+// CONSULTAR Y SUGERIR EL SIGUIENTE FOLIO DESDE 'secuencias_claves' EN SUPABASE
+// =========================================================================
 async function actualizarFolioAccionSugerido() {
     const selectPadre = document.getElementById('buzonSelectAccion');
     const inputAccion = document.getElementById('nuevaAccionClavePreview');
@@ -7169,7 +7190,7 @@ async function actualizarFolioAccionSugerido() {
 
     const hitoCanonicalBase = `${prefijoArea}-H-${String(numeroHitoPart).padStart(4, '0')}`;
 
-    // CONSULTA DIRECTA A SUPABASE EN LA TABLA 'secuencias_claves'
+    // Consulta directa a Supabase en la tabla 'secuencias_claves'
     let siguienteAccionNum = 1;
     if (supabaseClient) {
         try {
@@ -7183,7 +7204,6 @@ async function actualizarFolioAccionSugerido() {
             if (!seqErr && seqData && seqData.ultimo_consecutivo !== undefined) {
                 siguienteAccionNum = Number(seqData.ultimo_consecutivo) + 1;
             } else {
-                // Respaldo en memoria si la tabla tuviera algún desfase
                 let maxNum = 0;
                 accionesDataset.forEach(item => {
                     const claveAccionItem = item.clave_accion || item.id || '';
@@ -7199,14 +7219,13 @@ async function actualizarFolioAccionSugerido() {
                 siguienteAccionNum = maxNum + 1;
             }
         } catch (e) {
-            console.error("Error consultando secuencias_claves:", e);
+            console.error("Error al consultar secuencias_claves:", e);
             siguienteAccionNum = 1;
         }
     }
 
     inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
 }
-        
 </script>
 
     <!-- ========================================================================= -->
