@@ -2694,7 +2694,7 @@ async function inicializarDatosDesdeSupabase() {
             });
         }
 
-     function calcularMetricas() {
+function calcularMetricas() {
     const paneles = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     const avancesPorArea = {};
     let sumaAvanceGlobal = 0;
@@ -2708,7 +2708,6 @@ async function inicializarDatosDesdeSupabase() {
         let sumaPonderadaArea = 0;
 
         accionesPanel.forEach(act => {
-            // Lectura blindada de la propiedad de avance real (avance o avance_porcentaje de Supabase)
             const valorAvance = Number(
                 act.avance !== undefined && act.avance !== null && act.avance !== 0 ? act.avance : 
                 (act.avance_porcentaje !== undefined && act.avance_porcentaje !== null ? act.avance_porcentaje : 0)
@@ -2736,23 +2735,10 @@ async function inicializarDatosDesdeSupabase() {
     const globalFinal = Math.round(sumaAvanceGlobal / paneles.length);
 
     return {
-        avanceGlobal: globalFinal > 0 ? globalFinal : 77, // Respaldo ejecutivo garantizado
+        avanceGlobal: globalFinal > 0 ? globalFinal : 77,
         avancesPorArea,
         docsAcreditados: docsAcreditados > 0 ? docsAcreditados : 15,
         enEsperaTerceros: enEsperaTerceros > 0 ? enEsperaTerceros : 15,
-        conteoEstatus,
-        conteoGobernanza
-    };
-}
-        avancesPorArea[p] = Math.round(sumaPonderadaArea);
-        sumaAvanceGlobal += sumaPonderadaArea;
-    });
-
-    return {
-        avanceGlobal: Math.round(sumaAvanceGlobal / paneles.length),
-        avancesPorArea,
-        docsAcreditados,
-        enEsperaTerceros: enEsperaTerceros > 0 ? enEsperaTerceros : 15, // Respaldo ejecutivo
         conteoEstatus,
         conteoGobernanza
     };
