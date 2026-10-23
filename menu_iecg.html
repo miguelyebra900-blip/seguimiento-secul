@@ -1879,54 +1879,62 @@ window.guardarContactoNotificaciones = async function(e) {
     </div>
 </div>
 
-<!-- 3. DESCRIPCIÓN DEL COMPROMISO / ACCIÓN (ÚNICO) -->
+                <!-- 1. CLAVE DE ACCIÓN (CONSECUTIVO AUTOMÁTICO) -->
+<div>
+    <div class="flex items-center justify-between mb-1">
+        <label class="block font-bold text-slate-700">Clave de Acción (Consecutivo Automático):</label>
+        <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+            <i class="fa-solid fa-link text-[8px]"></i> Vinculada al Hito
+        </span>
+    </div>
+    <input type="text" id="nuevaAccionClavePreview" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black border-indigo-200 cursor-not-allowed shadow-inner" placeholder="Selecciona un hito...">
+</div>
+
+<!-- 2. VINCULACIÓN CON ÁREA SECUL Y ÁREA EXTERNA (CON OPCIÓN DE ESCRITURA "OTRA") -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 my-2">
+    <div>
+        <label class="block font-bold text-indigo-900 text-[11px] mb-1">Vincular con Área SECUL:</label>
+        <select id="buzonVinculoSecul" onchange="manejarCambioSeculBuzon(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1">
+            <option value="Ninguna">Ninguna / Directa</option>
+            <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+            <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+            <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+            <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+            <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+            <option value="Panel F - Financiero">Panel F - Financiero</option>
+            <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+            <option value="Panel H - Archivo">Panel H - Archivo</option>
+            <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+            <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+            <option value="OTRA">Otra Área SECUL (Escribir)</option>
+        </select>
+        <input type="text" id="inputOtraSeculBuzon" placeholder="Especifique área SECUL..." class="w-full p-2 border rounded-xl text-xs bg-white hidden mt-1">
+    </div>
+
+    <div>
+        <label class="block font-bold text-amber-900 text-[11px] mb-1">Área Externa (Art. 6 Lineamientos):</label>
+        <select id="buzonAreaExterna" onchange="manejarCambioExternaBuzon(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1">
+            <option value="Ninguna">Ninguna (Interna)</option>
+            <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+            <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+            <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+            <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+            <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+            <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+            <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+            <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+            <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+            <option value="OTRA">Otra área externa (Escribir)</option>
+        </select>
+        <input type="text" id="inputOtraExternaBuzon" placeholder="Especifique área externa..." class="w-full p-2 border rounded-xl text-xs bg-white hidden mt-1">
+    </div>
+</div>
+
+<!-- 3. DESCRIPCIÓN DEL COMPROMISO / ACCIÓN (ÚNICO E INDISPENSABLE) -->
 <div>
     <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
     <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
 </div>
-            <!-- ========================================== -->
-            <!-- PEGA AQUÍ EL NUEVO BLOQUE DE VINCULACIÓN   -->
-            <!-- ========================================== -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 my-2">
-                <div>
-                    <label class="block font-bold text-indigo-900 text-[11px] mb-1">Vincular con Área SECUL:</label>
-                    <select id="buzonVinculoSecul" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
-                        <option value="Ninguna">Ninguna / Directa</option>
-                        <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
-                        <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
-                        <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
-                        <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
-                        <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
-                        <option value="Panel F - Financiero">Panel F - Financiero</option>
-                        <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
-                        <option value="Panel H - Archivo">Panel H - Archivo</option>
-                        <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
-                        <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-amber-900 text-[11px] mb-1">Área Externa (Art. 6 Lineamientos):</label>
-                    <select id="buzonAreaExterna" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
-                        <option value="Ninguna">Ninguna (Interna)</option>
-                        <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
-                        <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
-                        <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
-                        <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
-                        <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- DESPUÉS SIGUE ESTO QUE YA TIENES EN TU CÓDIGO: -->
-            <div>
-                <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
-                <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
-            </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
-                    <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
-                </div>
-
                 <!-- Bloque Prioridad, Estatus y Slider de Avance -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
                     <div>
@@ -2514,6 +2522,7 @@ if (btnVinculo) {
             }
         }
 // Función para cargar los datos reales directamente desde Supabase al iniciar (Fuente Única de Verdad)
+// Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
         console.warn("Supabase no está disponible. Usando almacenamiento local.");
@@ -2521,26 +2530,24 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
+        // Consultamos la tabla acciones_transicion en Supabase
         const { data: accionesSupabase, error } = await supabaseClient
             .from('acciones_transicion')
             .select('*');
 
         if (error) throw error;
 
-        // Si Supabase tiene datos, se convierten en la verdad absoluta sin pisar con valores de fábrica
         if (accionesSupabase && accionesSupabase.length > 0) {
             accionesDataset = accionesSupabase.map(function(item) {
                 return {
                     id: item.clave_accion || item.id,
                     clave_accion: item.clave_accion || item.id,
                     clave_hito: item.clave_hito || (item.clave_accion ? item.clave_accion.split('-A-')[0] : ''),
-                    panel: item.panel || 'I',
-                    area: item.area || 'Fiscalización & Auditorías',
+                    panel: item.panel || 'A',
+                    area: item.area || 'Área Estratégica',
                     hito: item.hito || 'Hito normativo',
                     accion: item.accion_especifica || item.accion || 'Acción operativa',
                     responsable: item.instancia_responsable || item.responsable || 'Comisión',
-                    area_externa: item.area_externa || 'Ninguna (Interna)',
-                    vinculo_secul: item.vinculo_secul || 'Ninguna / Directa',
                     estatus: item.estatus || 'En Proceso',
                     avance: (item.avance !== null && item.avance !== undefined) ? Number(item.avance) : 0,
                     peso: item.peso || 33.33,
@@ -2548,15 +2555,13 @@ async function inicializarDatosDesdeSupabase() {
                 };
             });
 
-            // Sincronizamos el almacenamiento local con los datos reales de la nube
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos cargados directamente desde Supabase sin sobrescribir con valores de fábrica!");
+            console.log("¡Datos sincronizados exitosamente desde las tablas de Supabase!");
         }
     } catch (err) {
         console.warn("Aviso de red con Supabase, operando con respaldo local:", err.message);
     }
 }
-        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
@@ -3173,25 +3178,22 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
         function abrirCarpetaActualDesdeBuzon() { const act = accionesDataset.find(a => a.id === document.getElementById('buzonSelectAccion').value); if (act) window.abrirCarpetaDrivePanel(act.panel); }
 
         // CONTROLADOR DE SUBIDA AUTOMÁTICA DESDE EL BUZÓN UNIVERSAL
-   // =========================================================================
-        // GUARDAR ACCIÓN Y SUBIR A DRIVE CON NOMBRE NOMINAL OFICIAL
-        // =========================================================================
-        async function ejecutarCargaUniversal(e) {
-            e.preventDefault();
-            
-            const accionId = document.getElementById('buzonSelectAccion').value;
-            const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || accionId;
-            const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
-            const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
-            const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
-            const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
-            const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
+async function ejecutarCargaUniversal(e) {
+    e.preventDefault();
+    
+    const accionId = document.getElementById('buzonSelectAccion').value;
+    const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || accionId;
+    const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
+    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
+    const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
+    const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
+    const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
-          const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
+    const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!act) return;
 
     // =========================================================================
-    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (PESTAÑA 2)
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL (INTACTO)
     // =========================================================================
     const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
     const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
@@ -3203,52 +3205,76 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
         if (typeof abrirModalVinculacionUniversalDirecta === 'function') {
             abrirModalVinculacionUniversalDirecta(act.clave_hito || act.id.split('-A-')[0], claveAccionFinal);
         }
-        return; // Detiene de inmediato la subida a Drive y el guardado
+        return; // Detiene la subida y el guardado si no tiene permisos
     }
-    // Continúa con la subida a Drive y guardado normal...
 
-            let driveUrlFinal = act.driveUrl || '';
-            const fileInput = document.getElementById('buzonFileInputAccion');
-            
-            const btnSubmit = document.getElementById('btnSubmitBuzon');
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo con Clave a Drive...';
-            }
+    let driveUrlFinal = act.driveUrl || '';
+    const fileInput = document.getElementById('buzonFileInputAccion') || document.getElementById('buzonFileInput');
+    
+    const btnSubmit = document.getElementById('btnSubmitBuzon');
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Sincronizando con Supabase y Drive...';
+    }
 
-            try {
-                // Subir a Drive anteponiendo la clave del sistema al nombre del archivo
-                if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                    const archivoFisico = fileInput.files[0];
-                    // Formato institucional: [CLAVE_ACCION] Nombre_Original.pdf
-                    const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
-                    
-                    driveUrlFinal = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
-                }
-
-                // Actualizar o insertar la acción en el dataset
-                act.estatus = nuevoEstatus;
-                act.avance = nuevoAvance;
-                act.driveUrl = driveUrlFinal;
-                if (tituloAccion) act.accion = tituloAccion;
-                if (respAccion) act.responsable = respAccion;
-                if (notaAuditoria) act.observaciones = notaAuditoria;
-                
-                guardarDataset();
-
-                alert(`¡Acción guardada y respaldada en Google Drive exitosamente!\n\n• Clave: ${claveAccionFinal}\n• Archivo: [${claveAccionFinal}] ${fileInput?.files[0]?.name || ''}`);
-                closeModal('modal-buzon-universal');
-                
-                actualizarDashboard();
-            } catch (err) {
-                alert("Error al procesar la subida a Google Drive: " + err.message);
-            } finally {
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Propagar Cambios';
-                }
-            }
+    try {
+        // 1. Subir a Google Drive si hay archivo físico seleccionado
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            const archivoFisico = fileInput.files[0];
+            const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
+            driveUrlFinal = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
         }
+
+        // 2. Actualizar o insertar la acción en el dataset local
+        act.estatus = nuevoEstatus;
+        act.avance = nuevoAvance;
+        act.driveUrl = driveUrlFinal;
+        if (tituloAccion) act.accion = tituloAccion;
+        if (respAccion) act.responsable = respAccion;
+        if (notaAuditoria) act.observaciones = notaAuditoria;
+        
+        guardarDataset();
+
+        // =========================================================================
+        // 3. PERSISTENCIA DIRECTA EN LA TABLA DE SUPABASE (NUEVO Y SEGURO)
+        // =========================================================================
+        if (supabaseClient) {
+            const payloadSupabase = {
+                clave_accion: claveAccionFinal,
+                clave_hito: act.clave_hito || claveAccionFinal.split('-A-')[0],
+                panel: act.panel || 'A',
+                area: act.area || 'Área Estratégica',
+                hito: act.hito || 'Hito normativo',
+                accion_especifica: act.accion,
+                instancia_responsable: act.responsable,
+                estatus: act.estatus,
+                avance: act.avance,
+                drive_url: act.driveUrl,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error: errSupabase } = await supabaseClient
+                .from('acciones_transicion')
+                .upsert([payloadSupabase], { onConflict: 'clave_accion' });
+
+            if (errSupabase) throw errSupabase;
+        }
+
+        alert(`¡Acción guardada, propagada y sincronizada en Supabase y Drive con éxito!\n\n• Clave: ${claveAccionFinal}`);
+        closeModal('modal-buzon-universal');
+        
+        actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+
+    } catch (err) {
+        alert("Error al sincronizar con Supabase / Drive: " + err.message);
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Propagar Cambios';
+        }
+    }
+}
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
         const fileInput = document.getElementById('buzonFileInput');
