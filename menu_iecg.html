@@ -2763,10 +2763,10 @@ function calcularMetricas() {
     };
 
     paneles.forEach(p => {
-        // Filtrar asegurando que detecte el panel por la propiedad o por el prefijo de la clave
         const accionesPanel = accionesDataset.filter(a => {
-            const panelActivo = a.panel || PREFIJO_A_PANEL[(a.clave_accion || a.id || '').split('-')[0]] || 'A';
-            return panelActivo === p;
+            const prefijo = (a.clave_accion || a.id || '').split('-')[0] || (a.clave_hito || '').split('-')[0] || '';
+            const panelDetectado = a.panel || PREFIJO_A_PANEL[prefijo] || 'A';
+            return panelDetectado === p;
         });
 
         let sumaPonderadaArea = 0;
@@ -2782,7 +2782,11 @@ function calcularMetricas() {
 
             if (act.driveUrl && act.driveUrl.trim() !== '') docsAcreditados++;
             
-            const est = act.estatus || 'En Proceso';
+            let est = act.estatus || 'En Proceso';
+            if (valorAvance === 100) est = 'Concluido';
+            else if (valorAvance >= 75) est = 'Validación';
+            else est = 'En Proceso';
+
             conteoEstatus[est] = (conteoEstatus[est] || 0) + 1;
         });
 
@@ -2801,7 +2805,7 @@ function calcularMetricas() {
         conteoGobernanza
     };
 }
-    function actualizarDashboard() {
+        function actualizarDashboard() {
             const metricas = calcularMetricas();
             const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
             const elKpiDocs = document.getElementById('kpiDocsAcreditadosTop');
