@@ -2473,71 +2473,59 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        // 1. Consultar ambas tablas maestras en Supabase
-        const { data: accionesSupabase, error: errAcciones } = await supabaseClient
+        const { data: accionesSupabase, error } = await supabaseClient
             .from('acciones_transicion')
             .select('*');
 
-        const { data: hitosSupabase, error: errHitos } = await supabaseClient
-            .from('hitos_transicion')
-            .select('*');
+        if (error) throw error;
 
-        if (errAcciones) throw errAcciones;
-
-        // Creamos un diccionario rápido de hitos usando las columnas reales: titulo o hito
-        let mapaHitosTextos = {};
-        if (hitosSupabase && hitosSupabase.length > 0) {
-            hitosSupabase.forEach(h => {
-                const claveH = h.clave_hito || '';
-                mapaHitosTextos[claveH] = h.titulo || h.hito || 'Hito normativo';
-            });
-        }
+        // Mapa inverso de prefijos a letras de panel para asegurar precisión absoluta
+        const PREFIJO_A_PANEL = {
+            'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
+            'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
+            'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
+        };
 
         if (accionesSupabase && accionesSupabase.length > 0) {
-            // Mapeo blindado con los nombres EXACTOS de tus columnas en Supabase (vistas en tu video)
             accionesDataset = accionesSupabase.map(function(item) {
-                const claveHitoActual = item.clave_hito || (item.clave_accion ? item.clave_accion.split('-A-')[0] : '');
+                const claveAccion = item.clave_accion || item.id || '';
+                const claveHito = item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '');
                 
+                // Deducir el panel correcto a partir del prefijo de la clave (ej. FIN_P -> F)
+                let panelDetectado = item.panel;
+                if (!panelDetectado || panelDetectado.trim() === '' || panelDetectado === 'empty') {
+                    const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0];
+                    panelDetectado = PREFIJO_A_PANEL[prefijo] || 'A';
+                }
+
                 return {
-                    id: item.clave_accion || item.id,
-                    clave_accion: item.clave_accion || item.id,
-                    clave_hito: claveHitoActual,
-                    panel: item.panel || 'A',
-                    area: item.area || 'Recursos Humanos & Estructura',
-                    
-                    // Columnas reales de Supabase: 'hito', 'titulo', o rescatado del maestro 'hitos_transicion'
-                    hito: item.hito || item.titulo || mapaHitosTextos[claveHitoActual] || 'Hito normativo',
-                    
-                    // Columna real en acciones_transicion: 'accion_especifica'
-                    accion: item.accion_especifica || item.accion || item.detalle_operativo || 'Acción operativa',
-                    
-                    // Columna real en acciones_transicion: 'instancia_responsable'
+                    id: claveAccion,
+                    clave_accion: claveAccion,
+                    clave_hito: claveHito,
+                    panel: panelDetectado,
+                    area: item.area || 'Área Estratégica',
+                    hito: item.hito || item.titulo || 'Hito normativo',
+                    accion: item.accion_especifica || item.accion || 'Acción operativa',
                     responsable: item.instancia_responsable || item.responsable || 'Comisión',
-                    
                     estatus: item.estatus || 'En Proceso',
-                    
-                    // Columnas reales de avance: 'avance' o 'avance_porcentaje'
                     avance: (item.avance !== null && item.avance !== undefined) ? Number(item.avance) : 
                             ((item.avance_porcentaje !== null && item.avance_porcentaje !== undefined) ? Number(item.avance_porcentaje) : 0),
-                    
                     peso: item.peso || 33.33,
                     driveUrl: item.drive_url || item.driveUrl || ''
                 };
             });
 
-            // Guardar la verdad absoluta en localStorage y refrescar la interfaz
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos de Supabase mapeados exitosamente con columnas reales!");
+            console.log("¡Datos sincronizados y paneles deducidos con éxito desde Supabase!");
             
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
             if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
         }
     } catch (err) {
-        console.error("Error crítico al sincronizar con Supabase:", err.message);
+        console.warn("Error al conectar con Supabase:", err.message);
     }
-}
-        
+}    
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
