@@ -3271,7 +3271,7 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
-    // Candado de gobernanza: validación de permisos de panel
+    // Validación de permisos del panel
     const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
     const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
     const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
@@ -3282,23 +3282,31 @@ async function ejecutarCargaUniversal(e) {
     }
 
     let driveUrlFinal = '';
-    const fileInput = document.getElementById('buzonFileInputAccion') || document.getElementById('buzonFileInput');
+    
+    // BÚSQUEDA SEGURA DEL INPUT DE ARCHIVO (Revisa múltiples IDs posibles)
+    const fileInput = document.getElementById('buzonFileInput') || 
+                      document.getElementById('buzonFileInputAccion') || 
+                      document.querySelector('input[type="file"]');
     
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivo y sincronizando...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando y subiendo...';
     }
 
     try {
-        // 1. SUBIDA REAL A GOOGLE DRIVE CON NOMENCLATURA [CLAVE] NombreArchivo
+        // SI SE SELECCIONÓ UN ARCHIVO FÍSICO, SE SUBE A GOOGLE DRIVE
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const archivoFisico = fileInput.files[0];
             const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
             driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
+        } else {
+            // Si no subió archivo nuevo, heredamos la carpeta general del panel para que el botón funcione
+            const idFolderPanel = GOOGLE_DRIVE_PARENTS[(hitoPadre.panel || 'A').toUpperCase()] || GOOGLE_DRIVE_PARENTS["GENERAL"];
+            driveUrlFinal = `https://drive.google.com/drive/folders/${idFolderPanel}`;
         }
 
-        // 2. CREAR EL NUEVO OBJETO DE ACCIÓN (Suma sin borrar las previas)
+        // Crear la nueva acción en el dataset local
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3318,7 +3326,7 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 3. PERSISTENCIA EN SUPABASE (acciones_transicion y secuencias_claves)
+        // Persistencia en Supabase
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -3330,7 +3338,7 @@ async function ejecutarCargaUniversal(e) {
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: driveUrlFinal, // URL del archivo subido en Google Drive
+                drive_url: driveUrlFinal,
                 nota_auditoria: notaAuditoria,
                 instancia_responsable: nuevaAccionObj.responsable
             };
@@ -3341,7 +3349,7 @@ async function ejecutarCargaUniversal(e) {
 
             if (errSupabase) throw errSupabase;
 
-            // Actualizar la tabla de control de folios en Supabase
+            // Actualizar la tabla de control de folios 'secuencias_claves'
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3352,7 +3360,7 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción registrada, archivo respaldado en Drive y sincronizado con éxito!\n\n• Clave: ${claveAccionFinal}`);
+        alert(`¡Acción registrada y sincronizada con éxito!\n\n• Clave: ${claveAccionFinal}`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
