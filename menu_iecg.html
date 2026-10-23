@@ -2468,8 +2468,7 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible, usando catálogo oficial.");
-        accionesDataset = ACCIONES_INICIALES;
+        console.warn("Supabase no disponible, usando localStorage.");
         return;
     }
 
@@ -2480,58 +2479,66 @@ async function inicializarDatosDesdeSupabase() {
 
         if (error) throw error;
 
-        // Partimos de nuestro catálogo oficial íntegro para conservar todos los textos originales
-        let datasetTemporal = JSON.parse(JSON.stringify(ACCIONES_INICIALES));
+        // Mapeo oficial inquebrantable de Prefijo a Letra de Panel (A - J)
+        const PREFIJO_A_PANEL = {
+            'RH_E': 'A',
+            'JUR_C': 'B',
+            'PTR_I': 'C',
+            'FID_F': 'D',
+            'PTR_M': 'E',
+            'FIN_P': 'F',
+            'TIT_S': 'G', 'TIC_S': 'G',
+            'ACH_D': 'H',
+            'AUD_F': 'I',
+            'ASI_P': 'J'
+        };
 
         if (accionesSupabase && accionesSupabase.length > 0) {
-            accionesSupabase.forEach(itemDB => {
-                const claveDB = itemDB.clave_accion || itemDB.id;
-                const index = datasetTemporal.findIndex(a => a.id === claveDB || a.clave_accion === claveDB);
+            accionesDataset = accionesSupabase.map(function(item) {
+                const claveAccion = (item.clave_accion || item.id || '').trim();
+                const claveHito = (item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
+                
+                // Extraer el prefijo exacto de la clave (ej. 'RH_E', 'JUR_C', 'FIN_P')
+                const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
+                
+                // Asignar la letra de panel correspondiente de forma estricta
+                const panelDetectado = PREFIJO_A_PANEL[prefijo] || 'A';
 
-                const avanceReal = Number(
-                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
-                    (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 0)
+                const valorAvance = Number(
+                    item.avance !== undefined && item.avance !== null ? item.avance : 
+                    (item.avance_porcentaje !== undefined && item.avance_porcentaje !== null ? item.avance_porcentaje : 0)
                 );
 
-                if (index !== -1) {
-                    // Actualizamos dinámicamente el progreso y estatus desde Supabase
-                    datasetTemporal[index].avance = avanceReal;
-                    datasetTemporal[index].estatus = itemDB.estatus || datasetTemporal[index].estatus;
-                    if (itemDB.drive_url) datasetTemporal[index].driveUrl = itemDB.drive_url;
-                } else {
-                    // Si el registro fue dado de alta en Supabase, lo agregamos
-                    datasetTemporal.push({
-                        id: claveDB,
-                        clave_accion: claveDB,
-                        clave_hito: itemDB.clave_hito || claveDB.split('-A-')[0],
-                        panel: itemDB.panel || 'A',
-                        area: itemDB.area || 'Área Estratégica',
-                        hito: itemDB.hito || 'Hito normativo',
-                        accion: itemDB.accion_especifica || 'Acción operativa',
-                        responsable: itemDB.instancia_responsable || 'Comisión',
-                        estatus: itemDB.estatus || 'En Proceso',
-                        avance: avanceReal,
-                        peso: itemDB.peso || 33.33,
-                        driveUrl: itemDB.drive_url || ''
-                    });
-                }
+                return {
+                    id: claveAccion,
+                    clave_accion: claveAccion,
+                    clave_hito: claveHito,
+                    panel: panelDetectado, // <-- Panel asignado correctamente (A, B, C, D, E, F, G, H, I, J)
+                    area: item.area || 'Área Estratégica',
+                    hito: item.hito || item.titulo || 'Hito normativo',
+                    accion: item.accion_especifica || item.accion || 'Acción operativa',
+                    responsable: item.instancia_responsable || item.responsable || panelDetectado,
+                    estatus: item.estatus || 'En Proceso',
+                    avance: valorAvance,
+                    peso: item.peso || 33.33,
+                    driveUrl: item.drive_url || item.driveUrl || ''
+                };
             });
+
+            // LIMPIAR Y FORZAR LA VERDAD ABSOLUTA EN LOCALSTORAGE
+            localStorage.removeItem('secul_30_acciones');
+            localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
+            console.log("¡Paneles recalculados por prefijo y sincronizados perfectamente!");
+            
+            if (typeof actualizarDashboard === 'function') actualizarDashboard();
+            if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
+            if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+            if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
         }
-
-        accionesDataset = datasetTemporal;
-        localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-        console.log("¡Catálogo oficial restaurado y sincronizado con Supabase con éxito!");
-
-        if (typeof actualizarDashboard === 'function') actualizarDashboard();
-        if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-
     } catch (err) {
-        console.warn("Error al conectar con Supabase, usando catálogo local:", err.message);
-        accionesDataset = ACCIONES_INICIALES;
+        console.warn("Error al conectar con Supabase:", err.message);
     }
 }
-        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
