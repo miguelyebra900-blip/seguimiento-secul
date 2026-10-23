@@ -2468,7 +2468,8 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible.");
+        console.warn("Supabase no disponible, usando catálogo oficial.");
+        accionesDataset = ACCIONES_INICIALES;
         return;
     }
 
@@ -2486,7 +2487,7 @@ async function inicializarDatosDesdeSupabase() {
         const hitosSupabase = resHitos.data || [];
         const areasSupabase = resAreas.data || [];
 
-        // 2. Mapear la tabla `areas_estrategicas` (clave_area / panel -> nombre_area)
+        // 2. Mapeo de la tabla `areas_estrategicas` (clave_area / panel -> nombre_area)
         const mapaAreas = {};
         areasSupabase.forEach(a => {
             const claveA = (a.clave_area || '').trim();
@@ -2496,7 +2497,7 @@ async function inicializarDatosDesdeSupabase() {
             if (panelA) mapaAreas[panelA] = nombreA;
         });
 
-        // 3. Mapear la tabla `hitos_transicion` (clave_hito -> titulo, panel, clave_area)
+        // 3. Mapeo de la tabla `hitos_transicion` (clave_hito -> titulo, panel, clave_area)
         const mapaHitos = {};
         hitosSupabase.forEach(h => {
             const claveH = (h.clave_hito || '').trim();
@@ -2507,7 +2508,7 @@ async function inicializarDatosDesdeSupabase() {
             };
         });
 
-        // Diccionario de respaldo inquebrantable de Prefijo a Panel (A - J)
+        // Diccionario inquebrantable de Prefijo a Panel (A - J) basado en la clave canónica
         const PREFIJO_A_PANEL = {
             'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
             'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
@@ -2515,7 +2516,6 @@ async function inicializarDatosDesdeSupabase() {
         };
 
         if (accionesSupabase.length > 0) {
-            // Construir el dataset exclusivamente con los datos de Supabase
             accionesDataset = accionesSupabase.map(itemDB => {
                 const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
                 const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
@@ -2523,9 +2523,9 @@ async function inicializarDatosDesdeSupabase() {
                 // Obtener metadatos del hito relacionado
                 const hitoInfo = mapaHitos[claveHito] || {};
                 
-                // Determinar el panel estrictamente (evita que el Panel A absorba todo)
+                // Extraer el prefijo canónico de la clave (ej. 'RH_E', 'JUR_C') para determinar su panel exacto
                 const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
-                const panelReal = hitoInfo.panel || PREFIJO_A_PANEL[prefijo] || 'A';
+                const panelReal = hitoInfo.panel || itemDB.panel || PREFIJO_A_PANEL[prefijo] || 'A';
                 
                 // Obtener el nombre real del área desde `areas_estrategicas`
                 const claveArea = hitoInfo.clave_area || prefijo;
@@ -2533,42 +2533,41 @@ async function inicializarDatosDesdeSupabase() {
 
                 // Homologar estatus de forma segura
                 let estatusLimpio = itemDB.estatus || 'En Proceso';
-                if (String(estatusLimpio) === '100' || String(estatusLimpio).toLowerCase().includes('concluid')) {
+                const valorAvance = Number(
+                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
+                    (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 
+                    (typeof itemDB.estatus === 'number' ? itemDB.estatus : 0))
+                );
+
+                if (valorAvance === 100 || String(itemDB.estatus) === '100' || String(estatusLンプio).toLowerCase().includes('concluid')) {
                     estatusLimpio = 'Concluido';
-                } else if (String(estatusLimpio).toLowerCase().includes('valid')) {
+                } else if (valorAvance >= 75 || String(estatusLimpio).toLowerCase().includes('valid')) {
                     estatusLimpio = 'Validación';
                 } else {
                     estatusLimpio = 'En Proceso';
                 }
 
-                // Obtener avance real (soporta 'avance' o 'avance_porcentaje')
-                const valorAvance = Number(
-                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
-                    (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 0)
-                );
-
                 return {
                     id: claveAccion,
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
-                    panel: panelReal, // Segmentación limpia por panel (A a J)
+                    panel: panelReal, // Asignación limpia y estricta por panel (A a J)
                     area: nombreAreaReal,
-                    hito: hitoInfo.titulo || 'Hito normativo',
-                    accion: itemDB.accion_especifica || 'Acción operativa',
+                    hito: hitoInfo.titulo || itemDB.hito || 'Hito normativo',
+                    accion: itemDB.accion_especifica || itemDB.accion || 'Acción operativa',
                     responsable: itemDB.instancia_responsable || panelReal,
                     estatus: estatusLimpio,
                     avance: valorAvance,
                     peso: itemDB.peso || 33.33,
-                    driveUrl: itemDB.drive_url || '',
-                    prioridad: itemDB.prioridad || 'Media'
+                    driveUrl: itemDB.drive_url || ''
                 };
             });
 
-            // Guardar en localStorage para persistencia instantánea
+            // Persistencia limpia en localStorage
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados relacionalmente desde Supabase (5 tablas operativas)!");
+            console.log("¡Sincronización relacional de las 5 tablas completada con éxito!");
 
-            // Refrescar vistas y componentes visuales
+            // Actualizar componentes visuales, gráficas y cronograma
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
             if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
