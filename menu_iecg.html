@@ -3306,13 +3306,13 @@ if (supabaseClient) {
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: act.clave_hito || claveAccionFinal.split('-A-')[0],
-                panel: act.panel || 'A',
-                hito: act.hito || 'Hito normativo',
+                consecutivo_num: act.consecutivo_num || 1,
                 accion_especifica: act.accion,
-                instancia_responsable: act.responsable,
-                estatus: nuevoAvance, // <--- Guardamos el porcentaje de avance directamente en la columna estatus de la base de datos
-                drive_url: act.driveUrl,
-                updated_at: new Date().toISOString()
+                estatus: nuevoAvance, // Guarda el avance numérico real
+                prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
+                drive_url: act.driveUrl || '',
+                nota_auditoria: notaAuditoria,
+                instancia_responsable: respAccion || act.responsable
             };
 
             const { error: errSupabase } = await supabaseClient
