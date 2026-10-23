@@ -3265,23 +3265,34 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
+    // Candado de gobernanza: validación de permisos de panel
+    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
+
+    if (!puedeEditarAccion) {
+        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${hitoPadre.panel} (${hitoPadre.area}).`);
+        return;
+    }
+
     let driveUrlFinal = '';
     const fileInput = document.getElementById('buzonFileInputAccion') || document.getElementById('buzonFileInput');
     
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Guardando nueva acción...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivo a Drive...';
     }
 
     try {
+        // 1. SUBIDA REAL A GOOGLE DRIVE CON NOMENCLATURA CANÓNICA ([CLAVE] NombreArchivo)
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const archivoFisico = fileInput.files[0];
             const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
             driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
         }
 
-        // Crear el NUEVO objeto de acción en memoria
+        // 2. Crear el objeto de la nueva acción en memoria
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3301,11 +3312,11 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
+        // 3. PERSISTENCIA EN SUPABASE (acciones_transicion y secuencias_claves)
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
 
-            // 1. Guardar en 'acciones_transicion' (Únicamente columnas reales de la tabla)
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: hitoBase,
@@ -3313,7 +3324,7 @@ async function ejecutarCargaUniversal(e) {
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: driveUrlFinal,
+                drive_url: driveUrlFinal, // URL directa del archivo en Google Drive
                 nota_auditoria: notaAuditoria,
                 instancia_responsable: nuevaAccionObj.responsable
             };
@@ -3324,7 +3335,7 @@ async function ejecutarCargaUniversal(e) {
 
             if (errSupabase) throw errSupabase;
 
-            // 2. Actualizar la tabla 'secuencias_claves' con el consecutivo correcto
+            // Actualizar el consecutivo en la tabla 'secuencias_claves'
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3335,14 +3346,14 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Nueva acción registrada con éxito!\n\n• Clave: ${claveAccionFinal}`);
+        alert(`¡Acción registrada y archivo vinculado a Drive con éxito!\n\n• Clave: ${claveAccionFinal}`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert("Error al sincronizar con Supabase: " + err.message);
+        alert("Error al sincronizar con Supabase / Drive: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
