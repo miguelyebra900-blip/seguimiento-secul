@@ -4531,64 +4531,21 @@ if (toast) toast.classList.add('hidden');
 // =========================================================================
         // CÁLCULO REACTIVO DEL SIGUIENTE FOLIO DE ACCIÓN ASOCIADA
         // =========================================================================
-function actualizarFolioAccionSugerido() {
-    const selectPadre = document.getElementById('buzonSelectAccion');
-    const inputAccion = document.getElementById('nuevaAccionClavePreview');
-    if (selectPadre && inputAccion) {
-        const valSeleccionado = selectPadre.value;
-        if (!valSeleccionado) {
-            inputAccion.value = "SELECCIONA UN HITO...";
-            return;
+// Actualizar o insertar el consecutivo en la tabla `secuencias_claves` de Supabase
+        if (supabaseClient) {
+            const hitoBase = act.clave_hito || claveAccionFinal.split('-A-')[0];
+            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
+
+            await supabaseClient
+                .from('secuencias_claves')
+                .upsert([{
+                    tipo_entidad: 'ACCION',
+                    prefijo_padre: hitoBase,
+                    ultimo_consecutivo: numConsecutivoActual,
+                    updated_at: new Date().toISOString()
+                }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
-
-        // 1. Encontrar el registro en el dataset
-        const act = accionesDataset.find(a => (a.clave_accion === valSeleccionado) || (a.id === valSeleccionado));
-        if (!act) {
-            inputAccion.value = "SELECCIONA UN HITO...";
-            return;
-        }
-
-        // 2. Obtener el prefijo exacto según el panel real del hito (ej. Panel I -> AUD_F)
-        const prefijoArea = MAPA_PREFIJOS_AREA[act.panel] || 'RH_E';
-
-        // 3. Obtener el texto visible de la opción seleccionada en el combobox (ej. "[Panel I] Atención a Pliego...")
-        // o extraer el número real del hito de forma segura buscando cualquier patrón -H-00XX
-        let numeroHitoPart = '0001';
-        const textoOpcionSeleccionada = selectPadre.options[selectPadre.selectedIndex]?.text || '';
-        const matchTextoHito = textoOpcionSeleccionada.match(/-H-(\d+)/) || (act.clave_hito || act.id).match(/-H-(\d+)/);
-
-        if (matchTextoHito && matchTextoHito[1]) {
-            numeroHitoPart = matchTextoHito[1]; // Tomará el número exacto del hito seleccionado
-        } else {
-            // Si el hito guardado tiene formato viejo RH_E-H-0005 pero en realidad es el hito 0004, 
-            // forzamos el número correcto extrayéndolo de la clave de sus acciones hermanas si las hay
-            numeroHitoPart = '0004'; // Coincidencia exacta con tu caso actual
-        }
-
-        // 4. Construir la base canónica limpia respetando el número real del hito (ej. AUD_F-H-0004)
-        const hitoCanonicalBase = `${prefijoArea}-H-${String(numeroHitoPart).padStart(4, '0')}`;
-
-        // 5. Calcular el siguiente consecutivo de acción (-A-0001, -A-0002...) para este hito
-        let maxAccionNum = 0;
-        accionesDataset.forEach(item => {
-            const claveAccionItem = item.clave_accion || item.id || '';
-            const itemHitoBase = item.clave_hito || item.id.split('-A-')[0];
-            
-            if (itemHitoBase.includes(`-H-${numeroHitoPart}`) || claveAccionItem.includes(`${prefijoArea}-H-${numeroHitoPart}`)) {
-                const matchAccion = claveAccionItem.match(/-A-(\d+)/);
-                if (matchAccion && matchAccion[1]) {
-                    const num = parseInt(matchAccion[1], 10);
-                    if (!isNaN(num) && num > maxAccionNum) {
-                        maxAccionNum = num;
-                    }
-                }
-            }
-        });
-
-        const siguienteAccionNum = maxAccionNum + 1;
-        inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
-    }
-}
+        
 // =========================================================================
         // CONTROL DE SUB-PESTAÑAS Y TABLERO GANTT EJECUTIVO
         // =========================================================================
