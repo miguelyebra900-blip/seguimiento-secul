@@ -1973,6 +1973,12 @@ function manejarCambioExternaBuzon(selectEl) {
                     <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo o número de oficio que fundamenta esta acción..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
                 </div>
 
+<!-- CAMPO DE CARGA DE ARCHIVO PARA GOOGLE DRIVE -->
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 mb-3">
+                    <label class="block font-bold text-slate-700 mb-1">Evidencia Documental (PDF / Oficio para Google Drive):</label>
+                    <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                </div>
+                
                 <!-- Botones de Acción con Botón Regresar -->
                 <div class="flex justify-between items-center pt-3 border-t">
      <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
@@ -3281,18 +3287,18 @@ async function ejecutarCargaUniversal(e) {
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivo a Drive...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivo y sincronizando...';
     }
 
     try {
-        // 1. SUBIDA REAL A GOOGLE DRIVE CON NOMENCLATURA CANÓNICA ([CLAVE] NombreArchivo)
+        // 1. SUBIDA REAL A GOOGLE DRIVE CON NOMENCLATURA [CLAVE] NombreArchivo
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const archivoFisico = fileInput.files[0];
             const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
             driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
         }
 
-        // 2. Crear el objeto de la nueva acción en memoria
+        // 2. CREAR EL NUEVO OBJETO DE ACCIÓN (Suma sin borrar las previas)
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3324,7 +3330,7 @@ async function ejecutarCargaUniversal(e) {
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: driveUrlFinal, // URL directa del archivo en Google Drive
+                drive_url: driveUrlFinal, // URL del archivo subido en Google Drive
                 nota_auditoria: notaAuditoria,
                 instancia_responsable: nuevaAccionObj.responsable
             };
@@ -3335,7 +3341,7 @@ async function ejecutarCargaUniversal(e) {
 
             if (errSupabase) throw errSupabase;
 
-            // Actualizar el consecutivo en la tabla 'secuencias_claves'
+            // Actualizar la tabla de control de folios en Supabase
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3346,7 +3352,7 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción registrada y archivo vinculado a Drive con éxito!\n\n• Clave: ${claveAccionFinal}`);
+        alert(`¡Acción registrada, archivo respaldado en Drive y sincronizado con éxito!\n\n• Clave: ${claveAccionFinal}`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
