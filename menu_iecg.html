@@ -3302,7 +3302,7 @@ async function ejecutarCargaUniversal(e) {
         // =========================================================================
         // 3. PERSISTENCIA DIRECTA EN LA TABLA DE SUPABASE (NUEVO Y SEGURO)
         // =========================================================================
-      if (supabaseClient) {
+if (supabaseClient) {
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: act.clave_hito || claveAccionFinal.split('-A-')[0],
@@ -3310,8 +3310,7 @@ async function ejecutarCargaUniversal(e) {
                 hito: act.hito || 'Hito normativo',
                 accion_especifica: act.accion,
                 instancia_responsable: act.responsable,
-                estatus: act.estatus,
-                avance: act.avance,
+                estatus: nuevoAvance, // <--- Guardamos el porcentaje de avance directamente en la columna estatus de la base de datos
                 drive_url: act.driveUrl,
                 updated_at: new Date().toISOString()
             };
