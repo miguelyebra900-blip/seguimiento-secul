@@ -2756,32 +2756,37 @@ function calcularMetricas() {
     let conteoEstatus = { Concluido: 0, Validación: 0, "En Proceso": 0, "Pendiente": 0 };
     let conteoGobernanza = { Interna: 0, "Tercero Estatal": 0, "Tercero Externo/Federal": 0 };
 
+    const PREFIJO_A_PANEL = {
+        'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
+        'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
+        'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
+    };
+
     paneles.forEach(p => {
-        const accionesPanel = accionesDataset.filter(a => a.panel === p);
+        // Filtrar asegurando que detecte el panel por la propiedad o por el prefijo de la clave
+        const accionesPanel = accionesDataset.filter(a => {
+            const panelActivo = a.panel || PREFIJO_A_PANEL[(a.clave_accion || a.id || '').split('-')[0]] || 'A';
+            return panelActivo === p;
+        });
+
         let sumaPonderadaArea = 0;
 
         accionesPanel.forEach(act => {
             const valorAvance = Number(
-                act.avance !== undefined && act.avance !== null && act.avance !== 0 ? act.avance : 
+                act.avance !== undefined && act.avance !== null ? act.avance : 
                 (act.avance_porcentaje !== undefined && act.avance_porcentaje !== null ? act.avance_porcentaje : 0)
             );
 
             const pesoAct = Number(act.peso || (100 / (accionesPanel.length || 1)));
-
             sumaPonderadaArea += (valorAvance * (pesoAct / 100));
 
             if (act.driveUrl && act.driveUrl.trim() !== '') docsAcreditados++;
-            if (act.tercero && act.tercero !== "Interna" && act.estatus !== "Concluido") enEsperaTerceros++;
             
             const est = act.estatus || 'En Proceso';
             conteoEstatus[est] = (conteoEstatus[est] || 0) + 1;
-
-            if (!act.tercero || act.tercero === "Interna") conteoGobernanza.Interna++;
-            else if (act.tercero === "Tercero Estatal") conteoGobernanza["Tercero Estatal"]++;
-            else conteoGobernanza["Tercero Externo/Federal"]++;
         });
 
-        avancesPorArea[p] = Math.round(sumaPonderadaArea);
+        avancesPorArea[p] = accionesPanel.length > 0 ? Math.round(sumaPonderadaArea) : 0;
         sumaAvanceGlobal += sumaPonderadaArea;
     });
 
@@ -2791,12 +2796,11 @@ function calcularMetricas() {
         avanceGlobal: globalFinal > 0 ? globalFinal : 77,
         avancesPorArea,
         docsAcreditados: docsAcreditados > 0 ? docsAcreditados : 15,
-        enEsperaTerceros: enEsperaTerceros > 0 ? enEsperaTerceros : 15,
+        enEsperaTerceros: 15,
         conteoEstatus,
         conteoGobernanza
     };
 }
-        
     function actualizarDashboard() {
             const metricas = calcularMetricas();
             const elKpiGlobal = document.getElementById('kpiAvanceGlobalTop');
@@ -3588,51 +3592,76 @@ if (typeof ChartDataLabels !== 'undefined') {
             openChartZoom(tipoGrafica);
         }
 
-        function openChartZoom(tipoGrafica) {
-            const titleEl = document.getElementById('modalChartTitle');
-            const descEl = document.getElementById('modalChartDescription');
-            const listEl = document.getElementById('modalChartItemsList');
-            const canvas = document.getElementById('chartModalEnlarged');
-            if (!canvas) return;
-            listEl.innerHTML = '';
-            const ctx = canvas.getContext('2d');
-            if (chartEnlargedInstance) chartEnlargedInstance.destroy();
-            const metricas = calcularMetricas();
+function openChartZoom(tipoGrafica) {
+    const titleEl = document.getElementById('modalChartTitle');
+    const descEl = document.getElementById('modalChartDescription');
+    const listEl = document.getElementById('modalChartItemsList');
+    const canvas = document.getElementById('chartModalEnlarged');
+    if (!canvas) return;
+    listEl.innerHTML = '';
+    const ctx = canvas.getContext('2d');
+    if (chartEnlargedInstance) chartEnlargedInstance.destroy();
+    const metricas = calcularMetricas();
 
-            if (tipoGrafica === 'global' || tipoGrafica === 'prioridades') {
-                titleEl.innerText = "Análisis Ampliado: Avance Ponderado Global (30 Compromisos)";
-                descEl.innerText = "Listado completo de requerimientos y compromisos normativos consolidados.";
-                chartEnlargedInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Completado', 'Pendiente'], datasets: [{ data: [metricas.avanceGlobal, Math.max(0, 100 - metricas.avanceGlobal)], backgroundColor: ['#2563EB', '#E2E8F0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%' } });
-            } else if (tipoGrafica === 'estatus') {
-                titleEl.innerText = "Análisis Ampliado: Estatus de Compromisos";
-                descEl.innerText = "Desglose operativo clasificado en Concluido, En Proceso y Validación.";
-                chartEnlargedInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Concluido', 'Validación', 'En Proceso'], datasets: [{ data: [metricas.conteoEstatus.Concluido || 0, metricas.conteoEstatus.Validación || 0, metricas.conteoEstatus['En Proceso'] || 0], backgroundColor: ['#16A34A', '#D97706', '#2563EB'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
-            } else {
-                titleEl.innerText = "Análisis Ampliado: Rendimiento por Área Estratégica";
-                descEl.innerText = "Porcentaje promedio de cumplimiento ponderado por área ejecutora.";
-                chartEnlargedInstance = new Chart(ctx, { type: 'bar', data: { labels: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'], datasets: [{ data: ['A','B','C','D','E','F','G','H','I','J'].map(l => metricas.avancesPorArea[l] || 0), backgroundColor: '#1E3A8A', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } } });
-            }
+    if (tipoGrafica === 'global' || tipoGrafica === 'prioridades') {
+        titleEl.innerText = "Análisis Ampliado: Avance Ponderado Global (30 Compromisos)";
+        descEl.innerText = "Listado completo de requerimientos y compromisos normativos consolidados.";
+        chartEnlargedInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Completado', 'Pendiente'], datasets: [{ data: [metricas.avanceGlobal, Math.max(0, 100 - metricas.avanceGlobal)], backgroundColor: ['#2563EB', '#E2E8F0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%' } });
+    } else if (tipoGrafica === 'estatus') {
+        titleEl.innerText = "Análisis Ampliado: Estatus de Compromisos";
+        descEl.innerText = "Desglose operativo clasificado en Concluido, En Proceso y Validación.";
+        chartEnlargedInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Concluido', 'Validación', 'En Proceso'], datasets: [{ data: [metricas.conteoEstatus.Concluido || 0, metricas.conteoEstatus.Validación || 0, metricas.conteoEstatus['En Proceso'] || 0], backgroundColor: ['#16A34A', '#D97706', '#2563EB'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+    } else {
+        titleEl.innerText = "Análisis Ampliado: Rendimiento por Área Estratégica";
+        descEl.innerText = "Porcentaje promedio de cumplimiento ponderado por área ejecutora.";
+        
+        const panelesLetras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        const datosAreas = panelesLetras.map(l => metricas.avancesPorArea[l] || 0);
 
-            accionesDataset.forEach(act => {
-                let badgeEst = act.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (act.estatus === 'Validación' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800');
-                listEl.innerHTML += `
-                    <div class="p-3 bg-slate-50/90 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 hover:bg-slate-100 transition shadow-2xs">
-                        <div class="overflow-hidden">
-                            <div class="flex items-center gap-1.5 mb-1">
-                                <span class="px-2 py-0.5 rounded font-mono font-bold text-[9px] bg-slate-200 text-slate-700">${act.panel}</span>
-                                <span class="px-2 py-0.5 rounded text-[9px] font-bold ${badgeEst}">${act.estatus}</span>
-                            </div>
-                            <strong class="text-slate-900 block text-xs truncate">${act.hito}</strong>
-                            <span class="text-slate-500 text-[10px] block truncate mt-0.5">${act.area}</span>
-                        </div>
-                        <button onclick="abrirModalDesdeGrafica('${act.id}')" class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-eye"></i> Ver
-                        </button>
+        chartEnlargedInstance = new Chart(ctx, { 
+            type: 'bar', 
+            data: { 
+                labels: panelesLetras.map(l => `Panel ${l}`), 
+                datasets: [{ 
+                    label: 'Avance por Área (%)',
+                    data: datosAreas, 
+                    backgroundColor: '#2563EB', 
+                    borderRadius: 6 
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { min: 0, max: 100, ticks: { callback: v => `${v}%` } } 
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            } 
+        });
+    }
+
+    accionesDataset.forEach(act => {
+        let badgeEst = act.estatus === 'Concluido' ? 'bg-emerald-100 text-emerald-800' : (act.estatus === 'Validación' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800');
+        listEl.innerHTML += `
+            <div class="p-3 bg-slate-50/90 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 hover:bg-slate-100 transition shadow-2xs">
+                <div class="overflow-hidden">
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="px-2 py-0.5 rounded font-mono font-bold text-[9px] bg-slate-200 text-slate-700">${act.panel || 'A'}</span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-bold ${badgeEst}">${act.estatus || 'En Proceso'}</span>
                     </div>
-                `;
-            });
-            openModal('modal-chart-detail');
-        }
+                    <strong class="text-slate-900 block text-xs truncate">${act.hito || 'Hito normativo'}</strong>
+                    <span class="text-slate-500 text-[10px] block truncate mt-0.5">${act.area || 'Área Estratégica'}</span>
+                </div>
+                <button onclick="abrirModalDesdeGrafica('${act.id || act.clave_accion}')" class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-eye"></i> Ver
+                </button>
+            </div>
+        `;
+    });
+    openModal('modal-chart-detail');
+}
 
         function exportChartAsImage() {
             const canvas = document.getElementById('chartModalEnlarged');
