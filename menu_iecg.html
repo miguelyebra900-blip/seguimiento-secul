@@ -3327,14 +3327,15 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 3. PERSISTENCIA SEGURA EN SUPABASE (Sin campos que generen error 400)
+        // 3. PERSISTENCIA EN SUPABASE (Con consecutivo_num incluido para cumplir la regla NOT NULL)
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
+            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
 
-            // Payload reducido estrictamente a las columnas oficiales de 'acciones_transicion'
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: hitoBase,
+                consecutivo_num: numConsecutivoActual, // <--- Obligatorio por la restricción de Supabase
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 drive_url: driveUrlFinal,
@@ -3348,7 +3349,6 @@ async function ejecutarCargaUniversal(e) {
             if (errSupabase) throw errSupabase;
 
             // Actualizar la tabla de control de folios 'secuencias_claves'
-            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
