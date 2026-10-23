@@ -2474,7 +2474,7 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        // 1. Consultar de forma paralela las tablas operativas de Supabase
+        // 1. Consultar en paralelo las 3 tablas operativas de Supabase
         const [resAcciones, resHitos, resAreas] = await Promise.all([
             supabaseClient.from('acciones_transicion').select('*'),
             supabaseClient.from('hitos_transicion').select('*'),
@@ -2487,7 +2487,7 @@ async function inicializarDatosDesdeSupabase() {
         const hitosSupabase = resHitos.data || [];
         const areasSupabase = resAreas.data || [];
 
-        // 2. Mapeo de la tabla `areas_estrategicas` (clave_area / panel -> nombre_area)
+        // 2. Mapa de Áreas Estratégicas (clave_area / panel -> nombre_area)
         const mapaAreas = {};
         areasSupabase.forEach(a => {
             const claveA = (a.clave_area || '').trim();
@@ -2497,18 +2497,19 @@ async function inicializarDatosDesdeSupabase() {
             if (panelA) mapaAreas[panelA] = nombreA;
         });
 
-        // 3. Mapeo de la tabla `hitos_transicion` (clave_hito -> titulo, panel, clave_area)
+        // 3. Mapa de Hitos (clave_hito -> titulo, panel, clave_area, avance_porcentaje)
         const mapaHitos = {};
         hitosSupabase.forEach(h => {
             const claveH = (h.clave_hito || '').trim();
             mapaHitos[claveH] = {
                 titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
                 panel: h.panel || 'A',
-                clave_area: h.clave_area || 'RH_E'
+                clave_area: h.clave_area || 'RH_E',
+                avance: Number(h.avance_porcentaje || 0)
             };
         });
 
-        // Diccionario inquebrantable de Prefijo a Panel (A - J) basado en la clave canónica
+        // Diccionario inquebrantable de Prefijo a Panel (A - J)
         const PREFIJO_A_PANEL = {
             'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
             'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
@@ -2520,54 +2521,58 @@ async function inicializarDatosDesdeSupabase() {
                 const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
                 const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
                 
-                // Obtener metadatos del hito relacionado
+                // Obtener información del hito relacionado
                 const hitoInfo = mapaHitos[claveHito] || {};
                 
-                // Extraer el prefijo canónico de la clave (ej. 'RH_E', 'JUR_C') para determinar su panel exacto
+                // Determinar el panel correcto
                 const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
-                const panelReal = hitoInfo.panel || itemDB.panel || PREFIJO_A_PANEL[prefijo] || 'A';
+                const panelReal = hitoInfo.panel || PREFIJO_A_PANEL[prefijo] || 'A';
                 
-                // Obtener el nombre real del área desde `areas_estrategicas`
+                // Obtener el nombre real del área
                 const claveArea = hitoInfo.clave_area || prefijo;
                 const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
 
-                // Homologar estatus de forma segura
-                let estatusLimpio = itemDB.estatus || 'En Proceso';
+                // EL SECRETO: En `acciones_transicion`, el número en `estatus` (100, 70, 40) es el avance real
                 const valorAvance = Number(
-                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
-                    (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 
-                    (typeof itemDB.estatus === 'number' ? itemDB.estatus : 0))
+                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance :
+                    (typeof itemDB.estatus === 'number' ? itemDB.estatus : 
+                    (itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (hitoInfo.avance || 0)))
                 );
 
-                if (valorAvance === 100 || String(itemDB.estatus) === '100' || String(estatusLンプio).toLowerCase().includes('concluid')) {
+                // Determinar el texto del estatus basándose en el avance numérico
+                let estatusLimpio = 'En Proceso';
+                if (valorAvance === 100) {
                     estatusLimpio = 'Concluido';
-                } else if (valorAvance >= 75 || String(estatusLimpio).toLowerCase().includes('valid')) {
+                } else if (valorAvance >= 75) {
                     estatusLimpio = 'Validación';
                 } else {
                     estatusLimpio = 'En Proceso';
                 }
 
+                // Buscar respaldo en el catálogo oficial para textos ricos
+                const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveAccion || a.clave_accion === claveAccion);
+
                 return {
                     id: claveAccion,
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
-                    panel: panelReal, // Asignación limpia y estricta por panel (A a J)
+                    panel: panelReal, // Panel segmentado perfectamente de la A a la J
                     area: nombreAreaReal,
-                    hito: hitoInfo.titulo || itemDB.hito || 'Hito normativo',
-                    accion: itemDB.accion_especifica || itemDB.accion || 'Acción operativa',
-                    responsable: itemDB.instancia_responsable || panelReal,
+                    hito: hitoInfo.titulo || (matchOficial ? matchOficial.hito : 'Hito normativo'),
+                    accion: itemDB.accion_especifica || (matchOficial ? matchOficial.accion : 'Acción operativa'),
+                    responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : panelReal),
                     estatus: estatusLimpio,
-                    avance: valorAvance,
-                    peso: itemDB.peso || 33.33,
-                    driveUrl: itemDB.drive_url || ''
+                    avance: valorAvance, // <--- ¡Avance numérico real rescatado!
+                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
+                    driveUrl: itemDB.drive_url || (matchOficial ? matchOficial.driveUrl : '')
                 };
             });
 
-            // Persistencia limpia en localStorage
+            // Guardar en localStorage limpio
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Sincronización relacional de las 5 tablas completada con éxito!");
+            console.log("¡Datos sincronizados correctamente usando el estatus numérico como avance!");
 
-            // Actualizar componentes visuales, gráficas y cronograma
+            // Actualizar interfaz, tarjetas, KPIs y gráficas
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
             if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
@@ -2575,7 +2580,8 @@ async function inicializarDatosDesdeSupabase() {
         }
 
     } catch (err) {
-        console.error("Error crítico al sincronizar con Supabase:", err.message);
+        console.error("Error al conectar con Supabase:", err.message);
+        accionesDataset = ACCIONES_INICIALES;
     }
 }
         
