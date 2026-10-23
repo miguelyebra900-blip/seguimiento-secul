@@ -2473,13 +2473,24 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        const { data: accionesSupabase, error } = await supabaseClient
+        const { data: accionesSupabase, error: errAcciones } = await supabaseClient
             .from('acciones_transicion')
             .select('*');
 
-        if (error) throw error;
+        const { data: hitosSupabase, error: errHitos } = await supabaseClient
+            .from('hitos_transicion')
+            .select('*');
 
-        // Mapa inverso de prefijos a letras de panel para asegurar precisión absoluta
+        if (errAcciones) throw errAcciones;
+
+        let mapaHitosTextos = {};
+        if (hitosSupabase && hitosSupabase.length > 0) {
+            hitosSupabase.forEach(h => {
+                const claveH = h.clave_hito || '';
+                mapaHitosTextos[claveH] = h.titulo || h.detalle_operativo || 'Hito normativo';
+            });
+        }
+
         const PREFIJO_A_PANEL = {
             'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
             'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
@@ -2491,32 +2502,44 @@ async function inicializarDatosDesdeSupabase() {
                 const claveAccion = item.clave_accion || item.id || '';
                 const claveHito = item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '');
                 
-                // Deducir el panel correcto a partir del prefijo de la clave (ej. FIN_P -> F)
                 let panelDetectado = item.panel;
                 if (!panelDetectado || panelDetectado.trim() === '' || panelDetectado === 'empty') {
                     const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0];
                     panelDetectado = PREFIJO_A_PANEL[prefijo] || 'A';
                 }
 
+                let estatusLimpio = item.estatus || 'En Proceso';
+                if (estatusLimpio.toLowerCase().includes('concluido') || Number(item.avance || item.avance_porcentaje) === 100) {
+                    estatusLimpio = 'Concluido';
+                } else if (estatusLimpio.toLowerCase().includes('valid')) {
+                    estatusLimpio = 'Validación';
+                } else {
+                    estatusLimpio = 'En Proceso';
+                }
+
+                const valorAvance = Number(
+                    item.avance !== undefined && item.avance !== null ? item.avance : 
+                    (item.avance_porcentaje !== undefined && item.avance_porcentaje !== null ? item.avance_porcentaje : 0)
+                );
+
                 return {
                     id: claveAccion,
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
                     panel: panelDetectado,
-                    area: item.area || 'Área Estratégica',
-                    hito: item.hito || item.titulo || 'Hito normativo',
+                    area: item.area || 'Área Estratégica de Seguimiento',
+                    hito: item.hito || item.titulo || mapaHitosTextos[claveHito] || 'Hito normativo',
                     accion: item.accion_especifica || item.accion || 'Acción operativa',
                     responsable: item.instancia_responsable || item.responsable || 'Comisión',
-                    estatus: item.estatus || 'En Proceso',
-                    avance: (item.avance !== null && item.avance !== undefined) ? Number(item.avance) : 
-                            ((item.avance_porcentaje !== null && item.avance_porcentaje !== undefined) ? Number(item.avance_porcentaje) : 0),
+                    estatus: estatusLimpio,
+                    avance: valorAvance,
                     peso: item.peso || 33.33,
                     driveUrl: item.drive_url || item.driveUrl || ''
                 };
             });
 
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados y paneles deducidos con éxito desde Supabase!");
+            console.log("¡Datos sincronizados y homologados con Supabase!");
             
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
@@ -2525,7 +2548,8 @@ async function inicializarDatosDesdeSupabase() {
     } catch (err) {
         console.warn("Error al conectar con Supabase:", err.message);
     }
-}    
+}
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
