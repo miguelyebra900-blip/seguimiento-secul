@@ -2468,101 +2468,67 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible, usando localStorage.");
+        console.warn("Supabase no disponible, usando catálogo oficial.");
+        accionesDataset = ACCIONES_INICIALES;
         return;
     }
 
     try {
-        // 1. Consultar las TRES tablas maestras en Supabase de forma paralela
-        const [resAcciones, resHitos, resAreas] = await Promise.all([
-            supabaseClient.from('acciones_transicion').select('*'),
-            supabaseClient.from('hitos_transicion').select('*'),
-            supabaseClient.from('areas_estrategicas').select('*')
-        ]);
+        const { data: accionesSupabase, error } = await supabaseClient
+            .from('acciones_transicion')
+            .select('*');
 
-        if (resAcciones.error) throw resAcciones.error;
+        if (error) throw error;
 
-        const accionesSupabase = resAcciones.data || [];
-        const hitosSupabase = resHitos.data || [];
-        const areasSupabase = resAreas.data || [];
+        // Partimos de nuestro catálogo oficial íntegro para conservar todos los textos originales
+        let datasetTemporal = JSON.parse(JSON.stringify(ACCIONES_INICIALES));
 
-        // 2. Crear mapa de Áreas Estratégicas (asociando clave_area y panel con nombre_area)
-        const mapaAreas = {};
-        areasSupabase.forEach(a => {
-            const claveA = (a.clave_area || '').trim();
-            const panelA = (a.panel || '').trim();
-            const nombreA = a.nombre_area || a.nombre || 'Área Estratégica';
-            if (claveA) mapaAreas[claveA] = nombreA;
-            if (panelA) mapaAreas[panelA] = nombreA;
-        });
+        if (accionesSupabase && accionesSupabase.length > 0) {
+            accionesSupabase.forEach(itemDB => {
+                const claveDB = itemDB.clave_accion || itemDB.id;
+                const index = datasetTemporal.findIndex(a => a.id === claveDB || a.clave_accion === claveDB);
 
-        // 3. Crear mapa de Hitos (asociando clave_hito con titulo, panel y clave_area)
-        const mapaHitos = {};
-        hitosSupabase.forEach(h => {
-            const claveH = (h.clave_hito || '').trim();
-            mapaHitos[claveH] = {
-                titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
-                panel: h.panel || 'A',
-                clave_area: h.clave_area || 'RH_E'
-            };
-        });
-
-        if (accionesSupabase.length > 0) {
-            accionesDataset = accionesSupabase.map(function(item) {
-                const claveAccion = (item.clave_accion || item.id || '').trim();
-                const claveHito = (item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
-                
-                // Obtener datos del hito relacionado
-                const hitoInfo = mapaHitos[claveHito] || {};
-                
-                // Obtener Panel y Clave de Área
-                let panelDetectado = hitoInfo.panel || item.panel || 'A';
-                const claveArea = hitoInfo.clave_area || claveHito.split('-')[0] || 'RH_E';
-                
-                // Obtener el NOMBRE REAL del área directamente de la tabla `areas_estrategicas`
-                const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelDetectado] || 'Área Estratégica';
-
-                // Homologar estatus
-                let estatusLimpio = item.estatus || 'En Proceso';
-                if (String(estatusLimpio) === '100' || String(estatusLimpio).toLowerCase().includes('concluid')) {
-                    estatusLimpio = 'Concluido';
-                } else if (String(estatusLimpio).toLowerCase().includes('valid')) {
-                    estatusLimpio = 'Validación';
-                } else {
-                    estatusLimpio = 'En Proceso';
-                }
-
-                const valorAvance = Number(
-                    item.avance !== undefined && item.avance !== null ? item.avance : 
-                    (item.avance_porcentaje !== undefined && item.avance_porcentaje !== null ? item.avance_porcentaje : 0)
+                const avanceReal = Number(
+                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
+                    (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 0)
                 );
 
-                return {
-                    id: claveAccion,
-                    clave_accion: claveAccion,
-                    clave_hito: claveHito,
-                    panel: panelDetectado,
-                    area: nombreAreaReal, // <-- Nombre real jalado de areas_estrategicas
-                    hito: hitoInfo.titulo || item.hito || item.titulo || 'Hito normativo', // <-- Título real jalado de hitos_transicion
-                    accion: item.accion_especifica || item.accion || 'Acción operativa',
-                    responsable: item.instancia_responsable || item.responsable || panelDetectado,
-                    estatus: estatusLimpio,
-                    avance: valorAvance,
-                    peso: item.peso || 33.33,
-                    driveUrl: item.drive_url || item.driveUrl || ''
-                };
+                if (index !== -1) {
+                    // Actualizamos dinámicamente el progreso y estatus desde Supabase
+                    datasetTemporal[index].avance = avanceReal;
+                    datasetTemporal[index].estatus = itemDB.estatus || datasetTemporal[index].estatus;
+                    if (itemDB.drive_url) datasetTemporal[index].driveUrl = itemDB.drive_url;
+                } else {
+                    // Si el registro fue dado de alta en Supabase, lo agregamos
+                    datasetTemporal.push({
+                        id: claveDB,
+                        clave_accion: claveDB,
+                        clave_hito: itemDB.clave_hito || claveDB.split('-A-')[0],
+                        panel: itemDB.panel || 'A',
+                        area: itemDB.area || 'Área Estratégica',
+                        hito: itemDB.hito || 'Hito normativo',
+                        accion: itemDB.accion_especifica || 'Acción operativa',
+                        responsable: itemDB.instancia_responsable || 'Comisión',
+                        estatus: itemDB.estatus || 'En Proceso',
+                        avance: avanceReal,
+                        peso: itemDB.peso || 33.33,
+                        driveUrl: itemDB.drive_url || ''
+                    });
+                }
             });
-
-            // Guardar en localStorage y actualizar la interfaz completa
-            localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados cruzando areas_estrategicas, hitos_transicion y acciones_transicion!");
-            
-            if (typeof actualizarDashboard === 'function') actualizarDashboard();
-            if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
-            if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
         }
+
+        accionesDataset = datasetTemporal;
+        localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
+        console.log("¡Catálogo oficial restaurado y sincronizado con Supabase con éxito!");
+
+        if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+
     } catch (err) {
-        console.warn("Error al conectar con Supabase:", err.message);
+        console.warn("Error al conectar con Supabase, usando catálogo local:", err.message);
+        accionesDataset = ACCIONES_INICIALES;
     }
 }
         
