@@ -3362,6 +3362,16 @@ async function ejecutarCargaUniversal(e) {
     const act = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!act) return;
 
+    // CANDADO DE GOBERNANZA: VALIDACIÓN DE PERMISOS DE PANEL
+    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
+    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
+    const puedeEditarAccion = esAdmin || misPaneles.includes(act.panel);
+
+    if (!puedeEditarAccion) {
+        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${act.panel} (${act.area}).\nTu usuario (${currentUser ? currentUser.nombre : 'Enlace'}) únicamente está facultado para operar sobre: Panel ${misPaneles.join(', ')}.`);
+        return;
+    }
+
     let driveUrlFinal = act.driveUrl || '';
     const fileInput = document.getElementById('buzonFileInputAccion') || document.getElementById('buzonFileInput');
     
@@ -3387,9 +3397,6 @@ async function ejecutarCargaUniversal(e) {
         
         guardarDataset();
 
-        // =========================================================================
-        // AQUÍ PEGATU BLOQUE EXACTO QUE ACTUALIZA AMBAS TABLAS EN SUPABASE:
-        // =========================================================================
         if (supabaseClient) {
             const hitoBase = act.clave_hito || claveAccionFinal.split('-A-')[0];
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -3423,7 +3430,6 @@ async function ejecutarCargaUniversal(e) {
                     updated_at: new Date().toISOString()
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
-        // =========================================================================
 
         alert(`¡Acción guardada, propagada y sincronizada en Supabase y Drive con éxito!\n\n• Clave: ${claveAccionFinal}`);
         closeModal('modal-buzon-universal');
