@@ -2468,75 +2468,115 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible, usando catálogo oficial.");
-        accionesDataset = ACCIONES_INICIALES;
+        console.warn("Supabase no disponible.");
         return;
     }
 
     try {
-        const { data: accionesSupabase, error } = await supabaseClient
-            .from('acciones_transicion')
-            .select('*');
+        // 1. Consultar de forma paralela las tablas operativas de Supabase
+        const [resAcciones, resHitos, resAreas] = await Promise.all([
+            supabaseClient.from('acciones_transicion').select('*'),
+            supabaseClient.from('hitos_transicion').select('*'),
+            supabaseClient.from('areas_estrategicas').select('*')
+        ]);
 
-        if (error) throw error;
+        if (resAcciones.error) throw resAcciones.error;
 
-        // Mapa de prefijos exacto para asignar la letra de panel correcta (A - J)
+        const accionesSupabase = resAcciones.data || [];
+        const hitosSupabase = resHitos.data || [];
+        const areasSupabase = resAreas.data || [];
+
+        // 2. Mapear la tabla `areas_estrategicas` (clave_area / panel -> nombre_area)
+        const mapaAreas = {};
+        areasSupabase.forEach(a => {
+            const claveA = (a.clave_area || '').trim();
+            const panelA = (a.panel || '').trim();
+            const nombreA = a.nombre_area || 'Área Estratégica';
+            if (claveA) mapaAreas[claveA] = nombreA;
+            if (panelA) mapaAreas[panelA] = nombreA;
+        });
+
+        // 3. Mapear la tabla `hitos_transicion` (clave_hito -> titulo, panel, clave_area)
+        const mapaHitos = {};
+        hitosSupabase.forEach(h => {
+            const claveH = (h.clave_hito || '').trim();
+            mapaHitos[claveH] = {
+                titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
+                panel: h.panel || 'A',
+                clave_area: h.clave_area || 'RH_E'
+            };
+        });
+
+        // Diccionario de respaldo inquebrantable de Prefijo a Panel (A - J)
         const PREFIJO_A_PANEL = {
             'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
             'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
             'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
         };
 
-        if (accionesSupabase && accionesSupabase.length > 0) {
-            // CONSTRUIMOS EL DATASET DIRECTAMENTE DESDE SUPABASE
+        if (accionesSupabase.length > 0) {
+            // Construir el dataset exclusivamente con los datos de Supabase
             accionesDataset = accionesSupabase.map(itemDB => {
-                const claveDB = itemDB.clave_accion || itemDB.id;
-                const claveHito = itemDB.clave_hito || (claveDB ? claveDB.split('-A-')[0] : '');
+                const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
+                const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
                 
-                // Extraer el prefijo exacto (ej. 'RH_E') para determinar su panel real sin mezclar
-                const prefijo = claveDB.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
-                const panelReal = PREFIJO_A_PANEL[prefijo] || itemDB.panel || 'A';
+                // Obtener metadatos del hito relacionado
+                const hitoInfo = mapaHitos[claveHito] || {};
+                
+                // Determinar el panel estrictamente (evita que el Panel A absorba todo)
+                const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
+                const panelReal = hitoInfo.panel || PREFIJO_A_PANEL[prefijo] || 'A';
+                
+                // Obtener el nombre real del área desde `areas_estrategicas`
+                const claveArea = hitoInfo.clave_area || prefijo;
+                const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
 
-                // Buscar si existe en el catálogo oficial para rescatar textos ricos si fuera necesario
-                const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveDB || a.clave_accion === claveDB);
+                // Homologar estatus de forma segura
+                let estatusLimpio = itemDB.estatus || 'En Proceso';
+                if (String(estatusLimpio) === '100' || String(estatusLimpio).toLowerCase().includes('concluid')) {
+                    estatusLimpio = 'Concluido';
+                } else if (String(estatusLimpio).toLowerCase().includes('valid')) {
+                    estatusLimpio = 'Validación';
+                } else {
+                    estatusLimpio = 'En Proceso';
+                }
 
-                const avanceReal = Number(
+                // Obtener avance real (soporta 'avance' o 'avance_porcentaje')
+                const valorAvance = Number(
                     itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
                     (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 0)
                 );
 
                 return {
-                    id: claveDB,
-                    clave_accion: claveDB,
+                    id: claveAccion,
+                    clave_accion: claveAccion,
                     clave_hito: claveHito,
-                    panel: panelReal, // <--- Panel estrictamente asignado por su clave real de base de datos
-                    area: matchOficial ? matchOficial.area : (itemDB.area || 'Área Estratégica'),
-                    hito: matchOficial ? matchOficial.hito : (itemDB.hito || 'Hito normativo'),
-                    accion: matchOficial ? matchOficial.accion : (itemDB.accion_especifica || 'Acción operativa'),
-                    responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : 'Comisión'),
-                    estatus: itemDB.estatus || (matchOficial ? matchOficial.estatus : 'En Proceso'),
-                    avance: avanceReal,
-                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
-                    driveUrl: itemDB.drive_url || (matchOficial ? matchOficial.driveUrl : '')
+                    panel: panelReal, // Segmentación limpia por panel (A a J)
+                    area: nombreAreaReal,
+                    hito: hitoInfo.titulo || 'Hito normativo',
+                    accion: itemDB.accion_especifica || 'Acción operativa',
+                    responsable: itemDB.instancia_responsable || panelReal,
+                    estatus: estatusLimpio,
+                    avance: valorAvance,
+                    peso: itemDB.peso || 33.33,
+                    driveUrl: itemDB.drive_url || '',
+                    prioridad: itemDB.prioridad || 'Media'
                 };
             });
 
+            // Guardar en localStorage para persistencia instantánea
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Supabase sincronizado limpiamente y paneles segmentados sin cruces!");
+            console.log("¡Datos sincronizados relacionalmente desde Supabase (5 tablas operativas)!");
 
+            // Refrescar vistas y componentes visuales
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
             if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
             if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
-
-        } else {
-            // Si Supabase viniera vacío por alguna razón de respaldo
-            accionesDataset = ACCIONES_INICIALES;
         }
 
     } catch (err) {
-        console.warn("Error al conectar con Supabase, usando catálogo local:", err.message);
-        accionesDataset = ACCIONES_INICIALES;
+        console.error("Error crítico al sincronizar con Supabase:", err.message);
     }
 }
         
