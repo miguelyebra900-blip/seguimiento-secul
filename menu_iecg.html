@@ -2468,7 +2468,8 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible, usando localStorage.");
+        console.warn("Supabase no disponible, usando catálogo oficial.");
+        accionesDataset = ACCIONES_INICIALES;
         return;
     }
 
@@ -2479,66 +2480,66 @@ async function inicializarDatosDesdeSupabase() {
 
         if (error) throw error;
 
-        // Mapeo oficial inquebrantable de Prefijo a Letra de Panel (A - J)
+        // Mapa de prefijos exacto para asignar la letra de panel correcta (A - J)
         const PREFIJO_A_PANEL = {
-            'RH_E': 'A',
-            'JUR_C': 'B',
-            'PTR_I': 'C',
-            'FID_F': 'D',
-            'PTR_M': 'E',
-            'FIN_P': 'F',
-            'TIT_S': 'G', 'TIC_S': 'G',
-            'ACH_D': 'H',
-            'AUD_F': 'I',
-            'ASI_P': 'J'
+            'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
+            'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
+            'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
         };
 
         if (accionesSupabase && accionesSupabase.length > 0) {
-            accionesDataset = accionesSupabase.map(function(item) {
-                const claveAccion = (item.clave_accion || item.id || '').trim();
-                const claveHito = (item.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
+            // CONSTRUIMOS EL DATASET DIRECTAMENTE DESDE SUPABASE
+            accionesDataset = accionesSupabase.map(itemDB => {
+                const claveDB = itemDB.clave_accion || itemDB.id;
+                const claveHito = itemDB.clave_hito || (claveDB ? claveDB.split('-A-')[0] : '');
                 
-                // Extraer el prefijo exacto de la clave (ej. 'RH_E', 'JUR_C', 'FIN_P')
-                const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
-                
-                // Asignar la letra de panel correspondiente de forma estricta
-                const panelDetectado = PREFIJO_A_PANEL[prefijo] || 'A';
+                // Extraer el prefijo exacto (ej. 'RH_E') para determinar su panel real sin mezclar
+                const prefijo = claveDB.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
+                const panelReal = PREFIJO_A_PANEL[prefijo] || itemDB.panel || 'A';
 
-                const valorAvance = Number(
-                    item.avance !== undefined && item.avance !== null ? item.avance : 
-                    (item.avance_porcentaje !== undefined && item.avance_porcentaje !== null ? item.avance_porcentaje : 0)
+                // Buscar si existe en el catálogo oficial para rescatar textos ricos si fuera necesario
+                const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveDB || a.clave_accion === claveDB);
+
+                const avanceReal = Number(
+                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance : 
+                    (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null ? itemDB.avance_porcentaje : 0)
                 );
 
                 return {
-                    id: claveAccion,
-                    clave_accion: claveAccion,
+                    id: claveDB,
+                    clave_accion: claveDB,
                     clave_hito: claveHito,
-                    panel: panelDetectado, // <-- Panel asignado correctamente (A, B, C, D, E, F, G, H, I, J)
-                    area: item.area || 'Área Estratégica',
-                    hito: item.hito || item.titulo || 'Hito normativo',
-                    accion: item.accion_especifica || item.accion || 'Acción operativa',
-                    responsable: item.instancia_responsable || item.responsable || panelDetectado,
-                    estatus: item.estatus || 'En Proceso',
-                    avance: valorAvance,
-                    peso: item.peso || 33.33,
-                    driveUrl: item.drive_url || item.driveUrl || ''
+                    panel: panelReal, // <--- Panel estrictamente asignado por su clave real de base de datos
+                    area: matchOficial ? matchOficial.area : (itemDB.area || 'Área Estratégica'),
+                    hito: matchOficial ? matchOficial.hito : (itemDB.hito || 'Hito normativo'),
+                    accion: matchOficial ? matchOficial.accion : (itemDB.accion_especifica || 'Acción operativa'),
+                    responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : 'Comisión'),
+                    estatus: itemDB.estatus || (matchOficial ? matchOficial.estatus : 'En Proceso'),
+                    avance: avanceReal,
+                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
+                    driveUrl: itemDB.drive_url || (matchOficial ? matchOficial.driveUrl : '')
                 };
             });
 
-            // LIMPIAR Y FORZAR LA VERDAD ABSOLUTA EN LOCALSTORAGE
-            localStorage.removeItem('secul_30_acciones');
             localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Paneles recalculados por prefijo y sincronizados perfectamente!");
-            
+            console.log("¡Supabase sincronizado limpiamente y paneles segmentados sin cruces!");
+
             if (typeof actualizarDashboard === 'function') actualizarDashboard();
             if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
             if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
             if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
+
+        } else {
+            // Si Supabase viniera vacío por alguna razón de respaldo
+            accionesDataset = ACCIONES_INICIALES;
         }
+
     } catch (err) {
-        console.warn("Error al conectar con Supabase:", err.message);
+        console.warn("Error al conectar con Supabase, usando catálogo local:", err.message);
+        accionesDataset = ACCIONES_INICIALES;
     }
 }
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
