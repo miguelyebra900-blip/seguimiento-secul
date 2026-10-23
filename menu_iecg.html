@@ -3271,36 +3271,26 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
-    // Validación de permisos de panel
-    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
-    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
-    const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
-
-    if (!puedeEditarAccion) {
-        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${hitoPadre.panel} (${hitoPadre.area}).`);
-        return;
-    }
-
-    // OBLIGATORIO: Validar que se haya seleccionado un archivo físico para Google Drive
+    // OBLIGATORIO: Validar que se haya seleccionado un archivo PDF físico
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
+        alert("⚠️ ATENCIÓN: Debe adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
         return;
     }
 
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivo a Drive...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y Supabase...';
     }
 
     try {
-        // 1. Subir a Google Drive con el nombre canónico exacto [CLAVE] NombreArchivo
+        // 1. SUBIDA REAL A GOOGLE DRIVE CON NOMENCLATURA [CLAVE] NombreArchivo.pdf
         const archivoFisico = fileInput.files[0];
         const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
         const driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
 
-        // 2. Crear el objeto de la nueva acción en memoria (suma sin borrar previas)
+        // 2. CREAR EL NUEVO OBJETO DE ACCIÓN EN MEMORIA (Suma sin borrar previas)
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3320,7 +3310,7 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 3. Guardar en Supabase (acciones_transicion con la URL real de Drive y actualizar secuencias_claves)
+        // 3. PERSISTENCIA EN SUPABASE (acciones_transicion y secuencias_claves)
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -3332,7 +3322,7 @@ async function ejecutarCargaUniversal(e) {
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 prioridad: document.getElementById('buzonPrioridadInput')?.value || 'Media',
-                drive_url: driveUrlFinal, // <--- Aquí va la URL real del archivo en Drive
+                drive_url: driveUrlFinal, // <--- Aquí va el enlace exacto del archivo subido a Google Drive
                 nota_auditoria: notaAuditoria,
                 instancia_responsable: nuevaAccionObj.responsable
             };
@@ -3343,7 +3333,7 @@ async function ejecutarCargaUniversal(e) {
 
             if (errSupabase) throw errSupabase;
 
-            // Actualizar la tabla de control de folios 'secuencias_claves'
+            // Actualizar la tabla 'secuencias_claves' en Supabase
             await supabaseClient
                 .from('secuencias_claves')
                 .upsert([{
@@ -3354,7 +3344,7 @@ async function ejecutarCargaUniversal(e) {
                 }], { onConflict: 'tipo_entidad,prefijo_padre' });
         }
 
-        alert(`¡Acción [${claveAccionFinal}] registrada con éxito, respaldada en Drive y sincronizada!`);
+        alert(`¡Acción [${claveAccionFinal}] registrada, archivo respaldado en Drive con su clave y sincronizado!`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
