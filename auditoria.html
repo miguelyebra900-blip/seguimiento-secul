@@ -1166,10 +1166,10 @@ async function getLogsConsolidadosAsync() {
     // 2. Consultar directamente a la tabla 'auditoria_trazabilidad' de Supabase
     if (supabaseClient) {
         try {
-            const { data, error } = await supabaseClient
+          const { data, error } = await supabaseClient
                 .from('auditoria_trazabilidad')
                 .select('*')
-                .order('fecha_hora', { ascending: false })
+                .order('fecha_hora', { ascending: false }) // 👈 Asegura que el más nuevo esté arriba
                 .limit(100);
 
             if (!error && data && data.length > 0) {
