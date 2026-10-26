@@ -772,15 +772,39 @@ function imprimirInformeEjecutivo() {
                     console.warn("Actualización en Supabase diferida:", e);
                 }
             }
-
-            // Registrar en Bitácora Forense
-            registrarEventoAuditoria(entidad, `Resolución de Solicitud (${resolucion})`, {
+// Registrar en Bitácora Forense y Supabase en tiempo real
+        const logData = {
+            fecha_hora: new Date().toISOString(),
+            usuario: adminFirmante || 'Super Administrador',
+            accion: `[${entidad}] Resolución de Solicitud (${resolucion})`,
+            detalles: {
                 solicitud_id: sol.id,
                 clave: sol.clave,
                 resolucion: resolucion,
                 dictamen: dictamen,
                 autorizo: adminFirmante
-            });
+            }
+        };
+
+        // 1. Respaldo local
+        registrarEventoAuditoria(entidad, `Resolución de Solicitud (${resolucion})`, logData.detalles);
+
+        // 2. Inserción directa en la tabla 'auditoria_trazabilidad' de Supabase
+        if (supabaseClient) {
+            try {
+                const { error: errTraza } = await supabaseClient
+                    .from('auditoria_trazabilidad')
+                    .insert([logData]);
+
+                if (errTraza) {
+                    console.warn("Error al insertar en auditoria_trazabilidad:", errTraza.message);
+                } else {
+                    console.log("¡Trazabilidad de resolución guardada en Supabase con éxito!");
+                }
+            } catch (ex) {
+                console.warn("Excepción al conectar con Supabase para la traza:", ex);
+            }
+        }
 
             // Estructura del Mensaje de Notificación
             const textoMensaje = `*CENTRO DE MANDO Y AUDITORÍA - ${entidad}*\n` +
