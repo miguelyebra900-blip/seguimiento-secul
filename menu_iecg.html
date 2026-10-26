@@ -164,6 +164,34 @@
     </style>
 <!-- PEGAR DENTRO DE <head> EN menu_iecg.html Y menu_forum.html -->
 <script>
+    // 🛡️ Función universal y segura para enviar acciones a Supabase en tiempo real
+    async function registrarAccionEnSupabase(entidad, accionRealizada, detallesExtra) {
+        let usuarioActual = "Operativo";
+        try {
+            const sesion = JSON.parse(localStorage.getItem('secul_user'));
+            if (sesion && (sesion.nombre || sesion.usuario)) {
+                usuarioActual = sesion.nombre || sesion.usuario;
+            }
+        } catch(e) {}
+
+        const nuevoRegistro = {
+            fecha_hora: new Date().toISOString(),
+            usuario: usuarioActual,
+            accion: `[${entidad}] ${accionRealizada}`,
+            detalles: detallesExtra || {}
+        };
+
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            try {
+                await supabaseClient
+                    .from('auditoria_trazabilidad')
+                    .insert([nuevoRegistro]);
+            } catch (err) {
+                console.warn("Aviso de sincronización en segundo plano:", err);
+            }
+        }
+    }
+
     (function verificarAccesoProtegido() {
         const sesion = localStorage.getItem('secul_user');
         if (!sesion) {
@@ -176,35 +204,42 @@
             if (!usuario || !usuario.usuario) {
                 localStorage.removeItem('secul_user');
                 window.location.replace('index.html');
+                return;
             }
+            
+            // 🚀 Registro automático de acceso en tiempo real a Supabase (Seguro y sin bloquear la página)
+            registrarAccionEnSupabase('IEC', 'Acceso a Menú Operativo', { 
+                usuario: usuario.usuario, 
+                rol: usuario.rol || 'General' 
+            });
+
         } catch (e) {
             localStorage.removeItem('secul_user');
             window.location.replace('index.html');
         }
     })();
 
-window.guardarContactoNotificaciones = async function(e) {
-    e.preventDefault();
-    const correo = document.getElementById('inputPerfilCorreo').value.trim();
-    const tel = document.getElementById('inputPerfilWhatsApp').value.trim();
+    window.guardarContactoNotificaciones = async function(e) {
+        e.preventDefault();
+        const correo = document.getElementById('inputPerfilCorreo').value.trim();
+        const tel = document.getElementById('inputPerfilWhatsApp').value.trim();
 
-    if (!currentUser) return;
+        if (!currentUser) return;
 
-    currentUser.correo_notificaciones = correo;
-    currentUser.telefono_whatsapp = tel;
-    localStorage.setItem('secul_user', JSON.stringify(currentUser));
+        currentUser.correo_notificaciones = correo;
+        currentUser.telefono_whatsapp = tel;
+        localStorage.setItem('secul_user', JSON.stringify(currentUser));
 
-    if (supabaseClient && currentUser.id) {
-        await supabaseClient
-            .from('usuarios_acceso')
-            .update({ correo_notificaciones: correo, telefono_whatsapp: tel })
-            .eq('id', currentUser.id);
-    }
+        if (supabaseClient && currentUser.id) {
+            await supabaseClient
+                .from('usuarios_acceso')
+                .update({ correo_notificaciones: correo, telefono_whatsapp: tel })
+                .eq('id', currentUser.id);
+        }
 
-    closeModal('modal-contacto-notificaciones');
-    alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
-};
-    
+        closeModal('modal-contacto-notificaciones');
+        alert("✅ Canales de contacto actualizados exitosamente en Supabase.");
+    };
 </script>
 
     
