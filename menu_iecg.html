@@ -5761,21 +5761,41 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 
 // 7. Guardar Formulario de Edición Dinámica (Versión Segura y Robusta)
 // 7. Guardar Formulario de Edición Dinámica (Versión Definitiva)
+// =========================================================================
+// APERTURA LIMPIA DEL MODAL DE EDICIÓN CON CLAVE CANÓNICA AUTOMÁTICA
+// =========================================================================
+const _abrirEdicionOriginal = window.abrirModalEdicionDinamica || function(){};
+window.abrirModalEdicionDinamica = function(tipo, claveId) {
+    if (typeof _abrirEdicionOriginal === 'function') {
+        _abrirEdicionOriginal(tipo, claveId);
+    }
+    const inputClave = document.getElementById('inputClaveCanonicaEditable');
+    if (inputClave) {
+        inputClave.value = claveId;
+        inputClave.readOnly = true; // Por defecto bloqueado/automático
+        inputClave.style.backgroundColor = '#f1f5f9';
+        inputClave.style.cursor = 'not-allowed';
+    }
+};
+
+// =========================================================================
+// FUNCIÓN DE GUARDADO UNIFICADA CON SUFIJOS EN GOOGLE DRIVE (-0.001, -0.002)
+// =========================================================================
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
-    var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo'].value : 'HITO';
-    var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave'].value.trim() : '';
+    var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
+    var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
     
     var inputNuevaClave = document.getElementById('inputClaveCanonicaEditable');
     var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
-    var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit'].value.trim() : '';
+    var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivos a Drive...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivos a Drive y Sincronizando...';
     }
 
     try {
@@ -5822,6 +5842,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 act.estatus = estatusCapturado;
                 act.avance = avanceCapturado;
                 if (driveUrlFinal) act.driveUrl = driveUrlFinal;
+
+                if (nuevaClave !== claveOriginal) {
+                    act.clave_hito = nuevaClave;
+                    if (act.id) act.id = act.id.replace(claveOriginal, nuevaClave);
+                    if (act.clave_accion) act.clave_accion = act.clave_accion.replace(claveOriginal, nuevaClave);
+                }
             });
 
             guardarDataset();
@@ -5864,7 +5890,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     instancia_responsable: act.responsable
                 }], { onConflict: 'clave_accion' });
             }
-            alert('¡Acción actualizada y archivos respaldados en Drive con sufijo!');
+            alert('¡Acción actualizada y archivos respaldados en Drive con sufijo (-0.001)!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -5876,7 +5902,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
+            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar a Todo el Sistema';
         }
     }
 };
