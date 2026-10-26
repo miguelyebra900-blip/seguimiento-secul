@@ -3285,7 +3285,7 @@ async function ejecutarCargaUniversal(e) {
 
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
+        alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia.");
         return;
     }
 
@@ -3296,7 +3296,7 @@ async function ejecutarCargaUniversal(e) {
     }
 
     try {
-        // 1. Consultar cuántos archivos ya existen en Supabase para calcular el sufijo real (-0.001, -0.002...)
+        // 1. CONTEO REAL EN SUPABASE: Consultar cuántos archivos existen en evidencias_expedientes para esta clave
         let contadorBase = 1;
         if (supabaseClient) {
             const { count, error: errCount } = await supabaseClient
@@ -3305,7 +3305,7 @@ async function ejecutarCargaUniversal(e) {
                 .eq('clave_accion', claveAccionFinal);
 
             if (!errCount && count !== null) {
-                contadorBase = count + 1;
+                contadorBase = count + 1; // Si hay 2, el siguiente es 3 (-0.003)
             }
         }
 
@@ -3320,7 +3320,7 @@ async function ejecutarCargaUniversal(e) {
             throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
         }
 
-        // 3. REGISTRO OBLIGATORIO EN SUPABASE: Tabla evidencias_expedientes
+        // 3. INSERCIÓN OBLIGATORIA EN SUPABASE: Tabla evidencias_expedientes
         if (supabaseClient) {
             const { error: errEvidencia } = await supabaseClient
                 .from('evidencias_expedientes')
@@ -3374,6 +3374,7 @@ async function ejecutarCargaUniversal(e) {
         alert(`¡Archivo guardado con sufijo [${sufijoIndex}] y registrado en Supabase exitosamente!`);
         closeModal('modal-buzon-universal');
         
+        await inicializarDatosDesdeSupabase();
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
@@ -5644,10 +5645,31 @@ window.renderBaseDatosGeneralJerarquica = function() {
             else if (a.estatus === 'Validación') badgeEst = 'bg-purple-100 text-purple-800';
             else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-100 text-amber-800';
 
-            var btnDrive = tieneDrive 
-                ? '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition"><i class="fa-brands fa-google-drive text-emerald-600"></i><span>Ver Documental</span></button>'
-                : '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition"><i class="fa-brands fa-google-drive text-amber-500"></i><span>Abrir Carpeta ' + h.panel + '</span></button>';
+           var listaArchivosAccion = a.archivosDrive || [];
+            var btnDrive = '';
 
+            if (listaArchivosAccion.length > 0) {
+                var itemsDropdown = listaArchivosAccion.map(function(arch, idx) {
+                    return '<a href="' + arch.url + '" target="_blank" class="block px-3 py-1.5 hover:bg-slate-100 text-slate-700 text-[11px] truncate border-b border-slate-100 last:border-0">' +
+                           '<i class="fa-solid fa-file-pdf text-rose-500 mr-1.5"></i> ' + (arch.nombre || ('Archivo ' + (idx + 1))) +
+                           '</a>';
+                }).join('');
+
+                btnDrive = '<div class="relative group inline-block">' +
+                           '<button type="button" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition">' +
+                           '<i class="fa-brands fa-google-drive text-emerald-600"></i><span>Ver Documental (' + listaArchivosAccion.length + ')</span> <i class="fa-solid fa-chevron-down text-[8px]"></i>' +
+                           '</button>' +
+                           '<div class="absolute left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 hidden group-hover:block z-50 text-left">' +
+                           '<div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1 border-b border-slate-100">Archivos Probatorios (' + listaArchivosAccion.length + ')</div>' +
+                           '<div class="max-h-48 overflow-y-auto">' + itemsDropdown + '</div>' +
+                           '</div>' +
+                           '</div>';
+            } else if (a.driveUrl && a.driveUrl.trim() !== '') {
+                btnDrive = '<a href="' + a.driveUrl + '" target="_blank" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition">' +
+                           '<i class="fa-brands fa-google-drive text-emerald-600"></i><span>Ver Documental (1)</span></a>';
+            } else {
+                btnDrive = '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition"><i class="fa-brands fa-google-drive text-amber-500"></i><span>Abrir Carpeta ' + h.panel + '</span></button>';
+            }
             filasAcciones += '<tr class="hover:bg-slate-50/80 transition">' +
                 '<td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">' + idClaveAccion + '</td>' +
                 '<td class="p-2 text-slate-800 font-medium">' + (a.accion || '') + '</td>' +
