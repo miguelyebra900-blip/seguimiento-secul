@@ -1138,26 +1138,30 @@ window.getLogsConsolidadosAsync = async function() {
 // =========================================================================
 // MODALES DINÁMICOS CON INFORMACIÓN REAL Y DETALLADA DEL SISTEMA
 // =========================================================================
-window.abrirModalDetalleCard = function(tipo) {
+// Agrega la palabra 'async' aquí al inicio:
+window.abrirModalDetalleCard = async function(tipo) {
     let titulo = "";
     let contenidoHTML = "";
 
     const solicitudes = (typeof getSolicitudesConsolidadas === 'function') ? getSolicitudesConsolidadas() : [];
-    const logs = (typeof getLogsConsolidados === 'function') ? getLogsConsolidados() : [];
+    
+    // Ahora el 'await' funcionará perfectamente porque la función es async
+    const logsFrescos = await window.getLogsConsolidadosAsync();
+    let logsFiltrados = logsFrescos;
+    
     const hIEC = JSON.parse(localStorage.getItem('secul_30_acciones')) || JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || [];
     const hForum = JSON.parse(localStorage.getItem('secul_forum_30_acciones')) || JSON.parse(localStorage.getItem('secul_forum_hitos')) || [];
     
     let solsFiltradas = solicitudes;
-    let logsFiltrados = logs;
     let hitosFiltrados = [...hIEC, ...hForum];
 
     if (currentAmbito === 'IEC') {
         solsFiltradas = solicitudes.filter(s => s.entidad === 'IEC');
-        logsFiltrados = logs.filter(l => l.entidad === 'IEC');
+        logsFiltrados = logsFrescos.filter(l => l.entidad === 'IEC');
         hitosFiltrados = hIEC;
     } else if (currentAmbito === 'FORUM') {
         solsFiltradas = solicitudes.filter(s => s.entidad === 'FORUM');
-        logsFiltrados = logs.filter(l => l.entidad === 'FORUM');
+        logsFiltrados = logsFrescos.filter(l => l.entidad === 'FORUM');
         hitosFiltrados = hForum;
     }
 
@@ -1202,7 +1206,6 @@ window.abrirModalDetalleCard = function(tipo) {
         titulo = `Desglose Normativo Completo de Hitos (${currentAmbito}) - Total: ${hitosFiltrados.length}`;
         let filasHitos = '';
         
-        // SIN CORTE: Muestra absolutamente todos los hitos (los 31 o más)
         hitosFiltrados.forEach(h => {
             filasHitos += `
                 <tr class="border-b border-slate-800 hover:bg-slate-950">
@@ -1264,20 +1267,10 @@ window.abrirModalDetalleCard = function(tipo) {
                 </div>
             </div>`;
 
-   } else if (tipo === 'EVENTOS') {
+    } else if (tipo === 'EVENTOS') {
         titulo = `Bitácora de Trazabilidad Inmutable en Tiempo Real (${currentAmbito})`;
-        
-        // Carga asíncrona de los datos reales de Supabase
-        const logsFrescos = await window.getLogsConsolidadosAsync();
-        let logsFiltrados = logsFrescos;
-        
-        if (currentAmbito === 'IEC') {
-            logsFiltrados = logsFrescos.filter(l => l.entidad === 'IEC');
-        } else if (currentAmbito === 'FORUM') {
-            logsFiltrados = logsFrescos.filter(l => l.entidad === 'FORUM');
-        }
-
         let filasLogs = '';
+
         if (logsFiltrados.length === 0) {
             filasLogs = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">No hay eventos registrados.</td></tr>`;
         } else {
@@ -1293,7 +1286,7 @@ window.abrirModalDetalleCard = function(tipo) {
 
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Historial forense conectado con la tabla <code class="text-amber-300">auditoria_trazabilidad</code>:</p>
+                <p class="text-xs text-slate-400">Historial forense conectado con la tabla <code class="text-amber-300">auditoria_trazabilidad</code>[cite: 19]:</p>
                 <div class="max-h-80 overflow-y-auto border border-slate-800 rounded-2xl">
                     <table class="w-full text-left text-xs font-mono">
                         <thead class="bg-slate-950 text-slate-400 sticky top-0">
@@ -1308,6 +1301,7 @@ window.abrirModalDetalleCard = function(tipo) {
                 </div>
             </div>`;
     }
+
     mostrarModalGenericoAuditoria(titulo, contenidoHTML);
 };
 
