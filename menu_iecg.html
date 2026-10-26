@@ -5764,19 +5764,7 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 // =========================================================================
 // APERTURA LIMPIA DEL MODAL DE EDICIÓN CON CLAVE CANÓNICA AUTOMÁTICA
 // =========================================================================
-const _abrirEdicionOriginal = window.abrirModalEdicionDinamica || function(){};
-window.abrirModalEdicionDinamica = function(tipo, claveId) {
-    if (typeof _abrirEdicionOriginal === 'function') {
-        _abrirEdicionOriginal(tipo, claveId);
-    }
-    const inputClave = document.getElementById('inputClaveCanonicaEditable');
-    if (inputClave) {
-        inputClave.value = claveId;
-        inputClave.readOnly = true; // Por defecto bloqueado/automático
-        inputClave.style.backgroundColor = '#f1f5f9';
-        inputClave.style.cursor = 'not-allowed';
-    }
-};
+
 
 // =========================================================================
 // FUNCIÓN DE GUARDADO UNIFICADA CON SUFIJOS EN GOOGLE DRIVE (-0.001, -0.002)
@@ -6508,14 +6496,7 @@ window.procesarVinculacionUniversalOficial = async function(e) {
 };
 
 // Hook para conectar la clave editable al abrir el modal de edición
-const _abrirEdicionOriginal = window.abrirModalEdicionDinamica;
-window.abrirModalEdicionDinamica = function(tipo, claveId) {
-    if (typeof _abrirEdicionOriginal === 'function') {
-        _abrirEdicionOriginal(tipo, claveId);
-    }
-    const inputClave = document.getElementById('inputClaveCanonicaEditable');
-    if (inputClave) inputClave.value = claveId;
-};
+
 
 // Recalcula el siguiente número consecutivo cronológico consultando en Supabase
 window.cambiarPanelYRecalcularClave = async function(nuevoPanel) {
@@ -6901,7 +6882,9 @@ function manejarCambioExternaBaseEdit(selectEl) {
 }
 
 // 4. Poblado inteligente al abrir el Modal de Edición desde la Base de Datos
-const _abrirEdicionOriginalBase = window.abrirModalEdicionDinamica;
+// =========================================================================
+// 4. POBLADO INTELIGENTE Y CLAVE CANÓNICA AUTOMÁTICA EN MODAL DE EDICIÓN
+// =========================================================================
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var modal = document.getElementById('modal-edicion-dinamica');
     var inputTipo = document.getElementById('editItemTipo');
@@ -6938,12 +6921,10 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         var tit = document.getElementById('tituloEdicionDinamica');
         if (tit) tit.innerText = 'Gestión del Hito [' + claveId + ']';
     } else {
-        // BÚSQUEDA FLEXIBLE Y SEGURA
         var act = accionesDataset.find(function(a) {
             return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
         });
         if (!act) {
-            console.warn("Elemento no hallado de inmediato, buscando coincidencia parcial para:", claveId);
             act = accionesDataset.find(function(a) {
                 return (a.id && a.id.includes(claveId)) || (a.clave_accion && a.clave_accion.includes(claveId));
             });
@@ -6971,15 +6952,14 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         if (tit2) tit2.innerText = 'Gestión de Acción [' + claveId + ']';
     }
 
-    // --- AGREGAR ESTO AQUÍ ANTES DE ABRIR EL MODAL ---
+    // Configurar la Clave Canónica Automática (bloqueada por defecto)
     const inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
     if (inputClaveCanonica) {
         inputClaveCanonica.value = claveId;
-        inputClaveCanonica.readOnly = true; // Bloqueada por defecto en automático
+        inputClaveCanonica.readOnly = true;
         inputClaveCanonica.style.backgroundColor = '#f1f5f9';
         inputClaveCanonica.style.cursor = 'not-allowed';
     }
-    // -------------------------------------------------
 
     openModal('modal-edicion-dinamica');
 };
