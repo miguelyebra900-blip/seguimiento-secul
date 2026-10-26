@@ -1095,6 +1095,107 @@ function imprimirInformeEjecutivo() {
 
     </div>
 </div>
+
+<script>
+// =========================================================================
+// MODALES DINÁMICOS E INTELIGENTES PARA CADA CARD DE AUDITORÍA
+// =========================================================================
+window.abrirModalDetalleCard = function(tipo) {
+    let titulo = "";
+    let contenidoHTML = "";
+
+    if (tipo === 'SOLICITUDES') {
+        titulo = "Detalle de Solicitudes Pendientes";
+        contenidoHTML = `
+            <div class="space-y-3">
+                <p class="text-xs text-slate-400">Listado de solicitudes de modificación canalizadas por enlaces operativos:</p>
+                <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold text-amber-400 block">AUD_F-H-0001-A-0001</span>
+                        <span class="text-[11px] text-slate-300">Vinculación Interinstitucional (Prueba)</span>
+                    </div>
+                    <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-xl">Pendiente Directiva</span>
+                </div>
+            </div>`;
+    } else if (tipo === 'HITOS') {
+        titulo = "Estructura Normativa y Hitos en Catálogo";
+        contenidoHTML = `
+            <div class="space-y-3">
+                <p class="text-xs text-slate-400">Desglose de la estructura viva relacional:</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800">
+                        <span class="text-[10px] text-slate-400 block uppercase">Paneles Activos</span>
+                        <span class="text-xl font-bold text-indigo-400">10 Paneles (A-J)</span>
+                    </div>
+                    <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800">
+                        <span class="text-[10px] text-slate-400 block uppercase">Acciones Mapeadas</span>
+                        <span class="text-xl font-bold text-emerald-400">30 Acciones</span>
+                    </div>
+                </div>
+            </div>`;
+    } else if (tipo === 'RIESGOS') {
+        titulo = "Puntos de Riesgo Crítico y Observaciones";
+        contenidoHTML = `
+            <div class="space-y-3">
+                <p class="text-xs text-slate-400">Acciones que requieren atención prioritaria en la fiscalización:</p>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    <div class="p-2.5 bg-rose-950/20 border border-rose-900/40 rounded-xl flex justify-between items-center">
+                        <span class="text-xs text-rose-300 font-medium">Acción con avance menor al 50% en Panel F</span>
+                        <span class="text-[10px] px-2 py-0.5 bg-rose-500/20 text-rose-400 rounded font-bold">Crítico</span>
+                    </div>
+                </div>
+            </div>`;
+    } else if (tipo === 'EVENTOS') {
+        titulo = "Eventos de Auditoría y Trazabilidad";
+        contenidoHTML = `
+            <div class="space-y-3">
+                <p class="text-xs text-slate-400">Registro inmutable de cambios y operaciones ejecutadas en la plataforma:</p>
+                <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-xs space-y-2">
+                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                        <span class="text-slate-300">Sello Criptográfico / Inmutable:</span>
+                        <span class="font-bold text-purple-400">Activo (SHA-256)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Estado de Sincronización:</span>
+                        <span class="font-bold text-emerald-400">100% en Línea</span>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // Inyectar y mostrar modal flotante genérico
+    mostrarModalGenericoAuditoria(titulo, contenidoHTML);
+};
+
+function mostrarModalGenericoAuditoria(titulo, htmlBody) {
+    let modalExistente = document.getElementById('modalAuditoriaDinamico');
+    if (modalExistente) modalExistente.remove();
+
+    const modalHTML = `
+        <div id="modalAuditoriaDinamico" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                    <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i> ${titulo}
+                    </h3>
+                    <button onclick="document.getElementById('modalAuditoriaDinamico').remove()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="my-4">
+                    ${htmlBody}
+                </div>
+                <div class="flex justify-end pt-3 border-t border-slate-800">
+                    <button onclick="document.getElementById('modalAuditoriaDinamico').remove()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition">
+                        Cerrar Ventana
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+</script>
     
 </body>
 </html>
