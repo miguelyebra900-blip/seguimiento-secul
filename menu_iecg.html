@@ -2522,11 +2522,14 @@ async function inicializarDatosDesdeSupabase() {
         // Mapear los archivos por clave de acción de forma agrupada
         const mapaEvidencias = {};
         evidenciasSupabase.forEach(ev => {
-            if (!mapaEvidencias[ev.clave_accion]) {
-                mapaEvidencias[ev.clave_accion] = [];
-            }
-            mapaEvidencias[ev.clave_accion].push({ nombre: ev.nombre_archivo, url: ev.drive_url });
-        });
+    const claveAcc = (ev.clave_accion || '').trim();
+    if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
+    mapaEvidencias[claveAcc].push({ 
+        id: ev.id, // <--- Importante para el borrado
+        nombre: ev.nombre_archivo, 
+        url: ev.drive_url 
+    });
+});
 
         // 2. Mapa de Áreas Estratégicas (clave_area / panel -> nombre_area)
         const mapaAreas = {};
@@ -5651,31 +5654,46 @@ window.renderBaseDatosGeneralJerarquica = function() {
             else if (a.estatus === 'Validación') badgeEst = 'bg-purple-100 text-purple-800';
             else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-100 text-amber-800';
 
-           var listaArchivosAccion = a.archivosDrive || [];
-            var btnDrive = '';
+         var listaArchivosAccion = a.archivosDrive || [];
+var btnDrive = '';
 
-            if (listaArchivosAccion.length > 0) {
-                var itemsDropdown = listaArchivosAccion.map(function(arch, idx) {
-                    return '<a href="' + arch.url + '" target="_blank" class="block px-3 py-1.5 hover:bg-slate-100 text-slate-700 text-[11px] truncate border-b border-slate-100 last:border-0">' +
-                           '<i class="fa-solid fa-file-pdf text-rose-500 mr-1.5"></i> ' + (arch.nombre || ('Archivo ' + (idx + 1))) +
-                           '</a>';
-                }).join('');
+if (listaArchivosAccion.length > 0) {
+    // Generar renglones limpios con botón Ver y botón Eliminar para cada archivo
+    var itemsDropdown = listaArchivosAccion.map(function(arch, idx) {
+        // Nota: Asegúrate de que cada objeto de evidencia traiga su 'id' de Supabase para poder borrarlo
+        var idEv = arch.id || '';
+        var nombreCorto = arch.nombre || ('Evidencia ' + (idx + 1));
+        
+        return '<div class="flex items-center justify-between gap-2 px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-xs">' +
+               '<div class="flex items-center gap-2 truncate flex-1">' +
+               '<i class="fa-solid fa-file-pdf text-rose-500 text-sm flex-shrink-0"></i>' +
+               '<span class="text-slate-700 font-medium truncate" title="' + nombreCorto + '">' + nombreCorto + '</span>' +
+               '</div>' +
+               '<div class="flex items-center gap-1 flex-shrink-0">' +
+               '<a href="' + arch.url + '" target="_blank" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition" title="Ver archivo"><i class="fa-solid fa-eye"></i> Ver</a>' +
+               '<button type="button" onclick="eliminarEvidenciaRapida(\'' + idEv + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition" title="Eliminar registro"><i class="fa-solid fa-trash-can"></i></button>' +
+               '</div>' +
+               '</div>';
+    }).join('');
 
-                btnDrive = '<div class="relative group inline-block">' +
-                           '<button type="button" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition">' +
-                           '<i class="fa-brands fa-google-drive text-emerald-600"></i><span>Ver Documental (' + listaArchivosAccion.length + ')</span> <i class="fa-solid fa-chevron-down text-[8px]"></i>' +
-                           '</button>' +
-                           '<div class="absolute left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 hidden group-hover:block z-50 text-left">' +
-                           '<div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1 border-b border-slate-100">Archivos Probatorios (' + listaArchivosAccion.length + ')</div>' +
-                           '<div class="max-h-48 overflow-y-auto">' + itemsDropdown + '</div>' +
-                           '</div>' +
-                           '</div>';
-            } else if (a.driveUrl && a.driveUrl.trim() !== '') {
-                btnDrive = '<a href="' + a.driveUrl + '" target="_blank" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition">' +
-                           '<i class="fa-brands fa-google-drive text-emerald-600"></i><span>Ver Documental (1)</span></a>';
-            } else {
-                btnDrive = '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 transition"><i class="fa-brands fa-google-drive text-amber-500"></i><span>Abrir Carpeta ' + h.panel + '</span></button>';
-            }
+    btnDrive = '<div class="relative group inline-block">' +
+               '<button type="button" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 transition shadow-sm">' +
+               '<i class="fa-brands fa-google-drive text-emerald-600 text-sm"></i><span>Ver Documental (' + listaArchivosAccion.length + ')</span> <i class="fa-solid fa-chevron-down text-[9px]"></i>' +
+               '</button>' +
+               '<div class="absolute left-0 mt-1.5 w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 hidden group-hover:block z-50 text-left">' +
+               '<div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100 flex justify-between items-center">' +
+               '<span>Archivos Probatorios</span><span>Acciones</span>' +
+               '</div>' +
+               '<div class="max-h-56 overflow-y-auto divide-y divide-slate-100">' + itemsDropdown + '</div>' +
+               '</div>' +
+               '</div>';
+} else if (a.driveUrl && a.driveUrl.trim() !== '') {
+    btnDrive = '<a href="' + a.driveUrl + '" target="_blank" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 transition shadow-sm">' +
+               '<i class="fa-brands fa-google-drive text-emerald-600 text-sm"></i><span>Ver Documental (1)</span></a>';
+} else {
+    btnDrive = '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 transition"><i class="fa-brands fa-google-drive text-amber-500 text-sm"></i><span>Abrir Carpeta ' + h.panel + '</span></button>';
+}
+           
    filasAcciones += '<tr class="hover:bg-slate-50/80 transition">' +
         '<td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">' + idClaveAccion + '</td>' +
         '<td class="p-2 text-slate-800 font-medium">' + (a.accion || '') + '</td>' +
@@ -7249,7 +7267,35 @@ window.guardarArchivoRapido = async function(e) {
         }
     }
 };
+  window.eliminarEvidenciaRapida = async function(idEvidencia, claveAccion) {
+    if (!confirm("¿Estás seguro de eliminar este archivo de la base de datos probatoria?")) {
+        return;
+    }
+
+    try {
+        if (supabaseClient && idEvidencia) {
+            const { error } = await supabaseClient
+                .from('evidencias_expedientes')
+                .delete()
+                .eq('id', idEvidencia);
+
+            if (error) throw error;
+        }
+
+        alert("¡Archivo eliminado del registro con éxito!");
         
+        // Recargar datos y refrescar interfaz
+        await inicializarDatosDesdeSupabase();
+        actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+            renderBaseDatosGeneralJerarquica();
+        }
+
+    } catch (err) {
+        console.error("Error al eliminar evidencia:", err);
+        alert("No se pudo eliminar el registro: " + err.message);
+    }
+};      
         
 </script>
 
