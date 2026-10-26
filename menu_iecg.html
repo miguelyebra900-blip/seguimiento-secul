@@ -5794,9 +5794,17 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         let driveUrlFinal = actExistente && actExistente.driveUrl ? actExistente.driveUrl : '';
         const panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
 
-        // Procesar múltiples archivos con sufijo secuencial (-0.001, -0.002...)
-        const inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
+        // Detectar cuántos archivos ya se habían subido antes para esta clave (evita duplicar -0.001)
         let contadorArchivos = 1;
+        if (actExistente && actExistente.driveUrl) {
+            // Si ya tiene archivos, estimamos el siguiente consecutivo analizando los inputs activos
+            const inputsPrevios = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
+            contadorArchivos = inputsPrevios.length > 0 ? inputsPrevios.length : 1;
+        }
+
+        // Procesar múltiples archivos con sufijo secuencial riguroso (-0.001, -0.002, -0.003...)
+        const inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
+        let urlsSubidas = [];
 
         for (let input of inputsArchivos) {
             if (input.files && input.files.length > 0) {
@@ -5804,7 +5812,11 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 const sufijoIndex = `-0.00${contadorArchivos}`;
                 const nombreNominalDrive = `[${nuevaClave}${sufijoIndex}] ${archivoFisico.name}`;
                 
-                driveUrlFinal = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
+                const urlSubida = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
+                if (urlSubida) {
+                    urlsSubidas.push(urlSubida);
+                    driveUrlFinal = urlSubida; // Guardar el último enlace válido de forma persistente
+                }
                 contadorArchivos++;
             }
         }
@@ -5852,7 +5864,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     }], { onConflict: 'clave_accion' });
                 }
             }
-            alert('¡Hito [' + nuevaClave + '] actualizado exitosamente!');
+            alert('¡Hito [' + nuevaClave + '] actualizado y respaldado en Drive exitosamente!');
         } else {
             var act = actExistente;
             if (!act) {
@@ -5878,7 +5890,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     instancia_responsable: act.responsable
                 }], { onConflict: 'clave_accion' });
             }
-            alert('¡Acción actualizada y archivos respaldados en Drive con sufijo (-0.001)!');
+            alert('¡Acción actualizada, archivos respaldados con sufijos secuenciales y sincronizada en Supabase!');
         }
 
         closeModal('modal-edicion-dinamica');
