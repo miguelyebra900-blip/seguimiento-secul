@@ -490,13 +490,12 @@ setInterval(() => {
             </div>
         </div>
 
-            <div onclick="abrirModalDetalleCard('USUARIOS_ACTIVOS')" class="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 hover:border-indigo-500/50 transition cursor-pointer group">            <span class="text-[10px] font-bold text-slate-400 uppercase">Roles Activos en Conexión</span>
+ <div onclick="abrirModalDetalleCard('USUARIOS_ACTIVOS')" class="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 hover:border-indigo-500/50 transition cursor-pointer group">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Roles Activos en Conexión</span>
             <div class="flex items-end justify-between mt-2">
-                <span class="text-2xl font-black text-indigo-400">3 Perfiles</span>
-              <div class="flex items-end justify-between mt-2">
-        <span class="text-2xl font-black text-indigo-400 group-hover:text-indigo-300">3 Perfiles</span>
-        <span class="text-xs text-indigo-400 font-bold">Ver detalle <i class="fa-solid fa-arrow-right ml-1"></i></span>
-    </div>
+                <span class="text-2xl font-black text-indigo-400 group-hover:text-indigo-300">3 Perfiles</span>
+                <span class="text-xs text-indigo-400 font-bold">Ver detalle <i class="fa-solid fa-arrow-right ml-1"></i></span>
+            </div>
             <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
                 <div class="bg-indigo-500 h-full rounded-full" style="width: 60%;"></div>
             </div>
@@ -1083,31 +1082,33 @@ setInterval(() => {
             alert(`¡Hito ${id} registrado e inyectado exitosamente en el catálogo de ${entidad}!`);
         }
 
-        // Actualización de Tarjetas KPI Superiores
-        function actualizarKpis() {
-            let totalHitos = 0;
-            let totalSols = 0;
-            let totalLogs = getLogsConsolidados().length;
+    // Actualización de Tarjetas KPI Superiores (Sincronizada con tus IDs actuales)
+function actualizarKpis() {
+    let totalHitos = 0;
+    let totalSols = 0;
+    let totalLogs = getLogsConsolidados().length;
 
-            if (currentAmbito === 'GLOBAL') {
-                totalHitos = hitosIEC.length + hitosForum.length;
-                totalSols = getSolicitudesConsolidadas().filter(s => s.estado === 'Pendiente').length;
-                document.getElementById('kpiSubtextHitos').innerText = `${hitosIEC.length} IEC + ${hitosForum.length} Fórum`;
-            } else if (currentAmbito === 'IEC') {
-                totalHitos = hitosIEC.length;
-                totalSols = solicitudesIEC.filter(s => s.estado === 'Pendiente').length;
-                document.getElementById('kpiSubtextHitos').innerText = 'Exclusivo IEC';
-            } else {
-                totalHitos = hitosForum.length;
-                totalSols = solicitudesForum.filter(s => s.estado === 'Pendiente').length;
-                document.getElementById('kpiSubtextHitos').innerText = 'Exclusivo Fórum';
-            }
+    if (currentAmbito === 'GLOBAL') {
+        totalHitos = hitosIEC.length + hitosForum.length;
+        totalSols = getSolicitudesConsolidadas().filter(s => s.estado === 'Pendiente').length;
+    } else if (currentAmbito === 'IEC') {
+        totalHitos = hitosIEC.length;
+        totalSols = solicitudesIEC.filter(s => s.estado === 'Pendiente').length;
+    } else {
+        totalHitos = hitosForum.length;
+        totalSols = solicitudesForum.filter(s => s.estado === 'Pendiente').length;
+    }
 
-            document.getElementById('kpiTotalHitos').innerText = totalHitos;
-            document.getElementById('kpiTotalSolicitudes').innerText = totalSols;
-            document.getElementById('kpiTotalLogs').innerText = totalLogs;
-        }
+    // Actualizar de forma segura usando tus IDs reales para evitar errores null
+    const elHitos = document.getElementById('cardValHitos');
+    if (elHitos) elHitos.innerText = totalHitos;
 
+    const elSols = document.getElementById('cardValSolicitudes');
+    if (elSols) elSols.innerText = totalSols;
+
+    const elSubHitos = document.getElementById('kpiSubtextHitos');
+    if (elSubHitos) elSubHitos.innerText = currentAmbito === 'GLOBAL' ? `${hitosIEC.length} IEC + ${hitosForum.length} Fórum` : `Exclusivo ${currentAmbito}`;
+}
         function abrirModalMaestroNuevoHito() {
             openModal('modal-crear-hito-maestro');
         }
