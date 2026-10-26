@@ -2504,11 +2504,12 @@ async function inicializarDatosDesdeSupabase() {
     }
 
     try {
-        // 1. Consultar en paralelo las 3 tablas operativas de Supabase
-        const [resAcciones, resHitos, resAreas] = await Promise.all([
+        // 1. Consultar en paralelo las tablas operativas de Supabase (incluyendo evidencias_expedientes)
+        const [resAcciones, resHitos, resAreas, resEvidencias] = await Promise.all([
             supabaseClient.from('acciones_transicion').select('*'),
             supabaseClient.from('hitos_transicion').select('*'),
-            supabaseClient.from('areas_estrategicas').select('*')
+            supabaseClient.from('areas_estrategicas').select('*'),
+            supabaseClient.from('evidencias_expedientes').select('*').order('created_at', { ascending: true })
         ]);
 
         if (resAcciones.error) throw resAcciones.error;
@@ -2516,6 +2517,16 @@ async function inicializarDatosDesdeSupabase() {
         const accionesSupabase = resAcciones.data || [];
         const hitosSupabase = resHitos.data || [];
         const areasSupabase = resAreas.data || [];
+        const evidenciasSupabase = resEvidencias.data || [];
+
+        // Mapear los archivos por clave de acción de forma agrupada
+        const mapaEvidencias = {};
+        evidenciasSupabase.forEach(ev => {
+            if (!mapaEvidencias[ev.clave_accion]) {
+                mapaEvidencias[ev.clave_accion] = [];
+            }
+            mapaEvidencias[ev.clave_accion].push({ nombre: ev.nombre_archivo, url: ev.drive_url });
+        });
 
         // 2. Mapa de Áreas Estratégicas (clave_area / panel -> nombre_area)
         const mapaAreas = {};
@@ -2538,6 +2549,81 @@ async function inicializarDatosDesdeSupabase() {
                 avance: Number(h.avance_porcentaje || 0)
             };
         });
+
+        // Diccionario inquebrantable de Prefijo a Panel (A - J)
+        const PREFIJO_A_PANEL = {
+            'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
+            'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
+            'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
+        };
+
+        if (accionesSupabase.length > 0) {
+            accionesDataset = accionesSupabase.map(itemDB => {
+                const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
+                const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
+                
+                const listaArchivos = mapaEvidencias[claveAccion] || [];
+                const ultimaUrl = listaArchivos.length > 0 ? listaArchivos[listaArchivos.length - 1].url : (itemDB.drive_url || '');
+
+                // Obtener información del hito relacionado
+                const hitoInfo = mapaHitos[claveHito] || {};
+                
+                // Determinar el panel correcto
+                const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
+                const panelReal = hitoInfo.panel || PREFIJO_A_PANEL[prefijo] || 'A';
+                
+                // Obtener el nombre real del área
+                const claveArea = hitoInfo.clave_area || prefijo;
+                const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
+
+                const valorAvance = Number(
+                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance :
+                    (typeof itemDB.estatus === 'number' ? itemDB.estatus : 
+                    (itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (hitoInfo.avance || 0)))
+                );
+
+                let estatusLimpio = 'En Proceso';
+                if (valorAvance === 100) {
+                    estatusLimpio = 'Concluido';
+                } else if (valorAvance >= 75) {
+                    estatusLimpio = 'Validación';
+                } else {
+                    estatusLimpio = 'En Proceso';
+                }
+
+                const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveAccion || a.clave_accion === claveAccion);
+
+                return {
+                    id: claveAccion,
+                    clave_accion: claveAccion,
+                    clave_hito: claveHito,
+                    panel: panelReal,
+                    area: nombreAreaReal,
+                    hito: hitoInfo.titulo || (matchOficial ? matchOficial.hito : 'Hito normativo'),
+                    accion: itemDB.accion_especifica || (matchOficial ? matchOficial.accion : 'Acción operativa'),
+                    responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : panelReal),
+                    estatus: estatusLimpio,
+                    avance: valorAvance,
+                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
+                    driveUrl: ultimaUrl,
+                    archivosDrive: listaArchivos // <--- Guardamos la lista completa de archivos adjuntos
+                };
+            });
+
+            localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
+            console.log("¡Datos y evidencias sincronizados correctamente desde Supabase!");
+
+            if (typeof actualizarDashboard === 'function') actualizarDashboard();
+            if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
+            if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+            if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
+        }
+
+    } catch (err) {
+        console.error("Error al conectar con Supabase:", err.message);
+        accionesDataset = ACCIONES_INICIALES;
+    }
+}
 
         // Diccionario inquebrantable de Prefijo a Panel (A - J)
         const PREFIJO_A_PANEL = {
@@ -5783,7 +5869,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivos a Drive y Sincronizando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Consultando registros y subiendo a Drive...';
     }
 
     try {
@@ -5791,33 +5877,47 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
         });
 
-        let driveUrlFinal = actExistente && actExistente.driveUrl ? actExistente.driveUrl : '';
         const panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
 
-        // Detectar cuántos archivos ya se habían subido antes para esta clave (evita duplicar -0.001)
-        let contadorArchivos = 1;
-        if (actExistente && actExistente.driveUrl) {
-            // Si ya tiene archivos, estimamos el siguiente consecutivo analizando los inputs activos
-            const inputsPrevios = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
-            contadorArchivos = inputsPrevios.length > 0 ? inputsPrevios.length : 1;
+        // 1. CONTEO EXACTO EN SUPABASE: Consultar cuántos archivos ya existen en evidencias_expedientes para esta clave
+        let contadorBase = 1;
+        if (supabaseClient) {
+            const { count, error: errCount } = await supabaseClient
+                .from('evidencias_expedientes')
+                .select('*', { count: 'exact', head: true })
+                .eq('clave_accion', nuevaClave);
+
+            if (!errCount && count !== null) {
+                contadorBase = count + 1; // Si ya hay 2 archivos, el siguiente empieza en 3 (-0.003)
+            }
         }
 
-        // Procesar múltiples archivos con sufijo secuencial riguroso (-0.001, -0.002, -0.003...)
+        // 2. Procesar los archivos adjuntos con sufijo cronológico continuo (-0.001, -0.002...)
         const inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
-        let urlsSubidas = [];
+        let ultimoDriveUrl = actExistente ? actExistente.driveUrl : '';
+        let archivosNuevosSubidos = 0;
 
         for (let input of inputsArchivos) {
             if (input.files && input.files.length > 0) {
                 const archivoFisico = input.files[0];
-                const sufijoIndex = `-0.00${contadorArchivos}`;
+                const sufijoIndex = `-0.00${contadorBase}`;
                 const nombreNominalDrive = `[${nuevaClave}${sufijoIndex}] ${archivoFisico.name}`;
                 
+                // Subir a Google Drive mediante Apps Script
                 const urlSubida = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
-                if (urlSubida) {
-                    urlsSubidas.push(urlSubida);
-                    driveUrlFinal = urlSubida; // Guardar el último enlace válido de forma persistente
+
+                if (urlSubida && supabaseClient) {
+                    // Insertar registro individual en la tabla relacional evidencias_expedientes
+                    await supabaseClient.from('evidencias_expedientes').insert([{
+                        clave_accion: nuevaClave,
+                        nombre_archivo: nombreNominalDrive,
+                        drive_url: urlSubida
+                    }]);
+
+                    ultimoDriveUrl = urlSubida;
+                    archivosNuevosSubidos++;
+                    contadorBase++;
                 }
-                contadorArchivos++;
             }
         }
 
@@ -5830,75 +5930,40 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         var sliderAvance = document.getElementById('inputAvanceSliderEdit');
         var avanceCapturado = sliderAvance ? (parseInt(sliderAvance.value, 10) || 0) : (actExistente ? actExistente.avance : 100);
 
-        if (tipo === 'HITO') {
-            var accionesHito = accionesDataset.filter(function(a) {
-                var hitoBase = a.clave_hito || a.id.split('-A-')[0];
-                return hitoBase === claveOriginal;
-            });
-
-            accionesHito.forEach(function(act) {
-                if (nuevoTitulo) act.hito = nuevoTitulo;
-                act.responsable = responsableCapturado;
-                act.estatus = estatusCapturado;
-                act.avance = avanceCapturado;
-                if (driveUrlFinal) act.driveUrl = driveUrlFinal;
-
-                if (nuevaClave !== claveOriginal) {
-                    act.clave_hito = nuevaClave;
-                    if (act.id) act.id = act.id.replace(claveOriginal, nuevaClave);
-                    if (act.clave_accion) act.clave_accion = act.clave_accion.replace(claveOriginal, nuevaClave);
-                }
-            });
-
-            guardarDataset();
-
-            if (supabaseClient) {
-                for (let act of accionesHito) {
-                    await supabaseClient.from('acciones_transicion').upsert([{
-                        clave_accion: act.clave_accion || act.id,
-                        clave_hito: act.clave_hito,
-                        accion_especifica: act.accion,
-                        estatus: act.avance,
-                        drive_url: act.driveUrl || '',
-                        instancia_responsable: act.responsable
-                    }], { onConflict: 'clave_accion' });
-                }
-            }
-            alert('¡Hito [' + nuevaClave + '] actualizado y respaldado en Drive exitosamente!');
-        } else {
-            var act = actExistente;
-            if (!act) {
-                act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0], panel: panelLetra };
-                accionesDataset.push(act);
-            }
-
-            act.accion = nuevoTitulo;
-            act.responsable = responsableCapturado;
-            act.estatus = estatusCapturado;
-            act.avance = avanceCapturado;
-            if (driveUrlFinal) act.driveUrl = driveUrlFinal;
-
-            guardarDataset();
-
-            if (supabaseClient) {
-                await supabaseClient.from('acciones_transicion').upsert([{
-                    clave_accion: act.clave_accion || act.id,
-                    clave_hito: act.clave_hito || act.id.split('-A-')[0],
-                    accion_especifica: act.accion,
-                    estatus: act.avance,
-                    drive_url: act.driveUrl || '',
-                    instancia_responsable: act.responsable
-                }], { onConflict: 'clave_accion' });
-            }
-            alert('¡Acción actualizada, archivos respaldados con sufijos secuenciales y sincronizada en Supabase!');
+        var act = actExistente;
+        if (!act) {
+            act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0], panel: panelLetra };
+            accionesDataset.push(act);
         }
 
+        act.accion = nuevoTitulo;
+        act.responsable = responsableCapturado;
+        act.estatus = estatusCapturado;
+        act.avance = avanceCapturado;
+        if (ultimoDriveUrl) act.driveUrl = ultimoDriveUrl;
+
+        guardarDataset();
+
+        // Sincronizar la tabla principal de acciones en Supabase
+        if (supabaseClient) {
+            await supabaseClient.from('acciones_transicion').upsert([{
+                clave_accion: act.clave_accion || act.id,
+                clave_hito: act.clave_hito || act.id.split('-A-')[0],
+                accion_especifica: act.accion,
+                estatus: act.avance,
+                drive_url: ultimoDriveUrl || '',
+                instancia_responsable: act.responsable
+            }], { onConflict: 'clave_accion' });
+        }
+
+        alert(`¡Actualización exitosa! Se subieron ${archivosNuevosSubidos} archivo(s) con numeración cronológica continua.`);
         closeModal('modal-edicion-dinamica');
-        if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        
+        actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert('Error: ' + err.message);
+        alert('Error al procesar: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
