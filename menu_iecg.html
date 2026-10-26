@@ -6971,6 +6971,16 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         if (tit2) tit2.innerText = 'Gestión de Acción [' + claveId + ']';
     }
 
+    // --- AGREGAR ESTO AQUÍ ANTES DE ABRIR EL MODAL ---
+    const inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
+    if (inputClaveCanonica) {
+        inputClaveCanonica.value = claveId;
+        inputClaveCanonica.readOnly = true; // Bloqueada por defecto en automático
+        inputClaveCanonica.style.backgroundColor = '#f1f5f9';
+        inputClaveCanonica.style.cursor = 'not-allowed';
+    }
+    // -------------------------------------------------
+
     openModal('modal-edicion-dinamica');
 };
 // 5. Guardar y propagar en todo el sistema (gráficas, tarjetas, cronogramas y tablas)
