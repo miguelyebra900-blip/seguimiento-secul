@@ -1103,6 +1103,107 @@ async function registrarEventoAuditoriaSupabase(entidad, accion, detalles) {
     }
 }
 
+window.renderBitacoraAuditoria = async function() {
+    const tbody = document.getElementById('tablaAuditoriaUnificada');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs italic">Sincronizando bitácora en tiempo real...</td></tr>`;
+
+    let logs = await getLogsConsolidadosAsync();
+
+    tbody.innerHTML = '';
+
+    if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500 italic">No hay registros de auditoría disponibles.</td></tr>`;
+    } else {
+        logs.forEach(l => {
+            let tagEntidad = l.entidad === 'IEC'
+                ? `<span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-blue-500/20 text-blue-300">IEC</span>`
+                : `<span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-indigo-500/20 text-indigo-300">FÓRUM</span>`;
+
+            let detalleStr = typeof l.detalle === 'object' ? JSON.stringify(l.detalle) : l.detalle;
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-900/40 transition border-b border-slate-800/60">
+                    <td class="p-3 text-slate-300 font-mono whitespace-nowrap text-xs">${l.fecha || ''}</td>
+                    <td class="p-3">${tagEntidad}</td>
+                    <td class="p-3 font-bold text-amber-300 text-xs">${l.usuario || 'Sistema'}</td>
+                    <td class="p-3 text-emerald-400 font-semibold text-xs">${l.accion || ''}</td>
+                    <td class="p-3 text-slate-400 truncate max-w-md font-mono text-[11px]">${detalleStr}</td>
+                </tr>
+            `;
+        });
+    }
+};
+
+        
+// =========================================================================
+// BITÁCORA UNIFICADA: COMBINA SUPABASE Y LOCALSTORAGE EN TIEMPO REAL
+// =========================================================================
+async function getLogsConsolidadosAsync() {
+    let logsConsolidados = [];
+
+    // 1. Obtener registros locales del navegador
+    let listIEC = logsIEC.map(l => ({ 
+        fecha: l.fecha || '', 
+        entidad: l.entidad || 'IEC', 
+        usuario: l.usuario || 'Sistema', 
+        accion: l.accion || '', 
+        detalle: l.detalle || l.detalles || {} 
+    }));
+    
+    let listForum = logsForum.map(l => ({ 
+        fecha: l.fecha || '', 
+        entidad: l.entidad || 'FORUM', 
+        usuario: l.usuario || 'Sistema', 
+        accion: l.accion || '', 
+        detalle: l.detalle || l.detalles || {} 
+    }));
+
+    logsConsolidados = [...listIEC, ...listForum];
+
+    // 2. Consultar directamente a la tabla 'auditoria_trazabilidad' de Supabase
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('auditoria_trazabilidad')
+                .select('*')
+                .order('fecha_hora', { ascending: false })
+                .limit(100);
+
+            if (!error && data && data.length > 0) {
+                const logsSupabase = data.map(item => {
+                    let fechaFmt = item.fecha_hora;
+                    try {
+                        fechaFmt = new Date(item.fecha_hora).toLocaleString('es-MX', {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit'
+                        });
+                    } catch(e) {}
+
+                    return {
+                        fecha: fechaFmt,
+                        entidad: (item.accion && item.accion.includes('FORUM')) ? 'FORUM' : 'IEC',
+                        usuario: item.usuario || 'Operativo',
+                        accion: item.accion || 'Acción en sistema',
+                        detalle: item.detalles || {}
+                    };
+                });
+
+                // Fusionar con los locales
+                logsConsolidados = [...logsSupabase, ...logsConsolidados];
+            }
+        } catch (err) {
+            console.warn("Aviso de red al consultar Supabase:", err);
+        }
+    }
+
+    // Filtrar por ámbito actual (GLOBAL, IEC, FORUM)
+    if (currentAmbito !== 'GLOBAL') {
+        logsConsolidados = logsConsolidados.filter(l => l.entidad === currentAmbito);
+    }
+
+    return logsConsolidados;
+}
         
     </script>
 <!-- ========================================================================= -->
