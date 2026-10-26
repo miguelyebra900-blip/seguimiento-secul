@@ -82,16 +82,39 @@ async function publicarComunicadoDirectivo(e) {
     localStorage.setItem('secul_comunicado_directivo', JSON.stringify(comunicado));
 
     // 2. Persistencia en Supabase para sincronizar clientes remotos
-    if (supabaseClient) {
+if (supabaseClient) {
         try {
-            await supabaseClient.from('auditoria_trazabilidad').insert([{
-                usuario: comunicado.emisor,
-                accion: `[COMUNICADO DIRECTIVO] ${comunicado.titulo}`,
-                detalles: comunicado,
-                fecha_hora: new Date().toISOString()
-            }]);
-        } catch(err) {
-            console.warn("Aviso comunicado local:", err);
+            const { data, error } = await supabaseClient
+                .from('auditoria_trazabilidad')
+                .select('*')
+                .order('fecha_hora', { ascending: false }) // Forzar el más reciente primero
+                .limit(200); // Ampliamos el rango para asegurar que capture los de hoy
+
+            if (!error && data && data.length > 0) {
+                const logsSupabase = data.map(item => {
+                    let fechaFmt = item.fecha_hora;
+                    try {
+                        // Formato limpio para que se lea perfectamente
+                        fechaFmt = new Date(item.fecha_hora).toLocaleString('es-MX', {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit'
+                        });
+                    } catch(e) {}
+
+                    return {
+                        fecha: fechaFmt,
+                        entidad: (item.accion && item.accion.includes('FORUM')) ? 'FORUM' : 'IEC',
+                        usuario: item.usuario || 'Operativo',
+                        accion: item.accion || 'Acción en sistema',
+                        detalle: item.detalles || {}
+                    };
+                });
+
+                // Reemplazamos por completo con los datos frescos de Supabase
+                logsConsolidados = logsSupabase;
+            }
+        } catch (err) {
+            console.warn("Aviso al consultar Supabase:", err);
         }
     }
 
