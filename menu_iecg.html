@@ -2496,7 +2496,6 @@ if (btnVinculo) {
         }
 // Función para cargar los datos reales directamente desde Supabase al iniciar (Fuente Única de Verdad)
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
-
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
         console.warn("Supabase no disponible, usando catálogo oficial.");
@@ -2625,83 +2624,6 @@ async function inicializarDatosDesdeSupabase() {
         accionesDataset = ACCIONES_INICIALES;
     }
 }
-
-        // Diccionario inquebrantable de Prefijo a Panel (A - J)
-        const PREFIJO_A_PANEL = {
-            'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
-            'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
-            'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
-        };
-
-        if (accionesSupabase.length > 0) {
-            accionesDataset = accionesSupabase.map(itemDB => {
-                const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
-                const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
-                
-                // Obtener información del hito relacionado
-                const hitoInfo = mapaHitos[claveHito] || {};
-                
-                // Determinar el panel correcto
-                const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
-                const panelReal = hitoInfo.panel || PREFIJO_A_PANEL[prefijo] || 'A';
-                
-                // Obtener el nombre real del área
-                const claveArea = hitoInfo.clave_area || prefijo;
-                const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
-
-                // EL SECRETO: En `acciones_transicion`, el número en `estatus` (100, 70, 40) es el avance real
-                const valorAvance = Number(
-                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance :
-                    (typeof itemDB.estatus === 'number' ? itemDB.estatus : 
-                    (itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (hitoInfo.avance || 0)))
-                );
-
-                // Determinar el texto del estatus basándose en el avance numérico
-                let estatusLimpio = 'En Proceso';
-                if (valorAvance === 100) {
-                    estatusLimpio = 'Concluido';
-                } else if (valorAvance >= 75) {
-                    estatusLimpio = 'Validación';
-                } else {
-                    estatusLimpio = 'En Proceso';
-                }
-
-                // Buscar respaldo en el catálogo oficial para textos ricos
-                const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveAccion || a.clave_accion === claveAccion);
-
-                return {
-                    id: claveAccion,
-                    clave_accion: claveAccion,
-                    clave_hito: claveHito,
-                    panel: panelReal, // Panel segmentado perfectamente de la A a la J
-                    area: nombreAreaReal,
-                    hito: hitoInfo.titulo || (matchOficial ? matchOficial.hito : 'Hito normativo'),
-                    accion: itemDB.accion_especifica || (matchOficial ? matchOficial.accion : 'Acción operativa'),
-                    responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : panelReal),
-                    estatus: estatusLimpio,
-                    avance: valorAvance, // <--- ¡Avance numérico real rescatado!
-                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
-                    driveUrl: itemDB.drive_url || (matchOficial ? matchOficial.driveUrl : '')
-                };
-            });
-
-            // Guardar en localStorage limpio
-            localStorage.setItem('secul_30_acciones', JSON.stringify(accionesDataset));
-            console.log("¡Datos sincronizados correctamente usando el estatus numérico como avance!");
-
-            // Actualizar interfaz, tarjetas, KPIs y gráficas
-            if (typeof actualizarDashboard === 'function') actualizarDashboard();
-            if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
-            if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-            if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
-        }
-
-    } catch (err) {
-        console.error("Error al conectar con Supabase:", err.message);
-        accionesDataset = ACCIONES_INICIALES;
-    }
-}
-        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
