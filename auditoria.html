@@ -1107,13 +1107,11 @@ window.abrirModalDetalleCard = function(tipo) {
     let titulo = "";
     let contenidoHTML = "";
 
-    // Obtener datos reales consolidados
     const solicitudes = (typeof getSolicitudesConsolidadas === 'function') ? getSolicitudesConsolidadas() : [];
     const logs = (typeof getLogsConsolidados === 'function') ? getLogsConsolidados() : [];
-    const hIEC = JSON.parse(localStorage.getItem('secul_30_acciones')) || [];
-    const hForum = JSON.parse(localStorage.getItem('secul_forum_30_acciones')) || [];
+    const hIEC = JSON.parse(localStorage.getItem('secul_30_acciones')) || JSON.parse(localStorage.getItem('secul_hitos_fiscalizacion')) || [];
+    const hForum = JSON.parse(localStorage.getItem('secul_forum_30_acciones')) || JSON.parse(localStorage.getItem('secul_forum_hitos')) || [];
     
-    // Filtrar según el ámbito actual (GLOBAL, IEC, FORUM)
     let solsFiltradas = solicitudes;
     let logsFiltrados = logs;
     let hitosFiltrados = [...hIEC, ...hForum];
@@ -1129,7 +1127,7 @@ window.abrirModalDetalleCard = function(tipo) {
     }
 
     if (tipo === 'SOLICITUDES') {
-        titulo = `Detalle de Solicitudes (${currentAmbito})`;
+        titulo = `Detalle de Solicitudes Pendientes (${currentAmbito})`;
         let filasSols = '';
         const pendientesList = solsFiltradas.filter(s => s.estado === 'Pendiente' || (s.estatus && s.estatus.includes('Pendiente')));
         
@@ -1149,8 +1147,8 @@ window.abrirModalDetalleCard = function(tipo) {
 
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Listado nominal de requerimientos que esperan dictamen directivo:</p>
-                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                <p class="text-xs text-slate-400">Listado nominal completo de requerimientos que esperan dictamen directivo:</p>
+                <div class="max-h-80 overflow-y-auto border border-slate-800 rounded-2xl">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-950 text-slate-400 sticky top-0">
                             <tr>
@@ -1166,22 +1164,23 @@ window.abrirModalDetalleCard = function(tipo) {
             </div>`;
 
     } else if (tipo === 'HITOS') {
-        titulo = `Desglose Normativo de Hitos (${currentAmbito})`;
+        titulo = `Desglose Normativo Completo de Hitos (${currentAmbito}) - Total: ${hitosFiltrados.length}`;
         let filasHitos = '';
         
-        hitosFiltrados.slice(0, 10).forEach(h => {
+        // SIN CORTE: Muestra absolutamente todos los hitos (los 31 o más)
+        hitosFiltrados.forEach(h => {
             filasHitos += `
                 <tr class="border-b border-slate-800 hover:bg-slate-950">
                     <td class="p-2.5 font-mono text-indigo-400 font-bold">${h.id || h.clave_accion}</td>
-                    <td class="p-2.5 text-white truncate max-w-xs">${h.titulo || h.accion}</td>
+                    <td class="p-2.5 text-white truncate max-w-sm">${h.titulo || h.accion}</td>
                     <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-bold text-[10px]">${h.avance || h.avancePorcentaje || 0}%</span></td>
                 </tr>`;
         });
 
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Muestra de la estructura viva relacional y cumplimiento por comisiones:</p>
-                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                <p class="text-xs text-slate-400">Estructura viva relacional con el total de acciones registradas en el catálogo:</p>
+                <div class="max-h-80 overflow-y-auto border border-slate-800 rounded-2xl">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-950 text-slate-400 sticky top-0">
                             <tr>
@@ -1196,9 +1195,7 @@ window.abrirModalDetalleCard = function(tipo) {
             </div>`;
 
     } else if (tipo === 'RIESGOS') {
-        titulo = `Puntos de Riesgo Crítico y Observaciones (${currentAmbito})`;
-        
-        // Filtrar acciones con avance menor al 50% o bajo supervisión
+        titulo = `Puntos de Riesgo Crítico (${currentAmbito})`;
         const riesgosList = hitosFiltrados.filter(h => (Number(h.avance || h.avancePorcentaje || 0) < 50));
         let filasRiesgos = '';
 
@@ -1218,7 +1215,7 @@ window.abrirModalDetalleCard = function(tipo) {
         contenidoHTML = `
             <div class="space-y-3">
                 <p class="text-xs text-slate-400">Acciones bajo observación prioritaria por rezago temporal:</p>
-                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                <div class="max-h-80 overflow-y-auto border border-slate-800 rounded-2xl">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-950 text-slate-400 sticky top-0">
                             <tr>
@@ -1233,22 +1230,27 @@ window.abrirModalDetalleCard = function(tipo) {
             </div>`;
 
     } else if (tipo === 'EVENTOS') {
-        titulo = `Bitácora de Trazabilidad Inmutable (${currentAmbito})`;
+        titulo = `Bitácora de Trazabilidad Inmutable en Tiempo Real (${currentAmbito})`;
         let filasLogs = '';
 
-        logsFiltrados.slice(0, 10).forEach(l => {
-            filasLogs += `
-                <tr class="border-b border-slate-800 hover:bg-slate-950">
-                    <td class="p-2.5 font-mono text-slate-400 text-[10px]">${l.fecha || ''}</td>
-                    <td class="p-2.5 font-semibold text-amber-300">${l.usuario || 'Sistema'}</td>
-                    <td class="p-2.5 text-emerald-400">${l.accion || ''}</td>
-                </tr>`;
-        });
+        // Mostramos el historial completo ordenado al momento sin recortar a 10
+        if (logsFiltrados.length === 0) {
+            filasLogs = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">No hay eventos registrados en la bitácora.</td></tr>`;
+        } else {
+            logsFiltrados.forEach(l => {
+                filasLogs += `
+                    <tr class="border-b border-slate-800 hover:bg-slate-950">
+                        <td class="p-2.5 font-mono text-slate-400 text-[10px] whitespace-nowrap">${l.fecha || ''}</td>
+                        <td class="p-2.5 font-semibold text-amber-300">${l.usuario || 'Sistema'}</td>
+                        <td class="p-2.5 text-emerald-400 font-medium">${l.accion || ''}</td>
+                    </tr>`;
+            });
+        }
 
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Historial forense detallado de las últimas operaciones registradas:</p>
-                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                <p class="text-xs text-slate-400">Historial forense detallado con la actividad más reciente de los usuarios en el sistema:</p>
+                <div class="max-h-80 overflow-y-auto border border-slate-800 rounded-2xl">
                     <table class="w-full text-left text-xs font-mono">
                         <thead class="bg-slate-950 text-slate-400 sticky top-0">
                             <tr>
