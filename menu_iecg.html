@@ -5637,7 +5637,7 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
         var filasAcciones = '';
         h.acciones.forEach(function(a) {
-            var idClaveAccion = a.clave_accion || a.id;
+        var btnAgregarRapido = '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-emerald-200 transition" title="Carga rápida de otro archivo"><i class="fa-solid fa-plus"></i> + Archivo</button>';
             var tieneDrive = Boolean(a.driveUrl && a.driveUrl.trim() !== '');
 
             var badgeEst = 'bg-blue-100 text-blue-800';
@@ -5677,13 +5677,16 @@ window.renderBaseDatosGeneralJerarquica = function() {
                 '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold ' + badgeEst + '">' + (a.estatus || 'En Proceso') + '</span></td>' +
                 '<td class="p-2 text-center font-mono font-black ' + (Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600') + '">' + (a.avance || 0) + '%</td>' +
                 '<td class="p-2 text-center whitespace-nowrap">' + btnDrive + '</td>' +
-                '<td class="p-2 text-center whitespace-nowrap">' +
-                    '<div class="inline-flex items-center gap-1">' +
-                        '<!-- BOTÓN VINCULAR ACCIÓN ESPECÍFICA -->' +
-                        '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-purple-200 transition" title="Vincular esta acción con mi área"><i class="fa-solid fa-link text-purple-600"></i> Vincular</button>' +
-                        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition"><i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar</button>' +
-                        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition" title="Solicitar baja formal"><i class="fa-solid fa-trash-can text-rose-600"></i></button>' +
-                    '</div>' +
+               '<td class="p-2 text-center whitespace-nowrap">' +
+                '<div class="inline-flex items-center gap-1">' +
+                '<!-- BOTÓN CARGA RÁPIDA EXPRESS -->' +
+                    btnAgregarRapido +
+        '<!-- BOTÓN VINCULAR ACCIÓN ESPECÍFICA -->' +
+        '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-purple-200 transition" title="Vincular esta acción con mi área"><i class="fa-solid fa-link text-purple-600"></i> Vincular</button>' +
+        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition"><i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar</button>' +
+        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition" title="Solicitar baja formal"><i class="fa-solid fa-trash-can text-rose-600"></i></button>' +
+    '</div>' +
+'</td>'
                 '</td>' +
             '</tr>';
         });
@@ -7133,6 +7136,114 @@ window.solicitarEliminacionAccion = function(claveAccion) {
     actualizarDashboard();
     if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 };
+
+        // Abrir el Modal Express con los datos de la acción seleccionada
+window.abrirModalAgregarArchivosRapido = function(idClave) {
+    const act = accionesDataset.find(a => (a.clave_accion === idClave) || (a.id === idClave));
+    if (!act) {
+        alert("No se encontró la acción seleccionada.");
+        return;
+    }
+    
+    document.getElementById('rapidoClaveAccion').value = act.clave_accion || act.id;
+    document.getElementById('rapidoSubtituloClave').innerText = `Clave: ${act.clave_accion || act.id}`;
+    document.getElementById('rapidoTextoTitulo').innerText = act.accion || act.hito || 'Sin descripción';
+    document.getElementById('rapidoTextoResponsable').innerText = act.responsable || 'No especificado';
+    document.getElementById('rapidoTextoPanel').innerText = `Panel ${act.panel || 'A'}`;
+    
+    // Limpiar campos de archivo y nota
+    const fileInput = document.getElementById('rapidoFileInput');
+    if (fileInput) fileInput.value = '';
+    const notaInput = document.getElementById('rapidoNota');
+    if (notaInput) notaInput.value = '';
+
+    openModal('modal-agregar-archivos-rapido');
+};
+
+// Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
+window.guardarArchivoRapido = async function(e) {
+    e.preventDefault();
+    
+    const claveAccion = document.getElementById('rapidoClaveAccion').value;
+    const fileInput = document.getElementById('rapidoFileInput');
+    const nota = document.getElementById('rapidoNota')?.value.trim() || '';
+    
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Por favor seleccione un archivo.");
+        return;
+    }
+
+    const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+    if (!act) return;
+
+    const btnSubmit = document.getElementById('btnSubmitRapido');
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo y registrando...';
+    }
+
+    try {
+        // 1. Consultar cuántos archivos existen en evidencias_expedientes para calcular el sufijo exacto (-0.00x)
+        let contadorBase = 1;
+        if (supabaseClient) {
+            const { count, error: errCount } = await supabaseClient
+                .from('evidencias_expedientes')
+                .select('*', { count: 'exact', head: true })
+                .eq('clave_accion', claveAccion);
+
+            if (!errCount && count !== null) {
+                contadorBase = count + 1;
+            }
+        }
+
+        const archivoFisico = fileInput.files[0];
+        const sufijoIndex = `-0.00${contadorBase}`;
+        const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
+
+        // 2. Subir a Google Drive
+        const urlDrive = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
+        if (!urlDrive || !urlDrive.startsWith('http')) {
+            throw new Error("No se pudo obtener el enlace de Google Drive.");
+        }
+
+        // 3. Registrar en Supabase (Tabla evidencias_expedientes)
+        if (supabaseClient) {
+            const { error: errInsert } = await supabaseClient
+                .from('evidencias_expedientes')
+                .insert([{
+                    clave_accion: claveAccion,
+                    nombre_archivo: nombreNominalDrive,
+                    drive_url: urlDrive
+                }]);
+            if (errInsert) throw errInsert;
+        }
+
+        // 4. Actualizar memoria local
+        act.driveUrl = urlDrive;
+        if (!act.archivosDrive) act.archivosDrive = [];
+        act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
+        
+        guardarDataset();
+
+        alert(`¡Archivo agregado exitosamente con sufijo [${sufijoIndex}]!`);
+        closeModal('modal-agregar-archivos-rapido');
+
+        // Sincronizar UI en tiempo real
+        await inicializarDatosDesdeSupabase();
+        actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+
+    } catch (err) {
+        console.error("Error en carga rápida:", err);
+        alert("Error al guardar: " + err.message);
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Subir y Registrar Archivo';
+        }
+    }
+};
+        
         
 </script>
 
@@ -7459,7 +7570,68 @@ window.solicitarEliminacionAccion = function(claveAccion) {
 
     </div>
 </div>
+<!-- ========================================================= -->
+<!-- MODAL EXPRESS: CARGA RÁPIDA DE ARCHIVOS POR ACCIÓN        -->
+<!-- ========================================================= -->
+<div id="modal-agregar-archivos-rapido" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg border border-emerald-500/30">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-base leading-snug">Carga Rápida de Evidencia</h3>
+                    <p class="text-[11px] text-slate-300 font-mono" id="rapidoSubtituloClave">Clave: --</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="text-slate-400 hover:text-white text-lg transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form onsubmit="guardarArchivoRapido(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <input type="hidden" id="rapidoClaveAccion">
+            
+            <!-- Datos de referencia (Solo lectura) -->
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Compromiso / Título:</span>
+                    <p id="rapidoTextoTitulo" class="font-bold text-slate-900 text-xs mt-0.5">--</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
+                    <div>
+                        <span class="text-[9.5px] font-bold text-slate-400 uppercase">Área / Responsable:</span>
+                        <p id="rapidoTextoResponsable" class="font-semibold text-slate-700 text-[11px] mt-0.5 truncate">--</p>
+                    </div>
+                    <div>
+                        <span class="text-[9.5px] font-bold text-slate-400 uppercase">Panel:</span>
+                        <p id="rapidoTextoPanel" class="font-semibold text-slate-700 text-[11px] mt-0.5">--</p>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Input de Archivo -->
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Seleccionar Archivo PDF de Evidencia:</label>
+                <input type="file" id="rapidoFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" class="w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50 p-1" required>
+            </div>
+
+            <!-- Nota u Observación opcional -->
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Nota o Justificación Breve (Opcional):</label>
+                <textarea id="rapidoNota" rows="2" placeholder="Ej. Se anexa oficio complementario de validación..." class="w-full p-2.5 border rounded-xl bg-slate-50"></textarea>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                <button type="submit" id="btnSubmitRapido" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Subir y Registrar Archivo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
     <!-- ========================================================================= -->
 <!-- MODAL DINÁMICO DE EDICIÓN Y GOBERNANZA (HITO / ACCIÓN)                     -->
 <!-- ========================================================================= -->
