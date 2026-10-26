@@ -1106,13 +1106,16 @@ async function registrarEventoAuditoriaSupabase(entidad, accion, detalles) {
 window.renderBitacoraAuditoria = async function() {
     const tbody = document.getElementById('tablaAuditoriaUnificada');
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs italic">Sincronizando bitácora en tiempo real...</td></tr>`;
+    
+    // Indicador visual de carga
+    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs italic">Sincronizando con Supabase en tiempo real...</td></tr>`;
 
+    // LLAMADA CLAVE: Esperamos los datos frescos de Supabase y LocalStorage unificados
     let logs = await getLogsConsolidadosAsync();
 
     tbody.innerHTML = '';
 
-    if (logs.length === 0) {
+    if (!logs || logs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500 italic">No hay registros de auditoría disponibles.</td></tr>`;
     } else {
         logs.forEach(l => {
@@ -1134,7 +1137,6 @@ window.renderBitacoraAuditoria = async function() {
         });
     }
 };
-
         
 // =========================================================================
 // BITÁCORA UNIFICADA: COMBINA SUPABASE Y LOCALSTORAGE EN TIEMPO REAL
