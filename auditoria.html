@@ -1100,69 +1100,200 @@ function imprimirInformeEjecutivo() {
 // =========================================================================
 // MODALES DINÁMICOS E INTELIGENTES PARA CADA CARD DE AUDITORÍA
 // =========================================================================
+// =========================================================================
+// MODALES DINÁMICOS CON INFORMACIÓN REAL Y DETALLADA DEL SISTEMA
+// =========================================================================
 window.abrirModalDetalleCard = function(tipo) {
     let titulo = "";
     let contenidoHTML = "";
 
+    // Obtener datos reales consolidados
+    const solicitudes = (typeof getSolicitudesConsolidadas === 'function') ? getSolicitudesConsolidadas() : [];
+    const logs = (typeof getLogsConsolidados === 'function') ? getLogsConsolidados() : [];
+    const hIEC = JSON.parse(localStorage.getItem('secul_30_acciones')) || [];
+    const hForum = JSON.parse(localStorage.getItem('secul_forum_30_acciones')) || [];
+    
+    // Filtrar según el ámbito actual (GLOBAL, IEC, FORUM)
+    let solsFiltradas = solicitudes;
+    let logsFiltrados = logs;
+    let hitosFiltrados = [...hIEC, ...hForum];
+
+    if (currentAmbito === 'IEC') {
+        solsFiltradas = solicitudes.filter(s => s.entidad === 'IEC');
+        logsFiltrados = logs.filter(l => l.entidad === 'IEC');
+        hitosFiltrados = hIEC;
+    } else if (currentAmbito === 'FORUM') {
+        solsFiltradas = solicitudes.filter(s => s.entidad === 'FORUM');
+        logsFiltrados = logs.filter(l => l.entidad === 'FORUM');
+        hitosFiltrados = hForum;
+    }
+
     if (tipo === 'SOLICITUDES') {
-        titulo = "Detalle de Solicitudes Pendientes";
+        titulo = `Detalle de Solicitudes (${currentAmbito})`;
+        let filasSols = '';
+        const pendientesList = solsFiltradas.filter(s => s.estado === 'Pendiente' || (s.estatus && s.estatus.includes('Pendiente')));
+        
+        if (pendientesList.length === 0) {
+            filasSols = `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">No hay solicitudes pendientes bajo este ámbito.</td></tr>`;
+        } else {
+            pendientesList.forEach(s => {
+                filasSols += `
+                    <tr class="border-b border-slate-800 hover:bg-slate-950">
+                        <td class="p-2.5 font-mono text-amber-300 font-bold">${s.clave || s.id}</td>
+                        <td class="p-2.5 text-white">${s.titulo || s.tipo || 'Modificación'}</td>
+                        <td class="p-2.5 text-slate-400">${s.solicitante || 'Enlace'}</td>
+                        <td class="p-2.5 text-right font-mono text-xs text-slate-400">${s.fecha || ''}</td>
+                    </tr>`;
+            });
+        }
+
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Listado de solicitudes de modificación canalizadas por enlaces operativos:</p>
-                <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <span class="text-xs font-bold text-amber-400 block">AUD_F-H-0001-A-0001</span>
-                        <span class="text-[11px] text-slate-300">Vinculación Interinstitucional (Prueba)</span>
-                    </div>
-                    <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-xl">Pendiente Directiva</span>
+                <p class="text-xs text-slate-400">Listado nominal de requerimientos que esperan dictamen directivo:</p>
+                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">Folio / Clave</th>
+                                <th class="p-2.5">Descripción</th>
+                                <th class="p-2.5">Solicitante</th>
+                                <th class="p-2.5 text-right">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">${filasSols}</tbody>
+                    </table>
                 </div>
             </div>`;
+
     } else if (tipo === 'HITOS') {
-        titulo = "Estructura Normativa y Hitos en Catálogo";
+        titulo = `Desglose Normativo de Hitos (${currentAmbito})`;
+        let filasHitos = '';
+        
+        hitosFiltrados.slice(0, 10).forEach(h => {
+            filasHitos += `
+                <tr class="border-b border-slate-800 hover:bg-slate-950">
+                    <td class="p-2.5 font-mono text-indigo-400 font-bold">${h.id || h.clave_accion}</td>
+                    <td class="p-2.5 text-white truncate max-w-xs">${h.titulo || h.accion}</td>
+                    <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-bold text-[10px]">${h.avance || h.avancePorcentaje || 0}%</span></td>
+                </tr>`;
+        });
+
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Desglose de la estructura viva relacional:</p>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800">
-                        <span class="text-[10px] text-slate-400 block uppercase">Paneles Activos</span>
-                        <span class="text-xl font-bold text-indigo-400">10 Paneles (A-J)</span>
-                    </div>
-                    <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800">
-                        <span class="text-[10px] text-slate-400 block uppercase">Acciones Mapeadas</span>
-                        <span class="text-xl font-bold text-emerald-400">30 Acciones</span>
-                    </div>
+                <p class="text-xs text-slate-400">Muestra de la estructura viva relacional y cumplimiento por comisiones:</p>
+                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">ID Acción</th>
+                                <th class="p-2.5">Título / Compromiso</th>
+                                <th class="p-2.5 text-center">Avance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">${filasHitos}</tbody>
+                    </table>
                 </div>
             </div>`;
+
     } else if (tipo === 'RIESGOS') {
-        titulo = "Puntos de Riesgo Crítico y Observaciones";
+        titulo = `Puntos de Riesgo Crítico y Observaciones (${currentAmbito})`;
+        
+        // Filtrar acciones con avance menor al 50% o bajo supervisión
+        const riesgosList = hitosFiltrados.filter(h => (Number(h.avance || h.avancePorcentaje || 0) < 50));
+        let filasRiesgos = '';
+
+        if (riesgosList.length === 0) {
+            filasRiesgos = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">No se detectan puntos críticos con avance menor al 50%.</td></tr>`;
+        } else {
+            riesgosList.forEach(r => {
+                filasRiesgos += `
+                    <tr class="border-b border-slate-800 hover:bg-slate-950">
+                        <td class="p-2.5 font-mono text-rose-400 font-bold">${r.id || r.clave_accion}</td>
+                        <td class="p-2.5 text-white">${r.titulo || r.accion}</td>
+                        <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold text-[10px]">Crítico (${r.avance || r.avancePorcentaje || 0}%)</span></td>
+                    </tr>`;
+            });
+        }
+
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Acciones que requieren atención prioritaria en la fiscalización:</p>
-                <div class="space-y-2 max-h-48 overflow-y-auto">
-                    <div class="p-2.5 bg-rose-950/20 border border-rose-900/40 rounded-xl flex justify-between items-center">
-                        <span class="text-xs text-rose-300 font-medium">Acción con avance menor al 50% en Panel F</span>
-                        <span class="text-[10px] px-2 py-0.5 bg-rose-500/20 text-rose-400 rounded font-bold">Crítico</span>
-                    </div>
+                <p class="text-xs text-slate-400">Acciones bajo observación prioritaria por rezago temporal:</p>
+                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">Folio</th>
+                                <th class="p-2.5">Concepto</th>
+                                <th class="p-2.5 text-center">Diagnóstico</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">${filasRiesgos}</tbody>
+                    </table>
                 </div>
             </div>`;
+
     } else if (tipo === 'EVENTOS') {
-        titulo = "Eventos de Auditoría y Trazabilidad";
+        titulo = `Bitácora de Trazabilidad Inmutable (${currentAmbito})`;
+        let filasLogs = '';
+
+        logsFiltrados.slice(0, 10).forEach(l => {
+            filasLogs += `
+                <tr class="border-b border-slate-800 hover:bg-slate-950">
+                    <td class="p-2.5 font-mono text-slate-400 text-[10px]">${l.fecha || ''}</td>
+                    <td class="p-2.5 font-semibold text-amber-300">${l.usuario || 'Sistema'}</td>
+                    <td class="p-2.5 text-emerald-400">${l.accion || ''}</td>
+                </tr>`;
+        });
+
         contenidoHTML = `
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Registro inmutable de cambios y operaciones ejecutadas en la plataforma:</p>
-                <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-xs space-y-2">
-                    <div class="flex justify-between border-b border-slate-800 pb-2">
-                        <span class="text-slate-300">Sello Criptográfico / Inmutable:</span>
-                        <span class="font-bold text-purple-400">Activo (SHA-256)</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-300">Estado de Sincronización:</span>
-                        <span class="font-bold text-emerald-400">100% en Línea</span>
-                    </div>
+                <p class="text-xs text-slate-400">Historial forense detallado de las últimas operaciones registradas:</p>
+                <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="bg-slate-950 text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">Fecha / Hora</th>
+                                <th class="p-2.5">Usuario Firmante</th>
+                                <th class="p-2.5">Acción Ejecutada</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">${filasLogs}</tbody>
+                    </table>
                 </div>
             </div>`;
     }
 
+    mostrarModalGenericoAuditoria(titulo, contenidoHTML);
+};
+
+function mostrarModalGenericoAuditoria(titulo, htmlBody) {
+    let modalExistente = document.getElementById('modalAuditoriaDinamico');
+    if (modalExistente) modalExistente.remove();
+
+    const modalHTML = `
+        <div id="modalAuditoriaDinamico" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                    <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i> ${titulo}
+                    </h3>
+                    <button onclick="document.getElementById('modalAuditoriaDinamico').remove()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="my-4">
+                    ${htmlBody}
+                </div>
+                <div class="flex justify-end pt-3 border-t border-slate-800">
+                    <button onclick="document.getElementById('modalAuditoriaDinamico').remove()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition">
+                        Cerrar Ventana
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
     // Inyectar y mostrar modal flotante genérico
     mostrarModalGenericoAuditoria(titulo, contenidoHTML);
 };
