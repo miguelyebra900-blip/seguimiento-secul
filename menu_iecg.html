@@ -5764,22 +5764,21 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 window.guardarFormularioEdicionDinamica = async function(e) {
     e.preventDefault();
 
-    var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
-    var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
+    var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo'].value : 'HITO';
+    var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave'].value.trim() : '';
     
     var inputNuevaClave = document.getElementById('inputClaveCanonicaEditable');
     var nuevaClave = (inputNuevaClave && inputNuevaClave.value.trim() !== '') ? inputNuevaClave.value.trim() : claveOriginal;
 
-    var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
+    var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit'].value.trim() : '';
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
     if (btnGuardar) {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y Sincronizando...';
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo archivos a Drive...';
     }
 
     try {
-        // 1. Procesar múltiples archivos dinámicos adjuntos y subirlos a Google Drive
         var actExistente = accionesDataset.find(function(a) {
             return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
         });
@@ -5787,22 +5786,23 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         let driveUrlFinal = actExistente && actExistente.driveUrl ? actExistente.driveUrl : '';
         const panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
 
+        // Procesar múltiples archivos con sufijo secuencial (-0.001, -0.002...)
         const inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
+        let contadorArchivos = 1;
+
         for (let input of inputsArchivos) {
             if (input.files && input.files.length > 0) {
                 const archivoFisico = input.files[0];
-                const nombreNominalDrive = `[${nuevaClave}] ${archivoFisico.name}`;
-                // Subida directa al Apps Script de Google Drive con nomenclatura canónica
+                const sufijoIndex = `-0.00${contadorArchivos}`;
+                const nombreNominalDrive = `[${nuevaClave}${sufijoIndex}] ${archivoFisico.name}`;
+                
                 driveUrlFinal = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
+                contadorArchivos++;
             }
         }
 
-        // 2. Captura de datos del formulario (Instancia, Estatus, Avance)
-        var selInstancia = document.getElementById('selectInstanciaBaseEdit') || 
-                           document.getElementById('selectInstanciaResponsableBaseEdit') || 
-                           document.getElementById('selectInstanciaResponsableBuzon');
-
-        var responsableCapturado = selInstancia ? selInstancia.value : (actExistente ? actExistente.responsable : 'Panel I - Fiscalización & Auditorías');
+        var selInstancia = document.getElementById('selectInstanciaResponsableBaseEdit');
+        var responsableCapturado = selInstancia ? selInstancia.value : (actExistente ? actExistente.responsable : 'Panel I');
         
         var selEstatus = document.getElementById('selectEstatusEdit');
         var estatusCapturado = selEstatus ? selEstatus.value : (actExistente ? actExistente.estatus : 'En Proceso');
@@ -5816,63 +5816,33 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 return hitoBase === claveOriginal;
             });
 
-            if (accionesHito.length === 0) {
-                accionesHito.push({
-                    id: `${nuevaClave}-A-0001`,
-                    clave_accion: `${nuevaClave}-A-0001`,
-                    clave_hito: nuevaClave,
-                    panel: panelLetra,
-                    hito: nuevoTitulo,
-                    accion: 'Acción inicial',
-                    responsable: responsableCapturado,
-                    estatus: estatusCapturado,
-                    avance: avanceCapturado,
-                    driveUrl: driveUrlFinal
-                });
-                accionesDataset.push(accionesHito[0]);
-            }
-
             accionesHito.forEach(function(act) {
                 if (nuevoTitulo) act.hito = nuevoTitulo;
                 act.responsable = responsableCapturado;
                 act.estatus = estatusCapturado;
                 act.avance = avanceCapturado;
                 if (driveUrlFinal) act.driveUrl = driveUrlFinal;
-
-                if (nuevaClave !== claveOriginal) {
-                    act.clave_hito = nuevaClave;
-                    if (act.id) act.id = act.id.replace(claveOriginal, nuevaClave);
-                    if (act.clave_accion) act.clave_accion = act.clave_accion.replace(claveOriginal, nuevaClave);
-                }
             });
 
             guardarDataset();
 
             if (supabaseClient) {
                 for (let act of accionesHito) {
-                    await supabaseClient
-                        .from('acciones_transicion')
-                        .upsert([{
-                            clave_accion: act.clave_accion || act.id,
-                            clave_hito: act.clave_hito,
-                            accion_especifica: act.accion,
-                            estatus: act.avance,
-                            drive_url: act.driveUrl || '',
-                            instancia_responsable: act.responsable
-                        }], { onConflict: 'clave_accion' });
+                    await supabaseClient.from('acciones_transicion').upsert([{
+                        clave_accion: act.clave_accion || act.id,
+                        clave_hito: act.clave_hito,
+                        accion_especifica: act.accion,
+                        estatus: act.avance,
+                        drive_url: act.driveUrl || '',
+                        instancia_responsable: act.responsable
+                    }], { onConflict: 'clave_accion' });
                 }
             }
-
-            alert('¡Hito [' + nuevaClave + '] actualizado con éxito y respaldado en Drive!');
+            alert('¡Hito [' + nuevaClave + '] actualizado exitosamente!');
         } else {
             var act = actExistente;
             if (!act) {
-                act = {
-                    id: claveOriginal,
-                    clave_accion: claveOriginal,
-                    clave_hito: claveOriginal.split('-A-')[0] || claveOriginal,
-                    panel: panelLetra
-                };
+                act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0], panel: panelLetra };
                 accionesDataset.push(act);
             }
 
@@ -5885,19 +5855,16 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             guardarDataset();
 
             if (supabaseClient) {
-                await supabaseClient
-                    .from('acciones_transicion')
-                    .upsert([{
-                        clave_accion: act.clave_accion || act.id,
-                        clave_hito: act.clave_hito || act.id.split('-A-')[0],
-                        accion_especifica: act.accion,
-                        estatus: act.avance,
-                        drive_url: act.driveUrl || '',
-                        instancia_responsable: act.responsable
-                    }], { onConflict: 'clave_accion' });
+                await supabaseClient.from('acciones_transicion').upsert([{
+                    clave_accion: act.clave_accion || act.id,
+                    clave_hito: act.clave_hito || act.id.split('-A-')[0],
+                    accion_especifica: act.accion,
+                    estatus: act.avance,
+                    drive_url: act.driveUrl || '',
+                    instancia_responsable: act.responsable
+                }], { onConflict: 'clave_accion' });
             }
-
-            alert('¡Acción [' + claveOriginal + '] actualizada, archivo en Drive vinculado y sincronizada!');
+            alert('¡Acción actualizada y archivos respaldados en Drive con sufijo!');
         }
 
         closeModal('modal-edicion-dinamica');
@@ -5905,11 +5872,11 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        alert('Error al procesar la actualización: ' + err.message);
+        alert('Error: ' + err.message);
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar a Todo el Sistema';
+            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar';
         }
     }
 };
@@ -7084,6 +7051,48 @@ async function actualizarFolioAccionSugerido() {
 
     inputAccion.value = `${hitoCanonicalBase}-A-${String(siguienteAccionNum).padStart(4, '0')}`;
 }
+
+// Mostrar contador de archivos en Base de Datos General (se puede concatenar en la columna de Drive)
+function obtenerBadgeConteoArchivos(driveUrl) {
+    if (!driveUrl || driveUrl.trim() === '') return '<span class="text-slate-400 text-[10px]">Sin soporte</span>';
+    return '<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-solid fa-paperclip"></i> Con soporte</span>';
+}
+
+// Ventana Modal Formal de Eliminación Permanente
+window.solicitarEliminacionAccion = function(claveAccion) {
+    var act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+    var descAccion = act ? act.accion : 'Acción operativa';
+
+    var motivo = prompt(
+        `⚠️ ¡ADVERTENCIA DE ELIMINACIÓN PERMANENTE!\n\n` +
+        `Estás a punto de eliminar de forma irreversible la acción:\n[${claveAccion}] "${descAccion}"\n\n` +
+        `Esta acción y sus expedientes asociados se borrarán de la base de datos y no podrán recuperarse.\n\n` +
+        `Por favor, ingresa el motivo u oficio de justificación requerido para la Auditoría (ASEG):`
+    );
+
+    if (!motivo || motivo.trim() === '') {
+        alert("Operación cancelada: La supresión permanente requiere una justificación obligatoria.");
+        return;
+    }
+
+    // Ejecutar eliminación permanente en memoria y dataset
+    accionesDataset = accionesDataset.filter(a => (a.clave_accion !== claveAccion) && (a.id !== claveAccion));
+    guardarDataset();
+
+    // Eliminar de Supabase
+    if (supabaseClient) {
+        supabaseClient.from('acciones_transicion').delete().eq('clave_accion', claveAccion).then(({ error }) => {
+            if (error) console.error("Error al eliminar en Supabase:", error);
+        });
+    }
+
+    registrarAuditoria('Eliminación Permanente de Acción', { clave: claveAccion, motivo: motivo.trim() });
+    alert(`¡Registro [${claveAccion}] eliminado permanentemente del sistema con éxito!`);
+    
+    actualizarDashboard();
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+};
+        
 </script>
 
     <!-- ========================================================================= -->
@@ -7442,20 +7451,48 @@ async function actualizarFolioAccionSugerido() {
     <input type="hidden" id="editItemPanel">
 
     <!-- Ficha Interactiva de Clave Canónica y Panel -->
-    <div style="grid-column: 1 / -1; width: 100%; margin-bottom: 1rem; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
-        <label style="display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; letter-spacing: 0.05em;">
+    v<div style="grid-column: 1 / -1; width: 100%; margin-bottom: 1rem; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+        <label style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">
             Clave Canónica (Cronológica del Hito):
         </label>
-        <div>
-            <input type="text" id="inputClaveCanonicaEditable" 
-                   style="width: 100%; padding: 0.75rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 0.75rem; font-family: monospace; font-size: 0.75rem; font-weight: 900; color: #0f172a; outline: none;" 
-                   placeholder="Ej. AUD_F-H-0001">
-        </div>
-        <span style="font-size: 10px; color: #94a3b8; margin-top: 0.25rem; display: block;">
-            💡 Nota: Modifica la clave cronológica de forma directa. Los cambios se propagarán limpiamente a las acciones asociadas.
-        </span>
+        <button type="button" onclick="toggleModoClaveCanonica()" style="font-size: 10px; font-weight: bold; color: #4f46e5; background: #eef2ff; border: 1px solid #c7d2fe; padding: 2px 8px; border-radius: 6px; cursor: pointer;">
+            🔓 Habilitar Captura Manual
+        </button>
     </div>
-               
+    <div>
+        <input type="text" id="inputClaveCanonicaEditable" readonly
+               style="width: 100%; padding: 0.75rem; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 0.75rem; font-family: monospace; font-size: 0.75rem; font-weight: 900; color: #0f172a; outline: none; cursor: not-allowed;" 
+               placeholder="Generando clave automática...">
+    </div>
+    <span style="font-size: 10px; color: #94a3b8; margin-top: 0.25rem; display: block;">
+        💡 Por defecto el sistema genera la clave automática. Haz clic arriba si requieres editarla manualmente.
+    </span>
+</div>
+
+<script>
+function toggleModoClaveCanonica() {
+    const input = document.getElementById('inputClaveCanonicaEditable');
+    if (!input) return;
+    if (input.readOnly) {
+        input.readOnly = false;
+        input.style.backgroundColor = '#ffffff';
+        input.style.cursor = 'text';
+        event.target.innerHTML = '🔒 Bloquear Automático';
+        event.target.style.background = '#fef3c7';
+        event.target.style.borderColor = '#fde68a';
+        event.target.style.color = '#92400e';
+    } else {
+        input.readOnly = true;
+        input.style.backgroundColor = '#f1f5f9';
+        input.style.cursor = 'not-allowed';
+        event.target.innerHTML = '🔓 Habilitar Captura Manual';
+        event.target.style.background = '#eef2ff';
+        event.target.style.borderColor = '#c7d2fe';
+        event.target.style.color = '#4f46e5';
+    }
+}
+</script>
     <!-- Descripción de la Acción -->
     <div>
         <label id="lblTituloPrincipalEdit" class="block font-bold text-slate-800 mb-1">Descripción de la Acción / Entregable Específico:</label>
