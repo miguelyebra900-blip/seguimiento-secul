@@ -1040,6 +1040,45 @@ window.getLogsConsolidadosAsync = async function() {
     
     return logsLocales;
 };
+
+
+// =========================================================================
+// FUNCIÓN ESTÁNDAR PARA REGISTRAR EVENTOS EN TIEMPO REAL EN SUPABASE
+// =========================================================================
+async function registrarEventoAuditoriaSupabase(entidad, accion, detalles) {
+    let userActivo = null;
+    try { 
+        userActivo = JSON.parse(localStorage.getItem('secul_user')); 
+    } catch(e) {}
+    
+    const usuarioNombre = userActivo ? (userActivo.nombre || userActivo.usuario || 'Operativo') : 'Super Administrador';
+    const fechaHoraActual = new Date().toISOString(); // Timestamp oficial compatible con Supabase
+
+    const nuevoLog = {
+        fecha_hora: fechaHoraActual,
+        usuario: usuarioNombre,
+        accion: `[${entidad}] ${accion}`,
+        detalles: detalles || {}
+    };
+
+    // Envío directo a Supabase a la tabla auditoria_trazabilidad
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+        try {
+            const { error } = await supabaseClient
+                .from('auditoria_trazabilidad')
+                .insert([nuevoLog]);
+
+            if (error) {
+                console.error("Error al registrar en la traza de Supabase:", error.message);
+            } else {
+                console.log("¡Movimiento registrado exitosamente en Supabase en tiempo real!");
+            }
+        } catch (err) {
+            console.error("Error de conexión al insertar en Supabase:", err);
+        }
+    }
+}
+
         
     </script>
 <!-- ========================================================================= -->
