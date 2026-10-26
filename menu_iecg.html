@@ -3283,17 +3283,6 @@ async function ejecutarCargaUniversal(e) {
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
     if (!hitoPadre) return;
 
-    // Validación de permisos de panel
-    const misPaneles = currentUser ? (currentUser.paneles_autorizados || ['A']) : [];
-    const esAdmin = currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin');
-    const puedeEditarAccion = esAdmin || misPaneles.includes(hitoPadre.panel);
-
-    if (!puedeEditarAccion) {
-        alert(`⛔ ACCIÓN BLOQUEADA (ÁREA AJENA)\n\nEl Hito seleccionado pertenece al Panel ${hitoPadre.panel} (${hitoPadre.area}).`);
-        return;
-    }
-
-    // OBLIGATORIO: Validar archivo físico PDF
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia para guardarlo en Google Drive y activar el botón 'Ver Documental'.");
@@ -3303,20 +3292,48 @@ async function ejecutarCargaUniversal(e) {
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y Supabase...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Consultando sufijo y subiendo...';
     }
 
     try {
-        // 1. SUBIDA A GOOGLE DRIVE CON NOMENCLATURA [CLAVE] NombreArchivo.pdf
+        // 1. Consultar cuántos archivos ya existen en Supabase para calcular el sufijo real (-0.001, -0.002...)
+        let contadorBase = 1;
+        if (supabaseClient) {
+            const { count, error: errCount } = await supabaseClient
+                .from('evidencias_expedientes')
+                .select('*', { count: 'exact', head: true })
+                .eq('clave_accion', claveAccionFinal);
+
+            if (!errCount && count !== null) {
+                contadorBase = count + 1;
+            }
+        }
+
         const archivoFisico = fileInput.files[0];
-        const nombreNominalDrive = `[${claveAccionFinal}] ${archivoFisico.name}`;
+        const sufijoIndex = `-0.00${contadorBase}`;
+        const nombreNominalDrive = `[${claveAccionFinal}${sufijoIndex}] ${archivoFisico.name}`;
+        
+        // 2. Subir a Google Drive
         const driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
 
         if (!driveUrlFinal || !driveUrlFinal.startsWith('http')) {
             throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
         }
 
-        // 2. CREAR EL OBJETO EN MEMORIA (Suma sin borrar previas)
+        // 3. REGISTRO OBLIGATORIO EN SUPABASE: Tabla evidencias_expedientes
+        if (supabaseClient) {
+            const { error: errEvidencia } = await supabaseClient
+                .from('evidencias_expedientes')
+                .insert([{
+                    clave_accion: claveAccionFinal,
+                    nombre_archivo: nombreNominalDrive,
+                    drive_url: driveUrlFinal
+                }]);
+
+            if (errEvidencia) throw errEvidencia;
+        }
+
+        // 4. Actualizar objeto en memoria
         const nuevaAccionObj = {
             id: claveAccionFinal,
             clave_accion: claveAccionFinal,
@@ -3336,7 +3353,7 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 3. PERSISTENCIA EN SUPABASE (Con consecutivo_num incluido para cumplir la regla NOT NULL)
+        // 5. Sincronizar tabla principal
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -3344,31 +3361,17 @@ async function ejecutarCargaUniversal(e) {
             const payloadSupabase = {
                 clave_accion: claveAccionFinal,
                 clave_hito: hitoBase,
-                consecutivo_num: numConsecutivoActual, // <--- Obligatorio por la restricción de Supabase
+                consecutivo_num: numConsecutivoActual,
                 accion_especifica: nuevaAccionObj.accion,
                 estatus: nuevoAvance,
                 drive_url: driveUrlFinal,
                 instancia_responsable: nuevaAccionObj.responsable
             };
 
-            const { error: errSupabase } = await supabaseClient
-                .from('acciones_transicion')
-                .upsert([payloadSupabase], { onConflict: 'clave_accion' });
-
-            if (errSupabase) throw errSupabase;
-
-            // Actualizar la tabla de control de folios 'secuencias_claves'
-            await supabaseClient
-                .from('secuencias_claves')
-                .upsert([{
-                    tipo_entidad: 'ACCION',
-                    prefijo_padre: hitoBase,
-                    ultimo_consecutivo: numConsecutivoActual,
-                    updated_at: new Date().toISOString()
-                }], { onConflict: 'tipo_entidad,prefijo_padre' });
+            await supabaseClient.from('acciones_transicion').upsert([payloadSupabase], { onConflict: 'clave_accion' });
         }
 
-        alert(`¡Acción [${claveAccionFinal}] registrada y respaldada con éxito en Drive y Supabase!`);
+        alert(`¡Archivo guardado con sufijo [${sufijoIndex}] y registrado en Supabase exitosamente!`);
         closeModal('modal-buzon-universal');
         
         actualizarDashboard();
@@ -5802,7 +5805,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         const panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
 
-        // 1. CONTEO EXACTO EN SUPABASE: Consultar cuántos archivos ya existen en evidencias_expedientes para esta clave
+        // 1. Consultar registros existentes en Supabase para obtener el contador exacto
         let contadorBase = 1;
         if (supabaseClient) {
             const { count, error: errCount } = await supabaseClient
@@ -5811,26 +5814,27 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 .eq('clave_accion', nuevaClave);
 
             if (!errCount && count !== null) {
-                contadorBase = count + 1; // Si ya hay 2 archivos, el siguiente empieza en 3 (-0.003)
+                contadorBase = count + 1;
             }
         }
 
-        // 2. Procesar los archivos adjuntos con sufijo cronológico continuo (-0.001, -0.002...)
+        // 2. Procesar únicamente los archivos nuevos que el usuario adjunte en los inputs
         const inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
         let ultimoDriveUrl = actExistente ? actExistente.driveUrl : '';
         let archivosNuevosSubidos = 0;
 
         for (let input of inputsArchivos) {
+            // Verificamos que el input tenga un archivo nuevo físico seleccionado
             if (input.files && input.files.length > 0) {
                 const archivoFisico = input.files[0];
                 const sufijoIndex = `-0.00${contadorBase}`;
                 const nombreNominalDrive = `[${nuevaClave}${sufijoIndex}] ${archivoFisico.name}`;
                 
-                // Subir a Google Drive mediante Apps Script
+                // Subir a Google Drive
                 const urlSubida = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
 
                 if (urlSubida && supabaseClient) {
-                    // Insertar registro individual en la tabla relacional evidencias_expedientes
+                    // INSERCIÓN OBLIGATORIA EN SUPABASE: Tabla evidencias_expedientes
                     await supabaseClient.from('evidencias_expedientes').insert([{
                         clave_accion: nuevaClave,
                         nombre_archivo: nombreNominalDrive,
@@ -5867,7 +5871,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         guardarDataset();
 
-        // Sincronizar la tabla principal de acciones en Supabase
         if (supabaseClient) {
             await supabaseClient.from('acciones_transicion').upsert([{
                 clave_accion: act.clave_accion || act.id,
@@ -5879,7 +5882,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }], { onConflict: 'clave_accion' });
         }
 
-        alert(`¡Actualización exitosa! Se subieron ${archivosNuevosSubidos} archivo(s) con numeración cronológica continua.`);
+        alert(`¡Actualización exitosa! Se subieron ${archivosNuevosSubidos} archivo(s) nuevo(s) y se registraron en Supabase.`);
         closeModal('modal-edicion-dinamica');
         
         actualizarDashboard();
