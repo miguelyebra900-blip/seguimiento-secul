@@ -272,6 +272,18 @@
 
                 <!-- Botones de Acción Inmediata -->
                 <div class="flex flex-wrap items-center gap-2">
+                    <!-- SELECTOR DUAL: VISTA GERENCIAL VS VISTA OPERATIVA -->
+                    <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200/90 shadow-inner mr-2">
+                        <button type="button" id="btnModoGerencial" onclick="cambiarModoPrincipal('gerencial')" 
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-briefcase text-amber-400"></i> Vista Gerencial
+                        </button>
+                        <button type="button" id="btnModoOperativo" onclick="cambiarModoPrincipal('operativo')" 
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-screwdriver-wrench text-indigo-500"></i> Vista Operativa
+                        </button>
+                    </div>
+                    
                     <button onclick="openModal('modal-riesgos-inicio')" class="btn-executive bg-rose-50 hover:bg-rose-100/80 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-triangle-exclamation text-rose-600 animate-pulse"></i> Matriz de Riesgos (Art. 6)
                     </button>
@@ -381,6 +393,98 @@
     <!-- CONTENEDOR PRINCIPAL -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-8">
 
+<!-- ========================================================================= -->
+<!-- SECCIÓN EXCLUSIVA: VISTA GERENCIAL TRI-PERSPECTIVA (DECRETO 345 & CONTROL) -->
+<!-- ========================================================================= -->
+<section id="vista-gerencial-container" class="space-y-6">
+
+    <!-- CABECERA EJECUTIVA Y SELECTOR TRI-PERSPECTIVA -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+                    Tablero de Decisión Directiva
+                </span>
+                <span class="text-xs text-slate-400 font-semibold">• Decreto No. 345 & Lineamientos</span>
+            </div>
+            <h2 class="text-xl font-black text-slate-900 mt-1 flex items-center gap-2">
+                <i class="fa-solid fa-landmark-dome text-indigo-600"></i> Cumplimiento Legal y Estatus de Extinción IECG
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+                Seguimiento integral para el Despacho de la Secretaria de Cultura, Comité de Extinción y Órganos Fiscalizadores.
+            </p>
+        </div>
+
+        <!-- SELECTOR DE LAS 3 PERSPECTIVAS -->
+        <div class="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 gap-1 overflow-x-auto">
+            <button type="button" id="btnPerspLey" onclick="cambiarPerspectivaGerencial('ley')" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-black transition-all bg-white text-indigo-800 shadow-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-scale-balanced text-indigo-600"></i> 1. Mandatos de Ley
+            </button>
+            <button type="button" id="btnPerspEtapas" onclick="cambiarPerspectivaGerencial('etapas')" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-timeline text-amber-500"></i> 2. Por Etapas
+            </button>
+            <button type="button" id="btnPerspRiesgos" onclick="cambiarPerspectivaGerencial('riesgos')" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-rose-500"></i> 3. Nivel de Riesgo
+            </button>
+        </div>
+    </div>
+
+    <!-- TARJETAS DE KPIS GERENCIALES -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-black uppercase text-indigo-700 tracking-wider">Avance Decreto 345</span>
+                <span class="text-3xl font-black text-slate-900 block mt-0.5" id="gerencialKpiAvance">48.6%</span>
+                <span class="text-[11px] text-slate-500 font-semibold" id="gerencialKpiSubAvance">17 de 35 Acciones</span>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 text-lg">
+                <i class="fa-solid fa-percent"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider">Obligaciones Solventadas</span>
+                <span class="text-3xl font-black text-emerald-600 block mt-0.5" id="gerencialKpiConcluidas">17</span>
+                <span class="text-[11px] text-slate-500 font-semibold">100% acreditadas</span>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-lg">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-black uppercase text-amber-700 tracking-wider">En Trámite / Validación</span>
+                <span class="text-3xl font-black text-amber-600 block mt-0.5" id="gerencialKpiTramite">18</span>
+                <span class="text-[11px] text-slate-500 font-semibold">16 Proceso • 2 Validación</span>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 text-lg">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-black uppercase text-rose-700 tracking-wider">Riesgos Directivos</span>
+                <span class="text-3xl font-black text-rose-600 block mt-0.5">5 Puntos</span>
+                <span class="text-[11px] text-slate-500 font-semibold">R-01 a R-05 (Art. 6)</span>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 text-lg">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUADRÍCULA DINÁMICA DE LA PERSPECTIVA SELECCIONADA -->
+    <div id="gridPerspectivasGerencial" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5"></div>
+
+</section>
+
+        
         <!-- ================================================================= -->
         <!-- SECCIÓN 0: TABLERO EJECUTIVO & KPIS DIRECTIVOS                    -->
         <!-- ================================================================= -->
@@ -2631,20 +2735,28 @@ async function inicializarDatosDesdeSupabase() {
 
                 const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveAccion || a.clave_accion === claveAccion);
 
-                return {
+         return {
                     id: claveAccion,
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
                     panel: panelReal,
                     area: nombreAreaReal,
-                    hito: hitoInfo.titulo || (matchOficial ? matchOficial.hito : 'Hito normativo'),
+                    hito: hitoInfo.titulo || itemDB.hito || (matchOficial ? matchOficial.hito : 'Hito normativo'),
                     accion: itemDB.accion_especifica || (matchOficial ? matchOficial.accion : 'Acción operativa'),
                     responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : panelReal),
                     estatus: estatusLimpio,
                     avance: valorAvance,
-                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
+                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : (100 / 3)),
                     driveUrl: ultimaUrl,
-                    archivosDrive: listaArchivos // <--- Guardamos la lista completa de archivos adjuntos
+                    archivosDrive: listaArchivos,
+                    // NUEVOS CAMPOS DEL DECRETO 345 Y GOBERNANZA
+                    fundamento_juridico: itemDB.fundamento_juridico || '',
+                    riesgo_vinculado: itemDB.riesgo_vinculado || '',
+                    instrumento_1: itemDB.instrumento_1 || '',
+                    instrumento_2: itemDB.instrumento_2 || '',
+                    instrumento_3: itemDB.instrumento_3 || '',
+                    sugerencia_expediente_tecnico: itemDB.sugerencia_expediente_tecnico || '',
+                    observacion: itemDB.observacion || ''
                 };
             });
 
@@ -7330,7 +7442,245 @@ window.guardarArchivoRapido = async function(e) {
         console.error("Error al eliminar evidencia:", err);
         alert("No se pudo eliminar el registro: " + err.message);
     }
-};      
+};     
+
+        // =========================================================================
+// MOTOR DE LA VISTA GERENCIAL TRI-PERSPECTIVA
+// =========================================================================
+let modoActualPantalla = 'gerencial';
+let perspectivaGerencialActiva = 'ley';
+
+window.cambiarModoPrincipal = function(modo) {
+    modoActualPantalla = modo;
+    const vistaGerencial = document.getElementById('vista-gerencial-container');
+    const navOperativo = document.querySelector('nav.bg-white\\/80');
+    const tabsOperativos = ['tab-dashboard', 'tab-areas', 'tab-matriz', 'tab-cronograma', 'tab-linea-tiempo'];
+
+    const btnGer = document.getElementById('btnModoGerencial');
+    const btnOp = document.getElementById('btnModoOperativo');
+
+    if (modo === 'gerencial') {
+        if (vistaGerencial) vistaGerencial.classList.remove('hidden');
+        if (navOperativo) navOperativo.classList.add('hidden');
+        tabsOperativos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+
+        if (btnGer) btnGer.className = "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xs flex items-center gap-1.5";
+        if (btnOp) btnOp.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+        
+        renderizarVistaGerencial();
+    } else {
+        if (vistaGerencial) vistaGerencial.classList.add('hidden');
+        if (navOperativo) navOperativo.classList.remove('hidden');
+        
+        mostrarSeccionTab('tab-dashboard');
+
+        if (btnOp) btnOp.className = "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xs flex items-center gap-1.5";
+        if (btnGer) btnGer.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+    }
+};
+
+window.cambiarPerspectivaGerencial = function(persp) {
+    perspectivaGerencialActiva = persp;
+
+    const btnL = document.getElementById('btnPerspLey');
+    const btnE = document.getElementById('btnPerspEtapas');
+    const btnR = document.getElementById('btnPerspRiesgos');
+
+    const activoClass = "px-3.5 py-2 rounded-xl text-xs font-black transition-all bg-white text-indigo-800 shadow-xs flex items-center gap-1.5";
+    const inactivoClass = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+
+    if (btnL) btnL.className = (persp === 'ley') ? activoClass : inactivoClass;
+    if (btnE) btnE.className = (persp === 'etapas') ? activoClass : inactivoClass;
+    if (btnR) btnR.className = (persp === 'riesgos') ? activoClass : inactivoClass;
+
+    renderizarVistaGerencial();
+};
+
+window.renderizarVistaGerencial = function() {
+    const grid = document.getElementById('gridPerspectivasGerencial');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+    
+    // Cálculo de KPIs superiores consolidados
+    const totalAcc = dataset.length || 35;
+    const concluidasTot = dataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length;
+    const pctGlobal = totalAcc > 0 ? ((concluidasTot / totalAcc) * 100).toFixed(1) : 0;
+    const tramiteTot = dataset.filter(a => a.estatus !== 'Concluido' && Number(a.avance) < 100).length;
+
+    const elAvance = document.getElementById('gerencialKpiAvance');
+    const elSubAvance = document.getElementById('gerencialKpiSubAvance');
+    const elConcluidas = document.getElementById('gerencialKpiConcluidas');
+    const elTramite = document.getElementById('gerencialKpiTramite');
+
+    if (elAvance) elAvance.textContent = `${pctGlobal}%`;
+    if (elSubAvance) elSubAvance.textContent = `${concluidasTot} de ${totalAcc} Acciones`;
+    if (elConcluidas) elConcluidas.textContent = concluidasTot;
+    if (elTramite) elTramite.textContent = tramiteTot;
+
+    let grupos = {};
+
+    if (perspectivaGerencialActiva === 'ley') {
+        grupos = {
+            'Mandato 1: Transitorio 5° (Régimen Transición & RH)': {
+                art: 'Decreto 345: Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17, 18, 30',
+                icono: 'fa-users-gear',
+                color: 'indigo',
+                acciones: dataset.filter(a => (a.fundamento_juridico || '').includes('Art. 5 Transitorio') || ['A', 'C', 'E', 'H'].includes(a.panel))
+            },
+            'Mandato 2: Art. 24 Fracc. I (Cierre Financiero, Fiscal & SAT)': {
+                art: 'Decreto 345: Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 23, 27',
+                icono: 'fa-file-invoice-dollar',
+                color: 'amber',
+                acciones: dataset.filter(a => (a.fundamento_juridico || '').includes('Art. 24') || ['F', 'I'].includes(a.panel))
+            },
+            'Mandato 3: Arts. 67-76 (Fideicomisos Públicos - FIARCA)': {
+                art: 'Decreto 345: Arts. 67 al 76 • Lineamientos Art. 10',
+                icono: 'fa-piggy-bank',
+                color: 'emerald',
+                acciones: dataset.filter(a => (a.fundamento_juridico || '').includes('67') || a.panel === 'D')
+            },
+            'Mandato 4: Gobernanza & Comités (Decreto & Lineamientos IEC)': {
+                art: 'Lineamientos Comités Arts. 3, 9, 10, 34 • Decreto 345',
+                icono: 'fa-scale-balanced',
+                color: 'purple',
+                acciones: dataset.filter(a => a.panel === 'J' || a.panel === 'B')
+            }
+        };
+    } else if (perspectivaGerencialActiva === 'etapas') {
+        grupos = {
+            'Fase 1: Desincorporación y Personal': {
+                art: '303 plazas transferidas, nombramiento de liquidador y finiquitos',
+                icono: 'fa-id-card-clip',
+                color: 'indigo',
+                acciones: dataset.filter(a => a.panel === 'A')
+            },
+            'Fase 2: Regularización Patrimonial y Fiduciaria': {
+                art: 'Inventarios, 2,570 faltantes, bienes muebles, predios y adenda fiduciaria',
+                icono: 'fa-boxes-stacked',
+                color: 'amber',
+                acciones: dataset.filter(a => ['C', 'D', 'E'].includes(a.panel))
+            },
+            'Fase 3: Conciliación Financiera y Fiscalización': {
+                art: 'Reintegros oficiales a Finanzas, cuentas bancarias y pliegos ASEG',
+                icono: 'fa-calculator',
+                color: 'emerald',
+                acciones: dataset.filter(a => ['F', 'I'].includes(a.panel))
+            },
+            'Fase 4: Entrega Histórica y Extinción Definitiva': {
+                art: 'Baja SAT Celaya, transferencia de archivos AGEG y decreto de extinción',
+                icono: 'fa-stamp',
+                color: 'rose',
+                acciones: dataset.filter(a => ['G', 'H', 'J'].includes(a.panel))
+            }
+        };
+    } else { // 'riesgos'
+        grupos = {
+            'Riesgo Crítico (Legal, Laboral y Penal)': {
+                art: 'Convenios laborales ante Tribunal y contingencias procesales',
+                icono: 'fa-triangle-exclamation',
+                color: 'rose',
+                acciones: dataset.filter(a => ['RH_E-H-003-A-001', 'JUR_C-H-0002-A-001'].includes(a.clave_accion || a.id))
+            },
+            'Riesgo Alto (Fiscal, SAT y Fiduciario)': {
+                art: 'Baja de RFC ante el SAT, cuentas BBVA y adenda Banorte (R-02, R-03)',
+                icono: 'fa-fire-flame-curved',
+                color: 'amber',
+                acciones: dataset.filter(a => ['FIN_P-H-0003-A-001', 'FID_F-H-0001-A-001', 'PTR_M-H-0001-A-001', 'FIN_P-H-0005-A-001', 'TIT_S-H-0001-A-001'].includes(a.clave_accion || a.id))
+            },
+            'Riesgo Medio (Patrimonio y Auditoría ASEG)': {
+                art: 'Sitios arqueológicos, acuerdos de destino y solventación de pliegos (R-01, R-04)',
+                icono: 'fa-circle-exclamation',
+                color: 'blue',
+                acciones: dataset.filter(a => ['PTR_I-H-0002-A-001', 'AUD_F-H-0001-A-001', 'ACH_D-H-0002-A-001', 'FIN_P-H-0006-A-001', 'FIN_P-H-0007-A-001', 'ASI_P-H-0005-A-001'].includes(a.clave_accion || a.id))
+            },
+            'Riesgo Bajo / Controlado (Gobernanza y TI)': {
+                art: 'Sistemas informáticos entregados, respaldos de BD y acuerdos de comité',
+                icono: 'fa-shield-halved',
+                color: 'emerald',
+                acciones: dataset.filter(a => ['TIT_S-H-0001-A-002', 'TIT_S-H-0002-A-001', 'ASI_P-H-0001-A-001', 'ASI_P-H-0004-A-001'].includes(a.clave_accion || a.id))
+            }
+        };
+    }
+
+    Object.entries(grupos).forEach(([titulo, config]) => {
+        const accionesGrupo = config.acciones;
+        const total = accionesGrupo.length;
+        const concluidas = accionesGrupo.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length;
+        const porcentaje = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+
+        let badgePill = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        let barColor = 'bg-indigo-600';
+        if (porcentaje >= 70) {
+            badgePill = 'bg-emerald-50 text-emerald-800 border-emerald-300';
+            barColor = 'bg-emerald-500';
+        } else if (porcentaje >= 40) {
+            badgePill = 'bg-amber-50 text-amber-800 border-amber-300';
+            barColor = 'bg-amber-500';
+        } else {
+            badgePill = 'bg-rose-50 text-rose-800 border-rose-300';
+            barColor = 'bg-rose-500';
+        }
+
+        const itemsPreview = accionesGrupo.slice(0, 3).map(a => `
+            <li class="flex items-center justify-between text-[11px] py-1 border-b border-slate-100 last:border-0">
+                <span class="truncate pr-2 font-medium text-slate-700">• ${a.hito || a.accion}</span>
+                <span class="font-mono font-bold ${a.estatus === 'Concluido' ? 'text-emerald-600' : 'text-amber-600'} shrink-0">${a.avance || 0}%</span>
+            </li>
+        `).join('');
+
+        const tarjetaHTML = `
+            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-md transition p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-start justify-between gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-2xl bg-${config.color}-50 text-${config.color}-600 flex items-center justify-center text-base border border-${config.color}-100 shrink-0">
+                            <i class="fa-solid ${config.icono}"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black border ${badgePill}">
+                            ${porcentaje}% Solventado
+                        </span>
+                    </div>
+
+                    <h3 class="font-black text-slate-900 text-sm leading-snug mt-2">${titulo}</h3>
+                    <p class="text-[10px] text-slate-400 font-semibold mt-0.5">${config.art}</p>
+
+                    <div class="w-full bg-slate-100 rounded-full h-2 my-3 overflow-hidden">
+                        <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${porcentaje}%"></div>
+                    </div>
+
+                    <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-3">
+                        <span>${concluidas} de ${total} concluidas</span>
+                        <span>${total - concluidas} pendientes</span>
+                    </div>
+
+                    <ul class="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200/60 space-y-0.5 mb-2">
+                        ${itemsPreview || '<li class="text-[10px] text-slate-400 italic">Sin acciones registradas</li>'}
+                    </ul>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 mt-2 flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-indigo-700">Decreto No. 345</span>
+                    <button type="button" onclick="cambiarModoPrincipal('operativo')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition">
+                        Ver en Matriz <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        grid.insertAdjacentHTML('beforeend', tarjetaHTML);
+    });
+};
+
+// Carga predeterminada en Modo Gerencial al iniciar
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof cambiarModoPrincipal === 'function') {
+        cambiarModoPrincipal('gerencial');
+    }
+});
         
 </script>
 
