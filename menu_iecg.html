@@ -7574,7 +7574,7 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- MANDATO 1 -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+              <div onclick="abrirModalDetalleMandato(1)" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-400 transition-all cursor-pointer group space-y-3">
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="font-black text-sm text-slate-900">Mandato 1: Régimen Transitorio de Extinción</h4>
@@ -7598,7 +7598,7 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
                 </div>
 
                 <!-- MANDATO 2 -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+               <div onclick="abrirModalDetalleMandato(2)" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-400 transition-all cursor-pointer group space-y-3">
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="font-black text-sm text-slate-900">Mandato 2: Cierre Financiero, Fiscal y Cuentas</h4>
@@ -7622,7 +7622,7 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
                 </div>
 
                 <!-- MANDATO 3 -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                <div onclick="abrirModalDetalleMandato(3)" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-400 transition-all cursor-pointer group space-y-3">
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="font-black text-sm text-slate-900">Mandato 3: Régimen de Fideicomisos Públicos</h4>
@@ -7644,7 +7644,7 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
                 </div>
 
                 <!-- MANDATO 4 -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                <div onclick="abrirModalDetalleMandato(4)" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-400 transition-all cursor-pointer group space-y-3">
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="font-black text-sm text-slate-900">Mandato 4: Gobernanza, Informes y Control</h4>
@@ -7943,6 +7943,102 @@ window.abrirDetalleKpiGerencial = function(tipo) {
 
     openModal('modal-detalle-kpi-gerencial');
 };
+
+window.abrirModalDetalleMandato = function(numMandato) {
+    const modal = document.getElementById('modal-detalle-kpi-gerencial');
+    const titulo = document.getElementById('tituloModalKpiGerencial');
+    const subtitulo = document.getElementById('subtituloModalKpiGerencial');
+    const desc = document.getElementById('descModalKpiGerencial');
+    const badge = document.getElementById('badgeConteoModalKpi');
+    const iconBox = document.getElementById('iconBoxKpiGerencial');
+    const contenedor = document.getElementById('cuerpoListaModalKpiGerencial');
+
+    if (!modal || !contenedor) return;
+    contenedor.innerHTML = '';
+
+    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+
+    // Filtros jurídicos exactos de los 4 mandatos
+    let filtroFn;
+    let infoMandato = {};
+
+    if (numMandato === 1) {
+        filtroFn = a => (a.fundamento_juridico || '').includes('Art. 5 Transitorio');
+        infoMandato = {
+            titulo: 'Mandato 1: Régimen Transitorio de Extinción',
+            subtitulo: 'DECRETO 345: ART. 5° TRANSITORIO • LINEAMIENTOS ARTS. 5, 7, 15, 17, 18, 30',
+            desc: 'Regula la transferencia de derechos laborales (303 plazas), custodia de archivos como Fondo Cerrado, inventarios de bienes muebles y acuerdos de destino inmobiliarios.',
+            icono: 'fa-users-gear',
+            color: 'indigo'
+        };
+    } else if (numMandato === 2) {
+        filtroFn = a => (a.fundamento_juridico || '').includes('Art. 24');
+        infoMandato = {
+            titulo: 'Mandato 2: Cierre Financiero, Fiscal y Cuentas',
+            subtitulo: 'DECRETO 345: ART. 24 FRACC. I • LINEAMIENTOS ARTS. 5, 10, 23, 27',
+            desc: 'Exige la cancelación del RFC ante el SAT Celaya, cierre de cuentas en BBVA y Salamanca con saldo cero, reintegros a Finanzas y solventación de pliegos ante la ASEG.',
+            icono: 'fa-file-invoice-dollar',
+            color: 'amber'
+        };
+    } else if (numMandato === 3) {
+        filtroFn = a => (a.fundamento_juridico || '').includes('67') || (a.fundamento_juridico || '').includes('76') || a.panel === 'D';
+        infoMandato = {
+            titulo: 'Mandato 3: Régimen de Fideicomisos Públicos (FIARCA)',
+            subtitulo: 'DECRETO 345: ARTS. 67 AL 76 • LINEAMIENTOS ART. 10',
+            desc: 'Formalización de la 2da adenda con Fiduciaria Banorte a favor de la SCUL, cese de pasivos operacionales del IECG y reintegro de rendimientos brutos a Finanzas.',
+            icono: 'fa-piggy-bank',
+            color: 'indigo'
+        };
+    } else {
+        filtroFn = a => !((a.fundamento_juridico || '').includes('Art. 5 Transitorio') || (a.fundamento_juridico || '').includes('Art. 24') || (a.fundamento_juridico || '').includes('67') || a.panel === 'D');
+        infoMandato = {
+            titulo: 'Mandato 4: Gobernanza, Informes y Control Interno',
+            subtitulo: 'LINEAMIENTOS COMITÉS ARTS. 3, 9, 10, 34 • LINEAMIENTOS IEC',
+            desc: 'Marco adjetivo de control: sesiones del Comité de Extinción, migración de software y licencias SAP, cancelación de CFDI no ministrados y matrices de evaluación PbR-SED.',
+            icono: 'fa-scale-balanced',
+            color: 'emerald'
+        };
+    }
+
+    const accionesFiltradas = dataset.filter(filtroFn);
+    const concluidas = accionesFiltradas.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length;
+    const total = accionesFiltradas.length;
+    const pct = total > 0 ? ((concluidas / total) * 100).toFixed(1) : 0;
+
+    titulo.textContent = infoMandato.titulo;
+    subtitulo.textContent = infoMandato.subtitulo;
+    desc.textContent = infoMandato.desc;
+    badge.innerHTML = `<span class="text-${infoMandato.color}-700 font-black">${concluidas} de ${total} Concluidas (${pct}%)</span>`;
+    iconBox.innerHTML = `<i class="fa-solid ${infoMandato.icono} text-${infoMandato.color}-400"></i>`;
+
+    contenedor.innerHTML = accionesFiltradas.map(a => {
+        const esConcluido = a.estatus === 'Concluido' || Number(a.avance) === 100;
+        const badgeColor = esConcluido ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : (a.estatus === 'Validación' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-amber-100 text-amber-800 border-amber-200');
+        const driveBtn = (a.driveUrl && a.driveUrl.trim() !== '') ? `<a href="${a.driveUrl}" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-brands fa-google-drive"></i> Ver Drive</a>` : `<span class="text-[10px] text-slate-400 font-semibold italic">Sin archivo</span>`;
+
+        return `
+            <div class="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs hover:border-indigo-300 transition space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-black flex items-center justify-center text-[10px] border border-indigo-100">${a.panel}</span>
+                        <span class="font-mono font-bold text-indigo-950 text-xs">${a.clave_accion || a.id}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeColor}">${a.estatus} (${a.avance}%)</span>
+                    </div>
+                    ${driveBtn}
+                </div>
+                <h4 class="font-bold text-slate-900 text-xs leading-snug">${a.hito}: <span class="font-normal text-slate-700">${a.accion}</span></h4>
+                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-600 space-y-0.5">
+                    <p>• <strong>Vínculo Jurídico:</strong> ${a.fundamento_juridico || 'Decreto No. 345'}</p>
+                    <p>• <strong>Instrumento de Soporte:</strong> ${a.instrumento_1 || 'Expediente técnico con acuse oficial'}</p>
+                    <p>• <strong>Instancia Responsable:</strong> ${a.responsable}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    openModal('modal-detalle-kpi-gerencial');
+};
+        
 </script>
 
     <!-- ========================================================================= -->
