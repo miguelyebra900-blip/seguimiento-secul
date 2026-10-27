@@ -1,1 +1,1538 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las 35 Acciones</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#2563eb',
+              orange: '#d97706',
+              purple: '#7c3aed',
+              emerald: '#059669',
+              dark: '#070b14'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Estilos de barra de desplazamiento para las tarjetas y listas */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.6);
+    }
 
+    /* Estilo del Slider de Avance Acreditado (Línea de avance púrpura/índigo reactiva) */
+    input[type=range].avance-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 9999px;
+      outline: none;
+      transition: background 0.2s ease;
+    }
+    input[type=range].avance-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4f46e5;
+      border: 2.5px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(79, 70, 229, 0.6);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    input[type=range].avance-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+      background: #4338ca;
+    }
+    input[type=range].avance-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4f46e5;
+      border: 2.5px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(79, 70, 229, 0.6);
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #modal-container, #modal-container * {
+        visibility: visible !important;
+      }
+      #modal-container {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased bg-[#070b14] text-slate-200 select-none selection:bg-blue-600 selection:text-white">
+
+  <!-- ==================== HEADER INSTITUCIONAL SUPERIOR ==================== -->
+  <header class="border-b border-slate-800/80 bg-[#0d1322] sticky top-0 z-30 shadow-lg px-3 py-2.5">
+    <div class="max-w-[1550px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Identidad Institucional IECG -> SeCul -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-inner">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">GTO • Gobierno del Estado</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono font-semibold">Decreto Gub. 345</span>
+          </div>
+          <h1 class="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center space-x-1.5 tracking-tight">
+            <span>Extinción y Cierre Institucional del IECG</span>
+            <span class="text-blue-500">→</span>
+            <span class="text-blue-400 font-black">Secretaría de Cultura</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Pastillas de Navegación y Enlaces -->
+      <nav class="hidden lg:flex items-center space-x-1.5">
+        <button class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5 border border-slate-700">
+          <span>📊</span> Vista Gerencial
+        </button>
+        <button class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-950/60 text-indigo-300 border border-indigo-700/50 hover:bg-indigo-900 transition flex items-center gap-1.5">
+          <span>🛠️</span> Vista Operativa
+        </button>
+        <button class="px-3 py-1 rounded-full text-xs font-semibold bg-rose-950/50 text-rose-300 border border-rose-800/50 hover:bg-rose-900/60 transition flex items-center gap-1.5">
+          <span>⚠️</span> Matriz de Riesgos (Art. 6)
+        </button>
+        <button class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-950/50 text-blue-300 border border-blue-800/50 hover:bg-blue-900/60 transition flex items-center gap-1.5">
+          <span>☁️</span> Carga Rápida Drive
+        </button>
+        <button class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/90 text-slate-300 border border-slate-700 hover:bg-slate-700 transition flex items-center gap-1.5">
+          <span>📁</span> Carpetas Drive A-J
+        </button>
+      </nav>
+
+      <!-- Usuario y Controles de Auditoría -->
+      <div class="flex items-center space-x-2">
+        <button onclick="exportarAuditoriaJSON()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/50 transition flex items-center gap-1" title="Descargar auditoría de contraste">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span class="hidden sm:inline">Exportar</span>
+        </button>
+
+        <button onclick="restablecerMatriz()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1" title="Restablecer valores nominales de inicio">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span class="hidden sm:inline">Reset</span>
+        </button>
+
+        <div class="h-6 w-px bg-slate-800"></div>
+
+        <div class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-full px-3 py-1 text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-semibold text-slate-300 hidden md:inline">Líder Proyecto Seguimiento Extinción IECG</span>
+          <span class="bg-blue-600/90 text-[10px] text-white px-2 py-0.5 rounded-full font-mono font-bold">admin</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== BANNER DIRECTIVO / CUADRO DE MANDO ==================== -->
+  <main class="max-w-[1550px] mx-auto w-full px-3 sm:px-4 py-5 flex-1 flex flex-col justify-start">
+
+    <!-- Card de Decisión Directiva y Avance Global -->
+    <section class="mb-5 rounded-2xl bg-gradient-to-r from-[#0d1424] via-[#0d1629] to-[#0a101d] border border-slate-800/90 p-4 sm:p-5 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+        
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/25 mb-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
+            FICHA DE DECISIÓN DIRECTIVA • AUDITORÍA DE CONTRASTE REAL
+          </div>
+          <h2 class="text-lg sm:text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las 35 Acciones
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
+            Haz clic sobre cualquier bloque para auditar su marco legal, qué exige la norma y plazos de ley. Edita en tiempo real el <span class="text-white font-semibold">Estatus Normativo</span> y la <span class="text-indigo-400 font-semibold">Línea de Avance Acreditado</span> de cada acción para comparar el avance real físico contra las cifras reportadas.
+          </p>
+        </div>
+
+        <!-- Indicador de Avance Global Reactivo -->
+        <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-4 flex items-center space-x-4 shadow-xl min-w-[300px]">
+          <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
+            <svg class="w-16 h-16 transform -rotate-90">
+              <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="5" class="text-slate-800" fill="transparent"/>
+              <circle id="global-circle" cx="32" cy="32" r="26" stroke="currentColor" stroke-width="5" class="text-emerald-500 transition-all duration-700 ease-out" fill="transparent" stroke-dasharray="163.36" stroke-dashoffset="84"/>
+            </svg>
+            <span id="global-pct-txt" class="absolute text-sm font-black text-white font-mono">48.6%</span>
+          </div>
+          <div>
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              AVANCE GLOBAL:
+            </div>
+            <div id="global-solv-txt" class="text-sm sm:text-base font-extrabold text-white font-mono">
+              (17 de 35 Solventadas)
+            </div>
+            <div class="text-[11px] text-slate-500 font-medium">
+              35 Acciones Nominales en Cómputo
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== LOS 4 BLOQUES MANDATORIOS (GRID) ==================== -->
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-1">
+
+      <!-- ================= BLOQUE 1 ================= -->
+      <article class="flex flex-col rounded-2xl bg-[#0b101c] border-2 border-blue-600/40 hover:border-blue-500 transition-all duration-200 shadow-xl overflow-hidden">
+        <!-- Encabezado Bloque 1 -->
+        <div class="bg-blue-600 p-3.5 text-white cursor-pointer" onclick="abrirModalBloque(1)">
+          <div class="text-[10px] font-black uppercase tracking-widest text-blue-200">Bloque 1</div>
+          <h3 class="text-sm font-black tracking-tight leading-snug uppercase">Personal, Patrimonio & Archivo</h3>
+          <p class="text-[10px] text-blue-100 mt-0.5 font-mono">
+            Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17, 18, 30
+          </p>
+        </div>
+
+        <div class="p-3.5 flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-baseline justify-between mb-1.5">
+              <span id="b1-pct" class="text-3xl font-black text-blue-400 font-mono">50.0%</span>
+              <span id="b1-count" class="text-xs font-semibold text-slate-400">9 de 18 Concluidas</span>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+              <div id="b1-bar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: 50%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 mb-2 border-b border-slate-800">
+              <span class="text-[11px]">Universo Total (18 Acciones):</span>
+              <button onclick="abrirModalBloque(1)" class="text-blue-400 hover:text-blue-300 font-bold hover:underline flex items-center gap-0.5 text-[11px]">
+                Ver Ley y Plazos →
+              </button>
+            </div>
+
+            <!-- Lista scrolleable de acciones del Bloque 1 -->
+            <div id="b1-list" class="space-y-1 max-h-[360px] overflow-y-auto pr-1 custom-scroll text-xs">
+              <!-- Inyectado por JS -->
+            </div>
+          </div>
+
+          <button onclick="abrirModalBloque(1)" class="mt-3.5 w-full py-2 px-3 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/30 font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Editar & Auditar Bloque 1
+          </button>
+        </div>
+      </article>
+
+      <!-- ================= BLOQUE 2 ================= -->
+      <article class="flex flex-col rounded-2xl bg-[#0b101c] border-2 border-amber-600/40 hover:border-amber-500 transition-all duration-200 shadow-xl overflow-hidden">
+        <!-- Encabezado Bloque 2 -->
+        <div class="bg-[#d97706] p-3.5 text-white cursor-pointer" onclick="abrirModalBloque(2)">
+          <div class="text-[10px] font-black uppercase tracking-widest text-amber-100">Bloque 2</div>
+          <h3 class="text-sm font-black tracking-tight leading-snug uppercase">Cierre Fiscal, Cuentas & Auditoría</h3>
+          <p class="text-[10px] text-amber-100 mt-0.5 font-mono">
+            Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 22, 23, 27
+          </p>
+        </div>
+
+        <div class="p-3.5 flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-baseline justify-between mb-1.5">
+              <span id="b2-pct" class="text-3xl font-black text-amber-400 font-mono">40.0%</span>
+              <span id="b2-count" class="text-xs font-semibold text-slate-400">4 de 10 Concluidas</span>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+              <div id="b2-bar" class="bg-amber-500 h-1.5 rounded-full transition-all duration-500" style="width: 40%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 mb-2 border-b border-slate-800">
+              <span class="text-[11px]">Universo Total (10 Acciones):</span>
+              <button onclick="abrirModalBloque(2)" class="text-amber-400 hover:text-amber-300 font-bold hover:underline flex items-center gap-0.5 text-[11px]">
+                Ver Ley y Plazos →
+              </button>
+            </div>
+
+            <!-- Lista scrolleable de acciones del Bloque 2 -->
+            <div id="b2-list" class="space-y-1 max-h-[360px] overflow-y-auto pr-1 custom-scroll text-xs">
+              <!-- Inyectado por JS -->
+            </div>
+          </div>
+
+          <button onclick="abrirModalBloque(2)" class="mt-3.5 w-full py-2 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Editar & Auditar Bloque 2
+          </button>
+        </div>
+      </article>
+
+      <!-- ================= BLOQUE 3 ================= -->
+      <article class="flex flex-col rounded-2xl bg-[#0b101c] border-2 border-purple-600/40 hover:border-purple-500 transition-all duration-200 shadow-xl overflow-hidden">
+        <!-- Encabezado Bloque 3 -->
+        <div class="bg-[#7c3aed] p-3.5 text-white cursor-pointer" onclick="abrirModalBloque(3)">
+          <div class="text-[10px] font-black uppercase tracking-widest text-purple-200">Bloque 3</div>
+          <h3 class="text-sm font-black tracking-tight leading-snug uppercase">Fideicomisos Banorte</h3>
+          <p class="text-[10px] text-purple-100 mt-0.5 font-mono">
+            Arts. 67 al 76 • Lineamientos Art. 10 - Dec. Gub. 19
+          </p>
+        </div>
+
+        <div class="p-3.5 flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-baseline justify-between mb-1.5">
+              <span id="b3-pct" class="text-3xl font-black text-purple-400 font-mono">33.3%</span>
+              <span id="b3-count" class="text-xs font-semibold text-slate-400">1 de 3 Concluidas</span>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+              <div id="b3-bar" class="bg-purple-500 h-1.5 rounded-full transition-all duration-500" style="width: 33.3%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 mb-2 border-b border-slate-800">
+              <span class="text-[11px]">Universo Total (3 Acciones):</span>
+              <button onclick="abrirModalBloque(3)" class="text-purple-400 hover:text-purple-300 font-bold hover:underline flex items-center gap-0.5 text-[11px]">
+                Ver Ley y Plazos →
+              </button>
+            </div>
+
+            <!-- Lista scrolleable de acciones del Bloque 3 -->
+            <div id="b3-list" class="space-y-1 max-h-[360px] overflow-y-auto pr-1 custom-scroll text-xs">
+              <!-- Inyectado por JS -->
+            </div>
+          </div>
+
+          <button onclick="abrirModalBloque(3)" class="mt-3.5 w-full py-2 px-3 rounded-xl bg-purple-600/15 hover:bg-purple-600/25 text-purple-400 border border-purple-500/30 font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Editar & Auditar Bloque 3
+          </button>
+        </div>
+      </article>
+
+      <!-- ================= BLOQUE 4 ================= -->
+      <article class="flex flex-col rounded-2xl bg-[#0b101c] border-2 border-emerald-600/40 hover:border-emerald-500 transition-all duration-200 shadow-xl overflow-hidden">
+        <!-- Encabezado Bloque 4 -->
+        <div class="bg-[#059669] p-3.5 text-white cursor-pointer" onclick="abrirModalBloque(4)">
+          <div class="text-[10px] font-black uppercase tracking-widest text-emerald-100">Bloque 4</div>
+          <h3 class="text-sm font-black tracking-tight leading-snug uppercase">Gobernanza & Sistemas TI</h3>
+          <p class="text-[10px] text-emerald-100 mt-0.5 font-mono">
+            Lineamientos Comités Arts. 3, 9, 34 • Arts. 11, 29
+          </p>
+        </div>
+
+        <div class="p-3.5 flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-baseline justify-between mb-1.5">
+              <span id="b4-pct" class="text-3xl font-black text-emerald-400 font-mono">100%</span>
+              <span id="b4-count" class="text-xs font-semibold text-slate-400">4 de 4 Concluidas</span>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+              <div id="b4-bar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style="width: 100%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 mb-2 border-b border-slate-800">
+              <span class="text-[11px]">Universo Total (4 Acciones):</span>
+              <button onclick="abrirModalBloque(4)" class="text-emerald-400 hover:text-emerald-300 font-bold hover:underline flex items-center gap-0.5 text-[11px]">
+                Ver Ley y Plazos →
+              </button>
+            </div>
+
+            <!-- Lista scrolleable de acciones del Bloque 4 -->
+            <div id="b4-list" class="space-y-1 max-h-[360px] overflow-y-auto pr-1 custom-scroll text-xs">
+              <!-- Inyectado por JS -->
+            </div>
+          </div>
+
+          <button onclick="abrirModalBloque(4)" class="mt-3.5 w-full py-2 px-3 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Editar & Auditar Bloque 4
+          </button>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Barra Inferior de Referencia Normativa -->
+    <footer class="mt-6 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+        <span>Decreto Gubernativo 345 • Base de Simulación Local Desacoplada (Edición Manual Activa)</span>
+      </div>
+      <div class="font-mono text-slate-400 flex items-center space-x-3">
+        <span class="text-emerald-400">● Cómputo Nominal: 35 Acciones</span>
+        <span>•</span>
+        <span>Sincronización Reactiva LocalStorage</span>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ==================== MODAL DE AUDITORÍA Y EDICIÓN MANUAL ==================== -->
+  <div id="modal-container" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md overflow-y-auto p-2 sm:p-4 md:p-6 transition-all duration-200">
+    <div class="max-w-5xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto border-t-2 border-t-slate-700">
+
+      <!-- Header del Modal (Leyes y Plazos) -->
+      <div id="modal-header-bg" class="p-5 sm:p-6 text-white bg-slate-800 border-b border-slate-700/70 relative">
+        <div class="flex items-start justify-between gap-4">
+          <div class="space-y-2 max-w-4xl">
+            <div class="flex items-center space-x-2.5">
+              <span id="modal-badge-bloque" class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-black/35 backdrop-blur-md">
+                BLOQUE 1
+              </span>
+              <span id="modal-concluidas-badge" class="px-3 py-0.5 rounded-full text-xs font-black bg-white/20 text-white font-mono">
+                9 de 18 Concluidas (50%)
+              </span>
+            </div>
+
+            <h2 id="modal-titulo" class="text-xl sm:text-2xl font-black tracking-tight text-white">
+              PERSONAL, PATRIMONIO & ARCHIVO
+            </h2>
+
+            <!-- Explicación de Marco Legal y Plazos Rectores -->
+            <div class="text-xs sm:text-[13px] bg-black/30 p-3.5 rounded-2xl border border-white/10 space-y-2 text-slate-100">
+              <p class="leading-relaxed">
+                <strong class="text-amber-300">¿Qué dice el Marco Legal?</strong> 
+                <span id="modal-marco-txt">Ordena la sustitución de funciones del IECG a favor de la Secretaría de Cultura sin menoscabo de los derechos laborales de los trabajadores, la custodia y transferencia del activo fijo, inventario de inmuebles y archivo histórico.</span>
+              </p>
+              <p class="text-amber-200/95 font-medium flex items-center gap-1.5">
+                <span class="text-base">⏳</span>
+                <span id="modal-plazo-txt">Plazo Rector de Ley: 10 días naturales para comités de estructura y liquidador; 15 meses de liquidación (Art. 6 Lineamientos) con salvedad por trámites de terceros.</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Botón de Cerrar Modal -->
+          <button onclick="cerrarModal()" class="text-white/80 hover:text-white p-2 rounded-xl bg-black/25 hover:bg-black/50 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Ayuda / Auditoría -->
+      <div class="bg-[#0b1220] border-b border-slate-800 px-6 py-2.5 flex flex-wrap items-center justify-between text-xs text-slate-300">
+        <span class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          <span><strong>Módulo de Contraste Activo:</strong> Modifica el estatus normativo o ajusta la línea de avance para registrar el avance físico auditado.</span>
+        </span>
+        <span class="text-[11px] font-mono text-slate-400">Valores reflejados al instante en el Menú Principal</span>
+      </div>
+
+      <!-- Tarjetas de Acciones (Lista en el Modal) -->
+      <div id="modal-actions-container" class="p-4 sm:p-6 space-y-4 max-h-[64vh] overflow-y-auto custom-scroll bg-slate-950">
+        <!-- Render dinámico por JS -->
+      </div>
+
+      <!-- Pie del Modal -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="text-xs text-slate-400 font-mono">
+          Decreto 345 • Base sincronizada en memoria de auditoría local
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Imprimir Reporte
+          </button>
+          <button onclick="cerrarModal()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-lg shadow-blue-600/30">
+            Cerrar Ficha
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== TOAST DE ACCIÓN GUARDADA ==================== -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-emerald-500/50 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2.5 text-xs font-bold">
+    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</div>
+    <span id="toast-text">Cambios guardados y matriz recalculada</span>
+  </div>
+
+  <!-- ==================== LOGICA JAVASCRIPT ==================== -->
+  <script>
+    // BASE DE DATOS DE LAS 35 ACCIONES NOMINALES
+    const ACCIONES_INICIALES = [
+      // ================= BLOQUE 1 (18 ACCIONES) =================
+      {
+        id: 1,
+        bloque: 1,
+        clave: "RH_E-H-001-A-001",
+        nombre: "Expedientes Laborales (303 Plazas)",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Dec. 345 (Art. 5 Transitorio); Lineamientos (Arts. 5, 7)",
+        queHacer: "Transferencia nominal y física de las 303 carpetas a DGRH Finanzas con acuse del OIC.",
+        plazo: "10 días naturales (Art. 5 Transitorio Dec. 345)",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Acuse_DGRH_303_Expedientes.pdf", "Acta_Circunstanciada_OIC.pdf"],
+        bitacora: "Entrega total certificada con sello de recepción formal."
+      },
+      {
+        id: 2,
+        bloque: 1,
+        clave: "RH_E-H-002-A-001",
+        nombre: "Plaza del Liquidador (Nivel 8 + 131 Bienes)",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Dec. 345 (Art. 5 Transitorio); Lineamientos (Art. 5)",
+        queHacer: "Mantener activa la plaza sec. 30068799 y resguardo de 131 bienes hasta el informe final.",
+        plazo: "Durante la vigencia de la liquidación contable",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Nombramiento_Oficial_Liquidador.pdf", "Resguardo_131_Bienes.pdf"],
+        bitacora: "Plaza activa presupuestalmente."
+      },
+      {
+        id: 3,
+        bloque: 1,
+        clave: "RH_E-H-003-A-001",
+        nombre: "Finiquitos y Convenios ante Tribunal",
+        pct: 70,
+        estatus: "En Proceso",
+        fundamento: "Lineamientos Liquidación IEC (Arts. 7, 15)",
+        queHacer: "Ratificación de convenios laborales pendientes ante el Tribunal de Conciliación y Arbitraje.",
+        plazo: "15 meses de liquidación (vigencia general)",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Convenios_Ratificados_TCA.pdf"],
+        bitacora: "4 convenios ratificados; 2 pendientes de cita en el tribunal local."
+      },
+      {
+        id: 4,
+        bloque: 1,
+        clave: "JUR_C-H-004-A-001",
+        nombre: "Acta Sesión de Prórroga",
+        pct: 75,
+        estatus: "En Proceso",
+        fundamento: "Lineamientos de Liquidación IEC (Art. 6)",
+        queHacer: "Emisión y formalización del Acuerdo de Prórroga aprobado por el Comité de Extinción.",
+        plazo: "Previa al vencimiento del plazo de 15 meses",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Proyecto_Acuerdo_Prorroga_Comite.pdf"],
+        bitacora: "Sesión celebrada; se encuentra en fase de recolección de firmas."
+      },
+      {
+        id: 5,
+        bloque: 1,
+        clave: "JUR_C-H-005-A-001",
+        nombre: "Sustitución Procesal",
+        pct: 40,
+        estatus: "En Proceso",
+        fundamento: "Dec. 345 (Art. 4 Transitorio); Ley del Trabajo",
+        queHacer: "Comparecencia de la Secretaría de Cultura como sustituto patronal en juicios laborales y civiles.",
+        plazo: "Término procesal judicial respectivo",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Escritos_Acreditacion_Juzgado.pdf"],
+        bitacora: "Juicios de amparo en trámite ante Juzgados de Distrito."
+      },
+      {
+        id: 6,
+        bloque: 1,
+        clave: "JUR_C-H-006-A-001",
+        nombre: "Compilación Marco Legal",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos Comités Extinción (Art. 34)",
+        queHacer: "Integración formal del expediente normativo rector aplicable a la extinción del Instituto.",
+        plazo: "Inmediato a la instalación",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Compendio_Normativo_Extincion_IEC.pdf"],
+        bitacora: "Expediente digital integrado al 100% y notificado al Comité."
+      },
+      {
+        id: 7,
+        bloque: 1,
+        clave: "PTR_I-H-007-A-001",
+        nombre: "Sitios Arqueológicos",
+        pct: 50,
+        estatus: "En Proceso",
+        fundamento: "Dec. 345 (Art. 3 Transitorio); Ley de Patrimonio Cultural",
+        queHacer: "Levantamiento topográfico, polígonos de protección y regularización registral.",
+        plazo: "Durante el período de liquidación",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Plano_Poligonos_Plazuelas_Peralta.pdf"],
+        bitacora: "En revisión de colindancias con el Registro Público."
+      },
+      {
+        id: 8,
+        bloque: 1,
+        clave: "PTR_I-H-008-A-001",
+        nombre: "Acuerdos de Destino",
+        pct: 50,
+        estatus: "En Proceso",
+        fundamento: "Lineamientos de Liquidación (Art. 16)",
+        queHacer: "Formalización jurídica de acuerdos de destino para teatros, bibliotecas y centros culturales.",
+        plazo: "Previo a la firma del acta de cierre",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Acuerdo_Destino_Teatro_Juarez.pdf"],
+        bitacora: "Enviado a firma de la DGRP."
+      },
+      {
+        id: 9,
+        bloque: 1,
+        clave: "PTR_I-H-009-A-001",
+        nombre: "Expedientes Catastrales",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos de Liquidación (Art. 17)",
+        queHacer: "Compilación de claves catastrales, cédulas y constancias de no adeudo predial.",
+        plazo: "30 días naturales",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Certificados_No_Adeudo_Predial_37_Inmuebles.pdf"],
+        bitacora: "37 inmuebles totalmente conciliados."
+      },
+      {
+        id: 10,
+        bloque: 1,
+        clave: "PTR_M-H-010-A-001",
+        nombre: "Búsqueda 2,570 Faltantes",
+        pct: 40,
+        estatus: "En Espera Tercero (Art. 6)",
+        fundamento: "Lineamientos de Liquidación (Art. 18)",
+        queHacer: "Investigación física, actas de extravío y bajas patrimoniales de 2,570 bienes muebles.",
+        plazo: "Vigencia de la liquidación",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Informe_Auditoria_Faltantes_Bienes.pdf"],
+        bitacora: "Se han localizado 820 bienes; se integran actas de baja justificada."
+      },
+      {
+        id: 11,
+        bloque: 1,
+        clave: "PTR_M-H-011-A-001",
+        nombre: "Capitalización Fase 1",
+        pct: 35,
+        estatus: "En Proceso",
+        fundamento: "Lineamientos de Liquidación (Art. 18 Fracc. II)",
+        queHacer: "Capitalización de bienes inventariados sujetos a incorporación en el activo fijo estatal.",
+        plazo: "Al cierre del ejercicio presupuestal",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Polizas_Capitalizacion_Activo_Fijo.pdf"],
+        bitacora: "Conciliación contable con SASEG."
+      },
+      {
+        id: 12,
+        bloque: 1,
+        clave: "PTR_M-H-012-A-001",
+        nombre: "Flotilla Vehicular (100%)",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos de Liquidación (Art. 19)",
+        queHacer: "Transferencia de 18 unidades vehiculares, pólizas vigentes y bajas de placas a Finanzas.",
+        plazo: "45 días hábiles",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Actas_Entrega_18_Vehiculos.pdf"],
+        bitacora: "Flotilla transferida a la Secretaría de Finanzas."
+      },
+      {
+        id: 13,
+        bloque: 1,
+        clave: "ACH_D-H-013-A-001",
+        nombre: "Archivos de Trámite y Concentración",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Ley de Archivos del Edo. de Guanajuato; Lineamientos (Art. 30)",
+        queHacer: "Integración de inventarios por series archivísticas conforme al CADIDO institucional.",
+        plazo: "Plazo rector 6 meses",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Inventario_General_CADIDO.pdf"],
+        bitacora: "Inventarios validados por el responsable de archivo."
+      },
+      {
+        id: 14,
+        bloque: 1,
+        clave: "ACH_D-H-014-A-001",
+        nombre: "Transferencia al AGEG",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Ley de Archivos del Edo. de Guanajuato (Art. 24)",
+        queHacer: "Entrega formal del fondo documental histórico y de concentración al Archivo General del Estado.",
+        plazo: "Concluido al término del traspaso",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Acta_Entrega_Recepcion_AGEG.pdf"],
+        bitacora: "Transferencia física y documental suscrita con el AGEG."
+      },
+      {
+        id: 15,
+        bloque: 1,
+        clave: "ASI_P-H-015-A-001",
+        nombre: "Acuerdos del Comité de Extinción",
+        pct: 90,
+        estatus: "Validación",
+        fundamento: "Lineamientos Comités Extinción (Art. 9)",
+        queHacer: "Seguimiento y cumplimiento a la totalidad de acuerdos de sesiones ordinarias y extraordinarias.",
+        plazo: "Continuo",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Matriz_Acuerdos_Comite.pdf"],
+        bitacora: "42 de 45 acuerdos concluidos formalmente."
+      },
+      {
+        id: 16,
+        bloque: 1,
+        clave: "ASI_P-H-016-A-001",
+        nombre: "Integración del Informe Final",
+        pct: 60,
+        estatus: "En Proceso",
+        fundamento: "Lineamientos de Liquidación (Art. 32)",
+        queHacer: "Compilación de los tomos de cierre legal, financiero, presupuestal y patrimonial.",
+        plazo: "30 días posteriores al cierre",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Borrador_Tomo_I_Informe_Final.pdf"],
+        bitacora: "Tomo I de memoria histórica al 90%; Tomo II financiero al 45%."
+      },
+      {
+        id: 17,
+        bloque: 1,
+        clave: "ASI_P-H-017-A-001",
+        nombre: "Coordinación Institucional SCUL",
+        pct: 85,
+        estatus: "En Proceso",
+        fundamento: "Dec. 345 (Art. 2 Transitorio)",
+        queHacer: "Mesas de enlace técnico y administrativo semanales con el equipo receptor de Cultura.",
+        plazo: "Permanente",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Minutas_Semanales_Enlace_SCUL.pdf"],
+        bitacora: "Minutas quincenales debidamente firmadas."
+      },
+      {
+        id: 18,
+        bloque: 1,
+        clave: "ASI_P-H-018-A-001",
+        nombre: "Informes Mensuales al Comité",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos Comités Extinción (Art. 12)",
+        queHacer: "Presentación y aprobación de los informes mensuales de avance físico y financiero.",
+        plazo: "Primeros 10 días de cada mes",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Informes_1_al_14_Aprobados.pdf"],
+        bitacora: "14 informes mensuales desahogados por unanimidad."
+      },
+
+      // ================= BLOQUE 2 (10 ACCIONES) =================
+      {
+        id: 19,
+        bloque: 2,
+        clave: "FIN_P-H-019-A-001",
+        nombre: "Reintegros Oficiales SF",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos Liquidación (Art. 22); Ley de Disciplina Financiera",
+        queHacer: "Reintegro formal de remanentes presupuestales a la Secretaría de Finanzas e Inversión.",
+        plazo: "Cierre de ejercicio fiscal",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Fichas_Deposito_Reintegro_SFIA.pdf"],
+        bitacora: "Depósitos validados por la Dirección de Egresos."
+      },
+      {
+        id: 20,
+        bloque: 2,
+        clave: "FIN_P-H-020-A-001",
+        nombre: "Cierre de Cuentas Residuales",
+        pct: 65,
+        estatus: "En Espera Tercero (Art. 6)",
+        fundamento: "Lineamientos Liquidación (Art. 23)",
+        queHacer: "Cancelación de cuentas bancarias de cheques de nómina y gastos de operación.",
+        plazo: "Previo al acta de extinción final",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Oficios_Cancelacion_Cuentas_BBVA.pdf"],
+        bitacora: "8 cuentas canceladas; restan 2 por cheques en tránsito de cobro."
+      },
+      {
+        id: 21,
+        bloque: 2,
+        clave: "FIN_P-H-021-A-001",
+        nombre: "Baja de RFC ante el SAT",
+        pct: 65,
+        estatus: "En Espera Tercero (Art. 6)",
+        fundamento: "Código Fiscal de la Federación (Art. 27); Lineamientos (Art. 23)",
+        queHacer: "Trámite de cancelación por extinción institucional de la clave del RFC del IECG.",
+        plazo: "Al término de auditorías fiscales",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Folio_Cita_SAT_Baja_RFC.pdf"],
+        bitacora: "Cita programada ante el SAT Guanajuato."
+      },
+      {
+        id: 22,
+        bloque: 2,
+        clave: "FIN_P-H-022-A-001",
+        nombre: "Finiquito Obra Teatro Juárez",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Ley de Obra Pública del Edo. de Guanajuato (Art. 82)",
+        queHacer: "Suscripción de actas de finiquito y entrega-recepción con SICOM y contratistas.",
+        plazo: "Improrrogable",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Finiquito_Obra_Teatro_Juarez_Firmado.pdf"],
+        bitacora: "Fianza liberada y acta de extinción de obra firmada."
+      },
+      {
+        id: 23,
+        bloque: 2,
+        clave: "FIN_P-H-023-A-001",
+        nombre: "Conciliación Recursos Federales",
+        pct: 50,
+        estatus: "En Proceso",
+        fundamento: "Convenios Marco Federales de Cultura; Presupuesto de Egresos",
+        queHacer: "Cierre contable de fondos etiquetados federales y conciliación TESOFIFE.",
+        plazo: "Conforme a reglas de operación federales",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Informe_Financiero_Federal_Cultura.pdf"],
+        bitacora: "En espera de oficio de liberación de Secretaría de Cultura Federal."
+      },
+      {
+        id: 24,
+        bloque: 2,
+        clave: "FIN_P-H-024-A-001",
+        nombre: "Cancelación de CFDI No Ministrados",
+        pct: 45,
+        estatus: "En Proceso",
+        fundamento: "Resolución Miscelánea Fiscal; Lineamientos (Art. 22)",
+        queHacer: "Depuración contable y cancelación fiscal de facturas CFDI sin contraprestación.",
+        plazo: "Durante la conciliación de pasivos",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Listado_CFDI_Cancelados_SAT.pdf"],
+        bitacora: "48 notas de crédito emitidas y conciliadas en sistema."
+      },
+      {
+        id: 25,
+        bloque: 2,
+        clave: "FIN_P-H-025-A-001",
+        nombre: "Actualización PbR-SED e Inf. Trimestral",
+        pct: 60,
+        estatus: "En Proceso",
+        fundamento: "Ley de Presupuesto General del Estado; Lineamientos (Art. 27)",
+        queHacer: "Cierre de indicadores de desempeño en el Sistema Estatal de Evaluación del Desempeño.",
+        plazo: "Trimestral",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Reporte_PbR_SED_Cierre.pdf"],
+        bitacora: "3er trimestre cerrado en portal SFIA."
+      },
+      {
+        id: 26,
+        bloque: 2,
+        clave: "AUD_F-H-026-A-001",
+        nombre: "Requerimientos ASEG Cuenta Pública",
+        pct: 60,
+        estatus: "En Proceso",
+        fundamento: "Ley de Fiscalización Superior del Edo. de GTO; Art. 34 Lineamientos",
+        queHacer: "Atención puntual a requerimientos de solventación emitidos por la ASEG.",
+        plazo: "10 a 20 días hábiles",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Oficios_Solventacion_ASEG.pdf"],
+        bitacora: "18 requerimientos desahogados; 7 en análisis de soporte contable."
+      },
+      {
+        id: 27,
+        bloque: 2,
+        clave: "AUD_F-H-027-A-001",
+        nombre: "Pliego ASEG 2025 (Obs. 010)",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Ley de Fiscalización Superior (Art. 42)",
+        queHacer: "Solventación total del pliego de observaciones 010 del ejercicio inmediato anterior.",
+        plazo: "Vencimiento legal cumplido",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Dictamen_Solventacion_Obs_010.pdf"],
+        bitacora: "Solventación admitida favorablemente por la Auditoría Especial."
+      },
+      {
+        id: 28,
+        bloque: 2,
+        clave: "AUD_F-H-028-A-001",
+        nombre: "Informe Resultados Cuenta Pública 2025",
+        pct: 50,
+        estatus: "Validación",
+        fundamento: "Constitución Política de Gto. y Ley ASEG",
+        queHacer: "Seguimiento al dictamen legislativo del informe de resultados en el Congreso Local.",
+        plazo: "Calendario del H. Congreso del Estado",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Proyecto_Dictamen_Comision_Hacienda.pdf"],
+        bitacora: "Turnado a la Comisión de Hacienda y Fiscalización."
+      },
+
+      // ================= BLOQUE 3 (3 ACCIONES) =================
+      {
+        id: 29,
+        bloque: 3,
+        clave: "FID_F-H-029-A-001",
+        nombre: "Convenio Modificatorio Banorte",
+        pct: 70,
+        estatus: "En Espera Tercero (Art. 6)",
+        fundamento: "Arts. 67 al 76 Código Civil; Lineamientos Art. 10 - Dec. Gub. 19",
+        queHacer: "Suscripción de convenio modificatorio para sustitución del fideicomitente en Banorte.",
+        plazo: "60 días naturales",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Proyecto_Convenio_Modificatorio_Banorte.pdf"],
+        bitacora: "Aprobado por el área jurídica fiduciaria de Banco Mercantil del Norte."
+      },
+      {
+        id: 30,
+        bloque: 3,
+        clave: "FID_F-H-030-A-001",
+        nombre: "Cese de Pasivos Fiduciarios",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos de Liquidación IEC (Art. 10)",
+        queHacer: "Liquidación y finiquito de honorarios fiduciarios pendientes de cubrir.",
+        plazo: "Inmediato al convenio",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Carta_Finiquito_Honorarios_Banorte.pdf"],
+        bitacora: "Sin saldos deudores por comisiones ni honorarios fiduciarios."
+      },
+      {
+        id: 31,
+        bloque: 3,
+        clave: "FID_F-H-031-A-001",
+        nombre: "Conciliación de Rendimientos",
+        pct: 40,
+        estatus: "En Proceso",
+        fundamento: "Ley de Disciplina Financiera; Lineamientos (Art. 10)",
+        queHacer: "Conciliación de intereses y rendimientos financieros para reintegro a Tesorería.",
+        plazo: "Al cierre de la cuenta de cheques fiduciaria",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Estado_Cuenta_Fiduciario_Rendimientos.pdf"],
+        bitacora: "Conciliación preliminar de $184,200 pesos con la fiduciaria."
+      },
+
+      // ================= BLOQUE 4 (4 ACCIONES) =================
+      {
+        id: 32,
+        bloque: 4,
+        clave: "ASI_P-H-032-A-001",
+        nombre: "Instalación Formal del Comité",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos Comités Arts. 3, 9, 34; Dec. 345 (Art. 2 Transitorio)",
+        queHacer: "Firma del Acta de Instalación del Comité de Extinción y Nombramiento del Liquidador.",
+        plazo: "10 días naturales tras publicación",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Acta_001_Instalacion_Comite_Extincion.pdf"],
+        bitacora: "Acta formalmente protocolizada con firmas de los vocales y OIC."
+      },
+      {
+        id: 33,
+        bloque: 4,
+        clave: "TIT_S-H-033-A-001",
+        nombre: "Baja Usuarios Servicios Digitales y SRFT",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos de Liquidación (Arts. 11, 29)",
+        queHacer: "Cancelación de accesos, tokens bancarios y revocación de firmas institucionales.",
+        plazo: "30 días naturales",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Oficio_Baja_Accesos_DGTIT.pdf"],
+        bitacora: "Deshabilitados 100% de usuarios y credenciales en plataformas públicas."
+      },
+      {
+        id: 34,
+        bloque: 4,
+        clave: "TIT_S-H-034-A-001",
+        nombre: "Cancelación Licencias y SAP",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos de Liquidación (Arts. 11, 29)",
+        queHacer: "Baja de licencias Microsoft 365 institucional y perfiles del sistema ERP SAP del Estado.",
+        plazo: "Fin de ejercicio fiscal",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Constancia_Baja_SAP_Licencias.pdf"],
+        bitacora: "145 cuentas desactivadas en coordinación con la DGTIT."
+      },
+      {
+        id: 35,
+        bloque: 4,
+        clave: "TIT_S-H-035-A-001",
+        nombre: "Servidores y Respaldo BD",
+        pct: 100,
+        estatus: "Concluido (100%)",
+        fundamento: "Lineamientos de Liquidación (Arts. 11, 29); Ley de Protección de Datos",
+        queHacer: "Generación de respaldo forense de bases de datos y custodia de servidores en DGTIT.",
+        plazo: "Previo a la entrega de inmuebles",
+        driveUrl: "https://drive.google.com/",
+        documentos: ["Acta_Entrega_Servidores_DGTIT.pdf"],
+        bitacora: "Copia íntegra en disco duro de 12TB bajo resguardo seguro en Centro de Datos."
+      }
+    ];
+
+    // INFORMACIÓN NORMATIVA Y DE ENCABEZADO DE CADA BLOQUE
+    const INFO_BLOQUES = {
+      1: {
+        titulo: "PERSONAL, PATRIMONIO & ARCHIVO",
+        marcoLegal: "Ordena la sustitución de funciones del IECG a favor de la Secretaría de Cultura sin menoscabo de los derechos laborales de los trabajadores, la custodia y transferencia del activo fijo, inventario de inmuebles y archivo histórico.",
+        plazoRector: "Plazo Rector de Ley: 10 días naturales para comités de estructura y liquidador; 15 meses de liquidación (Art. 6 Lineamientos) con salvedad por trámites de terceros.",
+        bgClass: "bg-blue-600",
+        badge: "BLOQUE 1 • 18 ACCIONES"
+      },
+      2: {
+        titulo: "CIERRE FISCAL, CUENTAS & AUDITORÍA",
+        marcoLegal: "Dispone el reintegro de remanentes presupuestales a la Secretaría de Finanzas, cancelación de cuentas de cheques, trámite de baja del RFC ante el SAT y atención estricta de pliegos y observaciones de la ASEG.",
+        plazoRector: "Plazo Rector de Ley: Cierre del ejercicio presupuestal y plazos legales procesales de solventación ante la ASEG y Secretaría de la Honestidad.",
+        bgClass: "bg-[#d97706]",
+        badge: "BLOQUE 2 • 10 ACCIONES"
+      },
+      3: {
+        titulo: "FIDEICOMISOS BANORTE",
+        marcoLegal: "Establece la obligatoriedad de suscribir convenios modificatorios para la cesión de derechos fideicomisarios y fiduciarios a la Secretaría de Cultura, liquidando pasivos fiduciarios y reintegrando saldos líquidos remanentes.",
+        plazoRector: "Plazo Rector de Ley: 60 días naturales para formalización fiduciaria y conciliación final de rendimientos bancarios.",
+        bgClass: "bg-[#7c3aed]",
+        badge: "BLOQUE 3 • 3 ACCIONES"
+      },
+      4: {
+        titulo: "GOBERNANZA & SISTEMAS TI",
+        marcoLegal: "Instalación del Comité de Extinción, nombramiento del Liquidador, resguardo de acervos informáticos, servidores y baja de accesos digitales y ERP del Estado.",
+        plazoRector: "Plazo Rector de Ley: 10 días para comités e instalación; conclusión al 100% formalizada.",
+        bgClass: "bg-[#059669]",
+        badge: "BLOQUE 4 • 4 ACCIONES"
+      }
+    };
+
+    // OPCIONES DE ESTATUS NORMATIVO CON SU RESPECTIVO COLOR Y PUNTO
+    const OPCIONES_ESTATUS = [
+      { valor: "Concluido (100%)", colorDot: "bg-emerald-400", texto: "Concluido (100%)", defaultPct: 100 },
+      { valor: "En Proceso", colorDot: "bg-blue-500", texto: "En Proceso", defaultPct: 50 },
+      { valor: "Validación", colorDot: "bg-purple-500", texto: "Validación", defaultPct: 80 },
+      { valor: "En Espera Tercero (Art. 6)", colorDot: "bg-amber-400", texto: "En Espera Tercero (Art. 6)", defaultPct: 65 }
+    ];
+
+    // ESTADO GENERAL
+    let acciones = [];
+    let bloqueModalAbierto = null;
+
+    // INICIALIZACIÓN
+    function init() {
+      const storageData = localStorage.getItem('matriz_4_acciones_db');
+      if (storageData) {
+        try {
+          acciones = JSON.parse(storageData);
+        } catch (e) {
+          acciones = JSON.parse(JSON.stringify(ACCIONES_INICIALES));
+        }
+      } else {
+        acciones = JSON.parse(JSON.stringify(ACCIONES_INICIALES));
+        guardarLocal();
+      }
+      recalcularYRenderizar();
+    }
+
+    function guardarLocal() {
+      localStorage.setItem('matriz_4_acciones_db', JSON.stringify(acciones));
+    }
+
+    function restablecerMatriz() {
+      if (confirm("¿Deseas restaurar la matriz a sus valores originales iniciales? Se descartarán las modificaciones locales.")) {
+        acciones = JSON.parse(JSON.stringify(ACCIONES_INICIALES));
+        guardarLocal();
+        recalcularYRenderizar();
+        if (bloqueModalAbierto) {
+          abrirModalBloque(bloqueModalAbierto);
+        }
+        lanzarToast("Matriz restablecida a los valores oficiales iniciales");
+      }
+    }
+
+    // CÁLCULO Y RENDERIZADO DEL DASHBOARD PRINCIPAL
+    function recalcularYRenderizar() {
+      renderizarBloque(1, 'b1-list', 'b1-pct', 'b1-count', 'b1-bar');
+      renderizarBloque(2, 'b2-list', 'b2-pct', 'b2-count', 'b2-bar');
+      renderizarBloque(3, 'b3-list', 'b3-pct', 'b3-count', 'b3-bar');
+      renderizarBloque(4, 'b4-list', 'b4-pct', 'b4-count', 'b4-bar');
+      actualizarCómputoGlobal();
+    }
+
+    function renderizarBloque(numBloque, listId, pctId, countId, barId) {
+      const items = acciones.filter(a => a.bloque === numBloque);
+      const total = items.length;
+      const concluidas = items.filter(a => a.pct === 100 || a.estatus === "Concluido (100%)").length;
+      
+      const sumaPct = items.reduce((acc, curr) => acc + Number(curr.pct || 0), 0);
+      const promedio = total > 0 ? (sumaPct / total).toFixed(1) : "0.0";
+
+      document.getElementById(pctId).innerText = `${promedio}%`;
+      document.getElementById(countId).innerText = `${concluidas} de ${total} Concluidas`;
+      document.getElementById(barId).style.width = `${Math.min(promedio, 100)}%`;
+
+      const listContainer = document.getElementById(listId);
+      listContainer.innerHTML = '';
+
+      items.forEach(item => {
+        let badgeColor = "text-emerald-400";
+        let dotColor = "bg-emerald-400";
+        if (item.pct < 50) {
+          badgeColor = "text-rose-400";
+          dotColor = "bg-rose-400";
+        } else if (item.pct < 100) {
+          badgeColor = "text-amber-400";
+          dotColor = "bg-amber-400";
+        }
+
+        const fila = document.createElement('div');
+        fila.className = "flex items-center justify-between py-1 px-1.5 rounded-lg hover:bg-slate-800/60 transition cursor-pointer group";
+        fila.onclick = () => abrirModalBloque(numBloque);
+        fila.innerHTML = `
+          <div class="truncate pr-2 flex items-center space-x-1.5 max-w-[80%]">
+            <span class="w-1.5 h-1.5 rounded-full ${dotColor} flex-shrink-0"></span>
+            <span class="text-slate-300 font-medium group-hover:text-white truncate text-[11px]" title="${item.nombre}">
+              • ${item.nombre}
+            </span>
+          </div>
+          <span class="font-mono font-bold ${badgeColor} text-[11px] flex-shrink-0">
+            ${item.pct}%
+          </span>
+        `;
+        listContainer.appendChild(fila);
+      });
+    }
+
+    function actualizarCómputoGlobal() {
+      const total = acciones.length;
+      const solventadas = acciones.filter(a => a.pct === 100 || a.estatus === "Concluido (100%)").length;
+      const sumaTotal = acciones.reduce((acc, curr) => acc + Number(curr.pct || 0), 0);
+      const promedio = total > 0 ? (sumaTotal / total).toFixed(1) : "0.0";
+
+      document.getElementById('global-pct-txt').innerText = `${promedio}%`;
+      document.getElementById('global-solv-txt').innerText = `(${solventadas} de ${total} Solventadas)`;
+
+      // Radio = 26 -> Perímetro ≈ 163.36
+      const circle = document.getElementById('global-circle');
+      const offset = 163.36 - (163.36 * (promedio / 100));
+      circle.style.strokeDashoffset = offset;
+    }
+
+    // ==================== MODAL DE AUDITORÍA Y EDICIÓN MANUAL ====================
+    function abrirModalBloque(numBloque) {
+      bloqueModalAbierto = numBloque;
+      const info = INFO_BLOQUES[numBloque];
+      const items = acciones.filter(a => a.bloque === numBloque);
+      const concluidas = items.filter(a => a.pct === 100 || a.estatus === "Concluido (100%)").length;
+      const total = items.length;
+      const sumaPct = items.reduce((acc, curr) => acc + Number(curr.pct || 0), 0);
+      const promedio = total > 0 ? (sumaPct / total).toFixed(0) : "0";
+
+      // Encabezado del modal
+      const header = document.getElementById('modal-header-bg');
+      header.className = `p-5 sm:p-6 text-white ${info.bgClass} border-b border-slate-700/70 relative shadow-md`;
+      document.getElementById('modal-badge-bloque').innerText = info.badge;
+      document.getElementById('modal-concluidas-badge').innerText = `${concluidas} de ${total} Concluidas (${promedio}%)`;
+      document.getElementById('modal-titulo').innerText = info.titulo;
+      document.getElementById('modal-marco-txt').innerText = info.marcoLegal;
+      document.getElementById('modal-plazo-txt').innerText = info.plazoRector;
+
+      // Renderizar tarjetas del bloque
+      renderizarTarjetasModal(numBloque);
+
+      // Mostrar modal
+      const modal = document.getElementById('modal-container');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function renderizarTarjetasModal(numBloque) {
+      const container = document.getElementById('modal-actions-container');
+      container.innerHTML = '';
+      const items = acciones.filter(a => a.bloque === numBloque);
+
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 hover:border-slate-700/90 transition duration-200";
+        card.id = `card-acc-${item.id}`;
+
+        let statusClass = "bg-amber-500/10 text-amber-400 border-amber-500/30";
+        if (item.pct === 100 || item.estatus === "Concluido (100%)") {
+          statusClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+        } else if (item.pct < 40) {
+          statusClass = "bg-rose-500/10 text-rose-400 border-rose-500/30";
+        }
+
+        // Construir opciones del dropdown
+        let opcionesHtml = '';
+        OPCIONES_ESTATUS.forEach(op => {
+          const selected = (item.estatus === op.valor) ? 'selected' : '';
+          opcionesHtml += `<option value="${op.valor}" ${selected}>${op.texto}</option>`;
+        });
+
+        // Documentos soporte en formato pills
+        let docsHtml = '';
+        if (item.documentos && item.documentos.length > 0) {
+          item.documentos.forEach((doc, docIdx) => {
+            docsHtml += `
+              <div class="flex items-center justify-between bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-300">
+                <span class="truncate flex items-center gap-1.5">
+                  <span class="text-blue-400">📄</span> ${doc}
+                </span>
+                <button onclick="eliminarDocumento(${item.id}, ${docIdx})" class="text-rose-400 hover:text-rose-300 ml-2 p-1" title="Eliminar evidencia">
+                  🗑️
+                </button>
+              </div>
+            `;
+          });
+        }
+
+        card.innerHTML = `
+          <!-- Cabecera de la Acción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-200 flex items-center justify-center text-xs font-black font-mono">
+                ${index + 1}
+              </span>
+              <span class="font-mono text-xs text-blue-400 font-bold">[${item.clave}]</span>
+              <h4 class="text-sm sm:text-base font-extrabold text-white tracking-tight">${item.nombre}</h4>
+            </div>
+            <div>
+              <span id="badge-top-${item.id}" class="px-3 py-1 rounded-full text-xs font-black border font-mono ${statusClass}">
+                ${item.estatus === 'Concluido (100%)' ? 'Concluido (100%)' : item.pct + '%'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Cuadros informativos de Ley -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <!-- Fundamento -->
+            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+              <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider block mb-1">
+                ⚖️ FUNDAMENTO LEGAL ESPECÍFICO
+              </span>
+              <p class="text-slate-300 leading-relaxed font-mono text-[11px]">${item.fundamento}</p>
+            </div>
+
+            <!-- Qué hacer -->
+            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+              <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider block mb-1">
+                📋 ¿QUÉ SE DEBE HACER PARA CUMPLIRLA?
+              </span>
+              <p class="text-slate-300 leading-relaxed">${item.queHacer}</p>
+            </div>
+
+            <!-- Plazo -->
+            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+              <span class="text-[10px] uppercase font-bold text-amber-300 tracking-wider block mb-1">
+                ⏳ PLAZO DE LEY ESTABLECIDO
+              </span>
+              <p class="text-slate-200 font-semibold leading-relaxed">${item.plazo}</p>
+            </div>
+          </div>
+
+          <!-- ================= SECCIÓN DE EDICIÓN (ESTATUS Y LÍNEA DE AVANCE) ================= -->
+          <div class="bg-[#0b1220] rounded-2xl p-4 border border-slate-800 space-y-4">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              
+              <!-- Selector: Estatus Normativo -->
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>Estatus Normativo:</span>
+                  <span id="dot-status-${item.id}" class="w-2.5 h-2.5 rounded-full ${obtenerColorDot(item.estatus)}"></span>
+                </label>
+                <div class="relative">
+                  <select id="select-estatus-${item.id}" onchange="cambiarEstatusAccion(${item.id}, this.value)" 
+                    class="w-full bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-inner">
+                    ${opcionesHtml}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Control Deslizante: Porcentaje de Avance Acreditado -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-xs font-bold text-slate-300">
+                    Porcentaje de Avance Acreditado:
+                  </label>
+                  <span id="pct-number-${item.id}" class="text-base sm:text-lg font-black font-mono text-indigo-400">
+                    ${item.pct}%
+                  </span>
+                </div>
+
+                <!-- Línea de Avance (Slider con fill degradado reactivo) -->
+                <div class="relative flex items-center">
+                  <input type="range" min="0" max="100" step="1" value="${item.pct}" 
+                    id="slider-${item.id}"
+                    oninput="ajustarSliderAvance(${item.id}, this.value)"
+                    class="avance-slider"
+                    style="background: linear-gradient(to right, #4f46e5 0%, #4f46e5 ${item.pct}%, #1e293b ${item.pct}%, #1e293b 100%);">
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Soporte Documental y Bitácora -->
+            <div class="pt-3 border-t border-slate-800/90 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              
+              <!-- Carpeta Drive / Evidencias -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                    <span>📁</span> Enlace de Soporte Documental (Google Drive):
+                  </span>
+                  <a href="${item.driveUrl || '#'}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-bold hover:underline inline-flex items-center gap-0.5 text-[11px]">
+                    Abrir Carpeta del Panel ↗
+                  </a>
+                </div>
+
+                <!-- Lista de Documentos -->
+                <div id="docs-list-${item.id}" class="space-y-1.5">
+                  ${docsHtml}
+                </div>
+
+                <button onclick="agregarDocumento(${item.id})" class="text-[11px] font-semibold text-indigo-300 hover:text-white bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-800/60 rounded-lg px-2.5 py-1 transition flex items-center gap-1">
+                  <span>+</span> Agregar otro documento
+                </button>
+              </div>
+
+              <!-- Criterio de Auditoría / Bitácora -->
+              <div class="flex flex-col justify-between">
+                <div>
+                  <label class="block font-bold text-slate-300 mb-1 text-[11px] uppercase tracking-wider">
+                    Bitácora / Criterio de Evidencia Real vs Reporte:
+                  </label>
+                  <textarea rows="2" 
+                    onchange="actualizarBitacora(${item.id}, this.value)" 
+                    placeholder="Describe el hallazgo o justificación del porcentaje asignado..." 
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none font-sans">${item.bitacora || ''}</textarea>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
+                  <span>* Modificaciones guardadas de manera inmediata</span>
+                  <span class="font-mono text-indigo-400">Auditado por Admin</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // OBTENER COLOR DEL PUNTO SEGÚN ESTATUS
+    function obtenerColorDot(estatus) {
+      switch (estatus) {
+        case "Concluido (100%)": return "bg-emerald-400";
+        case "En Proceso": return "bg-blue-500";
+        case "Validación": return "bg-purple-500";
+        case "En Espera Tercero (Art. 6)": return "bg-amber-400";
+        default: return "bg-slate-400";
+      }
+    }
+
+    // AJUSTAR SLIDER Y SINCRONIZAR
+    function ajustarSliderAvance(id, nuevoValor) {
+      const valor = parseInt(nuevoValor, 10);
+      const accion = acciones.find(a => a.id === id);
+      if (!accion) return;
+
+      accion.pct = valor;
+
+      // Actualizar número visual
+      const numTxt = document.getElementById(`pct-number-${id}`);
+      if (numTxt) numTxt.innerText = `${valor}%`;
+
+      // Actualizar degradado de la barra del slider
+      const slider = document.getElementById(`slider-${id}`);
+      if (slider) {
+        slider.style.background = `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${valor}%, #1e293b ${valor}%, #1e293b 100%)`;
+      }
+
+      // Reglas de sincronización con el selector de estatus
+      const select = document.getElementById(`select-estatus-${id}`);
+      const dot = document.getElementById(`dot-status-${id}`);
+
+      if (valor === 100) {
+        accion.estatus = "Concluido (100%)";
+        if (select) select.value = "Concluido (100%)";
+      } else if (accion.estatus === "Concluido (100%)" && valor < 100) {
+        accion.estatus = "En Proceso";
+        if (select) select.value = "En Proceso";
+      }
+
+      if (dot) {
+        dot.className = `w-2.5 h-2.5 rounded-full ${obtenerColorDot(accion.estatus)}`;
+      }
+
+      // Actualizar badge superior de la tarjeta
+      const badge = document.getElementById(`badge-top-${id}`);
+      if (badge) {
+        if (accion.pct === 100) {
+          badge.innerText = "Concluido (100%)";
+          badge.className = "px-3 py-1 rounded-full text-xs font-black border font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+        } else {
+          badge.innerText = `${accion.pct}%`;
+          badge.className = "px-3 py-1 rounded-full text-xs font-black border font-mono bg-amber-500/10 text-amber-400 border-amber-500/30";
+        }
+      }
+
+      // Guardar y refrescar cabecera del modal y tablero
+      guardarLocal();
+      actualizarCabeceraModal();
+      recalcularYRenderizar();
+    }
+
+    // CAMBIAR ESTATUS NORMATIVO EN EL DROPDOWN
+    function cambiarEstatusAccion(id, nuevoEstatus) {
+      const accion = acciones.find(a => a.id === id);
+      if (!accion) return;
+
+      accion.estatus = nuevoEstatus;
+
+      // Si se selecciona Concluido, se ajusta al 100%
+      if (nuevoEstatus === "Concluido (100%)") {
+        accion.pct = 100;
+      } else if (nuevoEstatus === "En Espera Tercero (Art. 6)" && accion.pct === 100) {
+        accion.pct = 65;
+      } else if (nuevoEstatus === "Validación" && accion.pct === 100) {
+        accion.pct = 80;
+      } else if (nuevoEstatus === "En Proceso" && accion.pct === 100) {
+        accion.pct = 50;
+      }
+
+      // Refrescar slider
+      const slider = document.getElementById(`slider-${id}`);
+      if (slider) {
+        slider.value = accion.pct;
+        slider.style.background = `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${accion.pct}%, #1e293b ${accion.pct}%, #1e293b 100%)`;
+      }
+
+      // Refrescar número
+      const numTxt = document.getElementById(`pct-number-${id}`);
+      if (numTxt) numTxt.innerText = `${accion.pct}%`;
+
+      // Refrescar dot
+      const dot = document.getElementById(`dot-status-${id}`);
+      if (dot) {
+        dot.className = `w-2.5 h-2.5 rounded-full ${obtenerColorDot(accion.estatus)}`;
+      }
+
+      // Refrescar badge
+      const badge = document.getElementById(`badge-top-${id}`);
+      if (badge) {
+        if (accion.pct === 100) {
+          badge.innerText = "Concluido (100%)";
+          badge.className = "px-3 py-1 rounded-full text-xs font-black border font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+        } else {
+          badge.innerText = `${accion.pct}%`;
+          badge.className = "px-3 py-1 rounded-full text-xs font-black border font-mono bg-amber-500/10 text-amber-400 border-amber-500/30";
+        }
+      }
+
+      guardarLocal();
+      actualizarCabeceraModal();
+      recalcularYRenderizar();
+      lanzarToast(`Acción [${accion.clave}] actualizada a: ${nuevoEstatus}`);
+    }
+
+    function actualizarBitacora(id, texto) {
+      const accion = acciones.find(a => a.id === id);
+      if (accion) {
+        accion.bitacora = texto;
+        guardarLocal();
+      }
+    }
+
+    function agregarDocumento(id) {
+      const nombreDoc = prompt("Ingresa el nombre del archivo de soporte o acuse:", "Acuse_Validado_" + new Date().toISOString().slice(0, 10) + ".pdf");
+      if (nombreDoc && nombreDoc.trim() !== "") {
+        const accion = acciones.find(a => a.id === id);
+        if (accion) {
+          if (!accion.documentos) accion.documentos = [];
+          accion.documentos.push(nombreDoc.trim());
+          guardarLocal();
+          renderizarTarjetasModal(accion.bloque);
+          lanzarToast("Documento de evidencia añadido");
+        }
+      }
+    }
+
+    function eliminarDocumento(accionId, docIndex) {
+      const accion = acciones.find(a => a.id === accionId);
+      if (accion && accion.documentos) {
+        accion.documentos.splice(docIndex, 1);
+        guardarLocal();
+        renderizarTarjetasModal(accion.bloque);
+        lanzarToast("Documento de soporte eliminado");
+      }
+    }
+
+    function actualizarCabeceraModal() {
+      if (!bloqueModalAbierto) return;
+      const items = acciones.filter(a => a.bloque === bloqueModalAbierto);
+      const concluidas = items.filter(a => a.pct === 100 || a.estatus === "Concluido (100%)").length;
+      const total = items.length;
+      const sumaPct = items.reduce((acc, curr) => acc + Number(curr.pct || 0), 0);
+      const promedio = total > 0 ? (sumaPct / total).toFixed(0) : "0";
+      document.getElementById('modal-concluidas-badge').innerText = `${concluidas} de ${total} Concluidas (${promedio}%)`;
+    }
+
+    function cerrarModal() {
+      const modal = document.getElementById('modal-container');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      bloqueModalAbierto = null;
+      recalcularYRenderizar();
+    }
+
+    // EXPORTACIÓN A JSON PARA AUDITORÍA
+    function exportarAuditoriaJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(acciones, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Auditoria_Nominal_35_Acciones_IECG_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      lanzarToast("Auditoría de 35 acciones exportada exitosamente");
+    }
+
+    function lanzarToast(mensaje) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-text');
+      text.innerText = mensaje;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // Tecla ESC para cerrar modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') cerrarModal();
+    });
+
+    window.onload = function() {
+      init();
+    };
+  </script>
+</body>
+</html>
