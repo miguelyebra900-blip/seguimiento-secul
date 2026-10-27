@@ -7576,42 +7576,119 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
     const titulo = document.getElementById('tituloPerspectivaGerencial');
     if (!cuerpo) return;
 
-    if (tipo === 'resumen') {
+if (tipo === 'resumen') {
         // =========================================================================
-        // PERSPECTIVA 4: RADIOGRAFÍA EJECUTIVA COMPACTA (ONE-SLIDE DASHBOARD)
+        // PERSPECTIVA 4: RADIOGRAFÍA EJECUTIVA COMPACTA (35 ACCIONES + MARCO LEGAL)
         // =========================================================================
-        if (titulo) titulo.innerHTML = '<i class="fa-solid fa-layer-group text-emerald-600"></i> Radiografía Ejecutiva de Extinción — Decreto No. 345';
+        if (titulo) titulo.innerHTML = '<i class="fa-solid fa-layer-group text-emerald-600"></i> Radiografía Ejecutiva de Extinción — Marco Jurídico Decreto No. 345';
+
+        // DICCIONARIO MAESTRO NORMATIVO DE LAS 35 ACCIONES OFICIALES
+        const catalogo35Juridico = {
+            1: {
+                nombre: "BLOQUE 1: PERSONAL, PATRIMONIO Y ARCHIVO",
+                fundamentoRector: "Decreto 345 (Art. 5° Transitorio) • Lineamientos IEC (Arts. 5, 7, 15, 17, 18, 30-33) • Ley de Archivos",
+                sintesisNorma: "Ordena la sustitución de funciones del IECG a favor de la Secretaría de Cultura sin menoscabo de los derechos laborales de los trabajadores, la custodia y transferencia del activo fijo, inventario de inmuebles y archivo histórico.",
+                plazoLey: "10 días naturales para comités de estructura y liquidador; 15 meses de liquidación (Art. 6 Lineamientos) con salvedad por trámites de terceros.",
+                color: "blue",
+                acciones: [
+                    { id: "RH_E-H-001-A-001", nombre: "Expedientes Laborales (303 Plazas)", est: "Concluido", pct: 100, norma: "Dec. 345 (Art. 5 Transitorio); Lineamientos (Arts. 5, 7)", deber: "Transferencia nominal y física de las 303 carpetas a DGRH Finanzas con acuse del OIC.", plazo: "10 días naturales (Art. 5 Transitorio Dec. 345)" },
+                    { id: "RH_E-H-002-A-001", nombre: "Plaza del Liquidador (Nivel 8 + 131 Bienes)", est: "Concluido", pct: 100, norma: "Dec. 345 (Art. 5 Transitorio); Lineamientos (Art. 5)", deber: "Mantener activa la plaza sec. 30068799 y resguardo de 131 bienes hasta el informe final.", plazo: "Durante la vigencia de la liquidación contable" },
+                    { id: "RH_E-H-003-A-001", nombre: "Finiquitos y Convenios ante Tribunal", est: "En Proceso", pct: 70, norma: "Lineamientos Liquidación IEC (Arts. 7, 17)", deber: "Ratificación de convenios de terminación laboral ante el Tribunal de Conciliación y Arbitraje.", plazo: "15 meses de liquidación (salvedad por audiencias del Tribunal)" },
+                    { id: "JUR_C-H-001-A-001", nombre: "Acta Sesión de Prórroga [R-05]", est: "Validación", pct: 75, norma: "Lineamientos Comités (Arts. 7, 9); Lineamientos IEC (Art. 6)", deber: "Recabar firmas autógrafas de vocales (Finanzas, SH, Consejería) del acta protocolizada.", plazo: "Acreditación inmediata para solventar observación ASEG" },
+                    { id: "JUR_C-H-002-A-001", nombre: "Sustitución Procesal en Juzgados", est: "En Proceso", pct: 40, norma: "Lineamientos Liquidación IEC (Art. 7 segundo párrafo)", deber: "Apersonamiento formal de la Secretaría de Cultura en juzgados laborales y civiles.", plazo: "Continuo conforme a las notificaciones y términos judiciales" },
+                    { id: "JUR_C-H-003-A-001", nombre: "Compilación Marco Legal Extinción", est: "Concluido", pct: 100, norma: "Lineamientos Comités de Extinción (Art. 9)", deber: "Entrega del compendio normativo protocolizado y certificado a la ASEG y al OIC.", plazo: "Cumplido dentro del término de requerimiento" },
+                    { id: "PTR_I-H-001-A-001", nombre: "Sitios Arqueológicos (Agrario)", est: "En Proceso", pct: 50, norma: "Lineamientos Liquidación IEC (Art. 18)", deber: "Regularización notarial e inscripción registral en el Padrón Inmobiliario estatal.", plazo: "15 meses (sujeto a trámites de Registro Público y Notarías)" },
+                    { id: "PTR_I-H-002-A-001", nombre: "Acuerdos de Destino [R-04]", est: "En Proceso", pct: 50, norma: "Lineamientos Liquidación IEC (Art. 18)", deber: "Formalización de Acuerdos de Destino de recintos culturales con Consejería del Ejecutivo.", plazo: "Sujeto a emisión y firma de acuerdos gubernativos" },
+                    { id: "PTR_I-H-003-A-001", nombre: "Expedientes Catastrales Inmuebles", est: "Concluido", pct: 100, norma: "Lineamientos Liquidación IEC (Art. 18)", deber: "Integración y entrega técnica a la Dirección General de Control Patrimonial.", plazo: "Cumplido en entrega-recepción extraordinaria" },
+                    { id: "PTR_M-H-001-A-001", nombre: "Búsqueda 2,570 Faltantes [R-01]", est: "En Proceso", pct: 40, norma: "Lineamientos Liquidación IEC (Arts. 15, 18 tercer párrafo)", deber: "Brigadas físicas, rescate de facturas en AGEG y actas de baja por desuso ante OIC.", plazo: "Sujeto a dictamen pericial y desincorporación patrimonial" },
+                    { id: "PTR_M-H-002-A-001", nombre: "Capitalización Fase 1 (1,682 activos)", est: "Concluido", pct: 100, norma: "Lineamientos Liquidación IEC (Art. 15)", deber: "Pólizas contables SIGEG y actualización de resguardos individuales por custodio.", plazo: "Cumplido en corte contable patrimonial" },
+                    { id: "PTR_M-H-003-A-001", nombre: "Flotilla Vehicular (100% Transferida)", est: "Concluido", pct: 100, norma: "Lineamientos Liquidación IEC (Arts. 15, 18)", deber: "Baja formal de placas en Finanzas y endoso de 14 autos y 14 remolques a SCUL.", plazo: "Cumplido en entrega vehicular extraordinaria" },
+                    { id: "ACH_D-H-001-A-001", nombre: "Archivos de Trámite y Concentración", est: "Concluido", pct: 100, norma: "Ley de Archivos del Estado; Lineamientos (Arts. 30, 31)", deber: "Inventarios por series CADIDO transferidos físicamente a la Secretaría de Cultura.", plazo: "Cumplido conforme a calendario archivístico" },
+                    { id: "ACH_D-H-002-A-001", nombre: "Transferencia AGEG (Fondo Cerrado)", est: "En Proceso", pct: 60, norma: "Lineamientos Liquidación IEC (Arts. 31, 32); Ley de Archivos", deber: "Dictamen técnico del AGEG y custodia del acervo histórico bajo modalidad de Fondo Cerrado.", plazo: "15 meses de liquidación (salvedad técnica del AGEG)" },
+                    { id: "ASI_P-H-001-A-001", nombre: "Acuerdos del Comité de Extinción", est: "Concluido", pct: 100, norma: "Lineamientos Comités (Arts. 3, 9, 10)", deber: "Seguimiento riguroso a la matriz de acuerdos aprobados en las sesiones colegiadas.", plazo: "Permanente durante cada sesión colegiada" },
+                    { id: "ASI_P-H-002-A-001", nombre: "Integración del Informe Final", est: "En Proceso", pct: 55, norma: "Dec. 345 (Art. 5 Transitorio); Lineamientos (Art. 5)", deber: "Consolidación de informes mensuales, balances y libro blanco de extinción institucional.", plazo: "Al culminar la liquidación contable y patrimonial" },
+                    { id: "ASI_P-H-003-A-001", nombre: "Coordinación Institucional SCUL", est: "Concluido", pct: 100, norma: "Dec. 345 (Art. 5 Transitorio); Lineamientos (Art. 17)", deber: "Oficios de coordinación sectorial para garantizar continuidad operativa de programas.", plazo: "Permanente en mesas directivas con el Despacho" },
+                    { id: "ASI_P-H-005-A-001", nombre: "Informes Mensuales al Comité", est: "En Proceso", pct: 65, norma: "Dec. 345 (Art. 5 Transitorio); Lineamientos Comités (Art. 9)", deber: "Rendición mensual de reportes de avance físico, financiero y legal de la liquidación.", plazo: "Mensual dentro de los primeros días de cada periodo" }
+                ]
+            },
+            2: {
+                nombre: "BLOQUE 2: CIERRE FISCAL, FINANCIERO Y AUDITORÍA",
+                fundamentoRector: "Decreto 345 (Art. 24 Fracc. I) • Lineamientos Liquidación IEC (Arts. 5, 10, 22, 23, 27) • ASEG",
+                sintesisNorma: "Mandata liquidar la contabilidad, reintegrar sobrantes presupuestales a Finanzas, cancelar cuentas bancarias, cancelar el RFC ante el SAT Celaya y solventar pliegos de auditoría de cuentas públicas.",
+                plazoLey: "30 de diciembre para cancelación de CFDI (Art. 22); términos perentorios de respuesta fijados en oficios de la ASEG.",
+                color: "amber",
+                acciones: [
+                    { id: "FIN_P-H-001-A-001", nombre: "Reintegros Oficiales SF ($43.4M MXN)", est: "Concluido", pct: 100, norma: "Dec. 345 (Art. 24 Fracc. I); Lineamientos (Arts. 10, 23)", deber: "Integrar recibos de caja emitidos por SF por $43,409,858.26 a la cuenta pública de cierre.", plazo: "Cumplido dentro del ejercicio correspondiente" },
+                    { id: "FIN_P-H-002-A-001", nombre: "Cierre de Cuentas Residuales", est: "En Proceso", pct: 65, norma: "Lineamientos Liquidación IEC (Art. 10 cuarto párrafo)", deber: "Cancelación formal de cuentas en BBVA, Salamanca y M. Ocampo con constancias de saldo cero.", plazo: "Previo a la cancelación definitiva del RFC" },
+                    { id: "FIN_P-H-003-A-001", nombre: "Baja de RFC ante el SAT Celaya [R-02]", est: "En Proceso", pct: 65, norma: "Lineamientos Liquidación IEC (Art. 5 tercer párrafo)", deber: "Presentación del formato oficial RX de cancelación de RFC por extinción ante el SAT.", plazo: "Al culminar liquidación (cita presencial en SAT Celaya)" },
+                    { id: "FIN_P-H-004-A-001", nombre: "Finiquito Obra Teatro Juárez (SICOM)", est: "Concluido", pct: 100, norma: "Dec. 345 (Art. 24 Fracc. I); Lineamientos (Art. 25)", deber: "Recepción del acta de entrega-recepción física y fianza de vicios ocultos de la SICOM.", plazo: "Cumplido con póliza de garantía vigente" },
+                    { id: "FIN_P-H-005-A-001", nombre: "Conciliación Recursos Federales (TESOFIFE)", est: "En Proceso", pct: 50, norma: "Lineamientos Liquidación IEC (Art. 10 tercer párrafo)", deber: "Determinación de saldos no devengados de convenios federales y reintegro a TESOFE.", plazo: "Conforme a las reglas de cierre de convenios federales" },
+                    { id: "FIN_P-H-006-A-001", nombre: "Cancelación de CFDI No Ministrados", est: "En Proceso", pct: 45, norma: "Lineamientos Liquidación IEC (Art. 22)", deber: "Cancelación formal ante SAT de comprobantes fiscales emitidos sin depósito de fondos.", plazo: "A más tardar el 30 de diciembre del ejercicio (Art. 22)" },
+                    { id: "FIN_P-H-007-A-001", nombre: "Actualización PbR-SED e Informe Trimestral", est: "En Proceso", pct: 60, norma: "Lineamientos Liquidación IEC (Arts. 12, 13)", deber: "Cierre de matrices MIR y entrega de portafolios a la Secretaría de Finanzas.", plazo: "Al tercer trimestre y cierre anual (Arts. 12 y 13)" },
+                    { id: "AUD_F-H-001-A-001", nombre: "Requerimientos ASEG Cuenta Pública", est: "En Proceso", pct: 60, norma: "Dec. 345 (Art. 24 Fracc. I); Lineamientos Comités (Art. 10)", deber: "Atención y desahogo de las 22 acciones de fiscalización superior de la ASEG.", plazo: "Término legal fijado en cada requerimiento oficial" },
+                    { id: "AUD_F-H-002-A-001", nombre: "Pliego ASEG 2025 (Observación 010)", est: "Concluido", pct: 100, norma: "Dec. 345 (Art. 24 Fracc. I); Lineamientos (Art. 5)", deber: "Solventación técnica de observaciones preliminares de la cuenta pública 2025.", plazo: "Cumplido dentro del término improrrogable del pliego" },
+                    { id: "AUD_F-H-003-A-001", nombre: "Informe de Resultados Congreso del Estado", est: "En Proceso", pct: 50, norma: "Dec. 345 (Art. 24 Fracc. I); Ley de Fiscalización Superior", deber: "Análisis y solventación de las recomendaciones emitidas en dictamen legislativo.", plazo: "Conforme al calendario legislativo del Congreso" }
+                ]
+            },
+            3: {
+                nombre: "BLOQUE 3: FIDEICOMISOS BANORTE (FIARCA)",
+                fundamentoRector: "Decreto 345 (Arts. 67 al 76) • Lineamientos Liquidación IEC (Art. 10) • Decreto Gub. 19",
+                sintesisNorma: "Faculta a la titular del Ejecutivo y Secretaría de Finanzas para modificar o extinguir fideicomisos, sustituir fideicomisarios y regularizar rendimientos devengados.",
+                plazoLey: "Informes trimestrales sobre la aplicación de recursos (Art. 74 Decreto 345); salvedad legal por tiempos de Banorte.",
+                color: "purple",
+                acciones: [
+                    { id: "FID_F-H-001-A-001", nombre: "Convenio Modificatorio Banorte [R-03]", est: "Validación", pct: 70, norma: "Dec. 345 (Arts. 67-76); Lineamientos (Art. 10)", deber: "Validar y formalizar adenda con Fiduciaria Banorte y Consejería Jurídica a favor de SCUL.", plazo: "Sujeto a dictamen fiduciario de Banorte (Art. 6)" },
+                    { id: "FID_F-H-002-A-001", nombre: "Cese de Pasivos Fiduciarios IECG", est: "Concluido", pct: 100, norma: "Dec. 345 (Arts. 67-76); Lineamientos (Art. 10)", deber: "Desincorporación de pasivos cargados indebidamente a la sociedad IECG tras Decreto 19.", plazo: "Cumplido con corte fiduciario formal" },
+                    { id: "FID_F-H-003-A-001", nombre: "Conciliación de Rendimientos Fiduciarios", est: "En Proceso", pct: 40, norma: "Dec. 345 (Arts. 67-76); Lineamientos (Art. 10)", deber: "Determinación de intereses y reintegro formal de remanentes a la Secretaría de Finanzas.", plazo: "Al corte de liquidación fiduciaria" }
+                ]
+            },
+            4: {
+                nombre: "BLOQUE 4: GOBERNANZA, COMITÉ Y SISTEMAS TI",
+                fundamentoRector: "Lineamientos Comités (Arts. 3, 9, 10, 34) • Lineamientos IEC (Arts. 11, 29) • Acuerdo Comités",
+                sintesisNorma: "Regula la constitución de los Comités de Extinción, desincorporación de usuarios y accesos en el sistema SRFT de SHCP, baja de licencias SAP ante la DGTIT y migración de infraestructura digital.",
+                plazoLey: "Instalación dentro de los 5 días siguientes a la vigencia del acuerdo (Art. 2 Transitorio); informe final al cesar funciones.",
+                color: "emerald",
+                acciones: [
+                    { id: "ASI_P-H-004-A-001", nombre: "Instalación Formal del Comité", est: "Concluido", pct: 100, norma: "Acuerdo Gubernativo de Comités (Art. 2 Transitorio)", deber: "Suscripción protocolizada del acta de instalación con vocales de Finanzas, SH y Consejería.", plazo: "5 días hábiles siguientes a la vigencia (Cumplido)" },
+                    { id: "TIT_S-H-001-A-001", nombre: "Baja Usuarios Servicios Digitales y SRFT", est: "Concluido", pct: 100, norma: "Lineamientos Liquidación IEC (Arts. 11, 29)", deber: "Desincorporación de claves institucionales ante DGTIT de Finanzas y plataforma federal SRFT.", plazo: "Mes de julio o al momento de desincorporación (Cumplido)" },
+                    { id: "TIT_S-H-001-A-002", nombre: "Cancelación Licencias y Usuarios SAP", est: "Concluido", pct: 100, norma: "Lineamientos Liquidación IEC (Art. 11)", deber: "Cancelación de enlaces contables de software y reasignación tecnológica a la SCUL.", plazo: "Cumplido ante DGTIT Secretaría de Finanzas" },
+                    { id: "TIT_S-H-002-A-001", nombre: "Servidores y Respaldo Digital de BD", est: "Concluido", pct: 100, norma: "Lineamientos Liquidación IEC (Art. 11)", deber: "Migración de bases de datos y entrega de credenciales maestras de infraestructura a SCUL.", plazo: "Cumplido con hash criptográfico certificado" }
+                ]
+            }
+        };
+
+        window.catalogo35JuridicoCache = catalogo35Juridico;
 
         cuerpo.innerHTML = `
             <div class="bg-slate-900 p-6 rounded-3xl text-white shadow-xl space-y-6 border border-slate-800">
                 
-                <!-- Encabezado Interno del One-Slide -->
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-sky-400 bg-sky-950/80 px-2.5 py-1 rounded-md border border-sky-800">
                             Ficha de Decisión Directiva
                         </span>
                         <h3 class="text-base font-black tracking-tight mt-1 text-slate-100">
-                            Matriz de 4 Pilares Mandatorios • Cómputo Nominal de 35 Acciones
+                            Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las 35 Acciones
                         </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Haz clic sobre cualquier bloque para auditar su marco legal, qué exige la norma y plazos de ley.</p>
                     </div>
                     <div class="flex items-center gap-2 bg-slate-800/90 px-3.5 py-1.5 rounded-2xl border border-slate-700 self-start md:self-auto">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-xs font-black text-sky-300">AVANCE GLOBAL AUDITADO: 48.6%</span>
+                        <span class="text-xs font-black text-sky-300">AVANCE GLOBAL: 48.6%</span>
                         <span class="text-[11px] text-slate-400 font-bold">(17 de 35 Solventadas)</span>
                     </div>
                 </div>
 
-                <!-- Rejilla de las 4 Columnas Ejecutivas -->
+                <!-- Las 4 Columnas con TODAS sus acciones visibles -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-                    <!-- COLUMNA 1: PERSONAL & TRASPASO -->
-                    <div class="bg-slate-800/80 rounded-2xl border border-blue-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-blue-400 transition shadow-inner">
+                    <!-- COLUMNA 1: 18 ACCIONES -->
+                    <div onclick="abrirModalDetalleMandatoCompleto(1)" class="bg-slate-800/80 rounded-2xl border border-blue-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/10 transition cursor-pointer group shadow-inner">
                         <div class="space-y-2.5">
-                            <div class="bg-blue-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                            <div class="bg-blue-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-blue-500 transition">
                                 <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 1</span>
-                                <h4 class="font-black text-xs">PERSONAL & TRASPASO</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17</span>
+                                <h4 class="font-black text-xs">PERSONAL, PATRIMONIO & ARCHIVO</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17, 18, 30</span>
                             </div>
 
                             <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
@@ -7619,61 +7696,69 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
                                 <span class="text-[10.5px] font-bold text-slate-300">9 de 18 Concluidas</span>
                             </div>
 
-                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
-                                <li class="flex items-center justify-between"><span class="truncate">▪ 303 Plazas a DGRH</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Plaza Nivel 8 y Bienes</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Flotilla Vehicular</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Finiquitos Tribunal</span><span class="font-bold text-amber-400 shrink-0">70%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Archivo Fondo Cerrado</span><span class="font-bold text-amber-400 shrink-0">60%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Predios y Destino [R-04]</span><span class="font-bold text-amber-400 shrink-0">50%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ 2,570 Muebles [R-01]</span><span class="font-bold text-rose-400 shrink-0">40%</span></li>
+                            <div class="text-[10px] text-indigo-300 font-bold flex items-center justify-between pb-1">
+                                <span>Universo Total (18 Acciones):</span>
+                                <span class="underline">Ver Ley y Plazos →</span>
+                            </div>
+
+                            <ul class="text-[10px] space-y-1 font-medium text-slate-200 max-h-72 overflow-y-auto pr-1">
+                                ${catalogo35Juridico[1].acciones.map(a => `
+                                    <li class="flex items-center justify-between py-0.5 border-b border-slate-700/40 last:border-0">
+                                        <span class="truncate pr-1">• ${a.nombre}</span>
+                                        <span class="font-bold ${a.pct === 100 ? 'text-emerald-400' : (a.pct >= 70 ? 'text-amber-400' : 'text-blue-400')} shrink-0">${a.pct}%</span>
+                                    </li>
+                                `).join('')}
                             </ul>
                         </div>
 
                         <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
-                            Respeto irrestricto de derechos laborales y certeza registral del patrimonio.
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
+                            Protección irrestricta a derechos laborales y certeza registral de bienes e inmuebles.
                         </div>
                     </div>
 
-                    <!-- COLUMNA 2: CIERRE FISCAL & SAT -->
-                    <div class="bg-slate-800/80 rounded-2xl border border-amber-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-amber-400 transition shadow-inner">
+                    <!-- COLUMNA 2: 10 ACCIONES -->
+                    <div onclick="abrirModalDetalleMandatoCompleto(2)" class="bg-slate-800/80 rounded-2xl border border-amber-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/10 transition cursor-pointer group shadow-inner">
                         <div class="space-y-2.5">
-                            <div class="bg-amber-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                            <div class="bg-amber-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-amber-500 transition">
                                 <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 2</span>
-                                <h4 class="font-black text-xs">CIERRE FISCAL & SAT</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 23, 27</span>
+                                <h4 class="font-black text-xs">CIERRE FISCAL, CUENTAS & ASEG</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 22, 23, 27</span>
                             </div>
 
                             <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
-                                <span class="text-xl font-black text-amber-400">42.9%</span>
-                                <span class="text-[10.5px] font-bold text-slate-300">3 de 7 Concluidas</span>
+                                <span class="text-xl font-black text-amber-400">40%</span>
+                                <span class="text-[10.5px] font-bold text-slate-300">4 de 10 Concluidas</span>
                             </div>
 
-                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Reintegros SF ($43.4M)</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Finiquito Teatro Juárez</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Pliego ASEG (Obs. 010)</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Cuentas BBVA/Salamanca</span><span class="font-bold text-amber-400 shrink-0">65%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Baja RFC SAT [R-02]</span><span class="font-bold text-rose-400 shrink-0">65%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Requerimientos ASEG</span><span class="font-bold text-amber-400 shrink-0">60%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Dictamen Congreso ASEG</span><span class="font-bold text-amber-400 shrink-0">50%</span></li>
+                            <div class="text-[10px] text-amber-300 font-bold flex items-center justify-between pb-1">
+                                <span>Universo Total (10 Acciones):</span>
+                                <span class="underline">Ver Ley y Plazos →</span>
+                            </div>
+
+                            <ul class="text-[10px] space-y-1 font-medium text-slate-200 max-h-72 overflow-y-auto pr-1">
+                                ${catalogo35Juridico[2].acciones.map(a => `
+                                    <li class="flex items-center justify-between py-0.5 border-b border-slate-700/40 last:border-0">
+                                        <span class="truncate pr-1">• ${a.nombre}</span>
+                                        <span class="font-bold ${a.pct === 100 ? 'text-emerald-400' : (a.pct >= 60 ? 'text-amber-400' : 'text-rose-400')} shrink-0">${a.pct}%</span>
+                                    </li>
+                                `).join('')}
                             </ul>
                         </div>
 
                         <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
-                            Extinción de personalidad fiscal ante el SAT y solventación de cuenta pública.
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
+                            Extinción de personalidad fiscal en el SAT Celaya y solventación de cuenta pública.
                         </div>
                     </div>
 
-                    <!-- COLUMNA 3: FIDEICOMISOS BANORTE -->
-                    <div class="bg-slate-800/80 rounded-2xl border border-purple-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-purple-400 transition shadow-inner">
+                    <!-- COLUMNA 3: 3 ACCIONES -->
+                    <div onclick="abrirModalDetalleMandatoCompleto(3)" class="bg-slate-800/80 rounded-2xl border border-purple-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/10 transition cursor-pointer group shadow-inner">
                         <div class="space-y-2.5">
-                            <div class="bg-purple-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                            <div class="bg-purple-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-purple-500 transition">
                                 <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 3</span>
                                 <h4 class="font-black text-xs">FIDEICOMISOS BANORTE</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Arts. 67 al 76 • Lineamientos Art. 10 • Dec. 19</span>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Arts. 67 al 76 • Lineamientos Art. 10 • Dec. Gub. 19</span>
                             </div>
 
                             <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
@@ -7681,56 +7766,67 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
                                 <span class="text-[10.5px] font-bold text-slate-300">1 de 3 Concluidas</span>
                             </div>
 
-                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Cese Pasivos IECG</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Adenda Banorte [R-03]</span><span class="font-bold text-purple-300 shrink-0">70%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Reintegro Rendimientos</span><span class="font-bold text-amber-400 shrink-0">40%</span></li>
+                            <div class="text-[10px] text-purple-300 font-bold flex items-center justify-between pb-1">
+                                <span>Universo Total (3 Acciones):</span>
+                                <span class="underline">Ver Ley y Plazos →</span>
+                            </div>
+
+                            <ul class="text-[10px] space-y-1.5 font-medium text-slate-200">
+                                ${catalogo35Juridico[3].acciones.map(a => `
+                                    <li class="flex items-center justify-between py-1 border-b border-slate-700/40 last:border-0">
+                                        <span class="truncate pr-1">• ${a.nombre}</span>
+                                        <span class="font-bold ${a.pct === 100 ? 'text-emerald-400' : 'text-purple-300'} shrink-0">${a.pct}%</span>
+                                    </li>
+                                `).join('')}
                             </ul>
                         </div>
 
                         <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
-                            Desvincula pasivos fiduciarios y traspasa la titularidad fiduciaria a SECUL.
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
+                            Desvincula pasivos fiduciarios y formaliza la titularidad del fondo a SECUL.
                         </div>
                     </div>
 
-                    <!-- COLUMNA 4: GOBERNANZA & TI -->
-                    <div class="bg-slate-800/80 rounded-2xl border border-emerald-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-emerald-400 transition shadow-inner">
+                    <!-- COLUMNA 4: 4 ACCIONES -->
+                    <div onclick="abrirModalDetalleMandatoCompleto(4)" class="bg-slate-800/80 rounded-2xl border border-emerald-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 transition cursor-pointer group shadow-inner">
                         <div class="space-y-2.5">
-                            <div class="bg-emerald-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                            <div class="bg-emerald-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-emerald-500 transition">
                                 <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 4</span>
-                                <h4 class="font-black text-xs">GOBERNANZA & TI</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Lineamientos Comités Arts. 3, 9, 34 • Arts. 11, 22</span>
+                                <h4 class="font-black text-xs">GOBERNANZA & SISTEMAS TI</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Lineamientos Comités Arts. 3, 9, 34 • Arts. 11, 29</span>
                             </div>
 
                             <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
-                                <span class="text-xl font-black text-emerald-400">57.1%</span>
-                                <span class="text-[10.5px] font-bold text-slate-300">4 de 7 Concluidas</span>
+                                <span class="text-xl font-black text-emerald-400">100%</span>
+                                <span class="text-[10.5px] font-bold text-slate-300">4 de 4 Concluidas</span>
                             </div>
 
-                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Instalación de Comité</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Baja Usuarios / SRFT</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Cancelación Licencias SAP</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Servidores y BD a SCUL</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ TESOFIFE Recursos Fed.</span><span class="font-bold text-amber-400 shrink-0">50%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ Cancelación CFDI 30/Dic</span><span class="font-bold text-amber-400 shrink-0">45%</span></li>
-                                <li class="flex items-center justify-between"><span class="truncate">▪ PbR-SED Cierre Trimestral</span><span class="font-bold text-amber-400 shrink-0">60%</span></li>
+                            <div class="text-[10px] text-emerald-300 font-bold flex items-center justify-between pb-1">
+                                <span>Universo Total (4 Acciones):</span>
+                                <span class="underline">Ver Ley y Plazos →</span>
+                            </div>
+
+                            <ul class="text-[10px] space-y-1.5 font-medium text-slate-200">
+                                ${catalogo35Juridico[4].acciones.map(a => `
+                                    <li class="flex items-center justify-between py-1 border-b border-slate-700/40 last:border-0">
+                                        <span class="truncate pr-1">• ${a.nombre}</span>
+                                        <span class="font-bold text-emerald-400 shrink-0">100%</span>
+                                    </li>
+                                `).join('')}
                             </ul>
                         </div>
 
                         <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
-                            Acuerdos colegiados protocolizados y migración total de plataformas digitales.
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
+                            Actas protocolizadas del Comité e infraestructura tecnológica migrada íntegramente.
                         </div>
                     </div>
 
                 </div>
 
-                <!-- Pie de Ficha con Salvedad Legal de Terceros -->
                 <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                     <span class="text-slate-400 font-medium">
-                        ⚖️ <strong class="text-slate-200">Artículo 6 de los Lineamientos:</strong> Las acciones en trámite no constituyen retraso imputable por depender de resoluciones del SAT, Fiduciaria Banorte y Notarías.
+                        ⚖️ <strong class="text-slate-200">Artículo 6 de los Lineamientos de Extinción:</strong> Las acciones pendientes no computan retraso imputable al organismo por encontrarse radicadas ante autoridades tributarias, notariales y fiduciarias externas.
                     </span>
                     <button type="button" onclick="window.print()" class="btn-executive px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 transition shadow-xs">
                         <i class="fa-solid fa-print"></i> Imprimir Lámina
@@ -8124,6 +8220,72 @@ window.abrirDetalleKpiGerencial = function(tipo) {
 
     openModal('modal-detalle-kpi-gerencial');
 };
+
+ // =========================================================================
+// MODAL DE DESGLOSE JURÍDICO DIRECTIVO (QUÉ DICE LA NORMA, ACCIÓN Y PLAZO)
+// =========================================================================
+window.abrirModalDetalleMandatoCompleto = function(numBloque) {
+    const modal = document.getElementById('modal-detalle-kpi-gerencial');
+    const titulo = document.getElementById('tituloModalKpiGerencial');
+    const subtitulo = document.getElementById('subtituloModalKpiGerencial');
+    const desc = document.getElementById('descModalKpiGerencial');
+    const badge = document.getElementById('badgeConteoModalKpi');
+    const iconBox = document.getElementById('iconBoxKpiGerencial');
+    const contenedor = document.getElementById('cuerpoListaModalKpiGerencial');
+
+    if (!modal || !contenedor) return;
+    contenedor.innerHTML = '';
+
+    const bloque = window.catalogo35JuridicoCache ? window.catalogo35JuridicoCache[numBloque] : null;
+    if (!bloque) return;
+
+    const concluidas = bloque.acciones.filter(a => a.pct === 100).length;
+    const total = bloque.acciones.length;
+    const pctPromedio = Math.round((concluidas / total) * 100);
+
+    titulo.textContent = bloque.nombre;
+    subtitulo.textContent = bloque.fundamentoRector;
+    desc.innerHTML = `<strong>¿Qué dice el Marco Legal?</strong> ${bloque.sintesisNorma}<br><span class="text-amber-800 font-bold block mt-1">⏳ Plazo Rector de Ley: ${bloque.plazoLey}</span>`;
+    badge.innerHTML = `<span class="text-${bloque.color}-800 font-black text-sm">${concluidas} de ${total} Concluidas (${pctPromedio}%)</span>`;
+    iconBox.innerHTML = `<i class="fa-solid fa-scale-balanced text-${bloque.color}-400"></i>`;
+
+    contenedor.innerHTML = bloque.acciones.map((a, idx) => {
+        const esConcluido = a.pct === 100;
+        const badgeColor = esConcluido ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : (a.pct >= 70 ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-amber-100 text-amber-800 border-amber-300');
+
+        return `
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs hover:border-${bloque.color}-400 transition space-y-2.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-slate-900 text-white font-mono font-black flex items-center justify-center text-[10px]">${idx + 1}</span>
+                        <span class="font-mono font-bold text-indigo-950 text-xs">[${a.id}]</span>
+                        <strong class="text-slate-900 text-xs">${a.nombre}</strong>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-black border ${badgeColor} self-start sm:self-auto">${a.est} (${a.pct}%)</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px]">
+                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                        <span class="text-[9.5px] font-black uppercase text-indigo-700 block mb-1">⚖️ Fundamento Legal Específico</span>
+                        <p class="text-slate-700 font-semibold leading-snug">${a.norma}</p>
+                    </div>
+
+                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                        <span class="text-[9.5px] font-black uppercase text-slate-800 block mb-1">📋 ¿Qué se debe hacer para cumplirla?</span>
+                        <p class="text-slate-600 leading-snug">${a.deber}</p>
+                    </div>
+
+                    <div class="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200/80">
+                        <span class="text-[9.5px] font-black uppercase text-amber-900 block mb-1">⏳ Plazo de Ley Establecido</span>
+                        <p class="text-amber-950 font-bold leading-snug">${a.plazo}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    openModal('modal-detalle-kpi-gerencial');
+};       
 
 window.abrirModalDetalleMandato = function(numMandato) {
     const modal = document.getElementById('modal-detalle-kpi-gerencial');
