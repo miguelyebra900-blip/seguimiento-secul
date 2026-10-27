@@ -438,13 +438,25 @@
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
                             <div>
-                                <span class="block leading-tight font-black">3. Nivel de Riesgo & ASEG</span>
+                                <span class="block leading-tight font-black">3. Nivel de Riesgo</span>
                                 <span class="text-[10px] text-slate-400 font-normal">Matriz de contingencias</span>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
                     </button>
                 </div>
+<!-- 4. CUARTA PERSPECTIVA: RESUMEN EJECUTIVO (ONE-SLIDE DASHBOARD) -->
+                    <button type="button" id="sideTabResumen" onclick="seleccionarPerspectivaGerencial('resumen')" 
+                            class="w-full text-left p-3.5 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border bg-white text-slate-700 border-slate-200 hover:bg-slate-50">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-layer-group text-emerald-600 text-sm"></i>
+                            <div>
+                                <span class="block leading-tight font-black">4. Resumen Ejecutivo</span>
+                                <span class="text-[10px] text-slate-400 font-normal">Cuadro de Mando 1-Slide</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                    </button>
 
                 <div class="pt-3 border-t border-slate-100">
                     <button type="button" onclick="window.print()" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold border border-slate-200 flex items-center justify-center gap-1.5 transition">
@@ -7548,6 +7560,7 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
     const btnL = document.getElementById('sideTabLey');
     const btnE = document.getElementById('sideTabEtapas');
     const btnR = document.getElementById('sideTabRiesgos');
+    const btnS = document.getElementById('sideTabResumen');
 
     const activoClass = "w-full text-left p-3.5 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border bg-slate-900 text-white border-slate-900 shadow-md";
     const inactivoClass = "w-full text-left p-3.5 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border bg-white text-slate-700 border-slate-200 hover:bg-slate-50";
@@ -7555,6 +7568,7 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
     if (btnL) btnL.className = (tipo === 'ley') ? activoClass : inactivoClass;
     if (btnE) btnE.className = (tipo === 'etapas') ? activoClass : inactivoClass;
     if (btnR) btnR.className = (tipo === 'riesgos') ? activoClass : inactivoClass;
+    if (btnS) btnS.className = (tipo === 'resumen') ? activoClass : inactivoClass;
 
     renderGaugeRadial(48.6);
 
@@ -7562,7 +7576,174 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
     const titulo = document.getElementById('tituloPerspectivaGerencial');
     if (!cuerpo) return;
 
+    if (tipo === 'resumen') {
+        // =========================================================================
+        // PERSPECTIVA 4: RADIOGRAFÍA EJECUTIVA COMPACTA (ONE-SLIDE DASHBOARD)
+        // =========================================================================
+        if (titulo) titulo.innerHTML = '<i class="fa-solid fa-layer-group text-emerald-600"></i> Radiografía Ejecutiva de Extinción — Decreto No. 345';
+
+        cuerpo.innerHTML = `
+            <div class="bg-slate-900 p-6 rounded-3xl text-white shadow-xl space-y-6 border border-slate-800">
+                
+                <!-- Encabezado Interno del One-Slide -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-sky-400 bg-sky-950/80 px-2.5 py-1 rounded-md border border-sky-800">
+                            Ficha de Decisión Directiva
+                        </span>
+                        <h3 class="text-base font-black tracking-tight mt-1 text-slate-100">
+                            Matriz de 4 Pilares Mandatorios • Cómputo Nominal de 35 Acciones
+                        </h3>
+                    </div>
+                    <div class="flex items-center gap-2 bg-slate-800/90 px-3.5 py-1.5 rounded-2xl border border-slate-700 self-start md:self-auto">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-xs font-black text-sky-300">AVANCE GLOBAL AUDITADO: 48.6%</span>
+                        <span class="text-[11px] text-slate-400 font-bold">(17 de 35 Solventadas)</span>
+                    </div>
+                </div>
+
+                <!-- Rejilla de las 4 Columnas Ejecutivas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                    <!-- COLUMNA 1: PERSONAL & TRASPASO -->
+                    <div class="bg-slate-800/80 rounded-2xl border border-blue-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-blue-400 transition shadow-inner">
+                        <div class="space-y-2.5">
+                            <div class="bg-blue-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 1</span>
+                                <h4 class="font-black text-xs">PERSONAL & TRASPASO</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17</span>
+                            </div>
+
+                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-xl font-black text-blue-400">50%</span>
+                                <span class="text-[10.5px] font-bold text-slate-300">9 de 18 Concluidas</span>
+                            </div>
+
+                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
+                                <li class="flex items-center justify-between"><span class="truncate">▪ 303 Plazas a DGRH</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Plaza Nivel 8 y Bienes</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Flotilla Vehicular</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Finiquitos Tribunal</span><span class="font-bold text-amber-400 shrink-0">70%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Archivo Fondo Cerrado</span><span class="font-bold text-amber-400 shrink-0">60%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Predios y Destino [R-04]</span><span class="font-bold text-amber-400 shrink-0">50%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ 2,570 Muebles [R-01]</span><span class="font-bold text-rose-400 shrink-0">40%</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
+                            Respeto irrestricto de derechos laborales y certeza registral del patrimonio.
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 2: CIERRE FISCAL & SAT -->
+                    <div class="bg-slate-800/80 rounded-2xl border border-amber-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-amber-400 transition shadow-inner">
+                        <div class="space-y-2.5">
+                            <div class="bg-amber-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 2</span>
+                                <h4 class="font-black text-xs">CIERRE FISCAL & SAT</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 23, 27</span>
+                            </div>
+
+                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-xl font-black text-amber-400">42.9%</span>
+                                <span class="text-[10.5px] font-bold text-slate-300">3 de 7 Concluidas</span>
+                            </div>
+
+                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Reintegros SF ($43.4M)</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Finiquito Teatro Juárez</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Pliego ASEG (Obs. 010)</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Cuentas BBVA/Salamanca</span><span class="font-bold text-amber-400 shrink-0">65%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Baja RFC SAT [R-02]</span><span class="font-bold text-rose-400 shrink-0">65%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Requerimientos ASEG</span><span class="font-bold text-amber-400 shrink-0">60%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Dictamen Congreso ASEG</span><span class="font-bold text-amber-400 shrink-0">50%</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
+                            Extinción de personalidad fiscal ante el SAT y solventación de cuenta pública.
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 3: FIDEICOMISOS BANORTE -->
+                    <div class="bg-slate-800/80 rounded-2xl border border-purple-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-purple-400 transition shadow-inner">
+                        <div class="space-y-2.5">
+                            <div class="bg-purple-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 3</span>
+                                <h4 class="font-black text-xs">FIDEICOMISOS BANORTE</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Arts. 67 al 76 • Lineamientos Art. 10 • Dec. 19</span>
+                            </div>
+
+                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-xl font-black text-purple-400">33.3%</span>
+                                <span class="text-[10.5px] font-bold text-slate-300">1 de 3 Concluidas</span>
+                            </div>
+
+                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Cese Pasivos IECG</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Adenda Banorte [R-03]</span><span class="font-bold text-purple-300 shrink-0">70%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Reintegro Rendimientos</span><span class="font-bold text-amber-400 shrink-0">40%</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
+                            Desvincula pasivos fiduciarios y traspasa la titularidad fiduciaria a SECUL.
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 4: GOBERNANZA & TI -->
+                    <div class="bg-slate-800/80 rounded-2xl border border-emerald-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-emerald-400 transition shadow-inner">
+                        <div class="space-y-2.5">
+                            <div class="bg-emerald-600 text-white p-2.5 rounded-xl text-center shadow-xs">
+                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 4</span>
+                                <h4 class="font-black text-xs">GOBERNANZA & TI</h4>
+                                <span class="block text-[8px] opacity-80 mt-0.5">Lineamientos Comités Arts. 3, 9, 34 • Arts. 11, 22</span>
+                            </div>
+
+                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-xl font-black text-emerald-400">57.1%</span>
+                                <span class="text-[10.5px] font-bold text-slate-300">4 de 7 Concluidas</span>
+                            </div>
+
+                            <ul class="text-[10.5px] space-y-1.5 font-medium text-slate-200">
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Instalación de Comité</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Baja Usuarios / SRFT</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Cancelación Licencias SAP</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Servidores y BD a SCUL</span><span class="font-bold text-emerald-400 shrink-0">100%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ TESOFIFE Recursos Fed.</span><span class="font-bold text-amber-400 shrink-0">50%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ Cancelación CFDI 30/Dic</span><span class="font-bold text-amber-400 shrink-0">45%</span></li>
+                                <li class="flex items-center justify-between"><span class="truncate">▪ PbR-SED Cierre Trimestral</span><span class="font-bold text-amber-400 shrink-0">60%</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
+                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE LEGAL:</strong>
+                            Acuerdos colegiados protocolizados y migración total de plataformas digitales.
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Pie de Ficha con Salvedad Legal de Terceros -->
+                <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <span class="text-slate-400 font-medium">
+                        ⚖️ <strong class="text-slate-200">Artículo 6 de los Lineamientos:</strong> Las acciones en trámite no constituyen retraso imputable por depender de resoluciones del SAT, Fiduciaria Banorte y Notarías.
+                    </span>
+                    <button type="button" onclick="window.print()" class="btn-executive px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 transition shadow-xs">
+                        <i class="fa-solid fa-print"></i> Imprimir Lámina
+                    </button>
+                </div>
+
+            </div>
+        `;
+        return;
+    }
+
     if (tipo === 'ley') {
+   
         // MAQUETA 2: BLOQUES MANDATORIOS EN 2x2
         if (titulo) titulo.innerHTML = '<i class="fa-solid fa-scale-balanced text-indigo-600"></i> Cumplimiento de Obligaciones por Mandato de Ley';
         
