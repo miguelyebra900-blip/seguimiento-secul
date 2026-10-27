@@ -5964,14 +5964,56 @@ window.renderBaseDatosGeneralJerarquica = function() {
     contenedor.innerHTML = htmlFinal;
 }; // <-- Aquí se cierra la función principal
 // 3. Abrir Alta de Hito
+        
+// 3. Abrir Alta de Hito (Con candado de seguridad, autenticación y preselección de panel)
 window.abrirAltaHitoDesdeBDGeneral = function() {
+    // A. Candado de sesión activa
+    if (!currentUser) {
+        alert("🔒 ACCESO RESTRINGIDO:\n\nDebes iniciar sesión con tu cuenta institucional para registrar o proponer nuevos hitos normativos.");
+        openModal('modal-auth');
+        return;
+    }
+
+    // B. Transición de modales
     closeModal('modal-base-datos-general');
     openModal('modal-buzon-universal');
+
+    // C. Pestaña de Nuevo Hito
     if (typeof cambiarTabModalUniversal === 'function') {
         cambiarTabModalUniversal('tab-hitos');
     }
-};
 
+    // D. Proyectar identidad y panel del usuario en la pastilla superior
+    const lblNombre = document.getElementById('nombreUserModalUniversal');
+    const lblPanel = document.getElementById('panelUserModalUniversal');
+    const misPaneles = (typeof resolverPanelesUsuario === 'function') 
+        ? resolverPanelesUsuario(currentUser) 
+        : (currentUser.paneles_autorizados || ['A']);
+
+    if (lblNombre) {
+        lblNombre.innerText = currentUser.nombre || currentUser.usuario;
+    }
+    if (lblPanel) {
+        lblPanel.innerText = `Panel ${misPaneles.join(', ')}`;
+    }
+
+    // E. Preseleccionar automáticamente el Área Ejecutora del enlace
+    const selArea = document.getElementById('selectAreaEjecutoraHito');
+    if (selArea) {
+        const miPrimerPanel = misPaneles[0] || 'A';
+        for (let i = 0; i < selArea.options.length; i++) {
+            if (selArea.options[i].value.startsWith(miPrimerPanel + '|')) {
+                selArea.selectedIndex = i;
+                break;
+            }
+        }
+
+        // Sincronizar folio, instancia ejecutora y fundamento legal
+        if (typeof manejarCambioAreaEjecutoraMaestro === 'function') {
+            manejarCambioAreaEjecutoraMaestro(selArea);
+        }
+    }
+};
 // 4. Abrir Alta de Acción vinculada a Hito Padre
 window.abrirAltaAccionParaHitoEspecifico = function(claveHito) {
     closeModal('modal-base-datos-general');
