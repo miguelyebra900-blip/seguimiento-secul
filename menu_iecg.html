@@ -472,49 +472,66 @@
                 </div>
             </div>
 
-            <!-- FILA SUPERIOR: 3 TARJETAS KPIS CON ANILLO GAUGE RADIAL -->
+    <!-- FILA SUPERIOR: 3 TARJETAS KPIS INTERACTIVAS CON DESGLOSE DIRECTIVO -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
                 <!-- KPI 1: PROGRESO GLOBAL CON ANILLO RADIAL (48.6%) -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div onclick="abrirDetalleKpiGerencial('progreso')" 
+                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-400 transition-all cursor-pointer group flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Progreso de Obligaciones</span>
-                        <span class="text-3xl font-black text-slate-900 mt-1 block" id="kpiRadialPctText">48.6%</span>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Progreso de Obligaciones</span>
+                            <i class="fa-solid fa-circle-info text-indigo-500 text-[11px] group-hover:scale-125 transition-transform"></i>
+                        </div>
+                        <span class="text-3xl font-black text-slate-900 block" id="kpiRadialPctText">48.6%</span>
                         <span class="text-xs text-emerald-600 font-bold block mt-0.5">17 de 35 Solventadas</span>
+                        <span class="text-[10px] text-indigo-600 font-semibold underline mt-1 block">Clic para ver desglose completo →</span>
                     </div>
-                    <div class="relative w-20 h-20 flex items-center justify-center">
+                    <div class="relative w-20 h-20 flex items-center justify-center shrink-0">
                         <canvas id="gaugeRadialGerencial" width="80" height="80"></canvas>
-                        <span class="absolute text-xs font-black text-slate-800" id="gaugeCenterLabel">48.6%</span>
+                        <span class="absolute text-xs font-black text-slate-900 pointer-events-none" id="gaugeCenterLabel">48.6%</span>
                     </div>
                 </div>
 
-                <!-- KPI 2: ARTÍCULOS Y METAS CUMPLIDAS -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <!-- KPI 2: ARTÍCULOS Y METAS CUMPLIDAS (17 DE 35) -->
+                <div onclick="abrirDetalleKpiGerencial('completadas')" 
+                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-400 transition-all cursor-pointer group flex flex-col justify-between">
                     <div>
-                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Artículos Cumplidos</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Artículos Cumplidos</span>
+                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs group-hover:scale-125 transition-transform"></i>
+                        </div>
                         <div class="flex items-baseline gap-2 mt-1">
                             <span class="text-3xl font-black text-slate-900" id="kpiAccionesCompletasTxt">17 de 35</span>
                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">Completado</span>
                         </div>
+                        <span class="text-[11px] text-slate-500 font-medium block mt-1">Padrón de 17 compromisos acreditados</span>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
-                        <div class="bg-emerald-500 h-2 rounded-full" style="width: 48.6%"></div>
+                    <div class="mt-3">
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-2">
+                            <div class="bg-emerald-500 h-2 rounded-full" style="width: 48.6%"></div>
+                        </div>
+                        <span class="text-[10px] text-emerald-700 font-bold underline">Auditar las 17 acciones concluidas →</span>
                     </div>
                 </div>
 
-                <!-- KPI 3: NIVEL DE CONTINGENCIA / ALERTA -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <!-- KPI 3: NIVEL DE CONTINGENCIA / ALERTA (RIESGO MODERADO - ART. 6) -->
+                <div onclick="abrirDetalleKpiGerencial('riesgos')" 
+                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between">
                     <div>
-                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Nivel de Contingencia / Alerta</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Nivel de Contingencia / Alerta</span>
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs group-hover:scale-125 transition-transform"></i>
+                        </div>
                         <div class="flex items-center gap-2 mt-1">
                             <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
                             <span class="text-xl font-black text-amber-700">Riesgo Moderado</span>
                         </div>
                         <span class="text-xs text-slate-500 mt-1 block">5 Salvedades de Terceros (Art. 6)</span>
                     </div>
-                    <div class="pt-2 border-t border-slate-100 text-[11px] font-bold text-slate-600 flex justify-between">
-                        <span>Sin sanciones activas</span>
-                        <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                    <div class="pt-2 border-t border-slate-100 text-[10px] font-bold text-amber-800 flex justify-between items-center mt-2">
+                        <span class="underline">Ver matriz de salvedades y dependencias →</span>
+                        <i class="fa-solid fa-shield-halved text-amber-600"></i>
                     </div>
                 </div>
 
@@ -7774,6 +7791,9 @@ window.seleccionarPerspectivaGerencial = function(tipo) {
     }
 };
 
+// =========================================================================
+// CORRECCIÓN DEL ANILLO RADIAL (LIMPIO, SIN TEXTOS SUPERPUESTOS)
+// =========================================================================
 function renderGaugeRadial(porcentaje) {
     const canvas = document.getElementById('gaugeRadialGerencial');
     if (!canvas) return;
@@ -7781,27 +7801,148 @@ function renderGaugeRadial(porcentaje) {
 
     if (radialChartInstance) radialChartInstance.destroy();
 
+    // Desactivamos completamente los datalabels para que no se encimen números
     radialChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
             datasets: [{
-                data: [porcentaje, 100 - porcentaje],
-                backgroundColor: ['#2563eb', '#f1f5f9'],
+                data: [porcentaje, Math.max(0, 100 - porcentaje)],
+                backgroundColor: ['#2563eb', '#e2e8f0'],
                 borderWidth: 0,
-                circumference: 360
+                circumference: 360,
+                rotation: 0
             }]
         },
         options: {
             responsive: false,
             maintainAspectRatio: false,
-            cutout: '76%',
+            cutout: '80%',
             plugins: {
                 tooltip: { enabled: false },
-                legend: { display: false }
+                legend: { display: false },
+                datalabels: { display: false } // Bloquea los textos del plugin datalabels
             }
         }
     });
+
+    const centerLabel = document.getElementById('gaugeCenterLabel');
+    if (centerLabel) centerLabel.textContent = `${porcentaje}%`;
 }
+
+// =========================================================================
+// DESGLOSE COMPLETO AL DAR CLIC EN CUALQUIERA DE LAS 3 TARJETAS KPI
+// =========================================================================
+window.abrirDetalleKpiGerencial = function(tipo) {
+    const modal = document.getElementById('modal-detalle-kpi-gerencial');
+    const titulo = document.getElementById('tituloModalKpiGerencial');
+    const subtitulo = document.getElementById('subtituloModalKpiGerencial');
+    const desc = document.getElementById('descModalKpiGerencial');
+    const badge = document.getElementById('badgeConteoModalKpi');
+    const iconBox = document.getElementById('iconBoxKpiGerencial');
+    const contenedor = document.getElementById('cuerpoListaModalKpiGerencial');
+
+    if (!modal || !contenedor) return;
+    contenedor.innerHTML = '';
+
+    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+
+    if (tipo === 'progreso') {
+        // DETALLE DE LAS 35 ACCIONES CONSOLIDADAS
+        titulo.textContent = 'Composición del Progreso Global (48.6% del Decreto 345)';
+        subtitulo.textContent = 'AUDITORÍA INTEGRAL DE LAS 35 OBLIGACIONES';
+        desc.textContent = 'Muestra el estado nominal de las 35 acciones del proceso de extinción. El avance global resulta del cociente exacto de las 17 acciones solventadas con expediente.';
+        badge.innerHTML = `<span class="text-emerald-600 font-bold">17 Concluidas</span> • <span class="text-amber-600 font-bold">16 En Proceso</span> • <span class="text-purple-600 font-bold">2 Validación</span>`;
+        iconBox.innerHTML = '<i class="fa-solid fa-percent text-indigo-400"></i>';
+
+        contenedor.innerHTML = dataset.map((a, idx) => {
+            const esConcluido = a.estatus === 'Concluido' || Number(a.avance) === 100;
+            const badgeColor = esConcluido ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : (a.estatus === 'Validación' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200');
+            const driveIcon = (a.driveUrl && a.driveUrl.trim() !== '') ? `<a href="${a.driveUrl}" target="_blank" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg border border-emerald-200 text-[10px] inline-flex items-center gap-1"><i class="fa-brands fa-google-drive"></i> Ver Drive</a>` : `<span class="text-[10px] text-slate-400">Sin archivo</span>`;
+
+            return `
+                <div class="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs hover:border-indigo-300 transition flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-black flex items-center justify-center text-[10px] border border-indigo-100">${a.panel || 'A'}</span>
+                            <span class="font-mono font-bold text-indigo-950 text-xs">${a.clave_accion || a.id}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeColor}">${a.estatus} (${a.avance}%)</span>
+                        </div>
+                        <h4 class="font-bold text-slate-900 text-xs">${a.hito}: <span class="font-normal text-slate-700">${a.accion}</span></h4>
+                        <p class="text-[10px] text-slate-500 font-medium"><i class="fa-solid fa-scale-balanced text-indigo-500 me-1"></i>${a.fundamento_juridico || 'Decreto 345 & Lineamientos'} · <strong>Resp:</strong> ${a.responsable}</p>
+                    </div>
+                    <div class="shrink-0 flex items-center gap-2">
+                        ${driveIcon}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } else if (tipo === 'completadas') {
+        // DETALLE DE LAS 17 ACCIONES 100% CUMPLIDAS
+        const concluidas = dataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100);
+
+        titulo.textContent = 'Padrón de 17 Obligaciones Acreditadas y Concluidas';
+        subtitulo.textContent = 'CERTEZA DOCUMENTAL Y PROBATORIA';
+        desc.textContent = 'Compromisos con acta de entrega-recepción, dictamen favorable o validación del Órgano Interno de Control (OIC).';
+        badge.innerHTML = `<span class="text-emerald-700 font-black text-sm">17 Acciones Solventadas al 100%</span>`;
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+
+        contenedor.innerHTML = concluidas.map((a, idx) => `
+            <div class="p-3.5 bg-emerald-50/40 rounded-2xl border border-emerald-200 shadow-2xs space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-mono font-black flex items-center justify-center text-[10px]">${a.panel || 'A'}</span>
+                        <span class="font-mono font-bold text-emerald-950 text-xs">${a.clave_accion || a.id}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">100% Solventado</span>
+                    </div>
+                    ${a.driveUrl ? `<a href="${a.driveUrl}" target="_blank" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[10px] flex items-center gap-1 shadow-2xs transition"><i class="fa-brands fa-google-drive"></i> Abrir Expediente</a>` : ''}
+                </div>
+                <h4 class="font-bold text-slate-900 text-xs">${a.hito}: <span class="font-normal text-slate-700">${a.accion}</span></h4>
+                <div class="p-2.5 bg-white rounded-xl border border-emerald-100 text-[11px] text-slate-600 space-y-1">
+                    <p>• <strong>Instrumento de Soporte:</strong> ${a.instrumento_1 || 'Acta Administrativa de Entrega-Recepción protocolizada'}</p>
+                    <p>• <strong>Fundamento Legal:</strong> ${a.fundamento_juridico || 'Decreto No. 345'}</p>
+                </div>
+            </div>
+        `).join('');
+
+    } else if (tipo === 'riesgos') {
+        // DETALLE DE LAS 5 SALVEDADES DE TERCEROS (ARTÍCULO 6)
+        const riesgos = dataset.filter(a => a.riesgo_vinculado && a.riesgo_vinculado.trim() !== '');
+
+        titulo.textContent = 'Matriz de Contingencias y Salvedades de Ley (Artículo 6)';
+        subtitulo.textContent = 'BLINDAJE ANTE RESPONSABILIDADES ADMINISTRATIVAS';
+        desc.textContent = 'Trámites detenidos por instancias externas (SAT, Fiduciaria Banorte, ASEG, Notarías). Conforme al Art. 6 de los Lineamientos, están formalmente deslindadas como causas no imputables a la liquidación.';
+        badge.innerHTML = `<span class="text-amber-700 font-black text-sm">${riesgos.length} Puntos Críticos Mapeados</span>`;
+        iconBox.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i>';
+
+        contenedor.innerHTML = riesgos.map(a => {
+            const esRiesgoAlto = a.riesgo_vinculado.includes('R-01') || a.riesgo_vinculado.includes('Alto');
+            const colorBox = esRiesgoAlto ? 'border-rose-300 bg-rose-50/50' : 'border-amber-300 bg-amber-50/50';
+            const badgeTag = esRiesgoAlto ? 'bg-rose-100 text-rose-900 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300';
+
+            return `
+                <div class="p-4 rounded-2xl border-2 ${colorBox} space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded font-mono font-black text-xs border ${badgeTag}">${a.riesgo_vinculado}</span>
+                            <span class="font-mono font-bold text-slate-800 text-xs">${a.clave_accion || a.id}</span>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Panel ${a.panel}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-slate-700 border border-slate-200">${a.estatus} (${a.avance}%)</span>
+                    </div>
+                    <h4 class="font-black text-slate-900 text-xs">${a.hito}</h4>
+                    <p class="text-xs text-slate-700 leading-snug">${a.accion}</p>
+                    <div class="p-2.5 bg-white/90 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                        <p>• <strong>Causa de Salvedad:</strong> Trámite en espera de resolución de la dependencia externa correspondiente.</p>
+                        <p>• <strong>Fundamento de Protección:</strong> Artículo 6 de los Lineamientos del Decreto No. 345.</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    openModal('modal-detalle-kpi-gerencial');
+};
 </script>
 
     <!-- ========================================================================= -->
@@ -8551,6 +8692,55 @@ function toggleModoClaveCanonica() {
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL DE DESGLOSE ANALÍTICO PARA KPIS GERENCIALES (DIRECTIVO & AUDITABLE) -->
+<!-- ========================================================================= -->
+<div id="modal-detalle-kpi-gerencial" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col">
+        
+        <!-- Header del Modal -->
+        <div id="headerModalKpiGerencial" class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <div id="iconBoxKpiGerencial" class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-400/30">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <span id="subtituloModalKpiGerencial" class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300 block">DESGLOSE DIRECTIVO OFICIAL</span>
+                    <h3 id="tituloModalKpiGerencial" class="font-extrabold text-base leading-snug">Detalle de Composición</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-detalle-kpi-gerencial')" class="text-slate-400 hover:text-white text-xl transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Banner explicativo superior -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p id="descModalKpiGerencial" class="font-medium leading-relaxed"></p>
+            <span id="badgeConteoModalKpi" class="px-3 py-1 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 shrink-0 text-center shadow-2xs"></span>
+        </div>
+
+        <!-- Contenedor Desplazable de la Lista de Acciones -->
+        <div class="p-6 overflow-y-auto space-y-3" id="cuerpoListaModalKpiGerencial">
+            <!-- Inyectado dinámicamente -->
+        </div>
+
+        <!-- Footer Directivo con Botón de Impresión -->
+        <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center shrink-0">
+            <span class="text-[11px] text-slate-400 font-medium">Decreto 345 • Base sincronizada en Supabase</span>
+            <div class="flex gap-2">
+                <button type="button" onclick="window.print()" class="btn-executive px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-print"></i> Imprimir Reporte
+                </button>
+                <button type="button" onclick="closeModal('modal-detalle-kpi-gerencial')" class="btn-executive px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs">
+                    Cerrar Ficha
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
     
