@@ -5874,30 +5874,20 @@ window.renderBaseDatosGeneralJerarquica = function() {
             else if (a.estatus === 'Validación') badgeEst = 'bg-purple-100 text-purple-800';
             else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-100 text-amber-800';
 
-         var listaArchivosAccion = a.archivosDrive || [];
-var btnDrive = '';
-5879:
-5880: if (listaArchivosAccion.length > 0) {
-    // Generar renglones limpios con botón Ver y botón Eliminar para cada archivo
-    // DETERMINAR CANTIDAD TOTAL DE ARCHIVOS
-          // DETERMINAR CANTIDAD TOTAL DE ARCHIVOS
-            var btnDrive = '';
-
-            // DETERMINAR CANTIDAD TOTAL DE ARCHIVOS
+      var listaArchivosAccion = a.archivosDrive || [];
             var numArchivos = listaArchivosAccion.length;
             if (numArchivos === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
                 numArchivos = 1;
             }
 
-            // BOTÓN INDICADOR DIRECTO PARA SPLIT-SCREEN
-            btnDrive = '<button type="button" onclick="seleccionarAccionParaExpediente(\'' + idClaveAccion + '\')" ' +
-                       'class="px-3 py-1.5 rounded-xl text-xs font-bold ' + 
-                       (numArchivos > 0 ? 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-200') + 
-                       ' inline-flex items-center gap-1.5 transition-all shadow-2xs group">' +
-                       '<i class="fa-brands fa-google-drive ' + (numArchivos > 0 ? 'text-amber-500 group-hover:text-amber-300' : 'text-slate-400') + ' transition-colors"></i>' +
-                       '<span>' + (numArchivos > 0 ? numArchivos + ' Doc(s)' : 'Sin Archivos') + '</span>' +
-                       '<i class="fa-solid fa-chevron-right text-[10px] ' + (numArchivos > 0 ? 'text-indigo-400 group-hover:text-white group-hover:translate-x-0.5' : 'text-slate-400') + ' transition-all"></i>' +
-                       '</button>';
+            var btnDrive = '<button type="button" onclick="seleccionarAccionParaExpediente(\'' + idClaveAccion + '\')" ' +
+                           'class="px-3 py-1.5 rounded-xl text-xs font-bold ' + 
+                           (numArchivos > 0 ? 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-200') + 
+                           ' inline-flex items-center gap-1.5 transition-all shadow-2xs group">' +
+                           '<i class="fa-brands fa-google-drive ' + (numArchivos > 0 ? 'text-amber-500 group-hover:text-amber-300' : 'text-slate-400') + ' transition-colors"></i>' +
+                           '<span>' + (numArchivos > 0 ? numArchivos + ' Doc(s)' : 'Sin Archivos') + '</span>' +
+                           '<i class="fa-solid fa-chevron-right text-[10px] ' + (numArchivos > 0 ? 'text-indigo-400 group-hover:text-white group-hover:translate-x-0.5' : 'text-slate-400') + ' transition-all"></i>' +
+                           '</button>';
            
    filasAcciones += '<tr class="hover:bg-slate-50/80 transition">' +
         '<td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">' + idClaveAccion + '</td>' +
