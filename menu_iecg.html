@@ -1890,41 +1890,57 @@
 
               <!-- FUNDAMENTO LEGAL RECTOR VINCULADO AL DECRETO NO. 345 -->
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700 text-xs">Fundamento Legal / Oficio Rector:</label>
-                        <span class="text-[10px] font-bold text-indigo-600">💡 Sugerido por Decreto No. 345</span>
-                    </div>
-                    <div class="relative">
-                        <input type="text" id="nuevoHitoNorma" list="catalogoFundamentosNormativos" 
-                               placeholder="Selecciona o escribe el artículo/oficio..." 
-                               class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-xs text-slate-900 border-slate-300 focus:bg-white focus:ring-2 focus:ring-indigo-500" required>
-                        
-                        <!-- CATÁLOGO NORMATIVO (3 CLICS O ESCRITURA LIBRE) -->
-                        <datalist id="catalogoFundamentosNormativos">
-                            <!-- Bloque 1: Personal, Patrimonio y Archivo -->
-                            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">
-                            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">
-                            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">
-                            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">
-                            
-                            <!-- Bloque 2: Cierre Fiscal, Financiero y Cuentas -->
-                            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">
-                            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">
-                            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">
-                            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">
-                            
-                            <!-- Bloque 3: Fideicomisos Banorte (FIARCA) -->
-                            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">
-                            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">
-                            
-                            <!-- Bloque 4: Gobernanza y Comités -->
-                            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">
-                            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">
-                            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">
-                        </datalist>
-                    </div>
-                </div>
+                   <!-- REEMPLAZAR ESTE BLOQUE POR EL SIGUIENTE FORMATO EJECUTIVO -->
+<div class="bg-indigo-50/40 p-3.5 rounded-2xl border border-indigo-100/80 space-y-2">
+    <div class="flex items-center justify-between">
+        <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Fundamento Legal / Oficio Rector:
+        </label>
+        <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+            Decreto No. 345 & Lineamientos
+        </span>
+    </div>
 
+    <!-- SELECTOR COMPLETO Y LEGIBLE CON TEXTO COMPLETO -->
+    <select id="selectNormaPredefinida" onchange="seleccionarNormaRectorHito(this)" 
+            class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold text-slate-800 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
+        <option value="">-- Selecciona el Fundamento Jurídico del Decreto 345 --</option>
+        
+        <!-- Bloque 1: Personal, Patrimonio y Archivo -->
+        <optgroup label="Bloque 1: Personal, Patrimonio y Archivo">
+            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles</option>
+            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado</option>
+        </optgroup>
+
+        <!-- Bloque 2: Cierre Fiscal, Financiero y Cuentas -->
+        <optgroup label="Bloque 2: Cierre Fiscal, Financiero y Auditoría">
+            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas</option>
+            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya</option>
+            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca</option>
+            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG</option>
+        </optgroup>
+
+        <!-- Bloque 3: Fideicomisos Banorte (FIARCA) -->
+        <optgroup label="Bloque 3: Fideicomisos Banorte (FIARCA)">
+            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos</option>
+            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura</option>
+        </optgroup>
+
+        <!-- Bloque 4: Gobernanza y Comités -->
+        <optgroup label="Bloque 4: Gobernanza, Comités y Sistemas TI">
+            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas</option>
+            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT</option>
+        </optgroup>
+        <option value="OTRO">✍️ Otro Oficio / Acuerdo Específico (Escribir Manualmente)</option>
+    </select>
+
+    <!-- CAMPO DE TEXTO OFICIAL QUE PERMITE ESCRITURA O EDICIÓN -->
+    <input type="text" id="nuevoHitoNorma" placeholder="El fundamento seleccionado o número de oficio aparecerá aquí..." 
+           class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500" required>
+</div>
                 <!-- Contenedor Dinámico de Acciones Obligatorias -->
                 <div class="border-t border-slate-200 pt-3">
                     <div class="flex items-center justify-between mb-2">
@@ -8409,6 +8425,85 @@ window.abrirModalDetalleMandato = function(numMandato) {
             <p class="truncate">• <strong>Soporte:</strong> ${accion.instrumento_1 || 'Expediente técnico con acuse'}</p>
         </div>
     `;
+};
+
+        // =========================================================================
+// REACTIVIDAD INMEDIATA: PANEL RECTOR, INSTANCIA Y FUNDAMENTO LEGAL
+// =========================================================================
+window.manejarCambioAreaEjecutoraMaestro = function(selectEl) {
+    if (!selectEl) return;
+    const val = selectEl.value;
+    const inputTexto = document.getElementById('inputOtraAreaEjecutora');
+    const inputOcultoPanel = document.getElementById('nuevoHitoPanel');
+    const inputOcultoArea = document.getElementById('nuevoHitoArea');
+    const inputNorma = document.getElementById('nuevoHitoNorma');
+    const selectNorma = document.getElementById('selectNormaPredefinida');
+
+    let panelLetra = 'A';
+    let prefijoArea = 'RH_E';
+    let nombreAreaCompleto = 'Panel A - Recursos Humanos & Estructura -CRH-SECUL';
+
+    if (val === 'OTRA') {
+        if (inputTexto) inputTexto.classList.remove('hidden');
+        panelLetra = 'J';
+        prefijoArea = 'ASI_P';
+        nombreAreaCompleto = (inputTexto && inputTexto.value.trim()) || 'Comisión Asignada';
+    } else {
+        if (inputTexto) inputTexto.classList.add('hidden');
+        const partes = val.split('|');
+        panelLetra = partes[0] || 'A';
+        prefijoArea = partes[1] || 'RH_E';
+        nombreAreaCompleto = partes[2] || val;
+    }
+
+    if (inputOcultoPanel) inputOcultoPanel.value = panelLetra;
+    if (inputOcultoArea) inputOcultoArea.value = nombreAreaCompleto;
+
+    // 1. RECALCULAR FOLIO CANÓNICO INMEDIATAMENTE (EJ: AUD_F-H-0004)
+    const inputFolio = document.getElementById('nuevoHitoId');
+    if (inputFolio && typeof obtenerSiguienteClaveHito === 'function') {
+        inputFolio.value = obtenerSiguienteClaveHito(panelLetra);
+    }
+
+    // 2. REPLICAR AL INSTANTE EN LA "INSTANCIA EJECUTORA" DE LA ACCIÓN OBLIGATORIA
+    document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item').forEach(fila => {
+        const inputResp = fila.querySelector('input[name="txtAccionRespHito"]');
+        if (inputResp) {
+            inputResp.value = nombreAreaCompleto;
+        }
+    });
+
+    // 3. SELECCIONAR AUTOMÁTICAMENTE EL FUNDAMENTO LEGAL RECTOR POR DEFECTO
+    const normasPorPanel = {
+        'A': 'Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH',
+        'B': 'Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales',
+        'C': 'Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles',
+        'D': 'Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos',
+        'E': 'Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles',
+        'F': 'Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya',
+        'G': 'Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT',
+        'H': 'Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado',
+        'I': 'Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG',
+        'J': 'Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas'
+    };
+
+    if (normasPorPanel[panelLetra]) {
+        if (inputNorma) inputNorma.value = normasPorPanel[panelLetra];
+        if (selectNorma) selectNorma.value = normasPorPanel[panelLetra];
+    }
+};
+
+// SINCRONIZADOR DEL SELECTOR CON EL CAMPO DE ESCRITURA DE FUNDAMENTO LEGAL
+window.seleccionarNormaRectorHito = function(sel) {
+    const inputNorma = document.getElementById('nuevoHitoNorma');
+    if (!inputNorma) return;
+    if (sel.value === 'OTRO') {
+        inputNorma.value = '';
+        inputNorma.focus();
+        inputNorma.placeholder = 'Escriba aquí el fundamento legal u oficio específico...';
+    } else {
+        inputNorma.value = sel.value;
+    }
 };
         
 </script>
