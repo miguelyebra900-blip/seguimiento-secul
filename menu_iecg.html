@@ -5880,9 +5880,39 @@ window.renderBaseDatosGeneralJerarquica = function() {
         var badgeColor = (promedioHito === 100) ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800';
 
         var filasAcciones = '';
-        h.acciones.forEach(function(a) {
+      h.acciones.forEach(function(a) {
             var idClaveAccion = a.clave_accion || a.id;
-            var btnAgregarRapido = '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-emerald-200 transition" title="Carga rápida de otro archivo"><i class="fa-solid fa-plus"></i> + Archivo</button>';
+
+            // CANDADO DE GOBERNANZA: EVALUAR PERMISOS POR PANEL
+            var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
+                ? resolverPanelesUsuario(currentUser)
+                : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
+            var esAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin'));
+            
+            // Permiso concedido si es Admin, si es titular de este panel o si la acción ya fue vinculada a su área
+            var esTitularAccion = esAdmin || misPaneles.includes(a.panel) || misPaneles.includes(h.panel);
+            var estaVinculada = Boolean(a.panel_coresponsable && misPaneles.includes(a.panel_coresponsable));
+            var tienePermisoOperativo = esTitularAccion || estaVinculada;
+
+            // BOTONES DE GESTIÓN SEGÚN PERMISOS
+            var btnAgregarRapido = '';
+            var btnVincular = '';
+            var btnEditar = '';
+            var btnEliminar = '';
+
+            if (tienePermisoOperativo) {
+                // HABILITADOS: Titular o con vínculo formal concedido
+                btnAgregarRapido = '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-emerald-200 transition" title="Carga rápida de archivo"><i class="fa-solid fa-plus"></i> + Archivo</button>';
+                btnVincular = '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-purple-200 transition" title="Vincular con otra área"><i class="fa-solid fa-link text-purple-600"></i> Vincular</button>';
+                btnEditar = '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition"><i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar</button>';
+                btnEliminar = '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition" title="Solicitar baja formal"><i class="fa-solid fa-trash-can text-rose-600"></i></button>';
+            } else {
+                // BLOQUEADOS: Panel ajeno (Modo Consulta) - Solo Vincular queda disponible para tramitar acceso
+                btnAgregarRapido = '<button type="button" disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-slate-200 cursor-not-allowed opacity-60" title="Requiere vinculación formal para cargar evidencias"><i class="fa-solid fa-lock text-[9px]"></i> + Archivo</button>';
+                btnVincular = '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg font-black text-[10.5px] inline-flex items-center gap-1 border border-amber-300 transition shadow-2xs" title="Solicitar vinculación formal"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vínculo</button>';
+                btnEditar = '<button type="button" disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-slate-200 cursor-not-allowed opacity-60" title="Requiere vinculación formal para editar"><i class="fa-solid fa-lock text-[9px]"></i> Editar</button>';
+                btnEliminar = '<button type="button" disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-slate-200 cursor-not-allowed opacity-60" title="Solo el área titular puede eliminar"><i class="fa-solid fa-lock text-[9px]"></i></button>';
+            }
 
             var badgeEst = 'bg-blue-100 text-blue-800';
             if (a.estatus === 'Concluido') badgeEst = 'bg-emerald-100 text-emerald-800';
@@ -5914,13 +5944,14 @@ window.renderBaseDatosGeneralJerarquica = function() {
                 '<td class="p-2 text-center whitespace-nowrap">' +
                     '<div class="inline-flex items-center gap-1">' +
                         btnAgregarRapido +
-                        '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-purple-200 transition" title="Vincular esta acción con mi área"><i class="fa-solid fa-link text-purple-600"></i> Vincular</button>' +
-                        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition"><i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar</button>' +
-                        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition" title="Solicitar baja formal"><i class="fa-solid fa-trash-can text-rose-600"></i></button>' +
+                        btnVincular +
+                        btnEditar +
+                        btnEliminar +
                     '</div>' +
                 '</td>' +
             '</tr>';
         });
+     
 
         htmlFinal += '<div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">' +
             '<div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">' +
@@ -5932,14 +5963,45 @@ window.renderBaseDatosGeneralJerarquica = function() {
                         '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">' + h.area + '</span>' +
                     '</div>' +
                         '<h4 class="font-black text-slate-900 text-sm mt-0.5">' + h.nombreHito + '</h4>' +
+                    '</div>' + 
+                '</div>' +
+                '<div class="flex items-center gap-1.5 self-end md:self-auto shrink-0 flex-wrap">' +
+                    '<span class="px-2.5 py-1 rounded-xl text-xs font-black ' + badgeColor + '">' + promedioHito + '% (' + h.acciones.length + ' Acc.)</span>' +
+            // EVALUAR PERMISO DE EDICIÓN EN LA CABECERA DEL HITO
+        var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
+            ? resolverPanelesUsuario(currentUser)
+            : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
+        var esAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin'));
+        var esTitularHito = esAdmin || misPaneles.includes(h.panel);
+
+        var botonesCabeceraHito = '';
+        if (esTitularHito) {
+            botonesCabeceraHito = 
+                '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-plus text-indigo-600"></i> + Acción</button>' +
+                '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-purple-600"></i> Vincular Hito</button>' +
+                '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-sliders text-amber-600"></i> Modificar Hito</button>' +
+                '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar</button>';
+        } else {
+            botonesCabeceraHito = 
+                '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200 flex items-center gap-1"><i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Modo Consulta</span>' +
+                '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs" title="Solicitar vinculación de este hito con mi área"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vinculación</button>';
+        }
+
+        htmlFinal += '<div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">' +
+            '<div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">' +
+                '<div class="flex items-center gap-3">' +
+                    '<span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center font-mono text-xs shadow-2xs">' + h.panel + '</span>' +
+                    '<div>' +
+                        '<div class="flex items-center gap-2 min-w-0 flex-wrap">' +
+                            '<span class="font-mono font-bold text-indigo-950 text-xs bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-md whitespace-nowrap shrink-0">' + h.clave_hito + '</span>' +
+                            '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">' + h.area + '</span>' +
+                        '</div>' +
+                        '<h4 class="font-black text-slate-900 text-sm mt-0.5">' + h.nombreHito + '</h4>' +
                     '</div>' +
                 '</div>' +
                 '<div class="flex items-center gap-1.5 self-end md:self-auto shrink-0 flex-wrap">' +
                     '<span class="px-2.5 py-1 rounded-xl text-xs font-black ' + badgeColor + '">' + promedioHito + '% (' + h.acciones.length + ' Acc.)</span>' +
-                    '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-plus text-indigo-600"></i> + Acción</button>' +
-                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-purple-600"></i> Vincular Hito</button>' +
-                    '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-sliders text-amber-600"></i> Modificar Hito</button>' +
-                    '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar</button>' +
+                    botonesCabeceraHito +
                 '</div>' +
             '</div>' +
             '<div class="p-3 overflow-x-auto">' +
@@ -5959,10 +6021,11 @@ window.renderBaseDatosGeneralJerarquica = function() {
                 '</table>' +
             '</div>' +
         '</div>';
-    }); // <-- Aquí se cierra listaHitos.forEach
+    });
 
     contenedor.innerHTML = htmlFinal;
-}; // <-- Aquí se cierra la función principal
+};    
+             // <-- Aquí se cierra la función principal
 // 3. Abrir Alta de Hito
         
 // 3. Abrir Alta de Hito (Con candado de seguridad, autenticación y preselección de panel)
