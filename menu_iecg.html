@@ -6784,13 +6784,13 @@ window.procesarVinculacionUniversalOficial = async function(e) {
         ? resolverPanelesUsuario(currentUser)
         : (currentUser ? (currentUser.paneles_autorizados || ['A']) : ['A']);
 
-    // Identificar el panel original del hito o acción
+    // Identificar el panel titular del hito o acción solicitada
     const actObjetivo = accionesDataset.find(a => (a.clave_accion === accionId) || (a.id === accionId) || (a.clave_hito === hitoId));
-    const panelDestino = actObjetivo ? actObjetivo.panel : 'General';
+    const panelTitular = actObjetivo ? actObjetivo.panel : (hitoId.split('_')[0] || 'I');
 
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Procesando vinculación...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Enviando a Supabase...';
     }
 
     try {
@@ -6803,21 +6803,7 @@ window.procesarVinculacionUniversalOficial = async function(e) {
 
         const claveElemento = accionId === 'TODAS' ? hitoId : accionId;
 
-        // A. Aplicar la co-responsabilidad al registro en memoria
-        if (accionId === 'TODAS') {
-            accionesDataset.forEach(a => {
-                if (a.clave_hito === hitoId || a.id.startsWith(hitoId)) {
-                    a.panel_coresponsable = misPaneles[0];
-                    a.vinculo_fundamento = motivo;
-                }
-            });
-        } else if (actObjetivo) {
-            actObjetivo.panel_coresponsable = misPaneles[0];
-            actObjetivo.vinculo_fundamento = motivo;
-        }
-        guardarDataset();
-
-        // B. Ticket oficial que va a la mesa de auditoría como testigo
+        // 1. TICKET QUE SE INSERTA FORMALMENTE EN SUPABASE
         const ticketVinculacion = {
             id: 'VINC-' + Date.now().toString().slice(-4),
             origen_sistema: 'IECG',
@@ -6827,35 +6813,39 @@ window.procesarVinculacionUniversalOficial = async function(e) {
             tipo_corresponsabilidad: tipoCoesp,
             hito_objetivo: hitoId,
             accion_objetivo: accionId,
-            panel_solicitante: misPaneles.join(', '),
-            panel_receptor: panelDestino,
+            panel_solicitante: misPaneles[0] || 'B',
+            panel_destino: panelTitular, // <--- EL PANEL QUE DEBE APROBAR (ej. Panel I)
             motivo: motivo,
-            drive_url: driveUrlSoporte,
+            url_documento: driveUrlSoporte,
             solicitante: `${currentUser.nombre} (${currentUser.usuario})`,
             correo_contacto: currentUser.correo_notificaciones || '',
             telefono_contacto: currentUser.telefono_whatsapp || '',
             fecha: new Date().toLocaleString(),
-            estatus: 'Vinculado Activo (Testigo Auditoría)'
+            estatus: 'PENDIENTE_AUTORIZACION' // <--- QUEDA BLOQUEADO HASTA QUE SE APRUEBE
         };
 
-        if (typeof registrarSolicitudAuditoria === 'function') {
-            registrarSolicitudAuditoria(ticketVinculacion);
+        // 2. INSERCIÓN DIRECTA EN LA TABLA DE SUPABASE
+        if (supabaseClient) {
+            const { error: errInsert } = await supabaseClient
+                .from('solicitudes_auditoria')
+                .insert([ticketVinculacion]);
+
+            if (errInsert) {
+                console.error("Error al registrar en Supabase:", errInsert);
+            }
         }
 
-        // C. Encolar notificación en tiempo real para el panel receptor
-        let colaNotif = JSON.parse(localStorage.getItem('secul_notificaciones_pendientes')) || [];
-        colaNotif.unshift(ticketVinculacion);
-        localStorage.setItem('secul_notificaciones_pendientes', JSON.stringify(colaNotif));
+        // Registrar auditoría como testigo
+        if (typeof registrarAccionEnSupabase === 'function') {
+            registrarAccionEnSupabase('IEC', 'Solicitud de Vinculación Enviada', ticketVinculacion);
+        }
 
-        alert(`✅ VINCULACIÓN APLICADA CON ÉXITO:\n\n• Elemento: [${claveElemento}]\n• Se vinculó con: Panel ${misPaneles.join(', ')}\n• Auditoría: Registrado como testigo en la Mesa de Control y notificado al panel titular.`);
+        alert(`🔒 SOLICITUD ENVIADA AL TITULAR:\n\nTu petición para co-responsabilidad sobre [${claveElemento}] fue enviada a Supabase.\n\n⚠️ Los botones permanecerán bloqueados hasta que el Titular del Panel ${panelTitular} ingrese a su sesión y apruebe la vinculación.`);
 
         closeModal('modal-vinculacion-universal');
-        actualizarDashboard();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
-            renderBaseDatosGeneralJerarquica();
-        }
+
     } catch (err) {
-        alert("Error al procesar la vinculación: " + err.message);
+        alert("Error al enviar solicitud a Supabase: " + err.message);
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -7078,6 +7068,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     if (typeof verificarYProyectarAvisoDirectivo === 'function') {
         verificarYProyectarAvisoDirectivo();
+    }
+    if (typeof consultarSolicitudesPendientesEnSupabase === 'function') {
+        consultarSolicitudesPendientesEnSupabase();
     }
 
     console.log("✅ Sistema sincronizado con éxito con las tablas de Supabase.");
@@ -8613,6 +8606,118 @@ window.seleccionarNormaRectorHito = function(sel) {
         inputNorma.placeholder = 'Escriba aquí el fundamento legal u oficio específico...';
     } else {
         inputNorma.value = sel.value;
+    }
+};
+
+// =========================================================================
+// BANDEJA DE ENTRADA EN SUPABASE: NOTIFICACIÓN PARA EL TITULAR RECEPTOR
+// =========================================================================
+window.consultarSolicitudesPendientesEnSupabase = async function() {
+    if (!currentUser || !supabaseClient) return;
+
+    const misPaneles = (typeof resolverPanelesUsuario === 'function')
+        ? resolverPanelesUsuario(currentUser)
+        : (currentUser.paneles_autorizados || ['A']);
+
+    try {
+        // Consultar directamente a Supabase las solicitudes dirigidas a mis paneles
+        const { data: solicitudes, error } = await supabaseClient
+            .from('solicitudes_auditoria')
+            .select('*')
+            .in('panel_destino', misPaneles)
+            .eq('estatus', 'PENDIENTE_AUTORIZACION');
+
+        if (error || !solicitudes || solicitudes.length === 0) return;
+
+        // Mostrar la notificación flotante interactiva
+        const sol = solicitudes[0]; // Tomar la más reciente
+        const toast = document.createElement('div');
+        toast.id = 'toastNotificacionVinculacion';
+        toast.className = 'fixed top-16 right-5 z-50 bg-slate-900 text-white p-5 rounded-3xl border-2 border-amber-400 shadow-2xl max-w-md space-y-3 animate-in fade-in duration-300';
+        toast.innerHTML = `
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <span class="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-bell animate-bounce text-amber-400"></i> Petición de Vinculación Recibida
+                </span>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold">${sol.id}</span>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-slate-100">
+                    El enlace <span class="text-indigo-400">${sol.solicitante}</span> (Panel ${sol.panel_solicitante}) solicita co-responsabilidad sobre:
+                </p>
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 mt-1.5 space-y-1">
+                    <div class="font-mono font-black text-amber-300 text-xs">[${sol.clave}]</div>
+                    <div class="text-[11px] text-slate-300 italic">"${sol.motivo || 'Sin justificación detallada'}"</div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-800">
+                <button type="button" onclick="responderVinculacionEnSupabase('${sol.id}', '${sol.clave}', '${sol.panel_solicitante}', false)" 
+                        class="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition">
+                    Rechazar
+                </button>
+                <button type="button" onclick="responderVinculacionEnSupabase('${sol.id}', '${sol.clave}', '${sol.panel_solicitante}', true)" 
+                        class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center gap-1">
+                    <i class="fa-solid fa-check"></i> Autorizar Vinculación
+                </button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+    } catch (e) {
+        console.warn("Aviso al consultar notificaciones en Supabase:", e);
+    }
+};
+
+// =========================================================================
+// ACCIÓN DE AUTORIZAR O RECHAZAR (ACTUALIZA SUPABASE EN VIVO)
+// =========================================================================
+window.responderVinculacionEnSupabase = async function(idSolicitud, claveElemento, panelSolicitante, fueAprobada) {
+    if (!supabaseClient) return;
+
+    try {
+        const nuevoEstatus = fueAprobada ? 'APROBADA' : 'RECHAZADA';
+
+        // 1. Actualizar el ticket en solicitudes_auditoria
+        await supabaseClient
+            .from('solicitudes_auditoria')
+            .update({ 
+                estatus: nuevoEstatus,
+                autorizado_por: currentUser.nombre,
+                fecha_resolucion: new Date().toISOString()
+            })
+            .eq('id', idSolicitud);
+
+        // 2. Si fue aprobada, actualizar en la tabla de acciones de Supabase para liberar los botones
+        if (fueAprobada) {
+            await supabaseClient
+                .from('acciones_transicion')
+                .update({ panel_coresponsable: panelSolicitante })
+                .or(`clave_accion.eq.${claveElemento},clave_hito.eq.${claveElemento}`);
+
+            // Actualizar memoria local de inmediato
+            accionesDataset.forEach(a => {
+                if (a.clave_accion === claveElemento || a.clave_hito === claveElemento || a.id.startsWith(claveElemento)) {
+                    a.panel_coresponsable = panelSolicitante;
+                }
+            });
+            guardarDataset();
+        }
+
+        const toast = document.getElementById('toastNotificacionVinculacion');
+        if (toast) toast.remove();
+
+        alert(fueAprobada 
+            ? `✅ VINCULACIÓN AUTORIZADA:\nSe ha concedido co-responsabilidad al Panel ${panelSolicitante} sobre [${claveElemento}]. Los botones han quedado habilitados para ambos enlaces.` 
+            : `❌ VINCULACIÓN RECHAZADA:\nLa petición fue denegada formalmente en Supabase.`);
+
+        // Refrescar la base de datos visual
+        actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+            renderBaseDatosGeneralJerarquica();
+        }
+
+    } catch (err) {
+        alert("Error al resolver en Supabase: " + err.message);
     }
 };
         
