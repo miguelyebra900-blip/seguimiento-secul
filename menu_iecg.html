@@ -1848,11 +1848,11 @@
                     <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> con su respectiva vinculación institucional y externa.</span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <!-- Columna 1: Folio ID Automático -->
-                    <div>
+       <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                    <!-- Columna 1: Folio ID Automático (5 columnas) -->
+                    <div class="sm:col-span-5">
                         <div class="flex items-center justify-between mb-1">
-                            <label class="block font-bold text-slate-700">Folio Hito (Automático):</label>
+                            <label class="block font-bold text-slate-700 text-xs">Folio Hito (Automático):</label>
                             <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                                 <i class="fa-solid fa-lock text-[8px]"></i> Clave Canónica
                             </span>
@@ -1860,63 +1860,68 @@
                         <input type="text" id="nuevoHitoId" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando folio..." required>
                     </div>
 
-                    <!-- Columna 2: Vertiente Institucional -->
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Vertiente Institucional:</label>
-                        <select id="nuevoHitoVertiente" class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold">
-                            <option value="V1">V1 - Liquidación IEC (Decreto 345)</option>
-                            <option value="V2">V2 - Fiscalización ASEG</option>
-                            <option value="INF">INF - Informes Mensuales</option>
+                    <!-- Columna 2: Panel Asignado & Responsable (7 columnas) -->
+                    <div class="sm:col-span-7">
+                        <label class="block font-bold text-slate-700 text-xs mb-1">Área Ejecutora / Panel Rector:</label>
+                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutoraMaestro(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-900 border-indigo-300 shadow-2xs">
+                            <option value="A|RH_E|Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura (CRH-SECUL)</option>
+                            <option value="B|JUR_C|Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso (CJU-SECUL)</option>
+                            <option value="C|PTR_I|Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios (CCPSECUL)</option>
+                            <option value="D|FID_F|Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & FIARCA (Banorte)</option>
+                            <option value="E|PTR_M|Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes (CCPSECUL)</option>
+                            <option value="F|FIN_P|Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & SAT (CRF-SECUL)</option>
+                            <option value="G|TIT_S|Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (DGTIT)</option>
+                            <option value="H|ACH_D|Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental (AGEG)</option>
+                            <option value="I|AUD_F|Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías (ASEG)</option>
+                            <option value="J|ASI_P|Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos & Comité (LIQ-IECG)</option>
+                            <option value="OTRA">Otra Área (Escribir Texto)</option>
                         </select>
-                    </div>
-
-                    <!-- Columna 3: Panel Asignado (A - J) con cálculo reactivo -->
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Panel Asignado (A - J):</label>
-                        <select id="nuevoHitoPanel" onchange="actualizarFolioSiguienteSugerido()" class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-700 border-indigo-300 shadow-2xs">
-                            <option value="A">Panel A - Recursos Humanos & Estructura</option>
-                            <option value="B">Panel B - Asuntos Jurídicos & Contencioso</option>
-                            <option value="C">Panel C - Patrimonio Inmobiliario & Predios</option>
-                            <option value="D">Panel D - Fideicomisos & Fondos Especiales</option>
-                            <option value="E">Panel E - Control Patrimonial & Bienes</option>
-                            <option value="F">Panel F - Financiero, Presupuestal & Fiscal</option>
-                            <option value="G">Panel G - Tecnologías de la Información (TI)</option>
-                            <option value="H">Panel H - Archivo & Gestión Documental</option>
-                            <option value="I">Panel I - Fiscalización Auditorías</option>
-                            <option value="J">Panel J - Asuntos Internos Líder Proyecto</option>
-                        </select>
+                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden mt-1">
+                        <!-- Campos ocultos para mantener funcionando el resto del código sin romper nada -->
+                        <input type="hidden" id="nuevoHitoPanel" value="A">
+                        <input type="hidden" id="nuevoHitoArea" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+                        <input type="hidden" id="nuevoHitoVertiente" value="V1">
                     </div>
                 </div>
-
-                <div>
+         
                     <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento Oficial:</label>
                     <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-slate-900" required>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <!-- PUNTO 1: COMBOBOX DE ÁREA EJECUTORA CON OPCIÓN DE ESCRITURA -->
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Área Ejecutora / Responsable:</label>
-                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutora(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold mb-1">
-                            <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura -CRH-SECUL</option>
-                            <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL</option>
-                            <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL</option>
-                            <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL</option>
-                            <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL</option>
-                            <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL</option>
-                            <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI) -CTI-SECUL</option>
-                            <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental – LIQ-IECG</option>
-                            <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías -LPS-SECUL</option>
-                            <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG</option>
-                            <option value="OTRA">Otra Área (Escribir Texto)</option>
-                        </select>
-                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden">
-                        <!-- Campo oculto para mantener compatibilidad con el sistema anterior -->
-                        <input type="hidden" id="nuevoHitoArea" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+              <!-- FUNDAMENTO LEGAL RECTOR VINCULADO AL DECRETO NO. 345 -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-700 text-xs">Fundamento Legal / Oficio Rector:</label>
+                        <span class="text-[10px] font-bold text-indigo-600">💡 Sugerido por Decreto No. 345</span>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Fundamento Legal / Oficio:</label>
-                        <input type="text" id="nuevoHitoNorma" placeholder="Ej. Decreto No. 345 / Lineamientos Art. 10" class="w-full p-2.5 border rounded-xl bg-slate-50" required>
+                    <div class="relative">
+                        <input type="text" id="nuevoHitoNorma" list="catalogoFundamentosNormativos" 
+                               placeholder="Selecciona o escribe el artículo/oficio..." 
+                               class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-xs text-slate-900 border-slate-300 focus:bg-white focus:ring-2 focus:ring-indigo-500" required>
+                        
+                        <!-- CATÁLOGO NORMATIVO (3 CLICS O ESCRITURA LIBRE) -->
+                        <datalist id="catalogoFundamentosNormativos">
+                            <!-- Bloque 1: Personal, Patrimonio y Archivo -->
+                            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">
+                            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">
+                            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">
+                            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">
+                            
+                            <!-- Bloque 2: Cierre Fiscal, Financiero y Cuentas -->
+                            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">
+                            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">
+                            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">
+                            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">
+                            
+                            <!-- Bloque 3: Fideicomisos Banorte (FIARCA) -->
+                            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">
+                            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">
+                            
+                            <!-- Bloque 4: Gobernanza y Comités -->
+                            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">
+                            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">
+                            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">
+                        </datalist>
                     </div>
                 </div>
 
