@@ -5879,40 +5879,21 @@ var btnDrive = '';
 
 if (listaArchivosAccion.length > 0) {
     // Generar renglones limpios con botón Ver y botón Eliminar para cada archivo
-    var itemsDropdown = listaArchivosAccion.map(function(arch, idx) {
-        // Nota: Asegúrate de que cada objeto de evidencia traiga su 'id' de Supabase para poder borrarlo
-        var idEv = arch.id || '';
-        var nombreCorto = arch.nombre || ('Evidencia ' + (idx + 1));
-        
-        return '<div class="flex items-center justify-between gap-2 px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-xs">' +
-               '<div class="flex items-center gap-2 truncate flex-1">' +
-               '<i class="fa-solid fa-file-pdf text-rose-500 text-sm flex-shrink-0"></i>' +
-               '<span class="text-slate-700 font-medium truncate" title="' + nombreCorto + '">' + nombreCorto + '</span>' +
-               '</div>' +
-               '<div class="flex items-center gap-1 flex-shrink-0">' +
-               '<a href="' + arch.url + '" target="_blank" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition" title="Ver archivo"><i class="fa-solid fa-eye"></i> Ver</a>' +
-               '<button type="button" onclick="eliminarEvidenciaRapida(\'' + idEv + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition" title="Eliminar registro"><i class="fa-solid fa-trash-can"></i></button>' +
-               '</div>' +
-               '</div>';
-    }).join('');
+    // DETERMINAR CANTIDAD TOTAL DE ARCHIVOS
+            var numArchivos = listaArchivosAccion.length;
+            if (numArchivos === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
+                numArchivos = 1;
+            }
 
-    btnDrive = '<div class="relative group inline-block">' +
-               '<button type="button" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 transition shadow-sm">' +
-               '<i class="fa-brands fa-google-drive text-emerald-600 text-sm"></i><span>Ver Documental (' + listaArchivosAccion.length + ')</span> <i class="fa-solid fa-chevron-down text-[9px]"></i>' +
-               '</button>' +
-               '<div class="absolute left-0 mt-1.5 w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 hidden group-hover:block z-50 text-left">' +
-               '<div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100 flex justify-between items-center">' +
-               '<span>Archivos Probatorios</span><span>Acciones</span>' +
-               '</div>' +
-               '<div class="max-h-56 overflow-y-auto divide-y divide-slate-100">' + itemsDropdown + '</div>' +
-               '</div>' +
-               '</div>';
-} else if (a.driveUrl && a.driveUrl.trim() !== '') {
-    btnDrive = '<a href="' + a.driveUrl + '" target="_blank" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 transition shadow-sm">' +
-               '<i class="fa-brands fa-google-drive text-emerald-600 text-sm"></i><span>Ver Documental (1)</span></a>';
-} else {
-    btnDrive = '<button type="button" onclick="abrirExpedienteODrivePanel(\'' + idClaveAccion + '\', \'' + h.panel + '\')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 transition"><i class="fa-brands fa-google-drive text-amber-500 text-sm"></i><span>Abrir Carpeta ' + h.panel + '</span></button>';
-}
+            // BOTÓN INDICADOR DIRECTO PARA SPLIT-SCREEN (SIN MENÚS CORTADOS)
+            btnDrive = '<button type="button" onclick="seleccionarAccionParaExpediente(\'' + idClaveAccion + '\')" ' +
+                       'class="px-3 py-1.5 rounded-xl text-xs font-bold ' + 
+                       (numArchivos > 0 ? 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-200') + 
+                       ' inline-flex items-center gap-1.5 transition-all shadow-2xs group">' +
+                       '<i class="fa-brands fa-google-drive ' + (numArchivos > 0 ? 'text-amber-500 group-hover:text-amber-300' : 'text-slate-400') + ' transition-colors"></i>' +
+                       '<span>' + (numArchivos > 0 ? numArchivos + ' Doc(s)' : 'Sin Archivos') + '</span>' +
+                       '<i class="fa-solid fa-chevron-right text-[10px] ' + (numArchivos > 0 ? 'text-indigo-400 group-hover:text-white group-hover:translate-x-0.5' : 'text-slate-400') + ' transition-all"></i>' +
+                       '</button>';
            
    filasAcciones += '<tr class="hover:bg-slate-50/80 transition">' +
         '<td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">' + idClaveAccion + '</td>' +
@@ -8381,6 +8362,65 @@ window.abrirModalDetalleMandato = function(numMandato) {
 
     openModal('modal-detalle-kpi-gerencial');
 };
+
+        window.seleccionarAccionParaExpediente = function(claveAccion) {
+    const accion = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset))
+        ? accionesDataset.find(a => (a.clave_accion === claveAccion || a.id === claveAccion))
+        : null;
+
+    const panel = document.getElementById('panelDetalleExpedienteEnVivo');
+    if (!accion || !panel) return;
+
+    const listaArchivos = accion.archivosDrive || (accion.driveUrl ? [{ nombre: 'Expediente Principal Drive', url: accion.driveUrl }] : []);
+
+    panel.innerHTML = `
+        <div class="space-y-4 overflow-y-auto pr-1">
+            <div class="border-b border-slate-800 pb-3">
+                <span class="text-[10px] font-black uppercase tracking-wider text-sky-400">EXPEDIENTE PROBATORIO EN VIVO</span>
+                <h4 class="font-black text-sm text-white mt-0.5 leading-snug">${accion.hito || 'Hito Normativo'}</h4>
+                <p class="text-xs text-slate-300 font-mono mt-0.5">[${accion.clave_accion || accion.id}]</p>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${Number(accion.avance) === 100 ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}">
+                        ${accion.estatus || 'En Proceso'} (${accion.avance || 0}%)
+                    </span>
+                    <span class="text-[11px] text-slate-400 font-semibold">• Resp: ${accion.responsable || 'Comisión'}</span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Documentos Acreditados (${listaArchivos.length}):</span>
+                ${listaArchivos.length > 0 ? listaArchivos.map((arc, i) => `
+                    <div class="p-3 bg-slate-800/90 rounded-2xl border border-slate-700/80 flex items-center justify-between gap-3 hover:border-sky-500 transition">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <i class="fa-solid fa-file-pdf text-rose-400 text-base shrink-0"></i>
+                            <div class="min-w-0">
+                                <span class="block text-xs font-bold text-slate-100 truncate">${arc.nombre || 'Documento ' + (i+1)}</span>
+                                <span class="block text-[10px] text-slate-400 font-mono">Google Drive Oficial</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <a href="${arc.url}" target="_blank" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir
+                            </a>
+                        </div>
+                    </div>
+                `).join('') : '<div class="p-4 bg-slate-800/40 rounded-2xl border border-dashed border-slate-700 text-center text-xs text-slate-400">Sin archivos vinculados aún</div>'}
+            </div>
+
+            <div class="p-3.5 bg-slate-800/60 rounded-2xl border border-dashed border-slate-700 text-center space-y-2">
+                <span class="text-[11px] font-bold text-amber-300 block">Adjuntar Nueva Evidencia</span>
+                <button type="button" onclick="if(typeof abrirBuzonCargaUniversal === 'function') abrirBuzonCargaUniversal();" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Cargar a Drive
+                </button>
+            </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 text-[10px] text-slate-400 space-y-1">
+            <p class="truncate">• <strong>Norma:</strong> ${accion.fundamento_juridico || 'Decreto 345'}</p>
+            <p class="truncate">• <strong>Soporte:</strong> ${accion.instrumento_1 || 'Expediente técnico con acuse'}</p>
+        </div>
+    `;
+};
         
 </script>
 
@@ -8667,7 +8707,7 @@ window.abrirModalDetalleMandato = function(numMandato) {
                     <i class="fa-solid fa-shield-halved"></i>
                 </span>
                 <p class="leading-tight text-[11px]">
-                    <strong>Candado de Seguridad y Trazabilidad ASEG:</strong> Las modificaciones realizadas por enlaces generarán una 
+                    <strong>Candado de Seguridad y Trazabilidad :</strong> Las modificaciones realizadas por enlaces generarán una 
                     <span class="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Solicitud de Autorización</span> canalizada a la bandeja de <code>auditoria.html</code>.
                 </p>
             </div>
@@ -8691,9 +8731,28 @@ window.abrirModalDetalleMandato = function(numMandato) {
         </div>
 
         <!-- Contenedor Desplazable del Árbol Jerárquico Hitos ➔ Acciones -->
-        <div id="cuerpoBaseDatosGeneral" class="p-5 overflow-y-auto space-y-4 text-xs bg-slate-100/50">
-            <!-- Inyección interactiva con JavaScript -->
+       <!-- REESTRUCTURACIÓN SPLIT-SCREEN (MAESTRO 62% - EXPEDIENTE EN VIVO 38%) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 overflow-hidden max-h-[76vh] bg-slate-100/50">
+        
+        <!-- COLUMNA IZQUIERDA (62%): TABLA DE HITOS Y ACCIONES -->
+        <div class="lg:col-span-7 overflow-y-auto pr-2 space-y-4 text-xs" id="cuerpoBaseDatosGeneral">
+            <!-- Inyección interactiva con JavaScript (tu función sigue inyectando aquí) -->
         </div>
+
+        <!-- COLUMNA DERECHA (38%): EXPEDIENTE DRIVE EN TIEMPO REAL -->
+        <div class="lg:col-span-5 bg-slate-900 rounded-3xl p-5 border border-slate-800 flex flex-col justify-between overflow-hidden shadow-2xl" id="panelDetalleExpedienteEnVivo">
+            <div class="text-center text-slate-400 py-20 space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto text-slate-500 text-xl border border-slate-700">
+                    <i class="fa-solid fa-folder-open text-sky-400"></i>
+                </div>
+                <div>
+                    <h5 class="text-xs font-bold text-slate-200">Ninguna acción seleccionada</h5>
+                    <p class="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">Haz clic en cualquier acción de la izquierda para consultar y auditar sus documentos probatorios de Drive sin menús superpuestos.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
         <!-- Footer Informativo -->
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 shrink-0">
