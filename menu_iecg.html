@@ -8591,20 +8591,41 @@ window.consultarSolicitudesPendientesEnSupabase = async function() {
         : (currentUser.paneles_autorizados || ['A']);
 
     try {
-        // Consultar directamente a Supabase las solicitudes dirigidas a mis paneles
+        // Consultar todas las solicitudes pendientes
         const { data: solicitudes, error } = await supabaseClient
             .from('solicitudes_auditoria')
             .select('*')
-            .in('panel_destino', misPaneles)
             .eq('estatus', 'PENDIENTE_AUTORIZACION');
 
-        if (error || !solicitudes || solicitudes.length === 0) return;
+        if (error) {
+            console.error("Error consultando solicitudes en Supabase:", error);
+            return;
+        }
 
-        // Mostrar la notificación flotante interactiva
-        const sol = solicitudes[0]; // Tomar la más reciente
+        if (!solicitudes || solicitudes.length === 0) {
+            console.log("No hay solicitudes pendientes de autorización.");
+            return;
+        }
+
+        // Filtrar si alguna coincide con los paneles del usuario actual (flexible a 'I' o 'Panel I')
+        const solicitudesParaMi = solicitudes.filter(sol => {
+            const dest = (sol.panel_destino || '').toUpperCase();
+            return misPaneles.some(p => dest.includes(p.toUpperCase()));
+        });
+
+        if (solicitudesParaMi.length === 0) return;
+
+        const sol = solicitudesParaMi[0];
+
+        // Remover notificación previa si existiera
+        const prev = document.getElementById('toastNotificacionVinculacion');
+        if (prev) prev.remove();
+
+        // Crear elemento flotante en capa máxima z-[99999]
         const toast = document.createElement('div');
         toast.id = 'toastNotificacionVinculacion';
-        toast.className = 'fixed top-16 right-5 z-50 bg-slate-900 text-white p-5 rounded-3xl border-2 border-amber-400 shadow-2xl max-w-md space-y-3 animate-in fade-in duration-300';
+        toast.style.zIndex = '99999';
+        toast.className = 'fixed top-5 right-5 bg-slate-900 text-white p-5 rounded-3xl border-2 border-amber-400 shadow-2xl max-w-md space-y-3';
         toast.innerHTML = `
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <span class="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -8614,11 +8635,11 @@ window.consultarSolicitudesPendientesEnSupabase = async function() {
             </div>
             <div>
                 <p class="text-xs font-bold text-slate-100">
-                    El enlace <span class="text-indigo-400">${sol.solicitante}</span> (Panel ${sol.panel_solicitante}) solicita co-responsabilidad sobre:
+                    El enlace <span class="text-indigo-400">${sol.solicitante}</span> (Panel ${sol.panel_solicitante}) solicita vincular:
                 </p>
                 <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 mt-1.5 space-y-1">
                     <div class="font-mono font-black text-amber-300 text-xs">[${sol.clave}]</div>
-                    <div class="text-[11px] text-slate-300 italic">"${sol.motivo || 'Sin justificación detallada'}"</div>
+                    <div class="text-[11px] text-slate-300 italic">"${sol.motivo || 'Sin motivo especificado'}"</div>
                 </div>
             </div>
             <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-800">
@@ -8635,10 +8656,10 @@ window.consultarSolicitudesPendientesEnSupabase = async function() {
         document.body.appendChild(toast);
 
     } catch (e) {
-        console.warn("Aviso al consultar notificaciones en Supabase:", e);
+        console.warn("Aviso al consultar notificaciones:", e);
     }
 };
-
+        
 // =========================================================================
 // ACCIÓN DE AUTORIZAR O RECHAZAR (ACTUALIZA SUPABASE EN VIVO)
 // =========================================================================
