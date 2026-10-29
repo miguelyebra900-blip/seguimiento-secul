@@ -3105,12 +3105,12 @@ window.mostrarSeccionTab = function(tabId) {
     if (btnM) btnM.className = (tabId === 'tab-matriz') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
     if (btnC) btnC.className = (tabId === 'tab-cronograma') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
     if (btnL) btnL.className = (tabId === 'tab-linea-tiempo') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
-};
-            if (tabId === 'tab-cronograma' && typeof renderCronogramaRoadmap === 'function') {
-                renderCronogramaRoadmap();
-            }
-        
 
+    // Validar el renderizado del cronograma de forma segura aquí adentro
+    if (tabId === 'tab-cronograma' && typeof renderCronogramaRoadmap === 'function') {
+        renderCronogramaRoadmap();
+    }
+};
         function renderCronogramaRoadmap() {
             const contenedor = document.getElementById('contenedorCarrilesGantt');
             if (!contenedor) return;
