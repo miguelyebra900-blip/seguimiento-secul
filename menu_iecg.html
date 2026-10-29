@@ -248,106 +248,107 @@
 <body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen">
 
     <!-- HEADER INSTITUCIONAL (FONDO CLARO MINIMALISTA) -->
-    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                
-                <!-- Identidad Institucional -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 shadow-xs shrink-0">
-                        <i class="fa-solid fa-landmark-flag text-lg"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Prórroga Aprobada (Art. 6)
-                            </span>
-                            <span class="text-[11px] font-semibold text-slate-400 border-l border-slate-200 pl-2">Decreto No. 345 | GTO</span>
-                        </div>
-                        <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 mt-0.5">
-                            Extinción y Cierre Institucional del IECG <i class="fa-solid fa-arrow-right text-[10px] text-slate-400 mx-1"></i> Secretaría de Cultura
-                        </h1>
-                    </div>
+<!-- HEADER INSTITUCIONAL REESTRUCTURADO (DOS NIVELES CLAROS) -->
+<header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
+        
+        <!-- NIVEL 1: Identidad Institucional y Sesión / Salida -->
+        <div class="flex items-center justify-between gap-4 border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 shadow-xs shrink-0">
+                    <i class="fa-solid fa-landmark-flag text-lg"></i>
                 </div>
-
-                <!-- Botones de Acción Inmediata -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- SELECTOR DUAL: VISTA GERENCIAL VS VISTA OPERATIVA -->
-                    <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200/90 shadow-inner mr-2">
-                        <button type="button" id="btnModoGerencial" onclick="cambiarModoPrincipal('gerencial')" 
-                                class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-briefcase text-amber-400"></i> Vista Gerencial
-                        </button>
-                        <button type="button" id="btnModoOperativo" onclick="cambiarModoPrincipal('operativo')" 
-                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
-                            <i class="fa-solid fa-screwdriver-wrench text-indigo-500"></i> Vista Operativa
-                        </button>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Prórroga Aprobada (Art. 6)
+                        </span>
+                        <span class="text-[11px] font-semibold text-slate-400 border-l border-slate-200 pl-2">Decreto No. 345 | GTO</span>
                     </div>
-                    
-                    <button onclick="openModal('modal-riesgos-inicio')" class="btn-executive bg-rose-50 hover:bg-rose-100/80 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-600 animate-pulse"></i> Matriz de Riesgos (Art. 6)
-                    </button>
+                    <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 mt-0.5">
+                        Extinción y Cierre Institucional del IECG <i class="fa-solid fa-arrow-right text-[10px] text-slate-400 mx-1"></i> Secretaría de Cultura
+                    </h1>
+                </div>
+            </div>
 
-                    <button onclick="abrirBuzonCargaUniversal()" class="btn-executive bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-indigo-200">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Carga Rápida Drive
-                    </button>
-
-                    <!-- Acceso a Carpetas de Drive por Panel -->
-                    <div class="relative group">
-                        <button class="btn-executive bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-brands fa-google-drive text-amber-500"></i> Carpetas Drive A-J <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
-                        </button>
-                        <div class="absolute right-0 mt-1 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 hidden group-hover:block z-50">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">Carpetas por Área</div>
-                            <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold">
-                                <button onclick="window.abrirCarpetaDrivePanel('A')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel A - Rercursos Humanos</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('B')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel B - Jurídico</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('C')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel C - Inmuebles</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('D')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel D - FIARCA</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('E')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel E - Patrimonio</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('F')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel F - Finanzas</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('G')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel G - Tecnologías</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('H')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel H - Archivo</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('I')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel I - Auditorías</button>
-                                <button onclick="window.abrirCarpetaDrivePanel('J')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel J - Seguimiento Proyecto</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- BOTÓN ADMIN & AUDITORÍA (Se activa solo si el rol es Admin) -->
-    <a href="auditoria.html" id="btnAdminAuditoriaTop" class="hidden btn-executive bg-slate-800 hover:bg-slate-900 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 shadow-xs">
-        <i class="fa-solid fa-shield-halved text-amber-400"></i> Admin & Auditoría
-    </a>
-
-  <!-- BOTÓN SOLICITAR VINCULACIÓN A OTRO PANEL (Solo visible al autenticarse como enlace) -->
-    <button type="button" id="btnSolicitarVinculacionPanelTop" onclick="abrirModalSolicitarVinculacion()" 
-            class="hidden btn-executive bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 border border-indigo-700/60 px-3 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 shadow-xs">
-        <i class="fa-solid fa-link text-indigo-400"></i> Solicitar Vinculación
-    </button>                  
-                  
-  <!-- ACCESO RÁPIDO A PERFIL DE NOTIFICACIONES EN LA CABECERA -->
+            <!-- Acceso a Sesión y Notificaciones -->
+            <div class="flex items-center gap-3">
                 <button type="button" onclick="openModal('modal-contacto-notificaciones')" 
-        class="text-amber-400 hover:text-amber-300 font-bold text-[11px] border-l border-slate-700 pl-2 transition" 
-        title="Configurar Correo y WhatsApp para Alertas">
-    <i class="fa-solid fa-bell me-1"></i> Notificaciones
-</button>    
-    <!-- ESTADO DE SESIÓN DINÁMICO CON SUPABASE -->
-    <div id="userSessionContainer" class="bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2.5 text-xs shadow-inner">
-        <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-        <div class="text-left leading-tight">
-            <span id="userNameDisplay" class="font-bold text-slate-100 block text-[11px]">No autenticado</span>
-            <span id="userRoleDisplay" class="text-amber-400 font-semibold text-[9px] flex items-center gap-1">
-                <i class="fa-solid fa-eye text-[8px]"></i> Modo Consulta / AUDITORÍA
-            </span>
-
-        </div>
-        <button onclick="handleAuthClick()" id="btnAuthAction" class="text-indigo-300 hover:text-white font-bold text-[11px] border-l border-slate-700 pl-2.5 transition">
-            <i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar
-        </button>
-    </div>
+                        class="hidden sm:inline-flex items-center text-xs font-bold text-slate-600 hover:text-indigo-600 transition">
+                    <i class="fa-solid fa-bell me-1 text-amber-500"></i> Notificaciones
+                </button>
+                
+                <!-- ESTADO DE SESIÓN DINÁMICO -->
+                <div id="userSessionContainer" class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2.5 text-xs shadow-inner text-white">
+                    <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                    <div class="text-left leading-tight">
+                        <span id="userNameDisplay" class="font-bold block text-[11px]">No autenticado</span>
+                        <span id="userRoleDisplay" class="text-amber-400 font-semibold text-[9px]">Modo Consulta</span>
+                    </div>
+                    <button onclick="handleAuthClick()" id="btnAuthAction" class="text-indigo-300 hover:text-white font-bold text-[11px] border-l border-slate-700 pl-2.5 transition">
+                        Ingresar
+                    </button>
                 </div>
             </div>
         </div>
-    </header>
+
+        <!-- NIVEL 2: BARRA DE CONTROL DE VISTAS Y ACCESO RÁPIDO SEPARADO -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            
+            <!-- EL INTERRUPTOR PRINCIPAL (DISTINGUE CLARAMENTE GERENCIAL VS OPERATIVO) -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200/90 shadow-inner w-fit">
+                <button type="button" id="btnModoGerencial" onclick="cambiarModoPrincipal('gerencial')" 
+                        class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-indigo-900 text-white shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase text-amber-400"></i> Vista Gerencial (Ejecutiva)
+                </button>
+                <button type="button" id="btnModoOperativo" onclick="cambiarModoPrincipal('operativo')" 
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-indigo-500"></i> Vista Operativa (Áreas A-J)
+                </button>
+            </div>
+
+            <!-- Herramientas y Utilidades Secundarias agrupadas -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="openModal('modal-riesgos-inicio')" class="btn-executive bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Riesgos (Art. 6)
+                </button>
+
+                <button onclick="abrirBuzonCargaUniversal()" class="btn-executive bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Carga Drive
+                </button>
+
+                <!-- Menú desplegable de Carpetas Drive -->
+                <div class="relative group">
+                    <button class="btn-executive bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-brands fa-google-drive text-amber-500"></i> Carpetas A-J <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
+                    </button>
+                    <div class="absolute right-0 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 hidden group-hover:block z-50">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase px-2 py-1">Acceso Directo Drive</div>
+                        <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold">
+                            <button onclick="window.abrirCarpetaDrivePanel('A')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel A - RH</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('B')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel B - Jurídico</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('C')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel C - Inmuebles</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('D')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel D - FIARCA</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('E')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel E - Patrimonio</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('F')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel F - Finanzas</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('G')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel G - TI</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('H')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel H - Archivo</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('I')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel I - Auditorías</button>
+                            <button onclick="window.abrirCarpetaDrivePanel('J')" class="p-1.5 hover:bg-indigo-50 rounded-lg text-left text-slate-700">Panel J - Proyecto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón Admin (Oculto por defecto si no es admin) -->
+                <a href="auditoria.html" id="btnAdminAuditoriaTop" class="hidden btn-executive bg-slate-900 text-amber-300 px-3 py-2 rounded-xl text-xs font-bold items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved text-amber-400"></i> Admin
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</header>
 
     <!-- BARRA GERENCIAL DE PESTAÑAS -->
     <nav class="bg-white/80 border-b border-slate-200 sticky top-[61px] z-30">
@@ -8720,6 +8721,40 @@ window.responderVinculacionEnSupabase = async function(idSolicitud, claveElement
         alert("Error al resolver en Supabase: " + err.message);
     }
 };
+
+// =========================================================================
+// FUNCIÓN PARA CAMBIAR ENTRE VISTA GERENCIAL Y VISTA OPERATIVA
+// =========================================================================
+function cambiarModoPrincipal(modo) {
+    const btnGerencial = document.getElementById('btnModoGerencial');
+    const btnOperativo = document.getElementById('btnModoOperativo');
+    
+    // Contenedores principales de ambas vistas en tu HTML
+    const contenedorGerencial = document.getElementById('vista-gerencial-container');
+    const tabDashboard = document.getElementById('tab-dashboard');
+
+    if (modo === 'gerencial') {
+        // Activar estilo visual del botón Gerencial
+        if (btnGerencial) btnGerencial.className = "px-4 py-2 rounded-xl text-xs font-black transition-all bg-indigo-900 text-white shadow-sm flex items-center gap-2";
+        if (btnOperativo) btnOperativo.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2";
+
+        // Mostrar perspectiva gerencial y ocultar operativo masivo si interfiere
+        if (contenedorGerencial) contenedorGerencial.classList.remove('hidden');
+        if (tabDashboard) tabDashboard.classList.add('hidden');
+        
+        console.log("Activada: Vista Gerencial Ejecutiva");
+    } else {
+        // Activar estilo visual del botón Operativo
+        if (btnOperativo) btnOperativo.className = "px-4 py-2 rounded-xl text-xs font-black transition-all bg-indigo-600 text-white shadow-sm flex items-center gap-2";
+        if (btnGerencial) btnGerencial.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2";
+
+        // Mostrar Tablero Directivo y Hitos Operativos
+        if (contenedorGerencial) contenedorGerencial.classList.add('hidden');
+        if (tabDashboard) tabDashboard.classList.remove('hidden');
+
+        console.log("Activada: Vista Operativa por Áreas");
+    }
+}
         
 </script>
 
