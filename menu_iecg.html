@@ -4662,26 +4662,28 @@ if (toast) toast.classList.add('hidden');
         }
 
         function obtenerSiguienteClaveAccion(claveHitoPadre) {
-            if (!claveHitoPadre) return 'ACC_0001';
-            let maxNum = 0;
+          if (!claveHitoPadre) return 'ACC_0001';
+    let maxNum = 0;
 
-            accionesDataset.forEach(item => {
-                const clave = item.clave_accion || item.id || '';
-                if (clave.startsWith(claveHitoPadre + '-A-')) {
-                    const match = clave.match(/-A-(\d+)/);
-                    if (match && match[1]) {
-                        const num = parseInt(match[1], 10);
-                        if (!isNaN(num) && num > maxNum) {
-                            maxNum = num;
-                        }
-                    }
+    // Recorre todas las acciones actuales para buscar el número más alto en este hito
+    accionesDataset.forEach(function(item) {
+        var clave = item.clave_accion || item.id || '';
+        var hitoBase = item.clave_hito || clave.split('-A-')[0];
+        
+        if (hitoBase === claveHitoPadre) {
+            var match = clave.match(/-A-(\d+)/);
+            if (match && match[1]) {
+                var num = parseInt(match[1], 10);
+                if (!isNaN(num) && num > maxNum) {
+                    maxNum = num;
                 }
-            });
-
-            const siguienteNum = maxNum + 1;
-            return `${claveHitoPadre}-A-${String(siguienteNum).padStart(4, '0')}`;
+            }
         }
+    });
 
+    var siguienteNum = maxNum + 1;
+    return claveHitoPadre + '-A-' + String(siguienteNum).padStart(4, '0');
+}
 // =========================================================================
         // CONTROLADOR DE MODALES DE DESGLOSE PARA TARJETAS KPI
         // =========================================================================
