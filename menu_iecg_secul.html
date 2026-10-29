@@ -3082,30 +3082,30 @@ async function inicializarDatosDesdeSupabase() {
         // ALTERNANCIA DE PESTAÑAS
       function mostrarSeccionTab(tabId) {
     // Incluimos 'tab-bienvenida' junto con las demás
+window.mostrarSeccionTab = function(tabId) {
+    if (!tabId) tabId = 'tab-bienvenida'; // Por defecto abre el Centro de Mando si viene vacío
+
     const tabs = ['tab-bienvenida', 'tab-dashboard', 'tab-areas', 'tab-matriz', 'tab-cronograma', 'tab-linea-tiempo'];
     tabs.forEach(t => {
         const el = document.getElementById(t);
         if (el) el.classList.toggle('hidden', t !== tabId);
     });
 
-    // Actualizar estilos de los botones del menú de pestañas si es necesario...
-}
+    // Actualizar estilos activos de los botones de navegación de forma segura
+    const btnB = document.getElementById('btnNavBienvenida');
+    const btnD = document.getElementById('btnNavDash');
+    const btnA = document.getElementById('btnNavAreas');
+    const btnM = document.getElementById('btnNavMatriz');
+    const btnC = document.getElementById('btnNavCrono');
+    const btnL = document.getElementById('btnNavLineaTiempo');
 
-            const btnD = document.getElementById('btnNavDash');
-            const btnA = document.getElementById('btnNavAreas');
-            const btnM = document.getElementById('btnNavMatriz');
-            const btnC = document.getElementById('btnNavCrono');
-            const btnL = document.getElementById('btnNavLineaTiempo');
-
-            const inactive = "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
-            const active = "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs flex items-center gap-1.5";
-
-            if (btnD) btnD.className = (tabId === 'tab-dashboard') ? active : inactive;
-            if (btnA) btnA.className = (tabId === 'tab-areas') ? active : inactive;
-            if (btnM) btnM.className = (tabId === 'tab-matriz') ? active : inactive;
-            if (btnC) btnC.className = (tabId === 'tab-cronograma') ? active : inactive;
-            if (btnL) btnL.className = (tabId === 'tab-linea-tiempo') ? active : inactive;
-
+    if (btnB) btnB.className = (tabId === 'tab-bienvenida') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-indigo-900 text-white shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+    if (btnD) btnD.className = (tabId === 'tab-dashboard') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+    if (btnA) btnA.className = (tabId === 'tab-areas') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+    if (btnM) btnM.className = (tabId === 'tab-matriz') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+    if (btnC) btnC.className = (tabId === 'tab-cronograma') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+    if (btnL) btnL.className = (tabId === 'tab-linea-tiempo') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+};
             if (tabId === 'tab-cronograma' && typeof renderCronogramaRoadmap === 'function') {
                 renderCronogramaRoadmap();
             }
@@ -5969,9 +5969,7 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
     input.click();
 };
 
-// =========================================================================
-// MESA DE CONTROL Y GOBERNANZA: BASE DE DATOS GENERAL INTERACTIVA
-// =========================================================================
+
 // =========================================================================
 // MESA DE CONTROL Y GOBERNANZA: BASE DE DATOS GENERAL INTERACTIVA
 // =========================================================================
@@ -7753,7 +7751,7 @@ window.cambiarModoPrincipal = function(modo) {
     }
 };
 
-window.seleccionarPerspectivaGerencial = function(tipo) {
+window.seleccionarPerspectivaGerencial = function(perspectiva) {
     perspectivaActual = tipo;
 
     const btnL = document.getElementById('sideTabLey');
