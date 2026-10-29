@@ -3082,6 +3082,9 @@ async function inicializarDatosDesdeSupabase() {
         // ALTERNANCIA DE PESTAÑAS
       function mostrarSeccionTab(tabId) {
     // Incluimos 'tab-bienvenida' junto con las demás
+// =========================================================================
+// ALTERNANCIA DE PESTAÑAS (CENTRO DE MANDO Y VISTAS)
+// =========================================================================
 window.mostrarSeccionTab = function(tabId) {
     if (!tabId) tabId = 'tab-bienvenida'; // Por defecto abre el Centro de Mando si viene vacío
 
@@ -3106,11 +3109,12 @@ window.mostrarSeccionTab = function(tabId) {
     if (btnC) btnC.className = (tabId === 'tab-cronograma') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
     if (btnL) btnL.className = (tabId === 'tab-linea-tiempo') ? "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow-xs" : "btn-executive px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
 
-    // Validar el renderizado del cronograma de forma segura aquí adentro
+    // Validar el renderizado del cronograma de forma segura
     if (tabId === 'tab-cronograma' && typeof renderCronogramaRoadmap === 'function') {
         renderCronogramaRoadmap();
     }
 };
+          
         function renderCronogramaRoadmap() {
             const contenedor = document.getElementById('contenedorCarrilesGantt');
             if (!contenedor) return;
