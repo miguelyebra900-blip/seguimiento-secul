@@ -5897,8 +5897,8 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
         var filasAcciones = '';
         h.acciones.forEach(function(a) {
-            var idClaveAccion = a.clave_accion || a.id;
-
+        // Genera el consecutivo único iterando sobre el array de acciones del hito (1, 2, 3...)
+        var idClaveAccion = a.clave_accion || (h.clave_hito + '-A-' + String(index + 1).padStart(4, '0'));
             // CANDADO DE GOBERNANZA: EVALUAR PERMISOS POR PANEL
             var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
                 ? resolverPanelesUsuario(currentUser)
