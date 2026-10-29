@@ -1423,23 +1423,7 @@
         </div>
         
     </main>
-// Función para abrir el modal de la Base de Datos General de forma segura
-window.abrirModalBaseDatosGeneral = function() {
-    // Si tienes una función de renderizado jerárquico previa, la ejecutas:
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
-        renderBaseDatosGeneralJerarquica();
-    }
-    // Abre el modal usando tu función genérica openModal
-    if (typeof openModal === 'function') {
-        openModal('modal-base-datos-general');
-    } else {
-        const modal = document.getElementById('modal-base-datos-general');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-        }
-    }
-};
+
     <!-- ========================================================================= -->
     <!-- MODAL DIRECTIVO: MEMORIA DE CÁLCULO, METODOLOGÍA Y PONDERACIONES (ASEG)  -->
     <!-- ========================================================================= -->
@@ -2215,6 +2199,25 @@ function manejarCambioExternaBuzon(selectEl) {
         inputTexto.value = '';
     }
 }
+
+// Función para abrir el modal de la Base de Datos General de forma segura
+window.abrirModalBaseDatosGeneral = function() {
+    // Si tienes una función de renderizado jerárquico previa, la ejecutas:
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+        renderBaseDatosGeneralJerarquica();
+    }
+    // Abre el modal usando tu función genérica openModal
+    if (typeof openModal === 'function') {
+        openModal('modal-base-datos-general');
+    } else {
+        const modal = document.getElementById('modal-base-datos-general');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    }
+};
+    
 </script>
                 </div>
 
