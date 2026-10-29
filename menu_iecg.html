@@ -6979,25 +6979,28 @@ function registrarSolicitudAuditoria(solicitud) {
     solicitudes.unshift(solicitud);
     localStorage.setItem('secul_solicitudes_cambio', JSON.stringify(solicitudes));
 
-    ifif (supabaseClient) {
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         supabaseClient.from('solicitudes_auditoria').insert([{
             id: solicitud.id || ('SOL-' + Date.now().toString().slice(-4)),
             origen_sistema: solicitud.origen_sistema || 'IECG',
-            tipo: solicitud.tipo || 'SOLICITUD_GENERAL',
+            tipo: solicitud.tipo || 'VINCULACION_INTERINSTITUCIONAL',
             clave: solicitud.clave || '',
             campo: solicitud.campo || '',
             valor_propuesto: typeof solicitud.valorPropuesto === 'object' ? JSON.stringify(solicitud.valorPropuesto) : (solicitud.valorPropuesto || ''),
             motivo: solicitud.motivo || '',
-            panel_solicitante: solicitud.panel_solicitante || (currentUser ? currentUser.paneles_autorizados?.[0] : 'A'),
+            panel_solicitante: solicitud.panel_solicitante || (currentUser ? currentUser.paneles_autorizados?.[0] : 'B'),
             panel_destino: solicitud.panel_destino || 'I',
             solicitante: solicitud.solicitante || (currentUser ? currentUser.nombre : 'Usuario Enlace'),
             correo_contacto: solicitud.correo_contacto || '',
             telefono_contacto: solicitud.telefono_contacto || '',
             fecha: solicitud.fecha || new Date().toLocaleString(),
             estatus: 'PENDIENTE_AUTORIZACION'
-        }]).then(({ error }) => {
-            if (error) console.error("Error al registrar en solicitudes_auditoria:", error);
-            else console.log("✅ Solicitud registrada con éxito en Supabase.");
+        }]).then(function(res) {
+            if (res && res.error) {
+                console.error("Error al registrar en solicitudes_auditoria:", res.error);
+            } else {
+                console.log("✅ Solicitud registrada con éxito en Supabase.");
+            }
         });
     }
 
