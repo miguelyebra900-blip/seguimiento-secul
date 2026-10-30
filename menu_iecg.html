@@ -2796,13 +2796,23 @@ window.abrirModalBaseDatosGeneral = function() {
             }
         };
 
-        window.closeModal = function(id) {
-            const m = document.getElementById(id);
-            if (m) {
-                m.classList.add('hidden');
-                m.style.display = 'none';
+    window.closeModal = function(id) {
+    const m = document.getElementById(id);
+    if (m) {
+        m.classList.add('hidden');
+        m.style.display = 'none';
+    }
+
+    // Si cerramos cualquier modal que NO sea el distribuidor de inicio,
+    // reabrimos automáticamente el menú interactivo
+    if (id !== 'modal-distribuidor-inicio') {
+        setTimeout(() => {
+            if (typeof openModal === 'function') {
+                openModal('modal-distribuidor-inicio');
             }
-        };
+        }, 150);
+    }
+};
 
 // Función de respaldo para el efecto neón en KPIs
 function activarKpiNeon(elemento, tipoKpi) {
@@ -9665,6 +9675,33 @@ window.addEventListener('DOMContentLoaded', () => {
         openModal('modal-distribuidor-inicio');
     }, 250);
 });
+// Manejo del historial del navegador para que "Regresar" abra el menú interactivo
+window.addEventListener('popstate', function(event) {
+    // Evita retroceder de página y proyecta el menú interactivo
+    if (typeof openModal === 'function') {
+        openModal('modal-distribuidor-inicio');
+    }
+    // Mantiene el estado en la misma URL sin salir
+    history.pushState(null, null, window.location.href);
+});
+
+// Registrar un estado inicial al cargar la página
+window.addEventListener('DOMContentLoaded', () => {
+    history.pushState(null, null, window.location.href);
+});
+
+// Si el usuario presiona la tecla ESC fuera o dentro de un modal, abre el menú
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const menuDistribuidor = document.getElementById('modal-distribuidor-inicio');
+        // Si el menú ya está abierto, no hace nada; si está cerrado, lo abre
+        if (menuDistribuidor && menuDistribuidor.classList.contains('hidden')) {
+            openModal('modal-distribuidor-inicio');
+        }
+    }
+});
+
+    
 </script>
     <!-- Descripción de la Acción -->
     <div>
