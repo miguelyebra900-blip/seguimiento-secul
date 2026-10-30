@@ -6968,17 +6968,18 @@ async function guardarContactoNotificaciones(e) {
     alert("✅ Canales de notificación registrados correctamente.");
 }
 
+// =========================================================================
+// REGISTRO Y DISPACHO DE SOLICITUDES DE AUDITORÍA
+// =========================================================================
 function registrarSolicitudAuditoria(solicitud) {
-    solicitud.id = 'SOL-' + Date.now().toString().slice(-4);
-    solicitud.origen_sistema = ORIGEN_SISTEMA_ACTUAL; // 'IECG' o 'FORUM'
-    solicitud.correo_contacto = currentUser ? currentUser.correo_notificaciones : '';
-    solicitud.telefono_contacto = currentUser ? currentUser.telefono_whatsapp : '';
-    solicitud.fecha = new Date().toLocaleString();
+    if (!solicitud) return;
 
+    // 1. Registro en memoria local
     let solicitudes = JSON.parse(localStorage.getItem('secul_solicitudes_cambio')) || [];
     solicitudes.unshift(solicitud);
     localStorage.setItem('secul_solicitudes_cambio', JSON.stringify(solicitudes));
 
+    // 2. Inserción central en Supabase
     if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         supabaseClient.from('solicitudes_auditoria').insert([{
             id: solicitud.id || ('SOL-' + Date.now().toString().slice(-4)),
@@ -7003,7 +7004,7 @@ function registrarSolicitudAuditoria(solicitud) {
             }
         });
     }
-
+}
 // =========================================================================
 // ARRANQUE SEGURO Y PERSISTENCIA DE SESIÓN AL REFRESCAR (F5 / CTRL+R)
 // =========================================================================
