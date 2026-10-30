@@ -6139,9 +6139,9 @@ window.renderBaseDatosGeneralJerarquica = function() {
     var listaHitos = Object.values(mapaHitos);
 
     if (listaHitos.length === 0) {
-        contenedor.innerHTML = '<div class="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">' +
-            '<i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>' +
-            '<p class="font-bold text-xs">No se encontraron hitos o acciones con el criterio seleccionado.</p>' +
+        contenedor.innerHTML = '<div class="bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">' +
+            '<i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>' +
+            '<p class="font-bold text-sm text-slate-600">No se encontraron hitos o acciones con el criterio seleccionado.</p>' +
             '</div>';
         return;
     }
@@ -6153,78 +6153,9 @@ window.renderBaseDatosGeneralJerarquica = function() {
             return acc + (Number(curr.avance) || 0);
         }, 0);
         var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
-        var badgeColor = (promedioHito === 100) ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800';
+        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200';
 
-        var filasAcciones = '';
-        h.acciones.forEach(function(a) {
-        // Genera el consecutivo único iterando sobre el array de acciones del hito (1, 2, 3...)
-        var idClaveAccion = a.clave_accion || (h.clave_hito + '-A-' + String(index + 1).padStart(4, '0'));
-            // CANDADO DE GOBERNANZA: EVALUAR PERMISOS POR PANEL
-            var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
-                ? resolverPanelesUsuario(currentUser)
-                : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
-            var esAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin'));
-            
-            var esTitularAccion = esAdmin || misPaneles.includes(a.panel) || misPaneles.includes(h.panel);
-            var estaVinculada = Boolean(a.panel_coresponsable && misPaneles.includes(a.panel_coresponsable));
-            var tienePermisoOperativo = esTitularAccion || estaVinculada;
-
-            var btnAgregarRapido = '';
-            var btnVincular = '';
-            var btnEditar = '';
-            var btnEliminar = '';
-
-            if (tienePermisoOperativo) {
-                btnAgregarRapido = '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-emerald-200 transition" title="Carga rápida de archivo"><i class="fa-solid fa-plus"></i> + Archivo</button>';
-                btnVincular = '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-purple-200 transition" title="Vincular con otra área"><i class="fa-solid fa-link text-purple-600"></i> Vincular</button>';
-                btnEditar = '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-indigo-200 transition"><i class="fa-solid fa-pen-to-square text-indigo-600"></i> Editar</button>';
-                btnEliminar = '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-rose-200 transition" title="Solicitar baja formal"><i class="fa-solid fa-trash-can text-rose-600"></i></button>';
-            } else {
-                btnAgregarRapido = '<button type="button" disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-slate-200 cursor-not-allowed opacity-60"><i class="fa-solid fa-lock text-[9px]"></i> + Archivo</button>';
-                btnVincular = '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg font-black text-[10.5px] inline-flex items-center gap-1 border border-amber-300 transition shadow-2xs"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vínculo</button>';
-                btnEditar = '<button type="button" disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-slate-200 cursor-not-allowed opacity-60"><i class="fa-solid fa-lock text-[9px]"></i> Editar</button>';
-                btnEliminar = '<button type="button" disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1 border border-slate-200 cursor-not-allowed opacity-60"><i class="fa-solid fa-lock text-[9px]"></i></button>';
-            }
-
-            var badgeEst = 'bg-blue-100 text-blue-800';
-            if (a.estatus === 'Concluido') badgeEst = 'bg-emerald-100 text-emerald-800';
-            else if (a.estatus === 'Validación') badgeEst = 'bg-purple-100 text-purple-800';
-            else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-100 text-amber-800';
-
-            var listaArchivosAccion = a.archivosDrive || [];
-            var numArchivos = listaArchivosAccion.length;
-            if (numArchivos === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
-                numArchivos = 1;
-            }
-
-            var btnDrive = '<button type="button" onclick="seleccionarAccionParaExpediente(\'' + idClaveAccion + '\')" ' +
-                           'class="px-3 py-1.5 rounded-xl text-xs font-bold ' + 
-                           (numArchivos > 0 ? 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-200') + 
-                           ' inline-flex items-center gap-1.5 transition-all shadow-2xs group">' +
-                           '<i class="fa-brands fa-google-drive ' + (numArchivos > 0 ? 'text-amber-500 group-hover:text-amber-300' : 'text-slate-400') + ' transition-colors"></i>' +
-                           '<span>' + (numArchivos > 0 ? numArchivos + ' Doc(s)' : 'Sin Archivos') + '</span>' +
-                           '<i class="fa-solid fa-chevron-right text-[10px] ' + (numArchivos > 0 ? 'text-indigo-400 group-hover:text-white group-hover:translate-x-0.5' : 'text-slate-400') + ' transition-all"></i>' +
-                           '</button>';
-
-            filasAcciones += '<tr class="hover:bg-slate-50/80 transition">' +
-                '<td class="p-2 font-mono font-bold text-indigo-900 whitespace-nowrap">' + idClaveAccion + '</td>' +
-                '<td class="p-2 text-slate-800 font-medium">' + (a.accion || '') + '</td>' +
-                '<td class="p-2 text-slate-600">' + (a.responsable || 'Comisión') + '</td>' +
-                '<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold ' + badgeEst + '">' + (a.estatus || 'En Proceso') + '</span></td>' +
-                '<td class="p-2 text-center font-mono font-black ' + (Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600') + '">' + (a.avance || 0) + '%</td>' +
-                '<td class="p-2 text-center whitespace-nowrap">' + btnDrive + '</td>' +
-                '<td class="p-2 text-center whitespace-nowrap">' +
-                    '<div class="inline-flex items-center gap-1">' +
-                        btnAgregarRapido +
-                        btnVincular +
-                        btnEditar +
-                        btnEliminar +
-                    '</div>' +
-                '</td>' +
-            '</tr>';
-        });
-
-        // EVALUAR PERMISO DE EDICIÓN EN LA CABECERA DEL HITO (BLOQUE ÚNICO)
+        // Evaluar permisos de usuario para los botones del hito
         var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
             ? resolverPanelesUsuario(currentUser)
             : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
@@ -6234,54 +6165,130 @@ window.renderBaseDatosGeneralJerarquica = function() {
         var botonesCabeceraHito = '';
         if (esTitularHito) {
             botonesCabeceraHito = 
-                '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-plus text-indigo-600"></i> + Acción</button>' +
-                '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-purple-600"></i> Vincular Hito</button>' +
-                '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-sliders text-amber-600"></i> Modificar Hito</button>' +
-                '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar</button>';
+                '<div class="flex flex-wrap items-center gap-1.5">' +
+                    '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"><i class="fa-solid fa-plus text-[10px]"></i> + Acción</button>' +
+                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center gap-1.5 transition"><i class="fa-solid fa-link text-[10px]"></i> Vincular</button>' +
+                    '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition"><i class="fa-solid fa-pen-to-square text-[10px]"></i> Modificar Hito</button>' +
+                    '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="p-1.5 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1 transition" title="Eliminar Hito"><i class="fa-solid fa-trash-can text-[11px]"></i></button>' +
+                '</div>';
         } else {
             botonesCabeceraHito = 
-                '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200 flex items-center gap-1"><i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Modo Consulta</span>' +
-                '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px] flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vinculación</button>';
+                '<div class="flex items-center gap-2">' +
+                    '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 flex items-center gap-1"><i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Consulta</span>' +
+                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vínculo</button>' +
+                '</div>';
         }
 
-        htmlFinal += '<div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-indigo-300">' +
-            '<div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">' +
-                '<div class="flex items-center gap-3">' +
-                    '<span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center font-mono text-xs shadow-2xs">' + h.panel + '</span>' +
-                    '<div>' +
-                        '<div class="flex items-center gap-2 min-w-0 flex-wrap">' +
-                            '<span class="font-mono font-bold text-indigo-950 text-xs bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-md whitespace-nowrap shrink-0">' + h.clave_hito + '</span>' +
-                            '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">' + h.area + '</span>' +
+        // Bloque de Acciones en Cascada Completa
+        var filasAccionesHTML = '';
+        h.acciones.forEach(function(a, idx) {
+            var idClaveAccion = a.clave_accion || (h.clave_hito + '-A-' + String(idx + 1).padStart(4, '0'));
+            var esTitularAccion = esAdmin || misPaneles.includes(a.panel) || misPaneles.includes(h.panel);
+            var estaVinculada = Boolean(a.panel_coresponsable && misPaneles.includes(a.panel_coresponsable));
+            var tienePermisoOperativo = esTitularAccion || estaVinculada;
+
+            // Estatus visual
+            var badgeEst = 'bg-blue-50 text-blue-700 border-blue-200';
+            if (a.estatus === 'Concluido') badgeEst = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            else if (a.estatus === 'Validación') badgeEst = 'bg-purple-50 text-purple-700 border-purple-200';
+            else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-50 text-amber-800 border-amber-200';
+
+            // Archivos adjuntos de Drive
+            var listaArchivos = a.archivosDrive || [];
+            if (listaArchivos.length === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
+                listaArchivos = [{ nombre: 'Expediente Oficial Acreditado', url: a.driveUrl }];
+            }
+
+            var chipsArchivos = '';
+            if (listaArchivos.length > 0) {
+                chipsArchivos = listaArchivos.map(function(doc) {
+                    return '<a href="' + doc.url + '" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold transition" title="Abrir archivo en Google Drive">' +
+                        '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
+                        '<span class="truncate max-w-[260px]">' + (doc.nombre || 'Documento Soporte') + '</span>' +
+                        '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-emerald-500"></i>' +
+                    '</a>';
+                }).join('');
+            } else {
+                chipsArchivos = '<span class="text-[11px] text-slate-400 italic flex items-center gap-1.5 py-0.5"><i class="fa-solid fa-circle-exclamation text-slate-300"></i> Sin archivos cargados en Drive</span>';
+            }
+
+            // Botonera operativa por acción
+            var botonesAccion = '';
+            if (tienePermisoOperativo) {
+                botonesAccion = 
+                    '<div class="flex items-center gap-1.5">' +
+                        '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs inline-flex items-center gap-1 shadow-2xs transition" title="Subir archivo a Drive"><i class="fa-solid fa-cloud-arrow-up"></i> + Subir</button>' +
+                        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs inline-flex items-center gap-1 transition"><i class="fa-solid fa-pen text-indigo-600"></i> Editar</button>' +
+                        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-xs transition" title="Baja de acción"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</div>';
+            } else {
+                botonesAccion = '<span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-1 rounded-md">Solo Lectura</span>';
+            }
+
+            filasAccionesHTML += 
+                '<div class="p-4 bg-slate-50/60 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all space-y-2.5">' +
+                    '<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">' +
+                        '<div class="flex items-center gap-2">' +
+                            '<span class="font-mono font-bold text-xs text-indigo-900 bg-white px-2 py-0.5 rounded-md border border-slate-200">' + idClaveAccion + '</span>' +
+                            '<span class="font-bold text-slate-900 text-xs">' + (a.accion || 'Acción institucional') + '</span>' +
                         '</div>' +
-                        '<h4 class="font-black text-slate-900 text-sm mt-0.5">' + h.nombreHito + '</h4>' +
+                        '<div class="flex flex-wrap items-center gap-2">' +
+                            '<span class="text-[11px] font-semibold text-slate-500"><i class="fa-solid fa-user-tie text-slate-400 mr-1"></i>' + (a.responsable || 'Comisión') + '</span>' +
+                            '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ' + badgeEst + '">' + (a.estatus || 'En Proceso') + '</span>' +
+                            '<span class="font-mono font-black text-xs ' + (Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600') + '">' + (a.avance || 0) + '%</span>' +
+                            botonesAccion +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<!-- Fila integrada de Documentos Soporte -->' +
+                    '<div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-0.5">' +
+                        '<span class="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 flex items-center gap-1">' +
+                            '<i class="fa-solid fa-paperclip text-slate-400"></i> Expedientes Drive:' +
+                        '</span>' +
+                        '<div class="flex flex-wrap items-center gap-1.5">' +
+                            chipsArchivos +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+        });
+
+        // Contenedor principal de cada Hito a todo lo largo
+        htmlFinal += 
+            '<div class="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-md transition-all p-5 sm:p-6 space-y-4">' +
+                
+                '<!-- Cabecera del Hito (Todo a lo largo, sin cortes) -->' +
+                '<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">' +
+                    '<div class="flex items-start gap-3">' +
+                        '<span class="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 font-mono font-black text-xs flex items-center justify-center border border-indigo-100 shrink-0 mt-0.5">' +
+                            h.panel +
+                        '</span>' +
+                        '<div>' +
+                            '<div class="flex flex-wrap items-center gap-2 mb-1">' +
+                                '<span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">' + h.clave_hito + '</span>' +
+                                '<span class="text-xs font-semibold text-slate-500">' + h.area + '</span>' +
+                                '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black border ' + badgeColor + '">' + promedioHito + '% Avance (' + h.acciones.length + ' Acc.)</span>' +
+                            '</div>' +
+                            '<h3 class="font-black text-slate-900 text-sm sm:text-base leading-snug">' + h.nombreHito + '</h3>' +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<!-- Botonera del Hito -->' +
+                    '<div class="shrink-0 self-start md:self-auto">' +
+                        botonesCabeceraHito +
                     '</div>' +
                 '</div>' +
-                '<div class="flex items-center gap-1.5 self-end md:self-auto shrink-0 flex-wrap">' +
-                    '<span class="px-2.5 py-1 rounded-xl text-xs font-black ' + badgeColor + '">' + promedioHito + '% (' + h.acciones.length + ' Acc.)</span>' +
-                    botonesCabeceraHito +
+
+                '<!-- Lista de Acciones y Soportes -->' +
+                '<div class="space-y-3">' +
+                    filasAccionesHTML +
                 '</div>' +
-            '</div>' +
-            '<div class="p-3 overflow-x-auto">' +
-                '<table class="w-full text-left text-[11px]">' +
-                    '<thead class="text-slate-400 font-bold uppercase text-[9px] border-b border-slate-100">' +
-                        '<tr>' +
-                            '<th class="p-2">Clave Acción</th>' +
-                            '<th class="p-2 min-w-[220px]">Compromiso Específico</th>' +
-                            '<th class="p-2">Responsable</th>' +
-                            '<th class="p-2 text-center">Estatus</th>' +
-                            '<th class="p-2 text-center">Avance</th>' +
-                            '<th class="p-2 text-center">Expediente Drive</th>' +
-                            '<th class="p-2 text-center">Gestión</th>' +
-                        '</tr>' +
-                    '</thead>' +
-                    '<tbody class="divide-y divide-slate-100 font-sans">' + filasAcciones + '</tbody>' +
-                '</table>' +
-            '</div>' +
-        '</div>';
+
+            '</div>';
     });
 
     contenedor.innerHTML = htmlFinal;
 };
+        
 // 3. Abrir Alta de Hito (Con candado de seguridad, autenticación y preselección de panel)
 window.abrirAltaHitoDesdeBDGeneral = function() {
     // A. Candado de sesión activa
