@@ -8755,6 +8755,108 @@ function cambiarModoPrincipal(modo) {
         console.log("Activada: Vista Operativa por Áreas");
     }
 }
+
+        // =========================================================================
+// BANDEJA DE ENTRADA: NOTIFICACIONES DE VINCULACIÓN EN LA CABECERA
+// =========================================================================
+window.consultarSolicitudesPendientesEnSupabase = async function() {
+    if (!currentUser || typeof supabaseClient === 'undefined' || !supabaseClient) return;
+
+    const misPaneles = (typeof resolverPanelesUsuario === 'function')
+        ? resolverPanelesUsuario(currentUser)
+        : (currentUser.paneles_autorizados || ['A']);
+
+    try {
+        const { data: solicitudes, error } = await supabaseClient
+            .from('solicitudes_auditoria')
+            .select('*')
+            .eq('estatus', 'PENDIENTE_AUTORIZACION');
+
+        if (error) {
+            console.error("Error al consultar notificaciones:", error);
+            return;
+        }
+
+        const badge = document.getElementById('badgeContadorNotif');
+        if (!solicitudes || solicitudes.length === 0) {
+            if (badge) badge.classList.add('hidden');
+            return;
+        }
+
+        // Filtrar las solicitudes que van dirigidas a cualquiera de mis paneles
+        const paraMi = solicitudes.filter(sol => {
+            const dest = (sol.panel_destino || '').toUpperCase();
+            return misPaneles.some(p => dest.includes(p.toUpperCase()));
+        });
+
+        // Actualizar el botón de la cabecera con el número de solicitudes
+        if (badge) {
+            if (paraMi.length > 0) {
+                badge.innerText = paraMi.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        window._solicitudesPendientesCache = paraMi;
+
+    } catch (e) {
+        console.warn("Fallo al verificar solicitudes:", e);
+    }
+};
+
+window.abrirBandejaNotificacionesVinculacion = function() {
+    const contenedor = document.getElementById('cuerpoListaNotificaciones');
+    if (!contenedor) return;
+
+    const lista = window._solicitudesPendientesCache || [];
+
+    if (lista.length === 0) {
+        contenedor.innerHTML = `
+            <div class="text-center py-8 text-slate-400 space-y-2">
+                <i class="fa-solid fa-circle-check text-3xl text-emerald-500/50"></i>
+                <p class="text-xs font-bold">No tienes solicitudes de vinculación pendientes.</p>
+                <p class="text-[10px] text-slate-400">Todas las comisiones y registros están al día.</p>
+            </div>
+        `;
+    } else {
+        let html = '';
+        lista.forEach(sol => {
+            html += `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono text-xs font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                            ${sol.clave}
+                        </span>
+                        <span class="text-[9.5px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                            Pendiente
+                        </span>
+                    </div>
+                    <div class="text-xs text-slate-700">
+                        El enlace <strong class="text-indigo-600">${sol.solicitante}</strong> (Panel ${sol.panel_solicitante}) solicita vincularse a tu área:
+                    </div>
+                    <div class="p-2 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 italic">
+                        "${sol.motivo || 'Sin justificación especificada'}"
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+                        <button type="button" onclick="responderVinculacionEnSupabase('${sol.id}', '${sol.clave}', '${sol.panel_solicitante}', false)" 
+                                class="px-2.5 py-1 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition">
+                            Rechazar
+                        </button>
+                        <button type="button" onclick="responderVinculacionEnSupabase('${sol.id}', '${sol.clave}', '${sol.panel_solicitante}', true)" 
+                                class="px-3 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition flex items-center gap-1">
+                            <i class="fa-solid fa-check"></i> Autorizar
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    }
+
+    openModal('modal-bandeja-notificaciones');
+};
         
 </script>
 
