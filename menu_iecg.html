@@ -1600,8 +1600,8 @@
     </div>
 
     <!-- MODAL DE INICIO: MATRIZ DE RIESGOS DIRECTIVOS -->
-    <div id="modal-riesgos-inicio" class="fixed inset-0 z-50 modal-glass flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col transition-all">
+<div id="modal-riesgos-inicio" class="fixed inset-0 z-50 hidden modal-glass items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col transition-all">
             
             <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
                 <div class="flex items-start gap-3">
@@ -1812,6 +1812,241 @@
         </div>
     </div>
 
+<!-- ========================================================================= -->
+<!-- MODAL DE INICIO INTERACTIVO (DISTRIBUIDOR ESTILO AMAZON / ATAJOS)         -->
+<!-- ========================================================================= -->
+<div id="modal-distribuidor-inicio" class="fixed inset-0 z-50 modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col transform transition-all duration-300">
+        
+        <!-- Encabezado con estética institucional -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-amber-400">Plataforma de Transición</span>
+                    <h3 class="text-base font-black leading-tight text-white">¿A qué módulo deseas acceder?</h3>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarDistribuidorInicio()" class="text-slate-400 hover:text-white text-lg p-1 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Conmutador de Modos (Pestañas estilo Amazon) -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200">
+            <div class="grid grid-cols-2 gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
+                <button type="button" id="tabMenuGerencial" onclick="cambiarPestañaDistribuidor('gerencial')"
+                        class="py-2.5 px-4 rounded-xl text-xs font-black transition-all bg-indigo-900 text-white shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-briefcase text-amber-400"></i> Vista Gerencial
+                </button>
+                <button type="button" id="tabMenuOperativo" onclick="cambiarPestañaDistribuidor('operativo')"
+                        class="py-2.5 px-4 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-indigo-500"></i> Vista Operativa (Áreas A–J)
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuerpo del Distribuidor -->
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            
+            <!-- ========================================== -->
+            <!-- 1. BLOQUE GERENCIAL (IMAGEN 1)             -->
+            <!-- ========================================== -->
+            <div id="distribuidorCuerpoGerencial" class="space-y-3">
+                <div class="mb-2">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Perspectivas de Análisis</span>
+                    <h4 class="text-sm font-black text-slate-800">Control Decreto 345</h4>
+                </div>
+
+                <!-- Opción 1: Obligaciones de Ley -->
+                <button type="button" onclick="navegarDesdeDistribuidor('gerencial', 'ley')" 
+                        class="w-full text-left p-4 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border border-slate-200 bg-white hover:bg-indigo-50/60 hover:border-indigo-400 hover:shadow-md group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center text-sm shadow-xs group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+                        <div>
+                            <span class="block leading-tight font-black text-slate-900 text-sm">1. Obligaciones de Ley</span>
+                            <span class="text-[11px] text-slate-500 font-normal">Decreto 345 & Lineamientos</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all"></i>
+                </button>
+
+                <!-- Opción 2: Etapas y Cronograma -->
+                <button type="button" onclick="navegarDesdeDistribuidor('gerencial', 'etapas')" 
+                        class="w-full text-left p-4 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border border-slate-200 bg-white hover:bg-indigo-50/60 hover:border-indigo-400 hover:shadow-md group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shadow-xs group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-timeline"></i>
+                        </div>
+                        <div>
+                            <span class="block leading-tight font-black text-slate-900 text-sm">2. Etapas y Cronograma</span>
+                            <span class="text-[11px] text-slate-500 font-normal">Hoja de ruta por fases</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all"></i>
+                </button>
+
+                <!-- Opción 3: Nivel de Riesgo -->
+                <button type="button" onclick="navegarDesdeDistribuidor('gerencial', 'riesgos')" 
+                        class="w-full text-left p-4 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border border-slate-200 bg-white hover:bg-rose-50/60 hover:border-rose-400 hover:shadow-md group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm shadow-xs group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <span class="block leading-tight font-black text-slate-900 text-sm">3. Nivel de Riesgo</span>
+                            <span class="text-[11px] text-slate-500 font-normal">Matriz de contingencias</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all"></i>
+                </button>
+
+                <!-- Opción 4: Resumen Ejecutivo -->
+                <button type="button" onclick="navegarDesdeDistribuidor('gerencial', 'resumen')" 
+                        class="w-full text-left p-4 rounded-2xl font-bold text-xs transition-all flex items-center justify-between border border-slate-200 bg-white hover:bg-emerald-50/60 hover:border-emerald-400 hover:shadow-md group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm shadow-xs group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <span class="block leading-tight font-black text-slate-900 text-sm">4. Resumen Ejecutivo</span>
+                            <span class="text-[11px] text-slate-500 font-normal">Cuadro de Mando 1-Slide</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all"></i>
+                </button>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 2. BLOQUE OPERATIVO (IMAGEN 2)             -->
+            <!-- ========================================== -->
+            <div id="distribuidorCuerpoOperativo" class="space-y-4 hidden">
+                
+                <!-- BOTÓN DESTACADO PROTAGÓNICO: BASE DE DATOS GENERAL IECG -->
+                <div class="p-1 rounded-3xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 shadow-lg">
+                    <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'base-datos')"
+                            class="w-full p-4 rounded-[22px] bg-slate-950 hover:bg-slate-900 text-white flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-400 border border-amber-400/40 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-black uppercase text-amber-400 tracking-wider">Centro Maestro</span>
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                </div>
+                                <h4 class="text-base font-black text-white leading-tight">Base de Datos General IECG</h4>
+                                <p class="text-xs text-slate-300 mt-0.5">Gestión de Hitos, Acciones (A–J), Evidencias Drive y Auditoría</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs group-hover:bg-amber-300 transition shrink-0">
+                            Abrir <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- SUBBOTONES EN CUADRÍCULA ESTILO ATAJOS DE AMAZON -->
+                <div>
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-2.5">
+                        Módulos de Seguimiento Operativo
+                    </span>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        
+                        <!-- Tablero Directivo -->
+                        <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'tab-dashboard')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base group-hover:scale-110 transition">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                            <div>
+                                <strong class="block text-xs font-black text-slate-900 leading-tight">Tablero Directivo</strong>
+                                <span class="text-[10px] text-slate-500 font-medium">Gráficas & KPIs</span>
+                            </div>
+                        </button>
+
+                        <!-- Hitos por Área -->
+                        <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'tab-areas')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-base group-hover:scale-110 transition">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <strong class="block text-xs font-black text-slate-900 leading-tight">Hitos por Área</strong>
+                                <span class="text-[10px] text-slate-500 font-medium">10 Áreas (A–J)</span>
+                            </div>
+                        </button>
+
+                        <!-- Matriz Completa -->
+                        <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'tab-matriz')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-base group-hover:scale-110 transition">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                            <div>
+                                <strong class="block text-xs font-black text-slate-900 leading-tight">Matriz Completa</strong>
+                                <span class="text-[10px] text-slate-500 font-medium">30 Acciones</span>
+                            </div>
+                        </button>
+
+                        <!-- Cronograma & Roadmap -->
+                        <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'tab-cronograma')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group">
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base group-hover:scale-110 transition">
+                                <i class="fa-solid fa-timeline"></i>
+                            </div>
+                            <div>
+                                <strong class="block text-xs font-black text-slate-900 leading-tight">Cronograma</strong>
+                                <span class="text-[10px] text-slate-500 font-medium">Roadmap Temporal</span>
+                            </div>
+                        </button>
+
+                        <!-- Línea de Tiempo Legal -->
+                        <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'tab-linea-tiempo')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-purple-400 hover:bg-purple-50/50 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group">
+                            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-base group-hover:scale-110 transition">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div>
+                                <strong class="block text-xs font-black text-slate-900 leading-tight">Línea Legal</strong>
+                                <span class="text-[10px] text-slate-500 font-medium">T-01 a T-14</span>
+                            </div>
+                        </button>
+
+                        <!-- Riesgos (Art. 6) -->
+                        <button type="button" onclick="navegarDesdeDistribuidor('operativo', 'riesgos-art6')"
+                                class="p-3.5 rounded-2xl bg-white border border-rose-200 hover:border-rose-400 hover:bg-rose-50/60 hover:shadow-md transition-all flex flex-col items-center text-center gap-2 group">
+                            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base group-hover:scale-110 transition">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <strong class="block text-xs font-black text-rose-700 leading-tight">Riesgos (Art. 6)</strong>
+                                <span class="text-[10px] text-rose-500 font-medium">5 Puntos Críticos</span>
+                            </div>
+                        </button>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Pie sutil para cerrar -->
+        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+            <span>Puedes volver a consultar o cambiar de módulo en el menú superior.</span>
+            <button type="button" onclick="cerrarDistribuidorInicio()" class="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold transition">
+                Continuar
+            </button>
+        </div>
+
+    </div>
+</div>
+
+    
 <!-- ========================================================= -->
 <!-- MODAL MAESTRO UNIVERSAL: GESTIÓN Y ALTA DE ENTREGABLES    -->
 <!-- ========================================================= -->
@@ -9352,6 +9587,84 @@ function toggleModoClaveCanonica() {
         event.target.style.color = '#4f46e5';
     }
 }
+
+    // =========================================================================
+// CONTROL DEL DISTRIBUIDOR INTERACTIVO DE ENTRADA
+// =========================================================================
+
+// 1. Alternar pestañas dentro del modal (Gerencial vs Operativo)
+window.cambiarPestañaDistribuidor = function(modo) {
+    const cuerpoGerencial = document.getElementById('distribuidorCuerpoGerencial');
+    const cuerpoOperativo = document.getElementById('distribuidorCuerpoOperativo');
+    const btnGer = document.getElementById('tabMenuGerencial');
+    const btnOp = document.getElementById('tabMenuOperativo');
+
+    const activo = "py-2.5 px-4 rounded-xl text-xs font-black transition-all bg-indigo-900 text-white shadow-sm flex items-center justify-center gap-2";
+    const inactivo = "py-2.5 px-4 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2";
+
+    if (modo === 'gerencial') {
+        cuerpoGerencial.classList.remove('hidden');
+        cuerpoOperativo.classList.add('hidden');
+        btnGer.className = activo;
+        btnOp.className = inactivo;
+    } else {
+        cuerpoGerencial.classList.add('hidden');
+        cuerpoOperativo.classList.remove('hidden');
+        btnOp.className = activo;
+        btnGer.className = inactivo;
+    }
+};
+
+// 2. Cerrar el modal distribuidor
+window.cerrarDistribuidorInicio = function() {
+    closeModal('modal-distribuidor-inicio');
+};
+
+// 3. Navegación directa hacia las secciones mapeadas
+window.navegarDesdeDistribuidor = function(modo, destino) {
+    cerrarDistribuidorInicio();
+
+    if (modo === 'gerencial') {
+        // Activa la vista gerencial principal
+        if (typeof cambiarModoPrincipal === 'function') {
+            cambiarModoPrincipal('gerencial');
+        }
+        // Selecciona la perspectiva correspondiente de las 4 opciones
+        if (typeof seleccionarPerspectivaGerencial === 'function') {
+            seleccionarPerspectivaGerencial(destino);
+        }
+    } else {
+        // Modo operativo
+        if (typeof cambiarModoPrincipal === 'function') {
+            cambiarModoPrincipal('operativo');
+        }
+
+        if (destino === 'base-datos') {
+            // Abre el modal de Base de Datos General IECG
+            if (typeof abrirModalBaseDatosGeneral === 'function') {
+                abrirModalBaseDatosGeneral();
+            }
+        } else if (destino === 'riesgos-art6') {
+            // Abre el modal de riesgos
+            openModal('modal-riesgos-inicio');
+        } else {
+            // Navega a la pestaña de sección correspondiente (dashboard, areas, matriz, cronograma, etc.)
+            if (typeof mostrarSeccionTab === 'function') {
+                mostrarSeccionTab(destino);
+            }
+        }
+    }
+};
+
+// 4. Lanzamiento automático al cargar la página
+window.addEventListener('DOMContentLoaded', () => {
+    // Garantiza que el modal de riesgos esté cerrado
+    closeModal('modal-riesgos-inicio');
+    // Abre el menú interactivo distribuidor
+    setTimeout(() => {
+        openModal('modal-distribuidor-inicio');
+    }, 250);
+});
 </script>
     <!-- Descripción de la Acción -->
     <div>
