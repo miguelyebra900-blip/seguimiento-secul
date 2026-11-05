@@ -3091,11 +3091,18 @@ async function inicializarDatosDesdeSupabase() {
                 const claveArea = hitoInfo.clave_area || prefijo;
                 const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
 
-                const valorAvance = Number(
-                    itemDB.avance !== undefined && itemDB.avance !== null ? itemDB.avance :
-                    (typeof itemDB.estatus === 'number' ? itemDB.estatus : 
-                    (itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (hitoInfo.avance || 0)))
-                );
+             let valorAvance = 0;
+                if (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null && !isNaN(Number(itemDB.avance_porcentaje))) {
+                    valorAvance = Number(itemDB.avance_porcentaje);
+                } else if (itemDB.avance !== undefined && itemDB.avance !== null && !isNaN(Number(itemDB.avance))) {
+                    valorAvance = Number(itemDB.avance);
+                } else if (typeof itemDB.estatus === 'number' || (!isNaN(Number(itemDB.estatus)) && itemDB.estatus !== '')) {
+                    valorAvance = Number(itemDB.estatus);
+                } else if (itemDB.estatus === 'Concluido') {
+                    valorAvance = 100;
+                } else if (itemDB.estatus === 'Validación') {
+                    valorAvance = 75;
+                }
 
                 let estatusLimpio = 'En Proceso';
                 if (valorAvance === 100) {
@@ -6492,17 +6499,50 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         guardarDataset();
 
-        if (supabaseClient) {
-            await supabaseClient.from('acciones_transicion').upsert([{
-                clave_accion: act.clave_accion || act.id,
-                clave_hito: act.clave_hito || act.id.split('-A-')[0],
-                accion_especifica: act.accion,
-                estatus: act.avance,
-                drive_url: ultimoDriveUrl || '',
-                instancia_responsable: act.responsable
-            }], { onConflict: 'clave_accion' });
-        }
+      if (supabaseClient) {
+            const avanceNum = Number(avanceCapturado) || 0;
+            const estatusTxt = estatusCapturado || (avanceNum === 100 ? 'Concluido' : (avanceNum >= 75 ? 'Validación' : 'En Proceso'));
+            const claveHitoPadre = (act.clave_hito || (act.clave_accion || act.id).split('-A-')[0]).trim();
 
+            // 1. Guardar en acciones_transicion garantizando campos numéricos y de texto
+            const { error: errAccion } = await supabaseClient.from('acciones_transicion').upsert([{
+                clave_accion: act.clave_accion || act.id,
+                clave_hito: claveHitoPadre,
+                accion_especifica: act.accion,
+                estatus: estatusTxt,
+                avance: avanceNum,
+                avance_porcentaje: avanceNum,
+                drive_url: ultimoDriveUrl || '',
+                instancia_responsable: act.responsable,
+                updated_at: new Date().toISOString()
+            }], { onConflict: 'clave_accion' });
+
+            if (errAccion) throw errAccion;
+
+            // 2. Recalcular y actualizar el promedio del Hito Padre en hitos_transicion
+            const accionesHermanas = accionesDataset.filter(a => {
+                const hBase = (a.clave_hito || (a.clave_accion || a.id).split('-A-')[0]).trim();
+                return hBase === claveHitoPadre;
+            });
+
+            let sumaTotal = 0;
+            accionesHermanas.forEach(a => {
+                if ((a.clave_accion === act.clave_accion) || (a.id === act.id)) {
+                    sumaTotal += avanceNum;
+                } else {
+                    sumaTotal += Number(a.avance || 0);
+                }
+            });
+            const promedioHito = Math.round(sumaTotal / (accionesHermanas.length || 1));
+
+            await supabaseClient
+                .from('hitos_transicion')
+                .update({ 
+                    avance_porcentaje: promedioHito,
+                    avance: promedioHito 
+                })
+                .eq('clave_hito', claveHitoPadre);
+        }
         alert(`¡Actualización exitosa! Se subieron ${archivosNuevosSubidos} archivo(s) nuevo(s) y se registraron en Supabase.`);
         closeModal('modal-edicion-dinamica');
         
