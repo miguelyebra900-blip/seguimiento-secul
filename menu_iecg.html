@@ -2050,8 +2050,9 @@
 <!-- ========================================================= -->
 <!-- MODAL MAESTRO UNIVERSAL: GESTIÓN Y ALTA DE ENTREGABLES    -->
 <!-- ========================================================= -->
+<!-- Busca la línea 5: Reemplaza max-w-2xl por max-w-4xl -->
 <div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
+    <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
         
        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
             <div class="flex items-center gap-3">
@@ -3798,36 +3799,39 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
 async function ejecutarCargaUniversal(e) {
     e.preventDefault();
     
-    const accionId = document.getElementById('buzonSelectAccion').value;
+    const accionId = document.getElementById('buzonSelectAccion')?.value;
     const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || '';
     if (!claveAccionFinal || claveAccionFinal.includes('SELECCIONA')) {
-        alert("Por favor seleccione un hito válido para generar la nueva acción.");
+        alert("Por favor seleccione un hito válido para asociar la acción.");
         return;
     }
 
-    const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
-    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
+    const nuevoEstatus = document.getElementById('buzonEstatusInput')?.value || 'En Proceso';
+    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput')?.value, 10) || 0;
     const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
     const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
     const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
-    if (!hitoPadre) return;
+    if (!hitoPadre) {
+        alert("No se encontró el hito seleccionado.");
+        return;
+    }
 
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia.");
+        alert("⚠️ Es obligatorio adjuntar el archivo de evidencia.");
         return;
     }
 
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Consultando sufijo y subiendo...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y guardando en Supabase...';
     }
 
     try {
-        // 1. CONTEO REAL EN SUPABASE: Consultar cuántos archivos existen en evidencias_expedientes para esta clave
+        // 1. Conteo de evidencias para sufijo de Drive
         let contadorBase = 1;
         if (supabaseClient) {
             const { count, error: errCount } = await supabaseClient
@@ -3835,23 +3839,20 @@ async function ejecutarCargaUniversal(e) {
                 .select('*', { count: 'exact', head: true })
                 .eq('clave_accion', claveAccionFinal);
 
-            if (!errCount && count !== null) {
-                contadorBase = count + 1; // Si hay 2, el siguiente es 3 (-0.003)
-            }
+            if (!errCount && count !== null) contadorBase = count + 1;
         }
 
         const archivoFisico = fileInput.files[0];
         const sufijoIndex = `-0.00${contadorBase}`;
         const nombreNominalDrive = `[${claveAccionFinal}${sufijoIndex}] ${archivoFisico.name}`;
         
-        // 2. Subir a Google Drive
+        // 2. Subida a Google Drive
         const driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
-
         if (!driveUrlFinal || !driveUrlFinal.startsWith('http')) {
-            throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
+            throw new Error("El servicio de Google Drive no devolvió una URL válida.");
         }
 
-        // 3. INSERCIÓN OBLIGATORIA EN SUPABASE: Tabla evidencias_expedientes
+        // 3. Registrar evidencia en evidencias_expedientes
         if (supabaseClient) {
             const { error: errEvidencia } = await supabaseClient
                 .from('evidencias_expedientes')
@@ -3864,54 +3865,63 @@ async function ejecutarCargaUniversal(e) {
             if (errEvidencia) throw errEvidencia;
         }
 
-        // 4. Actualizar objeto en memoria
-        const nuevaAccionObj = {
-            id: claveAccionFinal,
-            clave_accion: claveAccionFinal,
-            clave_hito: hitoPadre.clave_hito || hitoPadre.id.split('-A-')[0],
-            panel: hitoPadre.panel,
-            area: hitoPadre.area,
-            hito: hitoPadre.hito,
-            accion: tituloAccion || 'Acción operativa específica',
-            responsable: respAccion || hitoPadre.responsable,
-            estatus: nuevoEstatus,
-            avance: nuevoAvance,
-            peso: 33.33,
-            driveUrl: driveUrlFinal,
-            observaciones: notaAuditoria
-        };
-
-        accionesDataset.push(nuevaAccionObj);
-        guardarDataset();
-
-        // 5. Sincronizar tabla principal
-        if (supabaseClient) {
-            const hitoBase = nuevaAccionObj.clave_hito;
-            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
-
-            const payloadSupabase = {
-                clave_accion: claveAccionFinal,
-                clave_hito: hitoBase,
-                consecutivo_num: numConsecutivoActual,
-                accion_especifica: nuevaAccionObj.accion,
-                estatus: nuevoAvance,
-                drive_url: driveUrlFinal,
-                instancia_responsable: nuevaAccionObj.responsable
-            };
-
-            await supabaseClient.from('acciones_transicion').upsert([payloadSupabase], { onConflict: 'clave_accion' });
+        // 4. Extraer consecutivo y preparar nota cronológica
+        const claveHitoBase = hitoPadre.clave_hito || hitoPadre.id.split('-A-')[0];
+        let consecutivoNum = 1;
+        const matchConsecutivo = claveAccionFinal.match(/-A-(\d+)/);
+        if (matchConsecutivo && matchConsecutivo[1]) {
+            consecutivoNum = parseInt(matchConsecutivo[1], 10) || 1;
         }
 
-        alert(`¡Archivo guardado con sufijo [${sufijoIndex}] y registrado en Supabase exitosamente!`);
+        const usuarioFirma = currentUser ? (currentUser.nombre || currentUser.usuario) : 'Enlace Operativo';
+        const fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+        const entradaBitacora = `[${fechaHora} - ${usuarioFirma}]: ${notaAuditoria || 'Registro de acción y carga de expediente en Drive.'}`;
+
+        // 5. Upsert físico en acciones_transicion
+        if (supabaseClient) {
+            const payloadAccion = {
+                clave_accion: claveAccionFinal,
+                clave_hito: claveHitoBase,
+                consecutivo_num: consecutivoNum,
+                accion_especifica: tituloAccion,
+                instancia_responsable: respAccion || hitoPadre.responsable,
+                estatus: nuevoEstatus,
+                avance: nuevoAvance,
+                avance_porcentaje: nuevoAvance,
+                drive_url: driveUrlFinal,
+                nota_auditoria: entradaBitacora,
+                observacion: entradaBitacora,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error: errAccion } = await supabaseClient
+                .from('acciones_transicion')
+                .upsert([payloadAccion], { onConflict: 'clave_accion' });
+
+            if (errAccion) throw errAccion;
+
+            // 6. Recalcular y actualizar promedio en hitos_transicion
+            const accionesHermanas = accionesDataset.filter(a => (a.clave_hito === claveHitoBase) || a.id.startsWith(claveHitoBase));
+            const sumaTotal = accionesHermanas.reduce((acc, cur) => acc + (Number(cur.avance) || 0), 0) + nuevoAvance;
+            const promedioHito = Math.round(sumaTotal / (accionesHermanas.length + 1));
+
+            await supabaseClient
+                .from('hitos_transicion')
+                .update({ avance_porcentaje: promedioHito, avance: promedioHito })
+                .eq('clave_hito', claveHitoBase);
+        }
+
+        // 7. Sincronizar memoria y UI
+        alert(`✅ Acción [${claveAccionFinal}] y expediente Drive registrados permanentemente en Supabase.`);
         closeModal('modal-buzon-universal');
-        
-        await inicializarDatosDesdeSupabase();
+
+        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        console.error("Error detallado:", err);
-        alert("Error al sincronizar con Supabase / Drive: " + err.message);
+        console.error("Error al registrar acción:", err);
+        alert("⚠️ Error en el guardado: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -4455,22 +4465,24 @@ function renderListaCompromisosDetalle(act) {
         }
 
 // =========================================================================
-// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CONSECUTIVOS CANÓNICOS)
+// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CONECTADO A SUPABASE)
 // =========================================================================
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel').value; 
-    const vertiente = document.getElementById('nuevoHitoVertiente').value;
-    const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
-    const area = document.getElementById('nuevoHitoArea').value.trim();
-    const norma = document.getElementById('nuevoHitoNorma').value.trim();
+    const panel = document.getElementById('nuevoHitoPanel')?.value || 'A'; 
+    const vertiente = document.getElementById('nuevoHitoVertiente')?.value || 'V1';
+    const titulo = document.getElementById('nuevoHitoTitulo')?.value.trim() || '';
+    const area = document.getElementById('nuevoHitoArea')?.value.trim() || '';
+    const norma = document.getElementById('nuevoHitoNorma')?.value.trim() || '';
 
     const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item') || [];
     const claveArea = MAPA_PREFIJOS_AREA[panel] || 'RH_E';
 
-    // Declaración única y oficial de la clave del hito
-    const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
+    // Generar la clave canónica del hito
+    const claveHitoGenerada = (typeof obtenerSiguienteClaveHito === 'function') 
+        ? obtenerSiguienteClaveHito(panel) 
+        : `${claveArea}-H-0001`;
 
     const puedeEditar = currentUser && (
         currentUser.esAdmin || 
@@ -4484,64 +4496,142 @@ async function guardarNuevoHitoConAcciones(e) {
             return;
         }
 
-        registrarSolicitudAuditoria({
-            tipo: 'NUEVO_HITO_VINCULADO',
-            clave: claveHitoGenerada,
-            campo: 'nuevo_hito_propuesto',
-            valorPropuesto: { titulo, area, norma, panel },
-            motivo: motivo.trim(),
-            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-            fecha: new Date().toLocaleString(),
-            estatus: 'Pendiente de Autorización'
-        });
+        if (typeof registrarSolicitudAuditoria === 'function') {
+            registrarSolicitudAuditoria({
+                tipo: 'NUEVO_HITO_VINCULADO',
+                clave: claveHitoGenerada,
+                campo: 'nuevo_hito_propuesto',
+                valorPropuesto: { titulo, area, norma, panel },
+                motivo: motivo.trim(),
+                solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+                fecha: new Date().toLocaleString(),
+                estatus: 'Pendiente de Autorización'
+            });
+        }
 
         alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nTu propuesta para registrar el Hito ${claveHitoGenerada} en el Panel ${panel} ha sido canalizada a la mesa de control de 'auditoria.html'.`);
         closeModal('modal-buzon-universal');
         return;
     }
 
-    // Registrar cada acción vinculada con su correlativo
-    filasAcciones.forEach((fila, idx) => {
-        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
-        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
-        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
+    try {
+        // 1. Extraer consecutivo numérico del Hito para la columna consecutivo_num
+        let consecutivoHito = 1;
+        const matchHitoNum = claveHitoGenerada.match(/-H-(\d+)/);
+        if (matchHitoNum && matchHitoNum[1]) {
+            consecutivoHito = parseInt(matchHitoNum[1], 10) || 1;
+        }
 
-        const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
+        // 2. Guardar físicamente en hitos_transicion en Supabase
+        if (supabaseClient) {
+            const payloadHito = {
+                clave_hito: claveHitoGenerada,
+                clave_area: claveArea,
+                panel: panel,
+                consecutivo_num: consecutivoHito,
+                titulo: titulo,
+                detalle_operativo: titulo,
+                normativa_vinculada: norma,
+                avance_porcentaje: 0,
+                created_at: new Date().toISOString()
+            };
 
-        const nuevoRegistro = {
-            id: cAccion,
-            clave_accion: cAccion,
-            clave_hito: claveHitoGenerada,
-            panel: panel,
-            area: `${area} (Panel ${panel})`,
-            hito: titulo,
-            accion: titAccion,
-            responsable: respAccion || area,
-            peso: 33.33,
-            estatus: estatusAccion,
-            avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            tercero: "Interna",
-            terceroNombre: "Comité de Transición IECG",
-            docRequerido: `Soporte Oficial ${cAccion}`,
-            driveUrl: ""
-        };
+            const { error: errHito } = await supabaseClient
+                .from('hitos_transicion')
+                .upsert([payloadHito], { onConflict: 'clave_hito' });
 
-        accionesDataset.push(nuevoRegistro);
-    });
+            if (errHito) throw new Error("Error en Supabase (hitos_transicion): " + errHito.message);
+        }
 
-    guardarDataset();
+        // 3. Preparar e insertar cada acción obligatoria
+        const registrosAccionesSupabase = [];
+        const usuarioFirma = (typeof currentUser !== 'undefined' && currentUser) 
+            ? (currentUser.nombre || currentUser.usuario) 
+            : 'Enlace Operativo';
+        const fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
-    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
+        filasAcciones.forEach((fila, idx) => {
+            const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]')?.value.trim() || 'Acción operativa';
+            const respAccion = fila.querySelector('input[name="txtAccionRespHito"]')?.value.trim() || area;
+            const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]')?.value || 'En Proceso';
+            const vinculoSecul = fila.querySelector('select[name="selVinculoSecul"]')?.value || 'Ninguna';
+            const areaExt = fila.querySelector('select[name="selAreaExternaArt6"]')?.value || 'Ninguna';
 
-    document.getElementById('tab-hitos').reset();
-    closeModal('modal-buzon-universal');
+            const numConsecutivoAccion = idx + 1;
+            const cAccion = `${claveHitoGenerada}-A-${String(numConsecutivoAccion).padStart(4, '0')}`;
+            const avanceNum = estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40);
+            const notaInicial = `[${fechaHora} - ${usuarioFirma}]: Alta inicial de Hito y Acción.`;
 
-    actualizarDashboard();
-    if (typeof renderCronogramaRoadmap === 'function') {
-        renderCronogramaRoadmap();
+            // Objeto en memoria local
+            const nuevoRegistroLocal = {
+                id: cAccion,
+                clave_accion: cAccion,
+                clave_hito: claveHitoGenerada,
+                consecutivo_num: numConsecutivoAccion,
+                panel: panel,
+                area: `${area} (Panel ${panel})`,
+                hito: titulo,
+                accion: titAccion,
+                responsable: respAccion || area,
+                peso: Math.round(100 / (filasAcciones.length || 1)),
+                estatus: estatusAccion,
+                avance: avanceNum,
+                tercero: areaExt !== 'Ninguna' ? 'Tercero Estatal' : 'Interna',
+                terceroNombre: areaExt,
+                docRequerido: `Soporte Oficial ${cAccion}`,
+                driveUrl: "",
+                fundamento_juridico: norma,
+                nota_auditoria: notaInicial,
+                observacion: notaInicial
+            };
+
+            accionesDataset.push(nuevoRegistroLocal);
+
+            // Registro físico para Supabase con todas las columnas obligatorias
+            registrosAccionesSupabase.push({
+                clave_accion: cAccion,
+                clave_hito: claveHitoGenerada,
+                consecutivo_num: numConsecutivoAccion,
+                accion_especifica: titAccion,
+                instancia_responsable: respAccion || area,
+                estatus: estatusAccion,
+                avance: avanceNum,
+                avance_porcentaje: avanceNum,
+                drive_url: '',
+                nota_auditoria: notaInicial,
+                observacion: notaInicial,
+                fundamento_juridico: norma,
+                updated_at: new Date().toISOString()
+            });
+        });
+
+        // 4. Inserción por bloque a acciones_transicion
+        if (supabaseClient && registrosAccionesSupabase.length > 0) {
+            const { error: errAcciones } = await supabaseClient
+                .from('acciones_transicion')
+                .upsert(registrosAccionesSupabase, { onConflict: 'clave_accion' });
+
+            if (errAcciones) throw new Error("Error en Supabase (acciones_transicion): " + errAcciones.message);
+        }
+
+        // 5. Persistir en localStorage y actualizar la interfaz
+        guardarDataset();
+
+        alert(`✅ Hito y Acción(es) registrados permanentemente en Supabase:\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
+
+        document.getElementById('tab-hitos')?.reset();
+        closeModal('modal-buzon-universal');
+
+        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+        actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+        if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
+
+    } catch (err) {
+        console.error("Error al registrar hito en Supabase:", err);
+        alert("⚠️ No se pudo guardar en Supabase: " + err.message);
     }
-}
-        
+}        
         function abrirPestañaAccionDesdeHito() {
     // 1. Cerrar el modal actual de detalle de hito
     closeModal('modal-hito-fiscalizacion');
