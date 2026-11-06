@@ -3136,7 +3136,8 @@ async function inicializarDatosDesdeSupabase() {
                     instrumento_2: itemDB.instrumento_2 || '',
                     instrumento_3: itemDB.instrumento_3 || '',
                     sugerencia_expediente_tecnico: itemDB.sugerencia_expediente_tecnico || '',
-                    observacion: itemDB.observacion || ''
+                   nota_auditoria: itemDB.nota_auditoria || itemDB.observacion || '',
+                   observacion: itemDB.observacion || itemDB.nota_auditoria || ''
                 };
             });
 
@@ -6491,20 +6492,48 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             accionesDataset.push(act);
         }
 
+// =========================================================================
+        // PASO A: Extraer el texto del campo de justificación técnica / auditoría
+        // =========================================================================
+        const textareaSustento = document.querySelector('#modal-edicion-dinamica textarea') 
+                              || document.getElementById('inputSustentoAuditoria')
+                              || document.querySelector('textarea[placeholder*="motivo u oficio"]');
+        const nuevaNota = textareaSustento ? textareaSustento.value.trim() : '';
+
+        // =========================================================================
+        // PASO B: Concatenar historial cronológico acumulativo
+        // =========================================================================
+        const usuarioFirma = (typeof currentUser !== 'undefined' && currentUser) 
+            ? (currentUser.nombre || currentUser.usuario) 
+            : 'Enlace Operativo';
+        const fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+
+        let historialNotas = act.nota_auditoria || act.observacion || '';
+        if (nuevaNota) {
+            const entradaNueva = `[${fechaHora} - ${usuarioFirma}]: ${nuevaNota}`;
+            historialNotas = historialNotas 
+                ? `${entradaNueva}\n--------------------------------------------------\n${historialNotas}` 
+                : entradaNueva;
+        }
+
+        const avanceNum = Number(avanceCapturado) || 0;
+        const estatusTxt = estatusCapturado || (avanceNum === 100 ? 'Concluido' : (avanceNum >= 75 ? 'Validación' : 'En Proceso'));
+        const claveAccionActual = (act.clave_accion || act.id || '').trim();
+        const claveHitoPadre = (act.clave_hito || claveAccionActual.split('-A-')[0]).trim();
+
+        // Actualizar propiedades en memoria local
         act.accion = nuevoTitulo;
         act.responsable = responsableCapturado;
-        act.estatus = estatusCapturado;
-        act.avance = avanceCapturado;
+        act.estatus = estatusTxt;
+        act.avance = avanceNum;
+        act.nota_auditoria = historialNotas;
+        act.observacion = historialNotas;
         if (ultimoDriveUrl) act.driveUrl = ultimoDriveUrl;
 
         guardarDataset();
-if (supabaseClient) {
-            const avanceNum = Number(avanceCapturado) || 0;
-            const estatusTxt = estatusCapturado || (avanceNum === 100 ? 'Concluido' : (avanceNum >= 75 ? 'Validación' : 'En Proceso'));
-            const claveAccionActual = act.clave_accion || act.id || '';
-            const claveHitoPadre = (act.clave_hito || claveAccionActual.split('-A-')[0]).trim();
 
-            // Extraer el consecutivo numérico (ej. de "RH_E-H-0001-A-0002" toma el 2)
+        if (supabaseClient) {
+            // Extraer consecutivo numérico para evitar el error NOT NULL
             let consecutivoNum = 1;
             const matchConsecutivo = claveAccionActual.match(/-A-(\d+)/);
             if (matchConsecutivo && matchConsecutivo[1]) {
@@ -6513,17 +6542,19 @@ if (supabaseClient) {
                 consecutivoNum = Number(act.consecutivo_num);
             }
 
-            // 1. Guardar en acciones_transicion enviando OBLIGATORIAMENTE consecutivo_num
+            // Guardar en acciones_transicion enviando campos obligatorios, avance y bitácora
             const { error: errAccion } = await supabaseClient.from('acciones_transicion').upsert([{
                 clave_accion: claveAccionActual,
                 clave_hito: claveHitoPadre,
-                consecutivo_num: consecutivoNum,   // <--- Campo obligatorio para evitar el error NOT NULL
+                consecutivo_num: consecutivoNum,
                 accion_especifica: act.accion,
                 estatus: estatusTxt,
                 avance: avanceNum,
                 avance_porcentaje: avanceNum,
-                drive_url: ultimoDriveUrl || '',
+                drive_url: ultimoDriveUrl || act.driveUrl || '',
                 instancia_responsable: act.responsable,
+                nota_auditoria: historialNotas,
+                observacion: historialNotas,
                 updated_at: new Date().toISOString()
             }], { onConflict: 'clave_accion' });
 
