@@ -2707,6 +2707,305 @@
 };
 
 // =========================================================================
+// RENDERIZADOR JERÁRQUICO MAESTRO: BASE DE DATOS GENERAL
+// =========================================================================
+let panelFiltroBDActual = 'TODOS';
+
+window.filtrarBaseDatosPorPanel = function(valorPanel) {
+    panelFiltroBDActual = valorPanel;
+    renderBaseDatosGeneralJerarquica();
+};
+
+window.renderBaseDatosGeneralJerarquica = function() {
+    const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral') || 
+                       document.getElementById('contenedorJerarquicoBD');
+    if (!contenedor) return;
+
+    const textoBusqueda = (document.getElementById('inputBuscarEnBaseDatosGeneral')?.value || '').toLowerCase().trim();
+    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+
+    // 1. FILTRADO BASE POR PANEL Y TEXTO
+    let accionesFiltradas = dataset.filter(item => {
+        const idClave = (item.clave_accion || item.id || '').toLowerCase();
+        const hito = (item.hito || '').toLowerCase();
+        const accion = (item.accion || '').toLowerCase();
+        const norma = (item.fundamento_juridico || '').toLowerCase();
+        const resp = (item.responsable || '').toLowerCase();
+        const panel = item.panel || 'A';
+
+        const coincidePanel = (panelFiltroBDActual === 'TODOS') || (panel === panelFiltroBDActual);
+        const coincideTexto = !textoBusqueda || 
+            idClave.includes(textoBusqueda) || 
+            hito.includes(textoBusqueda) || 
+            accion.includes(textoBusqueda) || 
+            norma.includes(textoBusqueda) || 
+            resp.includes(textoBusqueda);
+
+        return coincidePanel && coincideTexto;
+    });
+
+    // 2. AGRUPAR ACCIONES POR HITO RECTOR
+    const mapaHitos = {};
+    accionesFiltradas.forEach(act => {
+        const claveHito = act.clave_hito || (act.clave_accion ? act.clave_accion.split('-A-')[0] : act.id.split('-A-')[0]) || 'HITO-GRAL';
+        if (!mapaHitos[claveHito]) {
+            mapaHitos[claveHito] = {
+                clave_hito: claveHito,
+                panel: act.panel || 'A',
+                area: act.area || `Panel ${act.panel}`,
+                titulo: act.hito || 'Hito Rector Normativo',
+                acciones: []
+            };
+        }
+        mapaHitos[claveHito].acciones.push(act);
+    });
+
+    const listaHitos = Object.values(mapaHitos);
+
+    // 3. ACTUALIZAR PASTILLA MÉTRICA DINÁMICA (REQUERIMIENTO 1)
+    const lblPanel = document.getElementById('labelFiltroPanelActivo');
+    const cntHitos = document.getElementById('countHitosFiltrados');
+    const cntAcciones = document.getElementById('countAccionesFiltradas');
+
+    if (lblPanel) {
+        lblPanel.innerText = panelFiltroBDActual === 'TODOS' 
+            ? 'Todos los Paneles (A - J):' 
+            : `Panel ${panelFiltroBDActual}:`;
+    }
+    if (cntHitos) cntHitos.innerText = `${listaHitos.length} Hitos`;
+    if (cntAcciones) cntAcciones.innerText = `${accionesFiltradas.length} Acciones`;
+
+    // 4. SI NO HAY RESULTADOS
+    if (listaHitos.length === 0) {
+        contenedor.innerHTML = `
+            <div class="p-12 text-center bg-slate-50 border border-slate-200 rounded-3xl space-y-3">
+                <i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>
+                <h4 class="font-bold text-slate-700 text-sm">No se encontraron hitos o acciones</h4>
+                <p class="text-xs text-slate-400">Prueba ajustando el filtro de panel o el término de búsqueda.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // 5. GENERAR ESTRUCTURA JERÁRQUICA (HITO -> ACCIONES)
+    contenedor.innerHTML = listaHitos.map(hito => {
+        // Cálculo de avance promedio del hito
+        const sumaAvance = hito.acciones.reduce((acc, cur) => acc + (Number(cur.avance) || 0), 0);
+        const promedioAvance = Math.round(sumaAvance / (hito.acciones.length || 1));
+
+        // Renderizado de las acciones de este hito
+        const accionesHTML = hito.acciones.map(act => {
+            const claveAccion = act.clave_accion || act.id;
+            const avanceNum = Number(act.avance) || 0;
+            const estatus = act.estatus || 'En Proceso';
+
+            // Estatus visual
+            const badgeEstatus = estatus === 'Concluido' 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : (estatus === 'Validación' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200');
+
+            // Renderizado de archivos de Drive
+            const listaArchivos = act.archivosDrive || [];
+            let enlacesDriveHTML = '';
+            if (listaArchivos.length > 0) {
+                enlacesDriveHTML = listaArchivos.map(arch => `
+                    <a href="${arch.url}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">
+                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
+                        <span class="truncate max-w-[200px]">${arch.nombre}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
+                    </a>
+                `).join('');
+            } else if (act.driveUrl && act.driveUrl.trim() !== '') {
+                enlacesDriveHTML = `
+                    <a href="${act.driveUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">
+                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
+                        <span>Expediente Digital Oficial</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
+                    </a>
+                `;
+            } else {
+                enlacesDriveHTML = `<span class="text-[11px] text-slate-400 italic">Sin archivos vinculados en Google Drive</span>`;
+            }
+
+            // Datos de la tabla acciones_transicion
+            const detalleOperativo = act.detalle_operativo || act.accion || 'Sin detalle operativo registrado.';
+            const fundamentoJuridico = act.fundamento_juridico || 'Decreto No. 345 del H. Congreso del Estado de Guanajuato & Lineamientos de Liquidación.';
+            const riesgo = act.riesgo_vinculado || 'Sin contingencia crítica tipificada.';
+            const inst1 = act.instrumento_1 || 'No especificado';
+            const inst2 = act.instrumento_2 || 'No especificado';
+            const inst3 = act.instrumento_3 || 'No especificado';
+            const sugerenciaExp = act.sugerencia_expediente_tecnico || act.docRequerido || 'Cédula circunstanciada con firmas oficiales de entrega-recepción.';
+
+            return `
+                <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-2xs hover:border-indigo-300 transition-all space-y-3.5">
+                    
+                    <!-- Fila Superior: Clave, Título, Responsable, Estatus y Acciones -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div class="flex items-start gap-2.5">
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-900 font-mono font-black text-xs shrink-0 mt-0.5">
+                                ${claveAccion}
+                            </span>
+                            <div>
+                                <h5 class="text-xs font-black text-slate-900 leading-snug">${act.accion}</h5>
+                                <span class="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                                    <i class="fa-solid fa-user-tie text-indigo-600"></i> Responsable: <strong>${act.responsable}</strong>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Estatus, Avance y Botonera -->
+                        <div class="flex items-center gap-2 self-end lg:self-auto shrink-0">
+                            <span class="px-2.5 py-1 rounded-xl font-bold text-[10px] border ${badgeEstatus}">
+                                ${estatus} (${avanceNum}%)
+                            </span>
+                            <button type="button" onclick="cargarAccionEnBuzonDirecto('${claveAccion}')" 
+                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir
+                            </button>
+                            <button type="button" onclick="abrirModalDesdeGrafica('${claveAccion}')" 
+                                    class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-200">
+                                <i class="fa-solid fa-pen text-[10px]"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- REQUERIMIENTO 2: CÉDULA TÉCNICA NORMATIVA CON RESALTE EN FUNDAMENTO JURÍDICO -->
+                    <div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 space-y-2.5 text-xs">
+                        
+                        <!-- FUNDAMENTO JURÍDICO DESTACADO PROTAGÓNICAMENTE -->
+                        <div class="bg-amber-50/90 border border-amber-300 rounded-xl p-3 shadow-2xs">
+                            <span class="text-[10px] font-black uppercase text-amber-900 tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-scale-balanced text-amber-600"></i> Fundamento Jurídico (Decreto No. 345 & Lineamientos):
+                            </span>
+                            <p class="font-bold text-amber-950 text-xs mt-1 leading-relaxed">
+                                ${fundamentoJuridico}
+                            </p>
+                        </div>
+
+                        <!-- Cuadrícula Técnica: Detalle Operativo y Riesgo -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                                    <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i> Detalle Operativo:
+                                </span>
+                                <p class="text-[11px] text-slate-700 leading-snug">${detalleOperativo}</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                                <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block mb-1">
+                                    <i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> Riesgo Vinculado (Art. 6):
+                                </span>
+                                <p class="text-[11px] text-slate-700 leading-snug">${riesgo}</p>
+                            </div>
+                        </div>
+
+                        <!-- Instrumentos 1, 2, 3 y Expediente Técnico Sugerido -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div class="bg-white p-2 rounded-xl border border-slate-200 text-[10.5px]">
+                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase">Instrumento 1:</span>
+                                <span class="text-slate-600 truncate block">${inst1}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-200 text-[10.5px]">
+                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase">Instrumento 2:</span>
+                                <span class="text-slate-600 truncate block">${inst2}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-200 text-[10.5px]">
+                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase">Instrumento 3:</span>
+                                <span class="text-slate-600 truncate block">${inst3}</span>
+                            </div>
+                        </div>
+
+                        <!-- Expediente Técnico Sugerido -->
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-start gap-2">
+                            <i class="fa-solid fa-file-circle-check text-emerald-600 text-sm mt-0.5 shrink-0"></i>
+                            <div>
+                                <span class="font-bold text-slate-800 text-[10.5px] block">Sugerencia de Expediente Técnico Probatorio:</span>
+                                <p class="text-[11px] text-slate-600 leading-tight">${sugerenciaExp}</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Expedientes Google Drive -->
+                    <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1 shrink-0">
+                            <i class="fa-brands fa-google-drive text-amber-500"></i> Expedientes Drive:
+                        </span>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            ${enlacesDriveHTML}
+                        </div>
+                    </div>
+
+                </div>
+            `;
+        }).join('');
+
+        // Tarjeta contenedora del Hito Rector
+        return `
+            <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
+                
+                <!-- Cabecera del Hito Rector -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-2xl bg-indigo-600 text-white font-mono font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
+                            ${hito.panel}
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-xs bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
+                                    ${hito.clave_hito}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-500">${hito.area}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    ${promedioAvance}% Avance (${hito.acciones.length} Acc.)
+                                </span>
+                            </div>
+                            <h4 class="text-sm font-black text-slate-900 mt-1">${hito.titulo}</h4>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción del Hito -->
+                    <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
+                        <button type="button" onclick="abrirModalAltaAccionVinculadaDesdeHitoDirecto('${hito.clave_hito}')" 
+                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                            <i class="fa-solid fa-plus text-[10px]"></i> + Acción
+                        </button>
+                        <button type="button" onclick="abrirModalVinculacionHitoPadre('${hito.clave_hito}')" 
+                                class="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-link text-[10px]"></i> Vincular
+                        </button>
+                        <button type="button" onclick="abrirModalModificarHitoDirecto('${hito.clave_hito}')" 
+                                class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-pen-to-square text-[10px]"></i> Modificar Hito
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Acciones asociadas al Hito -->
+                <div class="space-y-3 pl-0 md:pl-3">
+                    ${accionesHTML}
+                </div>
+
+            </div>
+        `;
+    }).join('');
+};
+
+// Función auxiliar para registrar nueva acción asignada a este hito específico
+window.abrirModalAltaAccionVinculadaDesdeHitoDirecto = function(claveHito) {
+    if (typeof openModal === 'function') {
+        openModal('modal-buzon-universal');
+    }
+    if (typeof cambiarTabModalUniversal === 'function') {
+        cambiarTabModalUniversal('tab-accion');
+    }
+    const sel = document.getElementById('buzonSelectAccion');
+    if (sel) {
+        sel.value = claveHito;
+        if (typeof actualizarFolioAccionSugerido === 'function') actualizarFolioAccionSugerido();
+    }
+};
+        
+// =========================================================================
 // FUNCIONES GLOBALES: BASE DE DATOS Y GESTIÓN DE MODALES
 // =========================================================================
 window.abrirModalBaseDatosGeneral = function() {
@@ -9429,65 +9728,37 @@ window.abrirBandejaNotificacionesVinculacion = function() {
     </div>
 </div>    
 
-<!-- ======================================================== -->
-<!-- MODAL DE BASE DE DATOS GENERAL, GOBERNANZA E IMPORTACIÓN -->
-<!-- ======================================================== -->
-<div id="modal-base-datos-general" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden animate-in fade-in duration-200">
-    <div class="bg-white rounded-3xl max-w-7xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
-        
-        <!-- Header con Identidad Oficial y Acciones Rápidas -->
-        <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">>
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-xl border border-amber-400/30 shadow-inner">
-                    <i class="fa-solid fa-network-wired"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            Estructura Viva Relacional
-                        </span>
-                        <span class="text-xs text-slate-400 font-mono">Decreto No. 345 | 10 Paneles (A - J)</span>
-                    </div>
-                    <h3 class="text-lg font-black tracking-tight text-white mt-0.5">Base de Datos General: Hitos Normativos y Acciones Operativas</h3>
-                </div>
-            </div>
+<!-- Banner de Candado de Seguridad, Métrica Dinámica y Filtros -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col xl:flex-row xl:items-center justify-between gap-3 text-xs">
             
-<!-- Acciones de Cabecera: Alta Hito, Plantilla y Carga Masiva -->
-<div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="abrirAltaHitoDesdeBDGeneral()" class="btn-executive px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-plus-circle"></i> + Nuevo Hito
-                </button>
-                <!-- BOTÓN NUEVO: VINCULAR EN BASE DE DATOS GENERAL -->
-                <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="btn-executive px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm border border-purple-500/40">
-                    <i class="fa-solid fa-link"></i> Vincular Hito / Acción
-                </button>
-                <button type="button" onclick="descargarPlantillaGobernanzaExcel()" class="btn-executive px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-file-excel"></i> Descargar Plantilla Excel
-                </button>
-                <label class="btn-executive px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer border border-slate-700">
-                    <i class="fa-solid fa-file-import text-amber-400"></i> Subir Excel / CSV
-                    <input type="file" id="inputCargaExcelGeneral" accept=".csv" class="hidden" onchange="procesarImportacionExcelGeneral(event)">
-                </label>
-                <button type="button" onclick="closeModal('modal-base-datos-general')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Banner de Candado de Seguridad y Filtros Rápidos -->
-        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-2.5 text-slate-700">
+            <!-- 1. Aviso de Gobernanza -->
+            <div class="flex items-center gap-2.5 text-slate-700 bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-2xs shrink-0">
                 <span class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black shrink-0 border border-amber-300">
                     <i class="fa-solid fa-shield-halved"></i>
                 </span>
                 <p class="leading-tight text-[11px]">
-                    <strong>Candado de Seguridad y Trazabilidad :</strong> Las modificaciones realizadas por enlaces generarán una 
-                    <span class="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Solicitud de Autorización</span> canalizada a la bandeja de <code>auditoria.html</code>.
+                    <strong>Candado de Seguridad y Trazabilidad:</strong> Las modificaciones realizadas por enlaces generarán una 
+                    <span class="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Solicitud de Autorización</span> canalizada a <code>auditoria.html</code>.
                 </p>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
-                <select id="filtroPanelBDGeneral" onchange="renderBaseDatosGeneralJerarquica()" class="p-2 border border-slate-300 rounded-xl bg-white font-bold text-indigo-900 text-xs shadow-2xs">
+            <!-- 2. PASTILLA DINÁMICA DE CONTEO (HITOS Y ACCIONES) -->
+            <div id="badgeConteoHitosAccionesBD" class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-950 px-3.5 py-2 rounded-2xl font-bold shadow-2xs shrink-0">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span class="text-[11px] font-black uppercase text-indigo-800" id="labelFiltroPanelActivo">Todos los Paneles (A - J):</span>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                    <span class="bg-white px-2.5 py-1 rounded-xl border border-indigo-100 text-indigo-700 font-black shadow-2xs" id="countHitosFiltrados">0 Hitos</span>
+                    <span class="text-slate-300">|</span>
+                    <span class="bg-white px-2.5 py-1 rounded-xl border border-indigo-100 text-emerald-700 font-black shadow-2xs" id="countAccionesFiltradas">0 Acciones</span>
+                </div>
+            </div>
+
+            <!-- 3. Controles: Selector de Paneles y Buscador -->
+            <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                <select id="filtroPanelBDGeneral" onchange="renderBaseDatosGeneralJerarquica()" 
+                        class="p-2 border border-slate-300 rounded-xl bg-white font-bold text-indigo-950 text-xs shadow-2xs w-full sm:w-60 focus:ring-2 focus:ring-indigo-500">
                     <option value="TODOS">Todos los Paneles (A - J)</option>
                     <option value="A">Panel A - Recursos Humanos</option>
                     <option value="B">Panel B - Asuntos Jurídicos</option>
@@ -9500,8 +9771,15 @@ window.abrirBandejaNotificacionesVinculacion = function() {
                     <option value="I">Panel I - Fiscalización Auditorías</option>
                     <option value="J">Panel J - Gobernanza Líder</option>
                 </select>
-                <input type="text" id="buscadorBDGeneral" oninput="renderBaseDatosGeneralJerarquica()" placeholder="Buscar por clave, tema o responsable..." class="p-2 border border-slate-300 rounded-xl bg-white text-xs w-56 sm:w-64 focus:ring-2 focus:ring-indigo-500">
+
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="buscadorBDGeneral" oninput="renderBaseDatosGeneralJerarquica()" 
+                           placeholder="Buscar por clave, tema o norma..." 
+                           class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl bg-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-2xs">
+                </div>
             </div>
+
         </div>
 
         <!-- Contenedor Desplazable del Árbol Jerárquico Hitos ➔ Acciones -->
