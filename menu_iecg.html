@@ -2050,94 +2050,70 @@
 <!-- ========================================================= -->
 <!-- MODAL MAESTRO UNIVERSAL: GESTIÓN Y ALTA DE ENTREGABLES    -->
 <!-- ========================================================= -->
-<!-- ========================================================= -->
-<!-- MODAL MAESTRO UNIVERSAL: ALTA DE HITOS Y ENTREGABLES       -->
-<!-- ========================================================= -->
-<div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-3 sm:p-6">
-    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col transition-all">
+<div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
         
-        <!-- 1. CABECERA DIRECTIVA FIJA (NO SE MUEVE AL HACER SCROLL) -->
-        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 border-b border-slate-800">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 flex items-center justify-center text-xl shrink-0 shadow-inner">
+       <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-black text-base tracking-tight text-white">Alta de Entregables & Normativa</h3>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">Decreto No. 345</span>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-0.5">Gestión canónica de Hitos Rectores y Acciones Operativas vinculadas</p>
+                    <h3 class="font-extrabold text-base leading-snug">Alta de Entregables</h3>
+                    <p class="text-[11px] text-slate-300">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
                 </div>
             </div>
 
-            <!-- Pastilla del Operador y Botón Cerrar -->
-            <div class="flex items-center gap-3 self-end sm:self-auto">
-                <div id="badgeUsuarioSesionModalUniversal" class="bg-white/10 px-3.5 py-1.5 rounded-2xl border border-white/15 flex items-center gap-2.5 text-xs backdrop-blur-md">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <div class="text-left leading-none">
-                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Operador Activo</span>
-                        <strong id="nombreUserModalUniversal" class="text-white text-xs font-semibold">Líder Proyecto</strong>
-                    </div>
-                    <span id="panelUserModalUniversal" class="bg-indigo-600 text-white font-mono px-2 py-0.5 rounded-lg text-[10px] font-black">Panel General</span>
+            <!-- PASTILLA DE SESIÓN ACTIVA (IDENTIDAD DE OPERADOR) -->
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div id="badgeUsuarioSesionModalUniversal" class="bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 flex items-center gap-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-300 text-[10px] uppercase font-bold">Operador:</span>
+                    <strong id="nombreUserModalUniversal" class="text-white text-xs font-semibold">Modo Consulta</strong>
+                    <span id="panelUserModalUniversal" class="bg-indigo-600 text-white font-mono px-1.5 py-0.5 rounded text-[10px] font-black">Panel -</span>
                 </div>
-                <button type="button" onclick="closeModal('modal-buzon-universal')" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-rose-500 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button type="button" onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg transition p-1">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
-
-        <!-- 2. SELECTOR DE PESTAÑAS WIZARD -->
-        <div class="bg-slate-100 p-2.5 border-b border-slate-200 flex items-center gap-2 shrink-0">
-            <button type="button" id="btnTabHito" onclick="cambiarTabModalUniversal('tab-hitos')" 
-                    class="flex-1 py-2.5 px-4 rounded-2xl text-xs font-black transition-all bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-flag text-amber-300"></i> 1. Nuevo Hito (+ Acciones Obligatorias)
+        <!-- Selector de Pestañas (Wizard) -->
+        <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
+            <button type="button" id="btnTabHito" onclick="cambiarTabModalUniversal('tab-hitos')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-flag"></i> 1. Nuevo Hito (+ Acción Obligatoria)
             </button>
-            <button type="button" id="btnTabAccion" onclick="cambiarTabModalUniversal('tab-accion')" 
-                    class="flex-1 py-2.5 px-4 rounded-2xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 flex items-center justify-center gap-2 border border-slate-200 bg-white">
-                <i class="fa-solid fa-link text-indigo-600"></i> 2. Nueva Acción Asociada (+ Drive)
+            <button type="button" id="btnTabAccion" onclick="cambiarTabModalUniversal('tab-accion')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-list-check"></i> 2. Nueva Acción (Asociada a Hito)
             </button>
         </div>
 
-        <!-- 3. CUERPO DESPLAZABLE ÚNICO (UN SOLO SCROLL) -->
-        <div class="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6 text-slate-800 text-xs">
+        <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
             
-            <!-- ============================================================== -->
-            <!-- PESTAÑA 1: NUEVO HITO + ACCIONES ASOCIADAS                    -->
-            <!-- ============================================================== -->
-            <form id="tab-hitos" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-6">
-                
-                <!-- Notificación Contextual -->
-                <div class="bg-gradient-to-r from-indigo-50 to-blue-50/70 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between gap-3 text-indigo-950">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-circle-nodes text-indigo-600 text-lg shrink-0"></i>
-                        <span class="text-xs leading-relaxed">
-                            <strong>Arquitectura Canónica 1:N:</strong> Al dar de alta un Hito Rector, debe registrarse con al menos <strong>una Acción Operativa inicial</strong> que garantice su trazabilidad presupuestal y de auditoría.
-                        </span>
-                    </div>
-                    <span class="hidden md:inline-flex px-2.5 py-1 rounded-xl bg-white border border-indigo-200 text-[11px] font-black text-indigo-700 shrink-0">
-                        Padrón Homologado
-                    </span>
+   <!-- ========================================== -->
+            <!-- PESTAÑA 1: NUEVO HITO (+ ACCIONES)         -->
+            <!-- ========================================== -->
+            <form id="tab-hitos" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-4">
+                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center gap-2 text-indigo-900 text-[11px]">
+                    <i class="fa-solid fa-circle-info text-indigo-600 text-sm"></i>
+                    <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> con su respectiva vinculación institucional y externa.</span>
                 </div>
 
-                <!-- Bloque 1: Folio y Área Ejecutora -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
-                    <div class="md:col-span-4">
-                        <label class="block font-bold text-slate-700 text-xs mb-1.5 flex items-center justify-between">
-                            <span>Folio Hito (Automático):</span>
-                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                <i class="fa-solid fa-lock text-[8px] mr-1"></i>Inmutable
+       <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                    <!-- Columna 1: Folio ID Automático (5 columnas) -->
+                    <div class="sm:col-span-5">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-slate-700 text-xs">Folio Hito (Automático):</label>
+                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                <i class="fa-solid fa-lock text-[8px]"></i> Clave Canónica
                             </span>
-                        </label>
-                        <input type="text" id="nuevoHitoId" readonly 
-                               class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" 
-                               placeholder="Generando folio..." required>
+                        </div>
+                        <input type="text" id="nuevoHitoId" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando folio..." required>
                     </div>
 
-                    <div class="md:col-span-8">
-                        <label class="block font-bold text-slate-700 text-xs mb-1.5">Área Ejecutora / Panel Rector:</label>
-                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutoraMaestro(this)" 
-                                class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-xs">
+                    <!-- Columna 2: Panel Asignado & Responsable (7 columnas) -->
+                    <div class="sm:col-span-7">
+                        <label class="block font-bold text-slate-700 text-xs mb-1">Área Ejecutora / Panel Rector:</label>
+                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutoraMaestro(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-900 border-indigo-300 shadow-2xs">
                             <option value="A|RH_E|Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura (CRH-SECUL)</option>
                             <option value="B|JUR_C|Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso (CJU-SECUL)</option>
                             <option value="C|PTR_I|Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios (CCPSECUL)</option>
@@ -2150,106 +2126,100 @@
                             <option value="J|ASI_P|Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos & Comité (LIQ-IECG)</option>
                             <option value="OTRA">Otra Área (Escribir Texto)</option>
                         </select>
-                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área..." class="w-full p-2 border rounded-xl bg-white text-xs hidden mt-1.5">
-                        
-                        <!-- Campos Ocultos de Estado -->
+                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden mt-1">
+                        <!-- Campos ocultos para mantener funcionando el resto del código sin romper nada -->
                         <input type="hidden" id="nuevoHitoPanel" value="A">
                         <input type="hidden" id="nuevoHitoArea" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
                         <input type="hidden" id="nuevoHitoVertiente" value="V1">
                     </div>
                 </div>
+         
+                    <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento Oficial:</label>
+                    <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-slate-900" required>
+                </div>
 
-                <!-- Bloque 2: Título del Hito -->
+              <!-- FUNDAMENTO LEGAL RECTOR VINCULADO AL DECRETO NO. 345 -->
                 <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1.5">Título del Hito / Requerimiento Oficial Rector:</label>
-                    <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial a solventar..." 
-                           class="w-full p-3 border rounded-xl bg-slate-50/70 focus:bg-white font-bold text-slate-900 border-slate-300 focus:ring-2 focus:ring-indigo-500 transition text-xs" required>
-                </div>
+                   <!-- REEMPLAZAR ESTE BLOQUE POR EL SIGUIENTE FORMATO EJECUTIVO -->
+<div class="bg-indigo-50/40 p-3.5 rounded-2xl border border-indigo-100/80 space-y-2">
+    <div class="flex items-center justify-between">
+        <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Fundamento Legal / Oficio Rector:
+        </label>
+        <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+            Decreto No. 345 & Lineamientos
+        </span>
+    </div>
 
-                <!-- Bloque 3: Fundamento Legal (Limpio y sin duplicidades) -->
-                <div class="bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Fundamento Legal / Decreto No. 345:
+    <!-- SELECTOR COMPLETO Y LEGIBLE CON TEXTO COMPLETO -->
+    <select id="selectNormaPredefinida" onchange="seleccionarNormaRectorHito(this)" 
+            class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold text-slate-800 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
+        <option value="">-- Selecciona el Fundamento Jurídico del Decreto 345 --</option>
+        
+        <!-- Bloque 1: Personal, Patrimonio y Archivo -->
+        <optgroup label="Bloque 1: Personal, Patrimonio y Archivo">
+            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles</option>
+            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado</option>
+        </optgroup>
+
+        <!-- Bloque 2: Cierre Fiscal, Financiero y Cuentas -->
+        <optgroup label="Bloque 2: Cierre Fiscal, Financiero y Auditoría">
+            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas</option>
+            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya</option>
+            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca</option>
+            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG</option>
+        </optgroup>
+
+        <!-- Bloque 3: Fideicomisos Banorte (FIARCA) -->
+        <optgroup label="Bloque 3: Fideicomisos Banorte (FIARCA)">
+            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos</option>
+            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura</option>
+        </optgroup>
+
+        <!-- Bloque 4: Gobernanza y Comités -->
+        <optgroup label="Bloque 4: Gobernanza, Comités y Sistemas TI">
+            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas</option>
+            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT</option>
+        </optgroup>
+        <option value="OTRO">✍️ Otro Oficio / Acuerdo Específico (Escribir Manualmente)</option>
+    </select>
+
+    <!-- CAMPO DE TEXTO OFICIAL QUE PERMITE ESCRITURA O EDICIÓN -->
+    <input type="text" id="nuevoHitoNorma" placeholder="El fundamento seleccionado o número de oficio aparecerá aquí..." 
+           class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500" required>
+</div>
+                <!-- Contenedor Dinámico de Acciones Obligatorias -->
+                <div class="border-t border-slate-200 pt-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-emerald-600"></i> Acciones Requeridas para este Hito:
                         </label>
-                        <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">
-                            Marco Legal
-                        </span>
-                    </div>
-
-                    <select id="selectNormaPredefinida" onchange="seleccionarNormaRectorHito(this)" 
-                            class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold text-slate-800 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
-                        <option value="">-- Selecciona el Fundamento Jurídico del Decreto 345 --</option>
-                        
-                        <optgroup label="Bloque 1: Personal, Patrimonio y Archivo">
-                            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales</option>
-                            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH</option>
-                            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles</option>
-                            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado</option>
-                        </optgroup>
-
-                        <optgroup label="Bloque 2: Cierre Fiscal, Financiero y Cuentas">
-                            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas</option>
-                            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya</option>
-                            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca</option>
-                            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG</option>
-                        </optgroup>
-
-                        <optgroup label="Bloque 3: Fideicomisos Banorte (FIARCA)">
-                            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos</option>
-                            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura</option>
-                        </optgroup>
-
-                        <optgroup label="Bloque 4: Gobernanza y Comités">
-                            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas</option>
-                            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros</option>
-                            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT</option>
-                        </optgroup>
-                        <option value="OTRO">✍️ Otro Oficio / Acuerdo Específico (Escribir Manualmente)</option>
-                    </select>
-
-                    <input type="text" id="nuevoHitoNorma" placeholder="El fundamento seleccionado aparecerá aquí..." 
-                           class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500" required>
-                </div>
-
-                <!-- Bloque 4: Acciones Operativas Dinámicas -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <div>
-                            <h4 class="font-black text-slate-900 text-xs flex items-center gap-2">
-                                <i class="fa-solid fa-list-check text-indigo-600"></i> Acciones Operativas Requeridas
-                            </h4>
-                            <p class="text-[11px] text-slate-500">Agrega las acciones que integran este hito rector</p>
-                        </div>
-                        <button type="button" onclick="agregarFilaAccionHito()" 
-                                class="btn-executive px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-xs border border-indigo-200 flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-solid fa-plus text-[10px]"></i> + Añadir otra Acción
+                        <button type="button" onclick="agregarFilaAccionHito()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[11px] border border-indigo-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-
-                    <!-- Contenedor dinámico de filas de acciones -->
                     <div id="contenedorAccionesObligatorias" class="space-y-3">
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 fila-accion-item shadow-2xs hover:border-indigo-300 transition-colors">
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 fila-accion-item">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                                    • Acción Inicial #1 (Obligatoria)
-                                </span>
+                                <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
                             </div>
+                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
                             
-                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." 
-                                   class="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-semibold bg-white focus:ring-2 focus:ring-indigo-500" required>
-                            
-                            <!-- Cuadrícula 2x2 Cómoda y Espaciosa -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                            <!-- PUNTOS 2, 3, 4 y 5: INSTANCIA, VINCULACIÓN SECUL, ÁREAS EXTERNAS Y ESTATUS -->
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                <!-- PUNTO 2: Instancia ejecutora replicada (bloqueada) -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Instancia Ejecutora:</label>
-                                    <input type="text" name="txtAccionRespHito" readonly 
-                                           class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-slate-100 text-slate-700 font-semibold cursor-not-allowed" 
-                                           value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Instancia Ejecutora:</label>
+                                    <input type="text" name="txtAccionRespHito" readonly class="w-full p-1.5 border rounded-lg text-[11px] bg-slate-100 font-semibold text-slate-700 cursor-not-allowed" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
                                 </div>
+
+                                <!-- PUNTO 3: Vincular con área SECUL (con opción de texto si selecciona otra) -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-indigo-900 mb-1">Vincular Área SECUL:</label>
-                                    <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
+                                    <label class="block text-[10px] font-bold text-indigo-700 mb-0.5">Vincular Área SECUL:</label>
+                                    <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
                                         <option value="Ninguna">Ninguna / Directa</option>
                                         <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
                                         <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
@@ -2263,11 +2233,13 @@
                                         <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
                                         <option value="OTRA">Otra Área SECUL (Escribir)</option>
                                     </select>
-                                    <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1.5 border rounded-xl text-xs bg-white hidden mt-1">
+                                    <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
                                 </div>
+
+                                <!-- PUNTO 4: Áreas Externas (Art. 6 Lineamientos) con opción de texto -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-amber-900 mb-1">Área Externa (Art. 6):</label>
-                                    <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
+                                    <label class="block text-[10px] font-bold text-amber-700 mb-0.5">Área Externa (Art. 6):</label>
+                                    <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
                                         <option value="Ninguna">Ninguna (Interna)</option>
                                         <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
                                         <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
@@ -2280,11 +2252,13 @@
                                         <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
                                         <option value="OTRA">Otra área externa (Escribir)</option>
                                     </select>
-                                    <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1.5 border rounded-xl text-xs bg-white hidden mt-1">
+                                    <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
                                 </div>
+
+                                <!-- PUNTO 5: Estatus operativo (reubicado) -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Estatus Operativo:</label>
-                                    <select name="selAccionEstatusHito" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Estatus Operativo:</label>
+                                    <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
                                         <option value="En Proceso">En Proceso</option>
                                         <option value="Validación">En Validación</option>
                                         <option value="Concluido">Concluido al 100%</option>
@@ -2295,63 +2269,106 @@
                     </div>
                 </div>
 
-                <!-- Campo oculto para activación mediante botón fijo -->
-                <button type="submit" id="btnSubmitFormHitosOculto" class="hidden"></button>
+                <!-- Botones de Acción con Botón Regresar -->
+                <div class="flex justify-between items-center pt-3 border-t">
+                    <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Regresar
+                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Hito y Acciones
+                        </button>
+                    </div>
+                </div>
             </form>
 
-            <!-- ============================================================== -->
-            <!-- PESTAÑA 2: NUEVA ACCIÓN ASOCIADA A HITO EXISTENTE + DRIVE      -->
-            <!-- ============================================================== -->
-            <form id="tab-accion" onsubmit="ejecutarCargaUniversal(event)" class="space-y-5 hidden">
-                
-                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-2xl border border-emerald-200 flex items-center gap-3 text-emerald-950">
-                    <i class="fa-solid fa-link text-emerald-600 text-lg shrink-0"></i>
-                    <span class="text-xs leading-relaxed">
-                        Selecciona un <strong>Hito Rector existente</strong>. La acción se vinculará a su clave, actualizando en cascada su avance y canalizando la evidencia digital a la carpeta correspondiente de Google Drive[cite: 17].
-                    </span>
+            <!-- ========================================== -->
+            <!-- PESTAÑA 2: NUEVA ACCIÓN ASOCIADA + DRIVE   -->
+            <!-- ========================================== -->
+            <form id="tab-accion" onsubmit="ejecutarCargaUniversal(event)" class="space-y-4 hidden">
+                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex items-center gap-2 text-emerald-950 text-[11px]">
+                    <i class="fa-solid fa-link text-emerald-600 text-sm"></i>
+                    <span>La acción quedará <strong>asociada al Hito seleccionado</strong> y alimentará en cascada su porcentaje de avance, estatus y subida a Google Drive.</span>
                 </div>
 
-                <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1.5">Hito Rector Vinculado (Hito Padre):</label>
-                    <select id="buzonSelectAccion" onchange="actualizarFolioAccionSugerido()" 
-                            class="w-full p-3 border rounded-xl bg-slate-50/70 font-semibold text-slate-900 border-indigo-200 focus:ring-2 focus:ring-indigo-500 text-xs"></select>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Clave Canónica Generada (Automática):</label>
-                        <input type="text" id="nuevaAccionClavePreview" readonly 
-                               class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" 
-                               placeholder="Generando clave canónica...">
+              <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-700">Hito Rector Vinculado (Hito Padre):</label>
+                        <!-- BOTÓN PUENTE A VINCULACIÓN EN MODAL UNIVERSAL -->
+                        <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 transition">
+                            <i class="fa-solid fa-link text-indigo-600"></i> Solicitar Vinculación con este Hito
+                        </button>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Instancia Responsable:</label>
-                        <select id="selectInstanciaResponsableBuzon" onchange="manejarCambioInstanciaBuzon(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
-                            <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura (CRH-SECUL)</option>
-                            <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso (CJU-SECUL)</option>
-                            <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios (CCPSECUL)</option>
-                            <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales</option>
-                            <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes</option>
-                            <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal</option>
-                            <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI)</option>
-                            <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental</option>
-                            <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías</option>
-                            <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos & Gobernanza</option>
-                        </select>
-                        <input type="hidden" id="nuevaAccionResp" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+                    <select id="buzonSelectAccion" onchange="actualizarFolioAccionSugerido()" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 border-indigo-200"></select>
+                </div>
+
+                <!-- BANNER REACTIVO DE BLOQUEO POR ÁREA EXTERNA -->
+                <div id="bannerBloqueoAreaExterna" class="hidden p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
+                    <div class="flex items-center gap-2 text-amber-950 text-xs">
+                        <i class="fa-solid fa-shield-halved text-amber-600 text-base"></i>
+                        <span><strong>Comisión Externa:</strong> Este hito no pertenece a tu panel asignado. Para incidir o editarlo, debes tramitar su vinculación formal.</span>
                     </div>
+                    <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 shadow-xs">
+                        <i class="fa-solid fa-link"></i> Solicitar Vinculación
+                    </button>
                 </div>
 
-                <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1.5">Descripción de la Acción / Compromiso Operativo:</label>
-                    <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega con sellos oficiales..." 
-                           class="w-full p-3 border rounded-xl bg-slate-50/70 font-semibold text-slate-900 border-slate-300 focus:ring-2 focus:ring-indigo-500 text-xs" required>
+                <!-- CAMPO VISUAL DE LA CLAVE DE ACCIÓN GENERADA -->
+<!-- CAMPO VISUAL DE LA CLAVE DE ACCIÓN GENERADA -->
+                <div class="mb-3">
+                    <label class="block font-bold text-slate-700 mb-1">Clave Canónica de la Nueva Acción (Automática):</label>
+                    <input type="text" id="nuevaAccionClavePreview" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando clave canónica...">
                 </div>
+<!-- 2. VINCULACIÓN CON ÁREA SECUL Y ÁREA EXTERNA (CON OPCIÓN DE ESCRITURA "OTRA") -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 my-2">
+    <div>
+        <label class="block font-bold text-indigo-900 text-[11px] mb-1">Vincular con Área SECUL:</label>
+        <select id="buzonVinculoSecul" onchange="manejarCambioSeculBuzon(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1">
+            <option value="Ninguna">Ninguna / Directa</option>
+            <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+            <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+            <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+            <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+            <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+            <option value="Panel F - Financiero">Panel F - Financiero</option>
+            <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+            <option value="Panel H - Archivo">Panel H - Archivo</option>
+            <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+            <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+            <option value="OTRA">Otra Área SECUL (Escribir)</option>
+        </select>
+        <input type="text" id="inputOtraSeculBuzon" placeholder="Especifique área SECUL..." class="w-full p-2 border rounded-xl text-xs bg-white hidden mt-1">
+    </div>
 
-                <!-- Sliders y Parámetros -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+    <div>
+        <label class="block font-bold text-amber-900 text-[11px] mb-1">Área Externa (Art. 6 Lineamientos):</label>
+        <select id="buzonAreaExterna" onchange="manejarCambioExternaBuzon(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1">
+            <option value="Ninguna">Ninguna (Interna)</option>
+            <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+            <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+            <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+            <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+            <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+            <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+            <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+            <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+            <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+            <option value="OTRA">Otra área externa (Escribir)</option>
+        </select>
+        <input type="text" id="inputOtraExternaBuzon" placeholder="Especifique área externa..." class="w-full p-2 border rounded-xl text-xs bg-white hidden mt-1">
+    </div>
+</div>
+
+<!-- 3. DESCRIPCIÓN DEL COMPROMISO / ACCIÓN (ÚNICO E INDISPENSABLE) -->
+<div>
+    <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
+    <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
+</div>
+                <!-- Bloque Prioridad, Estatus y Slider de Avance -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
                     <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Prioridad:</label>
+                        <label class="block font-bold text-slate-700 mb-1">Prioridad del Área:</label>
                         <select id="buzonPrioridadInput" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
                             <option value="Urgente">🔴 Urgente</option>
                             <option value="Alta">🟠 Alta</option>
@@ -2360,7 +2377,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Estatus Operativo:</label>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus Operativo:</label>
                         <select id="buzonEstatusInput" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
                             <option value="En Proceso">En Proceso</option>
                             <option value="Validación">En Validación</option>
@@ -2369,29 +2386,119 @@
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="font-bold text-slate-700 text-xs">Avance Acreditado:</label>
-                            <span id="buzonAvanceLabel" class="font-black text-indigo-700 text-xs">100%</span>
+                            <label class="font-bold text-slate-700">Avance (%):</label>
+                            <span id="buzonAvanceLabel" class="font-black text-indigo-700 text-sm">100%</span>
                         </div>
                         <input type="range" id="buzonAvanceInput" min="0" max="100" step="5" value="100" 
                                oninput="document.getElementById('buzonAvanceLabel').innerText = this.value + '%'" 
-                               class="w-full accent-indigo-600 cursor-pointer mt-1">
+                               class="w-full accent-indigo-600 cursor-pointer">
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+    <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
+    <select id="selectInstanciaResponsableBuzon" onchange="manejarCambioInstanciaBuzon(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold mb-1">
+        <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura -CRH-SECUL</option>
+        <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL</option>
+        <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL</option>
+        <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL</option>
+        <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL</option>
+        <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL</option>
+        <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI) -CTI-SECUL</option>
+        <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental – LIQ-IECG</option>
+        <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías -LPS-SECUL</option>
+        <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG</option>
+        <option value="OTRA">Otra Instancia (Escribir Texto)</option>
+    </select>
+    <input type="text" id="inputOtraInstanciaBuzon" placeholder="Escriba el nombre de la instancia responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden">
+    <input type="hidden" id="nuevaAccionResp" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+</div>
+
+<script>
+    function manejarCambioInstanciaBuzon(sel) {
+        const inputOtro = document.getElementById('inputOtraInstanciaBuzon');
+        const hiddenResp = document.getElementById('nuevaAccionResp');
+        if (sel.value === 'OTRA') {
+            inputOtro.classList.remove('hidden');
+            hiddenResp.value = inputOtro.value;
+            inputOtro.oninput = function() { hiddenResp.value = this.value; };
+        } else {
+            inputOtro.classList.add('hidden');
+            hiddenResp.value = sel.value;
+        }
+    }
+
+    function manejarCambioSeculBuzon(selectEl) {
+    const inputTexto = document.getElementById('inputOtraSeculBuzon');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+function manejarCambioExternaBuzon(selectEl) {
+    const inputTexto = document.getElementById('inputOtraExternaBuzon');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+// Función para abrir el modal de la Base de Datos General de forma segura
+window.abrirModalBaseDatosGeneral = function() {
+    // Si tienes una función de renderizado jerárquico previa, la ejecutas:
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+        renderBaseDatosGeneralJerarquica();
+    }
+    // Abre el modal usando tu función genérica openModal
+    if (typeof openModal === 'function') {
+        openModal('modal-base-datos-general');
+    } else {
+        const modal = document.getElementById('modal-base-datos-general');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    }
+};
+    
+</script>
+                </div>
+
                 <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1">Nota de Auditoría / Justificación Técnica:</label>
-                    <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo u oficio que respalda este registro..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs" required></textarea>
+                    <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación Técnica:</label>
+                    <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo o número de oficio que fundamenta esta acción..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
                 </div>
 
-                <!-- Carga Drive -->
-                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-200">
-                    <label class="block font-bold text-indigo-950 text-xs mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-brands fa-google-drive text-amber-500"></i> Evidencia Documental Oficial (PDF / Expediente):
-                    </label>
-                    <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer" required>
+<!-- CAMPO DE CARGA DE ARCHIVO PARA GOOGLE DRIVE -->
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 mb-3">
+                <label class="block font-bold text-slate-700 mb-1">Evidencia Documental (PDF / Oficio para Google Drive):</label>
+                <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                 </div>
+                
+                <!-- Botones de Acción con Botón Regresar -->
+                <div class="flex justify-between items-center pt-3 border-t">
+     <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+    <i class="fa-solid fa-arrow-left"></i> Regresar
+</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                        <button type="submit" id="btnSubmitBuzon" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar y Propagar Cambios
+                        </button>
+                    </div>
+                </div>
+            </form>
 
-                <!-- Botón de envío interno oculto -->
+        </div>
+    </div>
+</div>
+
     <!-- ========================================================= -->
     <!-- MODAL 1: AUTENTICACIÓN DIRECTA SUPABASE                   -->
     <!-- ========================================================= -->
@@ -3691,39 +3798,36 @@ window.poblarSelectBuzon = function(idSeleccionado = null) {
 async function ejecutarCargaUniversal(e) {
     e.preventDefault();
     
-    const accionId = document.getElementById('buzonSelectAccion')?.value;
+    const accionId = document.getElementById('buzonSelectAccion').value;
     const claveAccionFinal = document.getElementById('nuevaAccionClavePreview')?.value || '';
     if (!claveAccionFinal || claveAccionFinal.includes('SELECCIONA')) {
-        alert("Por favor seleccione un hito válido para asociar la acción.");
+        alert("Por favor seleccione un hito válido para generar la nueva acción.");
         return;
     }
 
-    const nuevoEstatus = document.getElementById('buzonEstatusInput')?.value || 'En Proceso';
-    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput')?.value, 10) || 0;
+    const nuevoEstatus = document.getElementById('buzonEstatusInput').value;
+    const nuevoAvance = parseInt(document.getElementById('buzonAvanceInput').value, 10) || 100;
     const notaAuditoria = document.getElementById('nuevaAccionNota')?.value.trim() || '';
     const respAccion = document.getElementById('nuevaAccionResp')?.value.trim() || '';
     const tituloAccion = document.getElementById('nuevaAccionTitulo')?.value.trim() || '';
 
     const hitoPadre = accionesDataset.find(a => (a.id === accionId) || (a.clave_accion === accionId));
-    if (!hitoPadre) {
-        alert("No se encontró el hito seleccionado.");
-        return;
-    }
+    if (!hitoPadre) return;
 
     const fileInput = document.getElementById('buzonFileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("⚠️ Es obligatorio adjuntar el archivo de evidencia.");
+        alert("⚠️ ATENCIÓN: Es obligatorio adjuntar el archivo PDF de evidencia.");
         return;
     }
 
     const btnSubmit = document.getElementById('btnSubmitBuzon');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a Drive y guardando en Supabase...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Consultando sufijo y subiendo...';
     }
 
     try {
-        // 1. Conteo de evidencias para sufijo de Drive
+        // 1. CONTEO REAL EN SUPABASE: Consultar cuántos archivos existen en evidencias_expedientes para esta clave
         let contadorBase = 1;
         if (supabaseClient) {
             const { count, error: errCount } = await supabaseClient
@@ -3731,20 +3835,23 @@ async function ejecutarCargaUniversal(e) {
                 .select('*', { count: 'exact', head: true })
                 .eq('clave_accion', claveAccionFinal);
 
-            if (!errCount && count !== null) contadorBase = count + 1;
+            if (!errCount && count !== null) {
+                contadorBase = count + 1; // Si hay 2, el siguiente es 3 (-0.003)
+            }
         }
 
         const archivoFisico = fileInput.files[0];
         const sufijoIndex = `-0.00${contadorBase}`;
         const nombreNominalDrive = `[${claveAccionFinal}${sufijoIndex}] ${archivoFisico.name}`;
         
-        // 2. Subida a Google Drive
+        // 2. Subir a Google Drive
         const driveUrlFinal = await window.subirArchivoADrive(archivoFisico, hitoPadre.panel, nombreNominalDrive);
+
         if (!driveUrlFinal || !driveUrlFinal.startsWith('http')) {
-            throw new Error("El servicio de Google Drive no devolvió una URL válida.");
+            throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
         }
 
-        // 3. Registrar evidencia en evidencias_expedientes
+        // 3. INSERCIÓN OBLIGATORIA EN SUPABASE: Tabla evidencias_expedientes
         if (supabaseClient) {
             const { error: errEvidencia } = await supabaseClient
                 .from('evidencias_expedientes')
@@ -3757,63 +3864,54 @@ async function ejecutarCargaUniversal(e) {
             if (errEvidencia) throw errEvidencia;
         }
 
-        // 4. Extraer consecutivo y preparar nota cronológica
-        const claveHitoBase = hitoPadre.clave_hito || hitoPadre.id.split('-A-')[0];
-        let consecutivoNum = 1;
-        const matchConsecutivo = claveAccionFinal.match(/-A-(\d+)/);
-        if (matchConsecutivo && matchConsecutivo[1]) {
-            consecutivoNum = parseInt(matchConsecutivo[1], 10) || 1;
-        }
+        // 4. Actualizar objeto en memoria
+        const nuevaAccionObj = {
+            id: claveAccionFinal,
+            clave_accion: claveAccionFinal,
+            clave_hito: hitoPadre.clave_hito || hitoPadre.id.split('-A-')[0],
+            panel: hitoPadre.panel,
+            area: hitoPadre.area,
+            hito: hitoPadre.hito,
+            accion: tituloAccion || 'Acción operativa específica',
+            responsable: respAccion || hitoPadre.responsable,
+            estatus: nuevoEstatus,
+            avance: nuevoAvance,
+            peso: 33.33,
+            driveUrl: driveUrlFinal,
+            observaciones: notaAuditoria
+        };
 
-        const usuarioFirma = currentUser ? (currentUser.nombre || currentUser.usuario) : 'Enlace Operativo';
-        const fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-        const entradaBitacora = `[${fechaHora} - ${usuarioFirma}]: ${notaAuditoria || 'Registro de acción y carga de expediente en Drive.'}`;
+        accionesDataset.push(nuevaAccionObj);
+        guardarDataset();
 
-        // 5. Upsert físico en acciones_transicion
+        // 5. Sincronizar tabla principal
         if (supabaseClient) {
-            const payloadAccion = {
+            const hitoBase = nuevaAccionObj.clave_hito;
+            const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
+
+            const payloadSupabase = {
                 clave_accion: claveAccionFinal,
-                clave_hito: claveHitoBase,
-                consecutivo_num: consecutivoNum,
-                accion_especifica: tituloAccion,
-                instancia_responsable: respAccion || hitoPadre.responsable,
-                estatus: nuevoEstatus,
-                avance: nuevoAvance,
-                avance_porcentaje: nuevoAvance,
+                clave_hito: hitoBase,
+                consecutivo_num: numConsecutivoActual,
+                accion_especifica: nuevaAccionObj.accion,
+                estatus: nuevoAvance,
                 drive_url: driveUrlFinal,
-                nota_auditoria: entradaBitacora,
-                observacion: entradaBitacora,
-                updated_at: new Date().toISOString()
+                instancia_responsable: nuevaAccionObj.responsable
             };
 
-            const { error: errAccion } = await supabaseClient
-                .from('acciones_transicion')
-                .upsert([payloadAccion], { onConflict: 'clave_accion' });
-
-            if (errAccion) throw errAccion;
-
-            // 6. Recalcular y actualizar promedio en hitos_transicion
-            const accionesHermanas = accionesDataset.filter(a => (a.clave_hito === claveHitoBase) || a.id.startsWith(claveHitoBase));
-            const sumaTotal = accionesHermanas.reduce((acc, cur) => acc + (Number(cur.avance) || 0), 0) + nuevoAvance;
-            const promedioHito = Math.round(sumaTotal / (accionesHermanas.length + 1));
-
-            await supabaseClient
-                .from('hitos_transicion')
-                .update({ avance_porcentaje: promedioHito, avance: promedioHito })
-                .eq('clave_hito', claveHitoBase);
+            await supabaseClient.from('acciones_transicion').upsert([payloadSupabase], { onConflict: 'clave_accion' });
         }
 
-        // 7. Sincronizar memoria y UI
-        alert(`✅ Acción [${claveAccionFinal}] y expediente Drive registrados permanentemente en Supabase.`);
+        alert(`¡Archivo guardado con sufijo [${sufijoIndex}] y registrado en Supabase exitosamente!`);
         closeModal('modal-buzon-universal');
-
-        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+        
+        await inicializarDatosDesdeSupabase();
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        console.error("Error al registrar acción:", err);
-        alert("⚠️ Error en el guardado: " + err.message);
+        console.error("Error detallado:", err);
+        alert("Error al sincronizar con Supabase / Drive: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -4357,24 +4455,22 @@ function renderListaCompromisosDetalle(act) {
         }
 
 // =========================================================================
-// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CONECTADO A SUPABASE)
+// 1. GUARDAR NUEVO HITO CON ACCIÓN OBLIGATORIA (CONSECUTIVOS CANÓNICOS)
 // =========================================================================
 async function guardarNuevoHitoConAcciones(e) {
     e.preventDefault();
 
-    const panel = document.getElementById('nuevoHitoPanel')?.value || 'A'; 
-    const vertiente = document.getElementById('nuevoHitoVertiente')?.value || 'V1';
-    const titulo = document.getElementById('nuevoHitoTitulo')?.value.trim() || '';
-    const area = document.getElementById('nuevoHitoArea')?.value.trim() || '';
-    const norma = document.getElementById('nuevoHitoNorma')?.value.trim() || '';
+    const panel = document.getElementById('nuevoHitoPanel').value; 
+    const vertiente = document.getElementById('nuevoHitoVertiente').value;
+    const titulo = document.getElementById('nuevoHitoTitulo').value.trim();
+    const area = document.getElementById('nuevoHitoArea').value.trim();
+    const norma = document.getElementById('nuevoHitoNorma').value.trim();
 
     const filasAcciones = document.querySelectorAll('#contenedorAccionesObligatorias .fila-accion-item') || [];
     const claveArea = MAPA_PREFIJOS_AREA[panel] || 'RH_E';
 
-    // Generar la clave canónica del hito
-    const claveHitoGenerada = (typeof obtenerSiguienteClaveHito === 'function') 
-        ? obtenerSiguienteClaveHito(panel) 
-        : `${claveArea}-H-0001`;
+    // Declaración única y oficial de la clave del hito
+    const claveHitoGenerada = obtenerSiguienteClaveHito(panel);
 
     const puedeEditar = currentUser && (
         currentUser.esAdmin || 
@@ -4388,142 +4484,64 @@ async function guardarNuevoHitoConAcciones(e) {
             return;
         }
 
-        if (typeof registrarSolicitudAuditoria === 'function') {
-            registrarSolicitudAuditoria({
-                tipo: 'NUEVO_HITO_VINCULADO',
-                clave: claveHitoGenerada,
-                campo: 'nuevo_hito_propuesto',
-                valorPropuesto: { titulo, area, norma, panel },
-                motivo: motivo.trim(),
-                solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
-                fecha: new Date().toLocaleString(),
-                estatus: 'Pendiente de Autorización'
-            });
-        }
+        registrarSolicitudAuditoria({
+            tipo: 'NUEVO_HITO_VINCULADO',
+            clave: claveHitoGenerada,
+            campo: 'nuevo_hito_propuesto',
+            valorPropuesto: { titulo, area, norma, panel },
+            motivo: motivo.trim(),
+            solicitante: currentUser ? currentUser.nombre : 'Enlace Institucional',
+            fecha: new Date().toLocaleString(),
+            estatus: 'Pendiente de Autorización'
+        });
 
         alert(`🔒 PROPUESTA ENVIADA A AUDITORÍA:\n\nTu propuesta para registrar el Hito ${claveHitoGenerada} en el Panel ${panel} ha sido canalizada a la mesa de control de 'auditoria.html'.`);
         closeModal('modal-buzon-universal');
         return;
     }
 
-    try {
-        // 1. Extraer consecutivo numérico del Hito para la columna consecutivo_num
-        let consecutivoHito = 1;
-        const matchHitoNum = claveHitoGenerada.match(/-H-(\d+)/);
-        if (matchHitoNum && matchHitoNum[1]) {
-            consecutivoHito = parseInt(matchHitoNum[1], 10) || 1;
-        }
+    // Registrar cada acción vinculada con su correlativo
+    filasAcciones.forEach((fila, idx) => {
+        const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]').value.trim();
+        const respAccion = fila.querySelector('input[name="txtAccionRespHito"]').value.trim();
+        const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]').value;
 
-        // 2. Guardar físicamente en hitos_transicion en Supabase
-        if (supabaseClient) {
-            const payloadHito = {
-                clave_hito: claveHitoGenerada,
-                clave_area: claveArea,
-                panel: panel,
-                consecutivo_num: consecutivoHito,
-                titulo: titulo,
-                detalle_operativo: titulo,
-                normativa_vinculada: norma,
-                avance_porcentaje: 0,
-                created_at: new Date().toISOString()
-            };
+        const cAccion = `${claveHitoGenerada}-A-${String(idx + 1).padStart(4, '0')}`;
 
-            const { error: errHito } = await supabaseClient
-                .from('hitos_transicion')
-                .upsert([payloadHito], { onConflict: 'clave_hito' });
+        const nuevoRegistro = {
+            id: cAccion,
+            clave_accion: cAccion,
+            clave_hito: claveHitoGenerada,
+            panel: panel,
+            area: `${area} (Panel ${panel})`,
+            hito: titulo,
+            accion: titAccion,
+            responsable: respAccion || area,
+            peso: 33.33,
+            estatus: estatusAccion,
+            avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
+            tercero: "Interna",
+            terceroNombre: "Comité de Transición IECG",
+            docRequerido: `Soporte Oficial ${cAccion}`,
+            driveUrl: ""
+        };
 
-            if (errHito) throw new Error("Error en Supabase (hitos_transicion): " + errHito.message);
-        }
+        accionesDataset.push(nuevoRegistro);
+    });
 
-        // 3. Preparar e insertar cada acción obligatoria
-        const registrosAccionesSupabase = [];
-        const usuarioFirma = (typeof currentUser !== 'undefined' && currentUser) 
-            ? (currentUser.nombre || currentUser.usuario) 
-            : 'Enlace Operativo';
-        const fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+    guardarDataset();
 
-        filasAcciones.forEach((fila, idx) => {
-            const titAccion = fila.querySelector('input[name="txtAccionTituloHito"]')?.value.trim() || 'Acción operativa';
-            const respAccion = fila.querySelector('input[name="txtAccionRespHito"]')?.value.trim() || area;
-            const estatusAccion = fila.querySelector('select[name="selAccionEstatusHito"]')?.value || 'En Proceso';
-            const vinculoSecul = fila.querySelector('select[name="selVinculoSecul"]')?.value || 'Ninguna';
-            const areaExt = fila.querySelector('select[name="selAreaExternaArt6"]')?.value || 'Ninguna';
+    alert(`¡Hito y Acción(es) registrados exitosamente!\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
 
-            const numConsecutivoAccion = idx + 1;
-            const cAccion = `${claveHitoGenerada}-A-${String(numConsecutivoAccion).padStart(4, '0')}`;
-            const avanceNum = estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40);
-            const notaInicial = `[${fechaHora} - ${usuarioFirma}]: Alta inicial de Hito y Acción.`;
+    document.getElementById('tab-hitos').reset();
+    closeModal('modal-buzon-universal');
 
-            // Objeto en memoria local
-            const nuevoRegistroLocal = {
-                id: cAccion,
-                clave_accion: cAccion,
-                clave_hito: claveHitoGenerada,
-                consecutivo_num: numConsecutivoAccion,
-                panel: panel,
-                area: `${area} (Panel ${panel})`,
-                hito: titulo,
-                accion: titAccion,
-                responsable: respAccion || area,
-                peso: Math.round(100 / (filasAcciones.length || 1)),
-                estatus: estatusAccion,
-                avance: avanceNum,
-                tercero: areaExt !== 'Ninguna' ? 'Tercero Estatal' : 'Interna',
-                terceroNombre: areaExt,
-                docRequerido: `Soporte Oficial ${cAccion}`,
-                driveUrl: "",
-                fundamento_juridico: norma,
-                nota_auditoria: notaInicial,
-                observacion: notaInicial
-            };
-
-            accionesDataset.push(nuevoRegistroLocal);
-
-            // Registro físico para Supabase con todas las columnas obligatorias
-            registrosAccionesSupabase.push({
-                clave_accion: cAccion,
-                clave_hito: claveHitoGenerada,
-                consecutivo_num: numConsecutivoAccion,
-                accion_especifica: titAccion,
-                instancia_responsable: respAccion || area,
-                estatus: estatusAccion,
-                avance: avanceNum,
-                avance_porcentaje: avanceNum,
-                drive_url: '',
-                nota_auditoria: notaInicial,
-                observacion: notaInicial,
-                fundamento_juridico: norma,
-                updated_at: new Date().toISOString()
-            });
-        });
-
-        // 4. Inserción por bloque a acciones_transicion
-        if (supabaseClient && registrosAccionesSupabase.length > 0) {
-            const { error: errAcciones } = await supabaseClient
-                .from('acciones_transicion')
-                .upsert(registrosAccionesSupabase, { onConflict: 'clave_accion' });
-
-            if (errAcciones) throw new Error("Error en Supabase (acciones_transicion): " + errAcciones.message);
-        }
-
-        // 5. Persistir en localStorage y actualizar la interfaz
-        guardarDataset();
-
-        alert(`✅ Hito y Acción(es) registrados permanentemente en Supabase:\n\n• Clave Hito: ${claveHitoGenerada}\n• Acciones creadas: ${filasAcciones.length}`);
-
-        document.getElementById('tab-hitos')?.reset();
-        closeModal('modal-buzon-universal');
-
-        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-        actualizarDashboard();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-        if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
-
-    } catch (err) {
-        console.error("Error al registrar hito en Supabase:", err);
-        alert("⚠️ No se pudo guardar en Supabase: " + err.message);
+    actualizarDashboard();
+    if (typeof renderCronogramaRoadmap === 'function') {
+        renderCronogramaRoadmap();
     }
-}        
+}
+        
         function abrirPestañaAccionDesdeHito() {
     // 1. Cerrar el modal actual de detalle de hito
     closeModal('modal-hito-fiscalizacion');
@@ -4652,90 +4670,32 @@ function abrirModalAltaAccionVinculadaDesdeDetalle() {
     poblarSelectBuzon(claveSel);
 }
         
-    // 1. Controla que el botón fijo inferior siempre active el formulario visible
-function dispararGuardadoModalUniversal() {
-    const tabHitoVisible = !document.getElementById('tab-hitos').classList.contains('hidden');
-    if (tabHitoVisible) {
-        const btnForm1 = document.getElementById('btnSubmitFormHitosOculto');
-        if (btnForm1) btnForm1.click();
-    } else {
-        const btnForm2 = document.getElementById('btnSubmitFormAccionOculto');
-        if (btnForm2) btnForm2.click();
-    }
-}
-
-// 2. Generador de tarjetas de acción limpias con botón de eliminar
+        // Función para añadir filas dinámicas de acciones obligatorias al crear un hito
 function agregarFilaAccionHito() {
     const contenedor = document.getElementById('contenedorAccionesObligatorias');
     if (!contenedor) return;
-
     const numFila = contenedor.querySelectorAll('.fila-accion-item').length + 1;
-    const respDefault = document.getElementById('nuevoHitoArea')?.value || 'Panel A - Recursos Humanos & Estructura -CRH-SECUL';
-
+    
     const div = document.createElement('div');
-    div.className = "p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 fila-accion-item shadow-2xs hover:border-indigo-300 transition-colors animate-in fade-in duration-200";
+    div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 fila-accion-item relative";
     div.innerHTML = `
         <div class="flex items-center justify-between">
-            <span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                • Acción Adicional #${numFila}
-            </span>
-            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold flex items-center gap-1 transition">
-                <i class="fa-solid fa-trash-can"></i> Eliminar
-            </button>
+            <span class="text-[10px] font-bold uppercase text-indigo-700">• Acción Adicional #${numFila}</span>
+            <button type="button" onclick="this.closest('.fila-accion-item').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-trash-can"></i></button>
         </div>
-        
-        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." 
-               class="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-semibold bg-white focus:ring-2 focus:ring-indigo-500" required>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Instancia Ejecutora:</label>
-                <input type="text" name="txtAccionRespHito" readonly 
-                       class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-slate-100 text-slate-700 font-semibold cursor-not-allowed" 
-                       value="${respDefault}">
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Vincular Área SECUL:</label>
-                <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
-                    <option value="Ninguna">Ninguna / Directa</option>
-                    <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
-                    <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
-                    <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
-                    <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
-                    <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
-                    <option value="Panel F - Financiero">Panel F - Financiero</option>
-                    <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
-                    <option value="Panel H - Archivo">Panel H - Archivo</option>
-                    <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
-                    <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
-                </select>
-                <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1.5 border rounded-xl text-xs bg-white hidden mt-1">
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-amber-900 mb-1">Área Externa (Art. 6):</label>
-                <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
-                    <option value="Ninguna">Ninguna (Interna)</option>
-                    <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
-                    <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
-                    <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
-                    <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
-                </select>
-                <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1.5 border rounded-xl text-xs bg-white hidden mt-1">
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Estatus Operativo:</label>
-                <select name="selAccionEstatusHito" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
-                    <option value="En Proceso">En Proceso</option>
-                    <option value="Validación">En Validación</option>
-                    <option value="Concluido">Concluido al 100%</option>
-                </select>
-            </div>
+        <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
+        <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="txtAccionRespHito" placeholder="Instancia ejecutora responsable..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white" required>
+            <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
+                <option value="En Proceso">En Proceso</option>
+                <option value="Validación">En Validación</option>
+                <option value="Concluido">Concluido al 100%</option>
+            </select>
         </div>
     `;
-
     contenedor.appendChild(div);
 }
-        
+
 // Función para enlazar la subida de evidencias desde la vista de detalle
 function subirEvidenciaDesdeDetalle(idAccion) {
     const act = accionesDataset.find(a => a.id === idAccion);
