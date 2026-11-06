@@ -2415,59 +2415,7 @@
     <input type="hidden" id="nuevaAccionResp" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
 </div>
 
-<script>
-    function manejarCambioInstanciaBuzon(sel) {
-        const inputOtro = document.getElementById('inputOtraInstanciaBuzon');
-        const hiddenResp = document.getElementById('nuevaAccionResp');
-        if (sel.value === 'OTRA') {
-            inputOtro.classList.remove('hidden');
-            hiddenResp.value = inputOtro.value;
-            inputOtro.oninput = function() { hiddenResp.value = this.value; };
-        } else {
-            inputOtro.classList.add('hidden');
-            hiddenResp.value = sel.value;
-        }
-    }
 
-    function manejarCambioSeculBuzon(selectEl) {
-    const inputTexto = document.getElementById('inputOtraSeculBuzon');
-    if (selectEl.value === 'OTRA') {
-        inputTexto.classList.remove('hidden');
-    } else {
-        inputTexto.classList.add('hidden');
-        inputTexto.value = '';
-    }
-}
-
-function manejarCambioExternaBuzon(selectEl) {
-    const inputTexto = document.getElementById('inputOtraExternaBuzon');
-    if (selectEl.value === 'OTRA') {
-        inputTexto.classList.remove('hidden');
-    } else {
-        inputTexto.classList.add('hidden');
-        inputTexto.value = '';
-    }
-}
-
-// Función para abrir el modal de la Base de Datos General de forma segura
-window.abrirModalBaseDatosGeneral = function() {
-    // Si tienes una función de renderizado jerárquico previa, la ejecutas:
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
-        renderBaseDatosGeneralJerarquica();
-    }
-    // Abre el modal usando tu función genérica openModal
-    if (typeof openModal === 'function') {
-        openModal('modal-base-datos-general');
-    } else {
-        const modal = document.getElementById('modal-base-datos-general');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-        }
-    }
-};
-    
-</script>
                 </div>
 
                 <div>
@@ -2481,21 +2429,32 @@ window.abrirModalBaseDatosGeneral = function() {
                 <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                 </div>
                 
-                <!-- Botones de Acción con Botón Regresar -->
-                <div class="flex justify-between items-center pt-3 border-t">
-     <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
-    <i class="fa-solid fa-arrow-left"></i> Regresar
-</button>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                        <button type="submit" id="btnSubmitBuzon" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-floppy-disk"></i> Guardar y Propagar Cambios
-                        </button>
-                    </div>
-                </div>
+        <!-- Botón de envío interno oculto para activación mediante botón fijo -->
+                <button type="submit" id="btnSubmitFormAccionOculto" class="hidden"></button>
             </form>
 
         </div>
+
+        <!-- 4. PIE FIJO PERSISTENTE (SIEMPRE VISIBLE EN PANTALLA) -->
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-indigo-600"></i> Sincronización transaccional directa con Supabase
+            </span>
+
+            <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <button type="button" onclick="closeModal('modal-buzon-universal')" 
+                        class="btn-executive px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition">
+                    Cancelar
+                </button>
+                
+                <!-- Botón Universal que dispara el formulario activo -->
+                <button type="button" onclick="dispararGuardadoModalUniversal()" id="btnGuardarUniversalDinamico"
+                        class="btn-executive px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -2814,6 +2773,103 @@ window.abrirModalBaseDatosGeneral = function() {
     }
 };
 
+// =========================================================================
+// FUNCIONES GLOBALES: BASE DE DATOS Y GESTIÓN DE MODALES
+// =========================================================================
+window.abrirModalBaseDatosGeneral = function() {
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+        renderBaseDatosGeneralJerarquica();
+    }
+    if (typeof openModal === 'function') {
+        openModal('modal-base-datos-general');
+    } else {
+        const modal = document.getElementById('modal-base-datos-general');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    }
+};
+
+window.dispararGuardadoModalUniversal = function() {
+    const tabHitos = document.getElementById('tab-hitos');
+    const tabHitoVisible = tabHitos && !tabHitos.classList.contains('hidden');
+    if (tabHitoVisible) {
+        const btnForm1 = document.getElementById('btnSubmitFormHitosOculto');
+        if (btnForm1) btnForm1.click();
+    } else {
+        const btnForm2 = document.getElementById('btnSubmitFormAccionOculto');
+        if (btnForm2) btnForm2.click();
+    }
+};
+
+window.manejarCambioAreaEjecutoraMaestro = function(sel) {
+    if (!sel) return;
+    const inputOtro = document.getElementById('inputOtraAreaEjecutora');
+    const hiddenPanel = document.getElementById('nuevoHitoPanel');
+    const hiddenArea = document.getElementById('nuevoHitoArea');
+
+    if (sel.value === 'OTRA') {
+        if (inputOtro) inputOtro.classList.remove('hidden');
+    } else {
+        if (inputOtro) inputOtro.classList.add('hidden');
+        const partes = sel.value.split('|');
+        if (partes.length >= 3) {
+            if (hiddenPanel) hiddenPanel.value = partes[0];
+            if (hiddenArea) hiddenArea.value = partes[2];
+        }
+    }
+    if (typeof actualizarFolioSiguienteSugerido === 'function') {
+        actualizarFolioSiguienteSugerido();
+    }
+};
+
+window.manejarCambioInstanciaBuzon = function(sel) {
+    const inputOtro = document.getElementById('inputOtraInstanciaBuzon');
+    const hiddenResp = document.getElementById('nuevaAccionResp');
+    if (!sel) return;
+    if (sel.value === 'OTRA') {
+        if (inputOtro) inputOtro.classList.remove('hidden');
+        if (hiddenResp && inputOtro) hiddenResp.value = inputOtro.value;
+    } else {
+        if (inputOtro) inputOtro.classList.add('hidden');
+        if (hiddenResp) hiddenResp.value = sel.value;
+    }
+};
+
+window.manejarCambioSeculBuzon = function(selectEl) {
+    const inputTexto = document.getElementById('inputOtraSeculBuzon');
+    if (!inputTexto || !selectEl) return;
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+};
+
+window.manejarCambioExternaBuzon = function(selectEl) {
+    const inputTexto = document.getElementById('inputOtraExternaBuzon');
+    if (!inputTexto || !selectEl) return;
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+};
+
+window.seleccionarNormaRectorHito = function(selectEl) {
+    const inputNorma = document.getElementById('nuevoHitoNorma');
+    if (!inputNorma || !selectEl) return;
+    if (selectEl.value && selectEl.value !== 'OTRO') {
+        inputNorma.value = selectEl.value;
+    } else if (selectEl.value === 'OTRO') {
+        inputNorma.value = '';
+        inputNorma.focus();
+    }
+};
+        
 // Función de respaldo para el efecto neón en KPIs
 function activarKpiNeon(elemento, tipoKpi) {
     document.querySelectorAll('.card-kpi-box').forEach(card => {
