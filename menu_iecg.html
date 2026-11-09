@@ -2048,84 +2048,72 @@
 
     
 <!-- ========================================================= -->
-<!-- MODAL MAESTRO UNIVERSAL: ALTA DE HITOS Y ENTREGABLES       -->
+<!-- MODAL MAESTRO UNIVERSAL: GESTIÓN Y ALTA DE ENTREGABLES    -->
 <!-- ========================================================= -->
-<div id="modal-buzon-universal" class="fixed inset-0 z-[60] hidden modal-glass flex items-center justify-center p-3 sm:p-6">
-    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col transition-all">
+<div id="modal-buzon-universal" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
         
-        <!-- CABECERA DIRECTIVA FIJA -->
-        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 border-b border-slate-800">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 flex items-center justify-center text-xl shrink-0">
+       <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg border border-indigo-500/30">
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-black text-base tracking-tight text-white">Alta de Entregables & Normativa</h3>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">Decreto No. 345</span>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-0.5">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
+                    <h3 class="font-extrabold text-base leading-snug">Alta de Entregables</h3>
+                    <p class="text-[11px] text-slate-300">Gestión estructurada de Hitos Normativos y Acciones Operativas</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 self-end sm:self-auto">
-                <div id="badgeUsuarioSesionModalUniversal" class="bg-white/10 px-3.5 py-1.5 rounded-2xl border border-white/15 flex items-center gap-2.5 text-xs backdrop-blur-md">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <div class="text-left leading-none">
-                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Operador Activo</span>
-                        <strong id="nombreUserModalUniversal" class="text-white text-xs font-semibold">Líder Proyecto</strong>
-                    </div>
-                    <span id="panelUserModalUniversal" class="bg-indigo-600 text-white font-mono px-2 py-0.5 rounded-lg text-[10px] font-black">Panel General</span>
+            <!-- PASTILLA DE SESIÓN ACTIVA (IDENTIDAD DE OPERADOR) -->
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div id="badgeUsuarioSesionModalUniversal" class="bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 flex items-center gap-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-300 text-[10px] uppercase font-bold">Operador:</span>
+                    <strong id="nombreUserModalUniversal" class="text-white text-xs font-semibold">Modo Consulta</strong>
+                    <span id="panelUserModalUniversal" class="bg-indigo-600 text-white font-mono px-1.5 py-0.5 rounded text-[10px] font-black">Panel -</span>
                 </div>
-                <button type="button" onclick="closeModal('modal-buzon-universal')" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-rose-500 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button type="button" onclick="closeModal('modal-buzon-universal')" class="text-slate-400 hover:text-white text-lg transition p-1">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
-
-        <!-- SELECTOR DE PESTAÑAS WIZARD -->
-        <div class="bg-slate-100 p-2.5 border-b border-slate-200 flex items-center gap-2 shrink-0">
-            <button type="button" id="btnTabHito" onclick="cambiarTabModalUniversal('tab-hitos')" 
-                    class="flex-1 py-2.5 px-4 rounded-2xl text-xs font-black transition-all bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-flag text-amber-300"></i> 1. Nuevo Hito (+ Acciones Obligatorias)
+        <!-- Selector de Pestañas (Wizard) -->
+        <div class="bg-slate-100 p-2 border-b border-slate-200 flex items-center justify-center gap-2 shrink-0">
+            <button type="button" id="btnTabHito" onclick="cambiarTabModalUniversal('tab-hitos')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-flag"></i> 1. Nuevo Hito (+ Acción Obligatoria)
             </button>
-            <button type="button" id="btnTabAccion" onclick="cambiarTabModalUniversal('tab-accion')" 
-                    class="flex-1 py-2.5 px-4 rounded-2xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200 flex items-center justify-center gap-2 border border-slate-200 bg-white">
-                <i class="fa-solid fa-link text-indigo-600"></i> 2. Nueva Acción Asociada (+ Drive)
+            <button type="button" id="btnTabAccion" onclick="cambiarTabModalUniversal('tab-accion')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-list-check"></i> 2. Nueva Acción (Asociada a Hito)
             </button>
         </div>
 
-        <!-- CUERPO DESPLAZABLE (UN SOLO SCROLL) -->
-        <div class="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6 text-slate-800 text-xs">
+        <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
             
-            <!-- PESTAÑA 1: NUEVO HITO -->
-            <form id="tab-hitos" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-6">
-                
-                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3 text-indigo-950">
-                    <i class="fa-solid fa-circle-nodes text-indigo-600 text-lg shrink-0"></i>
-                    <span class="text-xs leading-relaxed">
-                        <strong>Arquitectura 1:N:</strong> Al dar de alta un Hito Rector, debe registrarse con al menos <strong>una Acción Operativa inicial</strong> que garantice su seguimiento y trazabilidad presupuestal.
-                    </span>
+   <!-- ========================================== -->
+            <!-- PESTAÑA 1: NUEVO HITO (+ ACCIONES)         -->
+            <!-- ========================================== -->
+            <form id="tab-hitos" onsubmit="guardarNuevoHitoConAcciones(event)" class="space-y-4">
+                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center gap-2 text-indigo-900 text-[11px]">
+                    <i class="fa-solid fa-circle-info text-indigo-600 text-sm"></i>
+                    <span>Todo Hito requiere definir <strong>mínimo una acción obligatoria</strong> con su respectiva vinculación institucional y externa.</span>
                 </div>
 
-                <!-- Folio y Área Ejecutora -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <div class="md:col-span-4">
-                        <label class="block font-bold text-slate-700 text-xs mb-1.5 flex items-center justify-between">
-                            <span>Folio Hito (Automático):</span>
-                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                <i class="fa-solid fa-lock text-[8px] mr-1"></i>Inmutable
+       <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                    <!-- Columna 1: Folio ID Automático (5 columnas) -->
+                    <div class="sm:col-span-5">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-slate-700 text-xs">Folio Hito (Automático):</label>
+                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                <i class="fa-solid fa-lock text-[8px]"></i> Clave Canónica
                             </span>
-                        </label>
-                        <input type="text" id="nuevoHitoId" readonly 
-                               class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" 
-                               placeholder="Generando folio..." required>
+                        </div>
+                        <input type="text" id="nuevoHitoId" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando folio..." required>
                     </div>
 
-                    <div class="md:col-span-8">
-                        <label class="block font-bold text-slate-700 text-xs mb-1.5">Área Ejecutora / Panel Rector:</label>
-                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutoraMaestro(this)" 
-                                class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-xs">
+                    <!-- Columna 2: Panel Asignado & Responsable (7 columnas) -->
+                    <div class="sm:col-span-7">
+                        <label class="block font-bold text-slate-700 text-xs mb-1">Área Ejecutora / Panel Rector:</label>
+                        <select id="selectAreaEjecutoraHito" onchange="manejarCambioAreaEjecutoraMaestro(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-bold text-indigo-900 border-indigo-300 shadow-2xs">
                             <option value="A|RH_E|Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura (CRH-SECUL)</option>
                             <option value="B|JUR_C|Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso (CJU-SECUL)</option>
                             <option value="C|PTR_I|Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios (CCPSECUL)</option>
@@ -2138,99 +2126,100 @@
                             <option value="J|ASI_P|Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos & Comité (LIQ-IECG)</option>
                             <option value="OTRA">Otra Área (Escribir Texto)</option>
                         </select>
-                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área..." class="w-full p-2 border rounded-xl bg-white text-xs hidden mt-1.5">
+                        <input type="text" id="inputOtraAreaEjecutora" oninput="sincronizarTextoLibreArea(this)" placeholder="Escriba el nombre del área responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden mt-1">
+                        <!-- Campos ocultos para mantener funcionando el resto del código sin romper nada -->
                         <input type="hidden" id="nuevoHitoPanel" value="A">
                         <input type="hidden" id="nuevoHitoArea" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
                         <input type="hidden" id="nuevoHitoVertiente" value="V1">
                     </div>
                 </div>
+         
+                    <label class="block font-bold text-slate-700 mb-1">Título del Hito / Requerimiento Oficial:</label>
+                    <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold text-slate-900" required>
+                </div>
 
-                <!-- Título del Hito -->
+              <!-- FUNDAMENTO LEGAL RECTOR VINCULADO AL DECRETO NO. 345 -->
                 <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1.5">Título del Hito / Requerimiento Oficial Rector:</label>
-                    <input type="text" id="nuevoHitoTitulo" placeholder="Redacte el requerimiento u obligación oficial a solventar..." 
-                           class="w-full p-3 border rounded-xl bg-slate-50/70 focus:bg-white font-bold text-slate-900 border-slate-300 focus:ring-2 focus:ring-indigo-500 text-xs" required>
-                </div>
+                   <!-- REEMPLAZAR ESTE BLOQUE POR EL SIGUIENTE FORMATO EJECUTIVO -->
+<div class="bg-indigo-50/40 p-3.5 rounded-2xl border border-indigo-100/80 space-y-2">
+    <div class="flex items-center justify-between">
+        <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Fundamento Legal / Oficio Rector:
+        </label>
+        <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+            Decreto No. 345 & Lineamientos
+        </span>
+    </div>
 
-                <!-- Fundamento Legal -->
-                <div class="bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Fundamento Legal / Decreto No. 345:
+    <!-- SELECTOR COMPLETO Y LEGIBLE CON TEXTO COMPLETO -->
+    <select id="selectNormaPredefinida" onchange="seleccionarNormaRectorHito(this)" 
+            class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold text-slate-800 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
+        <option value="">-- Selecciona el Fundamento Jurídico del Decreto 345 --</option>
+        
+        <!-- Bloque 1: Personal, Patrimonio y Archivo -->
+        <optgroup label="Bloque 1: Personal, Patrimonio y Archivo">
+            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles</option>
+            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado</option>
+        </optgroup>
+
+        <!-- Bloque 2: Cierre Fiscal, Financiero y Cuentas -->
+        <optgroup label="Bloque 2: Cierre Fiscal, Financiero y Auditoría">
+            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas</option>
+            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya</option>
+            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca</option>
+            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG</option>
+        </optgroup>
+
+        <!-- Bloque 3: Fideicomisos Banorte (FIARCA) -->
+        <optgroup label="Bloque 3: Fideicomisos Banorte (FIARCA)">
+            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos</option>
+            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura</option>
+        </optgroup>
+
+        <!-- Bloque 4: Gobernanza y Comités -->
+        <optgroup label="Bloque 4: Gobernanza, Comités y Sistemas TI">
+            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas</option>
+            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros</option>
+            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT</option>
+        </optgroup>
+        <option value="OTRO">✍️ Otro Oficio / Acuerdo Específico (Escribir Manualmente)</option>
+    </select>
+
+    <!-- CAMPO DE TEXTO OFICIAL QUE PERMITE ESCRITURA O EDICIÓN -->
+    <input type="text" id="nuevoHitoNorma" placeholder="El fundamento seleccionado o número de oficio aparecerá aquí..." 
+           class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500" required>
+</div>
+                <!-- Contenedor Dinámico de Acciones Obligatorias -->
+                <div class="border-t border-slate-200 pt-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-emerald-600"></i> Acciones Requeridas para este Hito:
                         </label>
-                        <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">
-                            Marco Legal
-                        </span>
-                    </div>
-
-                    <select id="selectNormaPredefinida" onchange="seleccionarNormaRectorHito(this)" 
-                            class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold text-slate-800 border-indigo-200 focus:ring-2 focus:ring-indigo-500 shadow-2xs">
-                        <option value="">-- Selecciona el Fundamento Jurídico del Decreto 345 --</option>
-                        <optgroup label="Bloque 1: Personal, Patrimonio y Archivo">
-                            <option value="Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales">Decreto 345 (Art. 5° Transitorio) • Sustitución de funciones y derechos laborales</option>
-                            <option value="Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH">Lineamientos Liquidación IEC (Arts. 5 y 7) • Traspaso de 303 plazas a DGRH</option>
-                            <option value="Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles">Lineamientos Liquidación IEC (Arts. 15 y 18) • Resguardo y destino de bienes muebles e inmuebles</option>
-                            <option value="Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado">Ley de Archivos del Estado • Transferencia al AGEG en modalidad Fondo Cerrado</option>
-                        </optgroup>
-                        <optgroup label="Bloque 2: Cierre Fiscal, Financiero y Cuentas">
-                            <option value="Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas">Decreto 345 (Art. 24 Fracc. I) • Liquidación contable y reintegros a Finanzas</option>
-                            <option value="Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya">Lineamientos Liquidación IEC (Art. 5 tercer párrafo) • Cancelación definitiva de RFC ante SAT Celaya</option>
-                            <option value="Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca">Lineamientos Liquidación IEC (Art. 10) • Cancelación de cuentas bancarias BBVA y Salamanca</option>
-                            <option value="Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG">Ley de Fiscalización Superior del Estado • Solventación de pliegos y requerimientos ASEG</option>
-                        </optgroup>
-                        <optgroup label="Bloque 3: Fideicomisos Banorte (FIARCA)">
-                            <option value="Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos">Decreto 345 (Arts. 67 al 76) • Extinción y modificación de fideicomisos públicos</option>
-                            <option value="Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura">Decreto Gubernativo 19 • Cese de pasivos fiduciarios y entrega a Secretaría de Cultura</option>
-                        </optgroup>
-                        <optgroup label="Bloque 4: Gobernanza y Comités">
-                            <option value="Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas">Lineamientos Comités de Extinción (Arts. 3, 9 y 10) • Actas protocolizadas de sesiones colegiadas</option>
-                            <option value="Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros">Lineamientos Liquidación IEC (Art. 6) • Salvedad legal por trámites radicados ante terceros</option>
-                            <option value="Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT">Lineamientos Liquidación IEC (Arts. 11 y 29) • Desincorporación de usuarios SAP y sistemas DGTIT</option>
-                        </optgroup>
-                        <option value="OTRO">✍️ Otro Oficio / Acuerdo Específico (Escribir Manualmente)</option>
-                    </select>
-
-                    <input type="text" id="nuevoHitoNorma" placeholder="El fundamento seleccionado aparecerá aquí..." 
-                           class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500" required>
-                </div>
-
-                <!-- Contenedor de Acciones -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <div>
-                            <h4 class="font-black text-slate-900 text-xs flex items-center gap-2">
-                                <i class="fa-solid fa-list-check text-indigo-600"></i> Acciones Operativas Requeridas
-                            </h4>
-                            <p class="text-[11px] text-slate-500">Agrega las acciones que integran este hito rector</p>
-                        </div>
-                        <button type="button" onclick="agregarFilaAccionHito()" 
-                                class="btn-executive px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-xs border border-indigo-200 flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-solid fa-plus text-[10px]"></i> + Añadir otra Acción
+                        <button type="button" onclick="agregarFilaAccionHito()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold text-[11px] border border-indigo-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Añadir otra Acción
                         </button>
                     </div>
-
                     <div id="contenedorAccionesObligatorias" class="space-y-3">
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 fila-accion-item shadow-2xs hover:border-indigo-300 transition-colors">
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 fila-accion-item">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                                    • Acción Inicial #1 (Obligatoria)
-                                </span>
+                                <span class="text-[10px] font-bold uppercase text-emerald-700">• Acción Inicial (Obligatoria)</span>
                             </div>
+                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." class="w-full p-2 border rounded-lg text-xs font-semibold bg-white" required>
                             
-                            <input type="text" name="txtAccionTituloHito" placeholder="Descripción de la acción específica a ejecutar..." 
-                                   class="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-semibold bg-white focus:ring-2 focus:ring-indigo-500" required>
-                            
-                            <!-- Distribución en 2 columnas (2x2) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                            <!-- PUNTOS 2, 3, 4 y 5: INSTANCIA, VINCULACIÓN SECUL, ÁREAS EXTERNAS Y ESTATUS -->
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                <!-- PUNTO 2: Instancia ejecutora replicada (bloqueada) -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Instancia Ejecutora:</label>
-                                    <input type="text" name="txtAccionRespHito" readonly 
-                                           class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-slate-100 text-slate-700 font-semibold cursor-not-allowed" 
-                                           value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Instancia Ejecutora:</label>
+                                    <input type="text" name="txtAccionRespHito" readonly class="w-full p-1.5 border rounded-lg text-[11px] bg-slate-100 font-semibold text-slate-700 cursor-not-allowed" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
                                 </div>
+
+                                <!-- PUNTO 3: Vincular con área SECUL (con opción de texto si selecciona otra) -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-indigo-900 mb-1">Vincular Área SECUL:</label>
-                                    <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
+                                    <label class="block text-[10px] font-bold text-indigo-700 mb-0.5">Vincular Área SECUL:</label>
+                                    <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
                                         <option value="Ninguna">Ninguna / Directa</option>
                                         <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
                                         <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
@@ -2242,12 +2231,15 @@
                                         <option value="Panel H - Archivo">Panel H - Archivo</option>
                                         <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
                                         <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+                                        <option value="OTRA">Otra Área SECUL (Escribir)</option>
                                     </select>
-                                    <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1.5 border rounded-xl text-xs bg-white hidden mt-1">
+                                    <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
                                 </div>
+
+                                <!-- PUNTO 4: Áreas Externas (Art. 6 Lineamientos) con opción de texto -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-amber-900 mb-1">Área Externa (Art. 6):</label>
-                                    <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
+                                    <label class="block text-[10px] font-bold text-amber-700 mb-0.5">Área Externa (Art. 6):</label>
+                                    <select name="selAreaExternaArt6" onchange="manejarCambioExternaFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
                                         <option value="Ninguna">Ninguna (Interna)</option>
                                         <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
                                         <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
@@ -2258,12 +2250,15 @@
                                         <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
                                         <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
                                         <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+                                        <option value="OTRA">Otra área externa (Escribir)</option>
                                     </select>
-                                    <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1.5 border rounded-xl text-xs bg-white hidden mt-1">
+                                    <input type="text" name="txtOtraExterna" placeholder="Especifique área externa..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
                                 </div>
+
+                                <!-- PUNTO 5: Estatus operativo (reubicado) -->
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Estatus Operativo:</label>
-                                    <select name="selAccionEstatusHito" class="w-full p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold">
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Estatus Operativo:</label>
+                                    <select name="selAccionEstatusHito" class="w-full p-1.5 border rounded-lg text-[11px] bg-white font-semibold">
                                         <option value="En Proceso">En Proceso</option>
                                         <option value="Validación">En Validación</option>
                                         <option value="Concluido">Concluido al 100%</option>
@@ -2274,58 +2269,106 @@
                     </div>
                 </div>
 
-                <button type="submit" id="btnSubmitFormHitosOculto" class="hidden"></button>
+                <!-- Botones de Acción con Botón Regresar -->
+                <div class="flex justify-between items-center pt-3 border-t">
+                    <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Regresar
+                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Hito y Acciones
+                        </button>
+                    </div>
+                </div>
             </form>
 
-            <!-- PESTAÑA 2: NUEVA ACCIÓN ASOCIADA -->
-            <form id="tab-accion" onsubmit="ejecutarCargaUniversal(event)" class="space-y-5 hidden">
-                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-2xl border border-emerald-200 flex items-center gap-3 text-emerald-950">
-                    <i class="fa-solid fa-link text-emerald-600 text-lg shrink-0"></i>
-                    <span class="text-xs leading-relaxed">
-                        Selecciona un <strong>Hito Rector existente</strong> para vincular la acción, recalcular el avance general y registrar el expediente digital en Google Drive[cite: 7].
-                    </span>
+            <!-- ========================================== -->
+            <!-- PESTAÑA 2: NUEVA ACCIÓN ASOCIADA + DRIVE   -->
+            <!-- ========================================== -->
+            <form id="tab-accion" onsubmit="ejecutarCargaUniversal(event)" class="space-y-4 hidden">
+                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex items-center gap-2 text-emerald-950 text-[11px]">
+                    <i class="fa-solid fa-link text-emerald-600 text-sm"></i>
+                    <span>La acción quedará <strong>asociada al Hito seleccionado</strong> y alimentará en cascada su porcentaje de avance, estatus y subida a Google Drive.</span>
                 </div>
 
-                <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1.5">Hito Rector Vinculado (Hito Padre):</label>
-                    <select id="buzonSelectAccion" onchange="actualizarFolioAccionSugerido()" 
-                            class="w-full p-3 border rounded-xl bg-slate-50/70 font-semibold text-slate-900 border-indigo-200 focus:ring-2 focus:ring-indigo-500 text-xs"></select>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Clave Canónica (Automática):</label>
-                        <input type="text" id="nuevaAccionClavePreview" readonly 
-                               class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" 
-                               placeholder="Generando clave canónica...">
+              <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-700">Hito Rector Vinculado (Hito Padre):</label>
+                        <!-- BOTÓN PUENTE A VINCULACIÓN EN MODAL UNIVERSAL -->
+                        <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 transition">
+                            <i class="fa-solid fa-link text-indigo-600"></i> Solicitar Vinculación con este Hito
+                        </button>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Instancia Responsable:</label>
-                        <select id="selectInstanciaResponsableBuzon" onchange="manejarCambioInstanciaBuzon(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold">
-                            <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura (CRH-SECUL)</option>
-                            <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso (CJU-SECUL)</option>
-                            <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios (CCPSECUL)</option>
-                            <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales</option>
-                            <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes</option>
-                            <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal</option>
-                            <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI)</option>
-                            <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental</option>
-                            <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías</option>
-                            <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos & Gobernanza</option>
-                        </select>
-                        <input type="hidden" id="nuevaAccionResp" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+                    <select id="buzonSelectAccion" onchange="actualizarFolioAccionSugerido()" class="w-full p-2.5 border rounded-xl bg-slate-50 font-semibold text-slate-900 border-indigo-200"></select>
+                </div>
+
+                <!-- BANNER REACTIVO DE BLOQUEO POR ÁREA EXTERNA -->
+                <div id="bannerBloqueoAreaExterna" class="hidden p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
+                    <div class="flex items-center gap-2 text-amber-950 text-xs">
+                        <i class="fa-solid fa-shield-halved text-amber-600 text-base"></i>
+                        <span><strong>Comisión Externa:</strong> Este hito no pertenece a tu panel asignado. Para incidir o editarlo, debes tramitar su vinculación formal.</span>
                     </div>
+                    <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 shadow-xs">
+                        <i class="fa-solid fa-link"></i> Solicitar Vinculación
+                    </button>
                 </div>
 
-                <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1.5">Descripción de la Acción / Compromiso Operativo:</label>
-                    <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega con sellos oficiales..." 
-                           class="w-full p-3 border rounded-xl bg-slate-50/70 font-semibold text-slate-900 border-slate-300 focus:ring-2 focus:ring-indigo-500 text-xs" required>
+                <!-- CAMPO VISUAL DE LA CLAVE DE ACCIÓN GENERADA -->
+<!-- CAMPO VISUAL DE LA CLAVE DE ACCIÓN GENERADA -->
+                <div class="mb-3">
+                    <label class="block font-bold text-slate-700 mb-1">Clave Canónica de la Nueva Acción (Automática):</label>
+                    <input type="text" id="nuevaAccionClavePreview" readonly class="w-full p-2.5 border rounded-xl font-mono text-xs uppercase bg-slate-100 text-indigo-950 font-black cursor-not-allowed border-indigo-200 shadow-inner" placeholder="Generando clave canónica...">
                 </div>
+<!-- 2. VINCULACIÓN CON ÁREA SECUL Y ÁREA EXTERNA (CON OPCIÓN DE ESCRITURA "OTRA") -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 my-2">
+    <div>
+        <label class="block font-bold text-indigo-900 text-[11px] mb-1">Vincular con Área SECUL:</label>
+        <select id="buzonVinculoSecul" onchange="manejarCambioSeculBuzon(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1">
+            <option value="Ninguna">Ninguna / Directa</option>
+            <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
+            <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
+            <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
+            <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
+            <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
+            <option value="Panel F - Financiero">Panel F - Financiero</option>
+            <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
+            <option value="Panel H - Archivo">Panel H - Archivo</option>
+            <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
+            <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+            <option value="OTRA">Otra Área SECUL (Escribir)</option>
+        </select>
+        <input type="text" id="inputOtraSeculBuzon" placeholder="Especifique área SECUL..." class="w-full p-2 border rounded-xl text-xs bg-white hidden mt-1">
+    </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+    <div>
+        <label class="block font-bold text-amber-900 text-[11px] mb-1">Área Externa (Art. 6 Lineamientos):</label>
+        <select id="buzonAreaExterna" onchange="manejarCambioExternaBuzon(this)" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold mb-1">
+            <option value="Ninguna">Ninguna (Interna)</option>
+            <option value="Secretaría de Finanzas (SF-DGCG)">Secretaría de Finanzas (SF-DGCG)</option>
+            <option value="Secretaría de Finanzas (SF-DGF)">Secretaría de Finanzas (SF-DGF)</option>
+            <option value="Secretaría de Finanzas (SF-DGP)">Secretaría de Finanzas (SF-DGP)</option>
+            <option value="Secretaría de Finanzas (SF-DGRMSGyC)">Secretaría de Finanzas (SF-DGRMSGyC)</option>
+            <option value="Secretaría de Finanzas (SF-DCP)">Secretaría de Finanzas (SF-DCP)</option>
+            <option value="Secretaría de Finanzas (SF-CSF)">Secretaría de Finanzas (SF-CSF)</option>
+            <option value="Secretaría de Honestidad (SH)">Secretaría de Honestidad (SH)</option>
+            <option value="Servicio de Administración Tributaria (SAT)">Servicio de Administración Tributaria (SAT)</option>
+            <option value="FIDUCIARIA-BANORTE (BANORTE)">FIDUCIARIA-BANORTE (BANORTE)</option>
+            <option value="OTRA">Otra área externa (Escribir)</option>
+        </select>
+        <input type="text" id="inputOtraExternaBuzon" placeholder="Especifique área externa..." class="w-full p-2 border rounded-xl text-xs bg-white hidden mt-1">
+    </div>
+</div>
+
+<!-- 3. DESCRIPCIÓN DEL COMPROMISO / ACCIÓN (ÚNICO E INDISPENSABLE) -->
+<div>
+    <label class="block font-bold text-slate-700 mb-1">Descripción del Compromiso / Acción:</label>
+    <input type="text" id="nuevaAccionTitulo" placeholder="Ej. Cédula de conciliación y entrega..." class="w-full p-2.5 border rounded-xl bg-slate-50 font-bold" required>
+</div>
+                <!-- Bloque Prioridad, Estatus y Slider de Avance -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 items-center">
                     <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Prioridad:</label>
+                        <label class="block font-bold text-slate-700 mb-1">Prioridad del Área:</label>
                         <select id="buzonPrioridadInput" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
                             <option value="Urgente">🔴 Urgente</option>
                             <option value="Alta">🟠 Alta</option>
@@ -2334,7 +2377,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 text-xs mb-1">Estatus Operativo:</label>
+                        <label class="block font-bold text-slate-700 mb-1">Estatus Operativo:</label>
                         <select id="buzonEstatusInput" class="w-full p-2 border rounded-xl bg-white text-xs font-semibold">
                             <option value="En Proceso">En Proceso</option>
                             <option value="Validación">En Validación</option>
@@ -2343,51 +2386,116 @@
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="font-bold text-slate-700 text-xs">Avance Acreditado:</label>
-                            <span id="buzonAvanceLabel" class="font-black text-indigo-700 text-xs">100%</span>
+                            <label class="font-bold text-slate-700">Avance (%):</label>
+                            <span id="buzonAvanceLabel" class="font-black text-indigo-700 text-sm">100%</span>
                         </div>
                         <input type="range" id="buzonAvanceInput" min="0" max="100" step="5" value="100" 
                                oninput="document.getElementById('buzonAvanceLabel').innerText = this.value + '%'" 
-                               class="w-full accent-indigo-600 cursor-pointer mt-1">
+                               class="w-full accent-indigo-600 cursor-pointer">
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+    <label class="block font-bold text-slate-700 mb-1">Instancia Responsable:</label>
+    <select id="selectInstanciaResponsableBuzon" onchange="manejarCambioInstanciaBuzon(this)" class="w-full p-2.5 border rounded-xl bg-white text-xs font-semibold mb-1">
+        <option value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">Panel A - Recursos Humanos & Estructura -CRH-SECUL</option>
+        <option value="Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL">Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL</option>
+        <option value="Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL">Panel C - Patrimonio Inmobiliario & Predios-CCPSECUL</option>
+        <option value="Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL">Panel D – Fideicomisos & Fondos Especiales- XXX-SECUL</option>
+        <option value="Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL">Panel E - Control Patrimonial & Bienes Muebles-CCPSECUL</option>
+        <option value="Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL">Panel F - Financiero, Presupuestal & Fiscal-CRF-SECUL</option>
+        <option value="Panel G - Tecnologías de la Información (TI) -CTI-SECUL">Panel G - Tecnologías de la Información (TI) -CTI-SECUL</option>
+        <option value="Panel H - Archivo & Gestión Documental – LIQ-IECG">Panel H - Archivo & Gestión Documental – LIQ-IECG</option>
+        <option value="Panel I - Fiscalización & Auditorías -LPS-SECUL">Panel I - Fiscalización & Auditorías -LPS-SECUL</option>
+        <option value="Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG">Panel J - Asuntos Internos /Seguimiento Proyecto - LIQ-IECG</option>
+        <option value="OTRA">Otra Instancia (Escribir Texto)</option>
+    </select>
+    <input type="text" id="inputOtraInstanciaBuzon" placeholder="Escriba el nombre de la instancia responsable..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs hidden">
+    <input type="hidden" id="nuevaAccionResp" value="Panel A - Recursos Humanos & Estructura -CRH-SECUL">
+</div>
+
+<script>
+    function manejarCambioInstanciaBuzon(sel) {
+        const inputOtro = document.getElementById('inputOtraInstanciaBuzon');
+        const hiddenResp = document.getElementById('nuevaAccionResp');
+        if (sel.value === 'OTRA') {
+            inputOtro.classList.remove('hidden');
+            hiddenResp.value = inputOtro.value;
+            inputOtro.oninput = function() { hiddenResp.value = this.value; };
+        } else {
+            inputOtro.classList.add('hidden');
+            hiddenResp.value = sel.value;
+        }
+    }
+
+    function manejarCambioSeculBuzon(selectEl) {
+    const inputTexto = document.getElementById('inputOtraSeculBuzon');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+function manejarCambioExternaBuzon(selectEl) {
+    const inputTexto = document.getElementById('inputOtraExternaBuzon');
+    if (selectEl.value === 'OTRA') {
+        inputTexto.classList.remove('hidden');
+    } else {
+        inputTexto.classList.add('hidden');
+        inputTexto.value = '';
+    }
+}
+
+// Función para abrir el modal de la Base de Datos General de forma segura
+window.abrirModalBaseDatosGeneral = function() {
+    // Si tienes una función de renderizado jerárquico previa, la ejecutas:
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+        renderBaseDatosGeneralJerarquica();
+    }
+    // Abre el modal usando tu función genérica openModal
+    if (typeof openModal === 'function') {
+        openModal('modal-base-datos-general');
+    } else {
+        const modal = document.getElementById('modal-base-datos-general');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    }
+};
+    
+</script>
+                </div>
+
                 <div>
-                    <label class="block font-bold text-slate-800 text-xs mb-1">Nota de Auditoría / Justificación Técnica:</label>
-                    <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo u oficio que respalda este registro..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs" required></textarea>
+                    <label class="block font-bold text-slate-700 mb-1">Nota de Auditoría / Justificación Técnica:</label>
+                    <textarea id="nuevaAccionNota" rows="2" placeholder="Motivo o número de oficio que fundamenta esta acción..." class="w-full p-2.5 border rounded-xl bg-slate-50" required></textarea>
                 </div>
 
-                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-200">
-                    <label class="block font-bold text-indigo-950 text-xs mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-brands fa-google-drive text-amber-500"></i> Evidencia Documental Oficial (PDF / Expediente):
-                    </label>
-                    <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer" required>
+<!-- CAMPO DE CARGA DE ARCHIVO PARA GOOGLE DRIVE -->
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 mb-3">
+                <label class="block font-bold text-slate-700 mb-1">Evidencia Documental (PDF / Oficio para Google Drive):</label>
+                <input type="file" id="buzonFileInput" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                 </div>
-
-                <button type="submit" id="btnSubmitFormAccionOculto" class="hidden"></button>
+                
+                <!-- Botones de Acción con Botón Regresar -->
+                <div class="flex justify-between items-center pt-3 border-t">
+     <button type="button" onclick="cambiarTabModalUniversal('tab-hitos')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center gap-1.5">
+    <i class="fa-solid fa-arrow-left"></i> Regresar
+</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModal('modal-buzon-universal')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
+                        <button type="submit" id="btnSubmitBuzon" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar y Propagar Cambios
+                        </button>
+                    </div>
+                </div>
             </form>
 
         </div>
-
-        <!-- PIE FIJO CON BOTÓN SIEMPRE VISIBLE -->
-        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-            <span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                <i class="fa-solid fa-shield-halved text-indigo-600"></i> Sincronización transaccional directa con Supabase
-            </span>
-
-            <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                <button type="button" onclick="closeModal('modal-buzon-universal')" 
-                        class="btn-executive px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition">
-                    Cancelar
-                </button>
-                
-                <button type="button" onclick="dispararGuardadoModalUniversal()" id="btnGuardarUniversalDinamico"
-                        class="btn-executive px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema
-                </button>
-            </div>
-        </div>
-
     </div>
 </div>
 
@@ -2552,7 +2660,7 @@
 <!-- ========================================================= -->
 <!-- MODAL DE DETALLE DEL HITO (VISTA LIMPIA Y PROPORCIONADA)  -->
 <!-- ========================================================= -->
-<div id="modal-hito-fiscalizacion" class="fixed inset-0 z-[60] hidden modal-glass flex items-center justify-center p-4">
+<div id="modal-hito-fiscalizacion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
         
         <!-- Header del Hito -->
@@ -2706,401 +2814,6 @@
     }
 };
 
-// =========================================================================
-// RENDERIZADOR JERÁRQUICO MAESTRO: BASE DE DATOS GENERAL
-// =========================================================================
-let panelFiltroBDActual = 'TODOS';
-
-window.filtrarBaseDatosPorPanel = function(valorPanel) {
-    panelFiltroBDActual = valorPanel;
-    renderBaseDatosGeneralJerarquica();
-};
-
-window.renderBaseDatosGeneralJerarquica = function() {
-    const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral');
-    if (!contenedor) return;
-
-    const selectFiltro = document.getElementById('filtroPanelBDGeneral');
-    const panelFiltro = selectFiltro ? selectFiltro.value : 'TODOS';
-
-    const inputBuscar = document.getElementById('buscadorBDGeneral');
-    const textoBusqueda = inputBuscar ? inputBuscar.value.toLowerCase().trim() : '';
-
-    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
-
-    // 1. Filtrado dinámico por panel y término de búsqueda
-    let accionesFiltradas = dataset.filter(item => {
-        const idClave = (item.clave_accion || item.id || '').toLowerCase();
-        const hito = (item.hito || '').toLowerCase();
-        const accion = (item.accion || '').toLowerCase();
-        const norma = (item.fundamento_juridico || '').toLowerCase();
-        const resp = (item.responsable || '').toLowerCase();
-        const panel = (item.panel || 'A').toUpperCase();
-
-        const coincidePanel = (panelFiltro === 'TODOS') || (panel === panelFiltro.toUpperCase());
-        const coincideTexto = !textoBusqueda || 
-            idClave.includes(textoBusqueda) || 
-            hito.includes(textoBusqueda) || 
-            accion.includes(textoBusqueda) || 
-            norma.includes(textoBusqueda) || 
-            resp.includes(textoBusqueda);
-
-        return coincidePanel && coincideTexto;
-    });
-
-    // 2. Agrupación jerárquica por Hito Rector
-    const mapaHitos = {};
-    accionesFiltradas.forEach(act => {
-        const claveHito = act.clave_hito || (act.clave_accion ? act.clave_accion.split('-A-')[0] : act.id.split('-A-')[0]) || 'HITO-GRAL';
-        if (!mapaHitos[claveHito]) {
-            mapaHitos[claveHito] = {
-                clave_hito: claveHito,
-                panel: act.panel || 'A',
-                area: act.area || `Panel ${act.panel}`,
-                titulo: act.hito || 'Hito Rector Normativo',
-                acciones: []
-            };
-        }
-        mapaHitos[claveHito].acciones.push(act);
-    });
-
-    const listaHitos = Object.values(mapaHitos);
-
-    // 3. Actualizar pastilla métrica superior
-    const lblPanel = document.getElementById('labelFiltroPanelActivo');
-    const cntHitos = document.getElementById('countHitosFiltrados');
-    const cntAcciones = document.getElementById('countAccionesFiltradas');
-
-    if (lblPanel) {
-        lblPanel.innerText = panelFiltro === 'TODOS' 
-            ? 'TODOS LOS PANELES (A - J):' 
-            : `PANEL ${panelFiltro}:`;
-    }
-    if (cntHitos) cntHitos.innerText = `${listaHitos.length} Hitos`;
-    if (cntAcciones) cntAcciones.innerText = `${accionesFiltradas.length} Acciones`;
-
-    // 4. Estado vacío si no hay coincidencias
-    if (listaHitos.length === 0) {
-        contenedor.innerHTML = `
-            <div class="p-12 text-center bg-white border border-slate-200 rounded-3xl space-y-2 shadow-xs">
-                <i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>
-                <h4 class="font-bold text-slate-700 text-sm">No se encontraron hitos o compromisos</h4>
-                <p class="text-xs text-slate-400">Prueba cambiando el filtro de panel o el término de búsqueda.</p>
-            </div>
-        `;
-        return;
-    }
-
-    // 5. Renderizado estructurado y amplio
-    contenedor.innerHTML = listaHitos.map(hito => {
-        const sumaAvance = hito.acciones.reduce((acc, cur) => acc + (Number(cur.avance) || 0), 0);
-        const promedioAvance = Math.round(sumaAvance / (hito.acciones.length || 1));
-
-        const accionesHTML = hito.acciones.map(act => {
-            const claveAccion = act.clave_accion || act.id;
-            const avanceNum = Number(act.avance) || 0;
-            const estatus = act.estatus || 'En Proceso';
-
-            const badgeEstatus = estatus === 'Concluido' 
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                : (estatus === 'Validación' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200');
-
-            // Archivos Drive
-            const listaArchivos = act.archivosDrive || [];
-            let enlacesDriveHTML = '';
-            if (listaArchivos.length > 0) {
-                enlacesDriveHTML = listaArchivos.map(arch => `
-                    <a href="${arch.url}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-[11px] font-bold shadow-2xs transition">
-                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
-                        <span class="truncate max-w-[220px]">${arch.nombre}</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
-                    </a>
-                `).join('');
-            } else if (act.driveUrl && act.driveUrl.trim() !== '') {
-                enlacesDriveHTML = `
-                    <a href="${act.driveUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-[11px] font-bold shadow-2xs transition">
-                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
-                        <span>Expediente Digital Oficial</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
-                    </a>
-                `;
-            } else {
-                enlacesDriveHTML = `<span class="text-[11px] text-slate-400 italic">Sin evidencias vinculadas en Google Drive</span>`;
-            }
-
-            // Datos de la tabla acciones_transicion
-            const detalleOperativo = act.detalle_operativo || act.accion || 'Sin detalle operativo registrado.';
-            const fundamentoJuridico = act.fundamento_juridico || 'Decreto No. 345 del H. Congreso del Estado de Guanajuato & Lineamientos de Liquidación.';
-            const riesgo = act.riesgo_vinculado || 'Sin contingencia crítica tipificada.';
-            const inst1 = act.instrumento_1 || 'No especificado';
-            const inst2 = act.instrumento_2 || 'No especificado';
-            const inst3 = act.instrumento_3 || 'No especificado';
-            const sugerenciaExp = act.sugerencia_expediente_tecnico || act.docRequerido || 'Cédula circunstanciada con firmas oficiales de entrega-recepción.';
-
-            return `
-                <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-indigo-300 transition-all space-y-3.5">
-                    
-                    <!-- Fila Superior de la Acción -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div class="flex items-start gap-3">
-                            <span class="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-indigo-950 font-mono font-black text-xs shrink-0 mt-0.5">
-                                ${claveAccion}
-                            </span>
-                            <div>
-                                <h5 class="text-xs sm:text-sm font-black text-slate-900 leading-snug">${act.accion}</h5>
-                                <span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
-                                    <i class="fa-solid fa-user-tie text-indigo-600"></i> Instancia Responsable: <strong class="text-slate-800">${act.responsable}</strong>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                            <span class="px-3 py-1 rounded-xl font-bold text-xs border ${badgeEstatus}">
-                                ${estatus} (${avanceNum}%)
-                            </span>
-                            <button type="button" onclick="cargarAccionEnBuzonDirecto('${claveAccion}')" 
-                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir
-                            </button>
-                            <button type="button" onclick="abrirModalDesdeGrafica('${claveAccion}')" 
-                                    class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
-                                <i class="fa-solid fa-pen text-[10px]"></i> Editar
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- CÉDULA TÉCNICA NORMATIVA -->
-                    <div class="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-200/80 space-y-3 text-xs">
-                        
-                        <!-- FUNDAMENTO JURÍDICO DESTACADO -->
-                        <div class="bg-gradient-to-r from-amber-50 to-orange-50/60 border border-amber-300/80 rounded-xl p-3 shadow-2xs">
-                            <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-                                <i class="fa-solid fa-scale-balanced text-amber-600"></i> Fundamento Jurídico (Decreto No. 345 & Lineamientos):
-                            </span>
-                            <p class="font-bold text-amber-950 text-xs sm:text-[13px] mt-1 leading-relaxed">
-                                ${fundamentoJuridico}
-                            </p>
-                        </div>
-
-                        <!-- Detalle Operativo y Riesgos -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                                    <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i> Detalle Operativo:
-                                </span>
-                                <p class="text-[11px] text-slate-700 leading-relaxed">${detalleOperativo}</p>
-                            </div>
-                            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block mb-1">
-                                    <i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> Riesgo Vinculado (Art. 6):
-                                </span>
-                                <p class="text-[11px] text-slate-700 leading-relaxed">${riesgo}</p>
-                            </div>
-                        </div>
-
-                        <!-- Instrumentos 1, 2 y 3 -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Instrumento 1:</span>
-                                <span class="text-slate-700 text-[11px] font-semibold truncate block mt-0.5">${inst1}</span>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Instrumento 2:</span>
-                                <span class="text-slate-700 text-[11px] font-semibold truncate block mt-0.5">${inst2}</span>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Instrumento 3:</span>
-                                <span class="text-slate-700 text-[11px] font-semibold truncate block mt-0.5">${inst3}</span>
-                            </div>
-                        </div>
-
-                        <!-- Expediente Técnico Sugerido -->
-                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-2.5">
-                            <i class="fa-solid fa-file-circle-check text-emerald-600 text-base mt-0.5 shrink-0"></i>
-                            <div>
-                                <span class="font-bold text-slate-800 text-[11px] block">Sugerencia de Expediente Técnico Probatorio:</span>
-                                <p class="text-[11px] text-slate-600 leading-snug mt-0.5">${sugerenciaExp}</p>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Expedientes Google Drive -->
-                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">
-                            <i class="fa-brands fa-google-drive text-amber-500"></i> Expedientes Drive:
-                        </span>
-                        <div class="flex flex-wrap items-center gap-2">
-                            ${enlacesDriveHTML}
-                        </div>
-                    </div>
-
-                </div>
-            `;
-        }).join('');
-
-        // Tarjeta contenedora del Hito Rector con Cabecera y Barra de Progreso
-        return `
-            <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
-                
-                <!-- Encabezado del Hito Rector -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div class="flex items-center gap-3.5">
-                        <span class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-mono font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                            ${hito.panel}
-                        </span>
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-mono font-bold text-xs bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200 text-slate-700">
-                                    ${hito.clave_hito}
-                                </span>
-                                <span class="text-xs font-bold text-slate-500">${hito.area}</span>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                    ${promedioAvance}% Avance (${hito.acciones.length} Acc.)
-                                </span>
-                            </div>
-                            <h4 class="text-sm sm:text-base font-black text-slate-900 mt-1">${hito.titulo}</h4>
-                        </div>
-                    </div>
-
-                    <!-- Botón de Acción del Hito -->
-                    <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
-                        <button type="button" onclick="abrirModalAltaAccionVinculadaDesdeHitoDirecto('${hito.clave_hito}')" 
-                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-solid fa-plus text-[10px]"></i> + Acción
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Lista de Acciones asociadas al Hito -->
-                <div class="space-y-3.5 pl-0 md:pl-2">
-                    ${accionesHTML}
-                </div>
-
-            </div>
-        `;
-    }).join('');
-};
-
-
-// Función auxiliar para registrar nueva acción asignada a este hito específico
-window.abrirModalAltaAccionVinculadaDesdeHitoDirecto = function(claveHito) {
-    if (typeof openModal === 'function') {
-        openModal('modal-buzon-universal');
-    }
-    if (typeof cambiarTabModalUniversal === 'function') {
-        cambiarTabModalUniversal('tab-accion');
-    }
-    const sel = document.getElementById('buzonSelectAccion');
-    if (sel) {
-        sel.value = claveHito;
-        if (typeof actualizarFolioAccionSugerido === 'function') actualizarFolioAccionSugerido();
-    }
-};
-        
-// =========================================================================
-// FUNCIONES GLOBALES: BASE DE DATOS Y GESTIÓN DE MODALES
-// =========================================================================
-// =========================================================================
-// APERTURA BLINDADA DE LA BASE DE DATOS GENERAL
-// =========================================================================
-window.abrirModalBaseDatosGeneral = function() {
-    // 1. Mostrar el modal en pantalla primero
-    const modal = document.getElementById('modal-base-datos-general');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
-    }
-
-    // 2. Renderizar los datos dentro de un bloque protegido
-    try {
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
-            renderBaseDatosGeneralJerarquica();
-        }
-    } catch (err) {
-        console.error("Aviso en renderizado de Base de Datos:", err);
-    }
-};
-
-window.dispararGuardadoModalUniversal = function() {
-    const tabHitos = document.getElementById('tab-hitos');
-    const tabHitoVisible = tabHitos && !tabHitos.classList.contains('hidden');
-    if (tabHitoVisible) {
-        const btnForm1 = document.getElementById('btnSubmitFormHitosOculto');
-        if (btnForm1) btnForm1.click();
-    } else {
-        const btnForm2 = document.getElementById('btnSubmitFormAccionOculto');
-        if (btnForm2) btnForm2.click();
-    }
-};
-
-window.manejarCambioAreaEjecutoraMaestro = function(sel) {
-    if (!sel) return;
-    const inputOtro = document.getElementById('inputOtraAreaEjecutora');
-    const hiddenPanel = document.getElementById('nuevoHitoPanel');
-    const hiddenArea = document.getElementById('nuevoHitoArea');
-
-    if (sel.value === 'OTRA') {
-        if (inputOtro) inputOtro.classList.remove('hidden');
-    } else {
-        if (inputOtro) inputOtro.classList.add('hidden');
-        const partes = sel.value.split('|');
-        if (partes.length >= 3) {
-            if (hiddenPanel) hiddenPanel.value = partes[0];
-            if (hiddenArea) hiddenArea.value = partes[2];
-        }
-    }
-    if (typeof actualizarFolioSiguienteSugerido === 'function') {
-        actualizarFolioSiguienteSugerido();
-    }
-};
-
-window.manejarCambioInstanciaBuzon = function(sel) {
-    const inputOtro = document.getElementById('inputOtraInstanciaBuzon');
-    const hiddenResp = document.getElementById('nuevaAccionResp');
-    if (!sel) return;
-    if (sel.value === 'OTRA') {
-        if (inputOtro) inputOtro.classList.remove('hidden');
-        if (hiddenResp && inputOtro) hiddenResp.value = inputOtro.value;
-    } else {
-        if (inputOtro) inputOtro.classList.add('hidden');
-        if (hiddenResp) hiddenResp.value = sel.value;
-    }
-};
-
-window.manejarCambioSeculBuzon = function(selectEl) {
-    const inputTexto = document.getElementById('inputOtraSeculBuzon');
-    if (!inputTexto || !selectEl) return;
-    if (selectEl.value === 'OTRA') {
-        inputTexto.classList.remove('hidden');
-    } else {
-        inputTexto.classList.add('hidden');
-        inputTexto.value = '';
-    }
-};
-
-window.manejarCambioExternaBuzon = function(selectEl) {
-    const inputTexto = document.getElementById('inputOtraExternaBuzon');
-    if (!inputTexto || !selectEl) return;
-    if (selectEl.value === 'OTRA') {
-        inputTexto.classList.remove('hidden');
-    } else {
-        inputTexto.classList.add('hidden');
-        inputTexto.value = '';
-    }
-};
-
-window.seleccionarNormaRectorHito = function(selectEl) {
-    const inputNorma = document.getElementById('nuevoHitoNorma');
-    if (!inputNorma || !selectEl) return;
-    if (selectEl.value && selectEl.value !== 'OTRO') {
-        inputNorma.value = selectEl.value;
-    } else if (selectEl.value === 'OTRO') {
-        inputNorma.value = '';
-        inputNorma.focus();
-    }
-};
-        
 // Función de respaldo para el efecto neón en KPIs
 function activarKpiNeon(elemento, tipoKpi) {
     document.querySelectorAll('.card-kpi-box').forEach(card => {
@@ -6394,257 +6107,194 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 // =========================================================================
 // 2. Renderizado del Árbol Jerárquico: Hito Padre -> Acciones Hijas (Corregido)
 // =========================================================================
-// =========================================================================
-// RENDERIZADOR JERÁRQUICO CON PASTILLA MÉTRICA Y CÉDULA TÉCNICA
-// =========================================================================
-// =========================================================================
-// RENDERIZADOR JERÁRQUICO MAESTRO (SINTAXIS BLINDADA)
-// =========================================================================
 window.renderBaseDatosGeneralJerarquica = function() {
-    const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral');
+    var contenedor = document.getElementById('cuerpoBaseDatosGeneral');
     if (!contenedor) return;
 
-    const selectFiltro = document.getElementById('filtroPanelBDGeneral');
-    const panelFiltro = selectFiltro ? selectFiltro.value : 'TODOS';
+    var elFiltro = document.getElementById('filtroPanelBDGeneral');
+    var filtroPanel = elFiltro ? elFiltro.value : 'TODOS';
+    var elBuscador = document.getElementById('buscadorBDGeneral');
+    var query = elBuscador ? elBuscador.value.toLowerCase().trim() : '';
 
-    const inputBuscar = document.getElementById('buscadorBDGeneral');
-    const textoBusqueda = inputBuscar ? inputBuscar.value.toLowerCase().trim() : '';
+    var mapaHitos = {};
 
-    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
+    accionesDataset.forEach(function(act) {
+        var idHito = act.clave_hito || act.id.split('-A-')[0];
+        if (filtroPanel !== 'TODOS' && act.panel !== filtroPanel) return;
 
-    // 1. Filtrado dinámico
-    let accionesFiltradas = dataset.filter(item => {
-        const idClave = (item.clave_accion || item.id || '').toLowerCase();
-        const hito = (item.hito || '').toLowerCase();
-        const accion = (item.accion || '').toLowerCase();
-        const norma = (item.fundamento_juridico || '').toLowerCase();
-        const resp = (item.responsable || '').toLowerCase();
-        const panel = (item.panel || 'A').toUpperCase();
+        var idClave = act.clave_accion || act.id;
+        var textoMatch = !query || 
+            idClave.toLowerCase().indexOf(query) !== -1 ||
+            idHito.toLowerCase().indexOf(query) !== -1 ||
+            (act.hito && act.hito.toLowerCase().indexOf(query) !== -1) ||
+            (act.accion && act.accion.toLowerCase().indexOf(query) !== -1) ||
+            (act.responsable && act.responsable.toLowerCase().indexOf(query) !== -1);
 
-        const coincidePanel = (panelFiltro === 'TODOS') || (panel === panelFiltro.toUpperCase());
-        const coincideTexto = !textoBusqueda || 
-            idClave.includes(textoBusqueda) || 
-            hito.includes(textoBusqueda) || 
-            accion.includes(textoBusqueda) || 
-            norma.includes(textoBusqueda) || 
-            resp.includes(textoBusqueda);
+        if (!textoMatch) return;
 
-        return coincidePanel && coincideTexto;
-    });
-
-    // 2. Agrupación por Hito Rector
-    const mapaHitos = {};
-    accionesFiltradas.forEach(act => {
-        const claveHito = act.clave_hito || (act.clave_accion ? act.clave_accion.split('-A-')[0] : act.id.split('-A-')[0]) || 'HITO-GRAL';
-        if (!mapaHitos[claveHito]) {
-            mapaHitos[claveHito] = {
-                clave_hito: claveHito,
-                panel: act.panel || 'A',
-                area: act.area || `Panel ${act.panel}`,
-                titulo: act.hito || 'Hito Rector Normativo',
+        if (!mapaHitos[idHito]) {
+            mapaHitos[idHito] = {
+                clave_hito: idHito,
+                panel: act.panel,
+                area: act.area,
+                nombreHito: act.hito,
                 acciones: []
             };
         }
-        mapaHitos[claveHito].acciones.push(act);
+        mapaHitos[idHito].acciones.push(act);
     });
 
-    const listaHitos = Object.values(mapaHitos);
+    var listaHitos = Object.values(mapaHitos);
 
-    // 3. Pastilla métrica superior
-    const lblPanel = document.getElementById('labelFiltroPanelActivo');
-    const cntHitos = document.getElementById('countHitosFiltrados');
-    const cntAcciones = document.getElementById('countAccionesFiltradas');
-
-    if (lblPanel) {
-        lblPanel.innerText = panelFiltro === 'TODOS' 
-            ? 'TODOS LOS PANELES (A - J):' 
-            : `PANEL ${panelFiltro}:`;
-    }
-    if (cntHitos) cntHitos.innerText = `${listaHitos.length} Hitos`;
-    if (cntAcciones) cntAcciones.innerText = `${accionesFiltradas.length} Acciones`;
-
-    // 4. Si no hay coincidencias
     if (listaHitos.length === 0) {
-        contenedor.innerHTML = `
-            <div class="p-12 text-center bg-white border border-slate-200 rounded-3xl space-y-2 shadow-xs">
-                <i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>
-                <h4 class="font-bold text-slate-700 text-sm">No se encontraron hitos o compromisos</h4>
-                <p class="text-xs text-slate-400">Prueba cambiando el filtro de panel o el término de búsqueda.</p>
-            </div>
-        `;
+        contenedor.innerHTML = '<div class="bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">' +
+            '<i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>' +
+            '<p class="font-bold text-sm text-slate-600">No se encontraron hitos o acciones con el criterio seleccionado.</p>' +
+            '</div>';
         return;
     }
 
-    // 5. Renderizado jerárquico estructurado
-    contenedor.innerHTML = listaHitos.map(hito => {
-        const sumaAvance = hito.acciones.reduce((acc, cur) => acc + (Number(cur.avance) || 0), 0);
-        const promedioAvance = Math.round(sumaAvance / (hito.acciones.length || 1));
+    var htmlFinal = '';
 
-        const accionesHTML = hito.acciones.map(act => {
-            const claveAccion = act.clave_accion || act.id;
-            const avanceNum = Number(act.avance) || 0;
-            const estatus = act.estatus || 'En Proceso';
+    listaHitos.forEach(function(h) {
+        var sumaAvance = h.acciones.reduce(function(acc, curr) {
+            return acc + (Number(curr.avance) || 0);
+        }, 0);
+        var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
+        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200';
 
-            const badgeEstatus = estatus === 'Concluido' 
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                : (estatus === 'Validación' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200');
+        // Evaluar permisos de usuario para los botones del hito
+        var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
+            ? resolverPanelesUsuario(currentUser)
+            : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
+        var esAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin'));
+        var esTitularHito = esAdmin || misPaneles.includes(h.panel);
 
-            const listaArchivos = act.archivosDrive || [];
-            let enlacesDriveHTML = '';
-            if (listaArchivos.length > 0) {
-                enlacesDriveHTML = listaArchivos.map(arch => `
-                    <a href="${arch.url}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-[11px] font-bold shadow-2xs transition">
-                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
-                        <span class="truncate max-w-[220px]">${arch.nombre}</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
-                    </a>
-                `).join('');
-            } else if (act.driveUrl && act.driveUrl.trim() !== '') {
-                enlacesDriveHTML = `
-                    <a href="${act.driveUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-[11px] font-bold shadow-2xs transition">
-                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
-                        <span>Expediente Digital Oficial</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
-                    </a>
-                `;
-            } else {
-                enlacesDriveHTML = `<span class="text-[11px] text-slate-400 italic">Sin evidencias vinculadas en Google Drive</span>`;
+        var botonesCabeceraHito = '';
+        if (esTitularHito) {
+            botonesCabeceraHito = 
+                '<div class="flex flex-wrap items-center gap-1.5">' +
+                    '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"><i class="fa-solid fa-plus text-[10px]"></i> + Acción</button>' +
+                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center gap-1.5 transition"><i class="fa-solid fa-link text-[10px]"></i> Vincular</button>' +
+                    '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition"><i class="fa-solid fa-pen-to-square text-[10px]"></i> Modificar Hito</button>' +
+                    '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="p-1.5 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1 transition" title="Eliminar Hito"><i class="fa-solid fa-trash-can text-[11px]"></i></button>' +
+                '</div>';
+        } else {
+            botonesCabeceraHito = 
+                '<div class="flex items-center gap-2">' +
+                    '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 flex items-center gap-1"><i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Consulta</span>' +
+                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vínculo</button>' +
+                '</div>';
+        }
+
+        // Bloque de Acciones en Cascada Completa
+        var filasAccionesHTML = '';
+        h.acciones.forEach(function(a, idx) {
+            var idClaveAccion = a.clave_accion || (h.clave_hito + '-A-' + String(idx + 1).padStart(4, '0'));
+            var esTitularAccion = esAdmin || misPaneles.includes(a.panel) || misPaneles.includes(h.panel);
+            var estaVinculada = Boolean(a.panel_coresponsable && misPaneles.includes(a.panel_coresponsable));
+            var tienePermisoOperativo = esTitularAccion || estaVinculada;
+
+            // Estatus visual
+            var badgeEst = 'bg-blue-50 text-blue-700 border-blue-200';
+            if (a.estatus === 'Concluido') badgeEst = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            else if (a.estatus === 'Validación') badgeEst = 'bg-purple-50 text-purple-700 border-purple-200';
+            else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-50 text-amber-800 border-amber-200';
+
+            // Archivos adjuntos de Drive
+            var listaArchivos = a.archivosDrive || [];
+            if (listaArchivos.length === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
+                listaArchivos = [{ nombre: 'Expediente Oficial Acreditado', url: a.driveUrl }];
             }
 
-            const detalleOperativo = act.detalle_operativo || act.accion || 'Sin detalle operativo registrado.';
-            const fundamentoJuridico = act.fundamento_juridico || 'Decreto No. 345 del H. Congreso del Estado de Guanajuato & Lineamientos de Liquidación.';
-            const riesgo = act.riesgo_vinculado || 'Sin contingencia crítica tipificada.';
-            const inst1 = act.instrumento_1 || 'No especificado';
-            const inst2 = act.instrumento_2 || 'No especificado';
-            const inst3 = act.instrumento_3 || 'No especificado';
-            const sugerenciaExp = act.sugerencia_expediente_tecnico || act.docRequerido || 'Cédula circunstanciada con firmas oficiales de entrega-recepción.';
+            var chipsArchivos = '';
+            if (listaArchivos.length > 0) {
+                chipsArchivos = listaArchivos.map(function(doc) {
+                    return '<a href="' + doc.url + '" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold transition" title="Abrir archivo en Google Drive">' +
+                        '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
+                        '<span class="truncate max-w-[260px]">' + (doc.nombre || 'Documento Soporte') + '</span>' +
+                        '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-emerald-500"></i>' +
+                    '</a>';
+                }).join('');
+            } else {
+                chipsArchivos = '<span class="text-[11px] text-slate-400 italic flex items-center gap-1.5 py-0.5"><i class="fa-solid fa-circle-exclamation text-slate-300"></i> Sin archivos cargados en Drive</span>';
+            }
 
-            return `
-                <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-indigo-300 transition-all space-y-3.5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div class="flex items-start gap-3">
-                            <span class="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-indigo-950 font-mono font-black text-xs shrink-0 mt-0.5">
-                                ${claveAccion}
-                            </span>
-                            <div>
-                                <h5 class="text-xs sm:text-sm font-black text-slate-900 leading-snug">${act.accion}</h5>
-                                <span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
-                                    <i class="fa-solid fa-user-tie text-indigo-600"></i> Instancia Responsable: <strong class="text-slate-800">${act.responsable}</strong>
-                                </span>
-                            </div>
-                        </div>
+            // Botonera operativa por acción
+            var botonesAccion = '';
+            if (tienePermisoOperativo) {
+                botonesAccion = 
+                    '<div class="flex items-center gap-1.5">' +
+                        '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs inline-flex items-center gap-1 shadow-2xs transition" title="Subir archivo a Drive"><i class="fa-solid fa-cloud-arrow-up"></i> + Subir</button>' +
+                        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs inline-flex items-center gap-1 transition"><i class="fa-solid fa-pen text-indigo-600"></i> Editar</button>' +
+                        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-xs transition" title="Baja de acción"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</div>';
+            } else {
+                botonesAccion = '<span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-1 rounded-md">Solo Lectura</span>';
+            }
 
-                        <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                            <span class="px-3 py-1 rounded-xl font-bold text-xs border ${badgeEstatus}">
-                                ${estatus} (${avanceNum}%)
-                            </span>
-                            <button type="button" onclick="cargarAccionEnBuzonDirecto('${claveAccion}')" 
-                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir
-                            </button>
-                            <button type="button" onclick="abrirModalDesdeGrafica('${claveAccion}')" 
-                                    class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
-                                <i class="fa-solid fa-pen text-[10px]"></i> Editar
-                            </button>
-                        </div>
-                    </div>
+            filasAccionesHTML += 
+                '<div class="p-4 bg-slate-50/60 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all space-y-2.5">' +
+                    '<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">' +
+                        '<div class="flex items-center gap-2">' +
+                            '<span class="font-mono font-bold text-xs text-indigo-900 bg-white px-2 py-0.5 rounded-md border border-slate-200">' + idClaveAccion + '</span>' +
+                            '<span class="font-bold text-slate-900 text-xs">' + (a.accion || 'Acción institucional') + '</span>' +
+                        '</div>' +
+                        '<div class="flex flex-wrap items-center gap-2">' +
+                            '<span class="text-[11px] font-semibold text-slate-500"><i class="fa-solid fa-user-tie text-slate-400 mr-1"></i>' + (a.responsable || 'Comisión') + '</span>' +
+                            '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ' + badgeEst + '">' + (a.estatus || 'En Proceso') + '</span>' +
+                            '<span class="font-mono font-black text-xs ' + (Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600') + '">' + (a.avance || 0) + '%</span>' +
+                            botonesAccion +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<!-- Fila integrada de Documentos Soporte -->' +
+                    '<div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-0.5">' +
+                        '<span class="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 flex items-center gap-1">' +
+                            '<i class="fa-solid fa-paperclip text-slate-400"></i> Expedientes Drive:' +
+                        '</span>' +
+                        '<div class="flex flex-wrap items-center gap-1.5">' +
+                            chipsArchivos +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+        });
 
-                    <div class="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-200/80 space-y-3 text-xs">
-                        <div class="bg-gradient-to-r from-amber-50 to-orange-50/60 border border-amber-300/80 rounded-xl p-3 shadow-2xs">
-                            <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-                                <i class="fa-solid fa-scale-balanced text-amber-600"></i> Fundamento Jurídico (Decreto No. 345 & Lineamientos):
-                            </span>
-                            <p class="font-bold text-amber-950 text-xs sm:text-[13px] mt-1 leading-relaxed">
-                                ${fundamentoJuridico}
-                            </p>
-                        </div>
+        // Contenedor principal de cada Hito a todo lo largo
+        htmlFinal += 
+            '<div class="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-md transition-all p-5 sm:p-6 space-y-4">' +
+                
+                '<!-- Cabecera del Hito (Todo a lo largo, sin cortes) -->' +
+                '<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">' +
+                    '<div class="flex items-start gap-3">' +
+                        '<span class="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 font-mono font-black text-xs flex items-center justify-center border border-indigo-100 shrink-0 mt-0.5">' +
+                            h.panel +
+                        '</span>' +
+                        '<div>' +
+                            '<div class="flex flex-wrap items-center gap-2 mb-1">' +
+                                '<span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">' + h.clave_hito + '</span>' +
+                                '<span class="text-xs font-semibold text-slate-500">' + h.area + '</span>' +
+                                '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black border ' + badgeColor + '">' + promedioHito + '% Avance (' + h.acciones.length + ' Acc.)</span>' +
+                            '</div>' +
+                            '<h3 class="font-black text-slate-900 text-sm sm:text-base leading-snug">' + h.nombreHito + '</h3>' +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<!-- Botonera del Hito -->' +
+                    '<div class="shrink-0 self-start md:self-auto">' +
+                        botonesCabeceraHito +
+                    '</div>' +
+                '</div>' +
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                                    <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i> Detalle Operativo:
-                                </span>
-                                <p class="text-[11px] text-slate-700 leading-relaxed">${detalleOperativo}</p>
-                            </div>
-                            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block mb-1">
-                                    <i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> Riesgo Vinculado (Art. 6):
-                                </span>
-                                <p class="text-[11px] text-slate-700 leading-relaxed">${riesgo}</p>
-                            </div>
-                        </div>
+                '<!-- Lista de Acciones y Soportes -->' +
+                '<div class="space-y-3">' +
+                    filasAccionesHTML +
+                '</div>' +
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Instrumento 1:</span>
-                                <span class="text-slate-700 text-[11px] font-semibold truncate block mt-0.5">${inst1}</span>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Instrumento 2:</span>
-                                <span class="text-slate-700 text-[11px] font-semibold truncate block mt-0.5">${inst2}</span>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Instrumento 3:</span>
-                                <span class="text-slate-700 text-[11px] font-semibold truncate block mt-0.5">${inst3}</span>
-                            </div>
-                        </div>
+            '</div>';
+    });
 
-                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-2.5">
-                            <i class="fa-solid fa-file-circle-check text-emerald-600 text-base mt-0.5 shrink-0"></i>
-                            <div>
-                                <span class="font-bold text-slate-800 text-[11px] block">Sugerencia de Expediente Técnico Probatorio:</span>
-                                <p class="text-[11px] text-slate-600 leading-snug mt-0.5">${sugerenciaExp}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">
-                            <i class="fa-brands fa-google-drive text-amber-500"></i> Expedientes Drive:
-                        </span>
-                        <div class="flex flex-wrap items-center gap-2">
-                            ${enlacesDriveHTML}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        return `
-            <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div class="flex items-center gap-3.5">
-                        <span class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-mono font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                            ${hito.panel}
-                        </span>
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-mono font-bold text-xs bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200 text-slate-700">
-                                    ${hito.clave_hito}
-                                </span>
-                                <span class="text-xs font-bold text-slate-500">${hito.area}</span>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                    ${promedioAvance}% Avance (${hito.acciones.length} Acc.)
-                                </span>
-                            </div>
-                            <h4 class="text-sm sm:text-base font-black text-slate-900 mt-1">${hito.titulo}</h4>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
-                        <button type="button" onclick="abrirModalAltaAccionVinculadaDesdeHitoDirecto('${hito.clave_hito}')" 
-                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-solid fa-plus text-[10px]"></i> + Acción
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-3.5 pl-0 md:pl-2">
-                    ${accionesHTML}
-                </div>
-            </div>
-        `;
-    }).join('');
+    contenedor.innerHTML = htmlFinal;
 };
         
 // 3. Abrir Alta de Hito (Con candado de seguridad, autenticación y preselección de panel)
@@ -9791,64 +9441,64 @@ window.abrirBandejaNotificacionesVinculacion = function() {
 </div>    
 
 <!-- ======================================================== -->
-<!-- MODAL DE BASE DE DATOS GENERAL: FORMATO EJECUTIVO 2026   -->
+<!-- MODAL DE BASE DE DATOS GENERAL, GOBERNANZA E IMPORTACIÓN -->
 <!-- ======================================================== -->
-<div id="modal-base-datos-general" class="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md hidden">
-    <div class="bg-slate-50 rounded-3xl max-w-7xl w-full shadow-2xl border border-slate-300/80 overflow-hidden flex flex-col h-[94vh] max-h-[94vh] transition-all">
+<div id="modal-base-datos-general" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden animate-in fade-in duration-200">
+    <div class="bg-white rounded-3xl max-w-7xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
         
-        <!-- HEADER DIRECTIVO SUPERIOR (FIJO) -->
-        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 px-6 py-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-800">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-lg border border-amber-400/30 shadow-inner shrink-0">
-                    <i class="fa-solid fa-database"></i>
+        <!-- Header con Identidad Oficial y Acciones Rápidas -->
+        <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">>
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-xl border border-amber-400/30 shadow-inner">
+                    <i class="fa-solid fa-network-wired"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                             Estructura Viva Relacional
                         </span>
-                        <span class="text-xs text-slate-400 font-mono hidden md:inline">Decreto No. 345 | 10 Paneles (A - J)</span>
+                        <span class="text-xs text-slate-400 font-mono">Decreto No. 345 | 10 Paneles (A - J)</span>
                     </div>
-                    <h3 class="text-base sm:text-lg font-black tracking-tight text-white mt-0.5">Base de Datos General: Hitos y Acciones</h3>
+                    <h3 class="text-lg font-black tracking-tight text-white mt-0.5">Base de Datos General: Hitos Normativos y Acciones Operativas</h3>
                 </div>
             </div>
             
-            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                <button type="button" onclick="openModal('modal-buzon-universal')" class="btn-executive px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-plus-circle text-amber-300"></i> + Nuevo Hito
+<!-- Acciones de Cabecera: Alta Hito, Plantilla y Carga Masiva -->
+<div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="abrirAltaHitoDesdeBDGeneral()" class="btn-executive px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-plus-circle"></i> + Nuevo Hito
                 </button>
-                <button type="button" onclick="closeModal('modal-base-datos-general')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center text-sm transition">
+                <!-- BOTÓN NUEVO: VINCULAR EN BASE DE DATOS GENERAL -->
+                <button type="button" onclick="abrirModalVinculacionUniversalDirecta()" class="btn-executive px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm border border-purple-500/40">
+                    <i class="fa-solid fa-link"></i> Vincular Hito / Acción
+                </button>
+                <button type="button" onclick="descargarPlantillaGobernanzaExcel()" class="btn-executive px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-file-excel"></i> Descargar Plantilla Excel
+                </button>
+                <label class="btn-executive px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer border border-slate-700">
+                    <i class="fa-solid fa-file-import text-amber-400"></i> Subir Excel / CSV
+                    <input type="file" id="inputCargaExcelGeneral" accept=".csv" class="hidden" onchange="procesarImportacionExcelGeneral(event)">
+                </label>
+                <button type="button" onclick="closeModal('modal-base-datos-general')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
-        <!-- BARRA DE CONTROL INTELIGENTE (AUTO-ENVOLVENTE SIN CORTES) -->
-        <div class="p-3.5 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-2xs">
-            
-            <!-- Aviso Compacto de Seguridad -->
-            <div class="flex items-center gap-2 text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shrink-0 text-xs">
-                <i class="fa-solid fa-shield-halved text-amber-500 text-xs"></i>
-                <span class="text-[11px]">
-                    <strong>Candado Art. 6:</strong> Modificaciones requieren <span class="text-amber-700 font-bold">Autorización</span>.
+        <!-- Banner de Candado de Seguridad y Filtros Rápidos -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5 text-slate-700">
+                <span class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black shrink-0 border border-amber-300">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </span>
+                <p class="leading-tight text-[11px]">
+                    <strong>Candado de Seguridad y Trazabilidad :</strong> Las modificaciones realizadas por enlaces generarán una 
+                    <span class="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Solicitud de Autorización</span> canalizada a la bandeja de <code>auditoria.html</code>.
+                </p>
             </div>
 
-            <!-- PASTILLA DINÁMICA DE CONTEO EN TIEMPO REAL -->
-            <div id="badgeConteoHitosAccionesBD" class="flex items-center gap-2 bg-indigo-50/80 border border-indigo-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-950 shrink-0 shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-                <span class="text-[11px] font-black uppercase tracking-wider text-indigo-800" id="labelFiltroPanelActivo">TODOS LOS PANELES (A - J):</span>
-                <div class="flex items-center gap-1.5 font-mono">
-                    <span class="bg-white px-2 py-0.5 rounded-lg border border-indigo-100 text-indigo-700 font-black" id="countHitosFiltrados">0 Hitos</span>
-                    <span class="text-slate-300">|</span>
-                    <span class="bg-white px-2 py-0.5 rounded-lg border border-indigo-100 text-emerald-700 font-black" id="countAccionesFiltradas">0 Acciones</span>
-                </div>
-            </div>
-
-            <!-- CONTROLES: SELECTOR DE PANEL + BUSCADOR -->
-            <div class="flex items-center gap-2 flex-grow sm:flex-grow-0 justify-end w-full sm:w-auto">
-                <select id="filtroPanelBDGeneral" onchange="renderBaseDatosGeneralJerarquica()" 
-                        class="p-2 border border-slate-300 rounded-xl bg-slate-50 font-bold text-indigo-950 text-xs shadow-2xs w-full sm:w-56 focus:ring-2 focus:ring-indigo-500">
+            <div class="flex items-center gap-2 shrink-0">
+                <select id="filtroPanelBDGeneral" onchange="renderBaseDatosGeneralJerarquica()" class="p-2 border border-slate-300 rounded-xl bg-white font-bold text-indigo-900 text-xs shadow-2xs">
                     <option value="TODOS">Todos los Paneles (A - J)</option>
                     <option value="A">Panel A - Recursos Humanos</option>
                     <option value="B">Panel B - Asuntos Jurídicos</option>
@@ -9861,36 +9511,39 @@ window.abrirBandejaNotificacionesVinculacion = function() {
                     <option value="I">Panel I - Fiscalización Auditorías</option>
                     <option value="J">Panel J - Gobernanza Líder</option>
                 </select>
-
-                <div class="relative w-full sm:w-60">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                    <input type="text" id="buscadorBDGeneral" oninput="renderBaseDatosGeneralJerarquica()" 
-                           placeholder="Buscar clave, tema o norma..." 
-                           class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-xl bg-slate-50 text-xs focus:ring-2 focus:ring-indigo-500 shadow-2xs">
-                </div>
+                <input type="text" id="buscadorBDGeneral" oninput="renderBaseDatosGeneralJerarquica()" placeholder="Buscar por clave, tema o responsable..." class="p-2 border border-slate-300 rounded-xl bg-white text-xs w-56 sm:w-64 focus:ring-2 focus:ring-indigo-500">
             </div>
-
         </div>
 
-        <!-- CUERPO PRINCIPAL CON SCROLL PERFECTO (min-h-0 evita cortes de pantalla) -->
-        <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 min-h-0 bg-slate-100/60" id="contenedorHitosBaseDatosGeneral">
-            <!-- JavaScript inyecta aquí la arquitectura visual -->
+        <!-- Contenedor Desplazable del Árbol Jerárquico Hitos ➔ Acciones -->
+       <!-- REESTRUCTURACIÓN SPLIT-SCREEN (MAESTRO 62% - EXPEDIENTE EN VIVO 38%) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 overflow-hidden max-h-[76vh] bg-slate-100/50">
+        
+        <!-- COLUMNA IZQUIERDA (62%): TABLA DE HITOS Y ACCIONES -->
+        <div class="col-span-12 w-full overflow-y-auto pr-2 space-y-4 text-xs" id="cuerpoBaseDatosGeneral">
+            <!-- Inyección interactiva con JavaScript (tu función sigue inyectando aquí) -->
         </div>
 
-        <!-- PIE FIJO CON METADATOS Y BOTÓN DE SALIDA -->
-        <div class="px-6 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 shrink-0">
-            <span class="font-medium flex items-center gap-1.5">
-                <i class="fa-solid fa-circle-nodes text-indigo-600"></i> Relación canónica 1:N garantizada (Hito Rector → Acciones Operativas)
-            </span>
-            <button type="button" onclick="closeModal('modal-base-datos-general')" 
-                    class="btn-executive bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition shadow-sm">
-                Cerrar Base de Datos
-            </button>
-        </div>
+        <!-- Footer Informativo -->
+     <!-- 1. Contenedor de datos a 100% de ancho -->
+    <div class="col-span-12 w-full overflow-y-auto pr-2 space-y-4 text-xs" id="cuerpoBaseDatosGeneral">
+        <!-- Inyección interactiva con JavaScript -->
+    </div>
+
+</div> <!-- CIERRE OBLIGATORIO DE LA CUADRÍCULA/GRID ANTERIOR -->
+
+<!-- 2. Footer Informativo a ancho completo -->
+<div class="w-full p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 shrink-0">
+    <span class="font-medium flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-circle-nodes text-indigo-600"></i> Relación canónica 1:N garantizada (Hito Rector ➔ Acciones Operativas)
+    </span>
+    <button type="button" onclick="closeModal('modal-base-datos-general')" class="btn-executive bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-5 rounded-xl text-xs shrink-0 whitespace-nowrap">
+        Cerrar Base de Datos
+    </button>
+</div>
 
     </div>
 </div>
-    
 <!-- ========================================================= -->
 <!-- MODAL EXPRESS: CARGA RÁPIDA DE ARCHIVOS POR ACCIÓN        -->
 <!-- ========================================================= -->
@@ -10060,30 +9713,37 @@ window.cerrarDistribuidorInicio = function() {
 };
 
 // 3. Navegación directa hacia las secciones mapeadas
-// =========================================================================
-// NAVEGACIÓN DESDE EL DISTRIBUIDOR DE INICIO (MENU SWEETWATER / AMAZON)
-// =========================================================================
 window.navegarDesdeDistribuidor = function(modo, destino) {
-    if (typeof cerrarDistribuidorInicio === 'function') {
-        cerrarDistribuidorInicio();
-    } else if (typeof closeModal === 'function') {
-        closeModal('modal-distribuidor-inicio');
-    }
+    cerrarDistribuidorInicio();
 
     if (modo === 'gerencial') {
-        if (typeof cambiarModoPrincipal === 'function') cambiarModoPrincipal('gerencial');
-        if (typeof seleccionarPerspectivaGerencial === 'function') seleccionarPerspectivaGerencial(destino);
+        // Activa la vista gerencial principal
+        if (typeof cambiarModoPrincipal === 'function') {
+            cambiarModoPrincipal('gerencial');
+        }
+        // Selecciona la perspectiva correspondiente de las 4 opciones
+        if (typeof seleccionarPerspectivaGerencial === 'function') {
+            seleccionarPerspectivaGerencial(destino);
+        }
     } else {
-        if (typeof cambiarModoPrincipal === 'function') cambiarModoPrincipal('operativo');
-        
+        // Modo operativo
+        if (typeof cambiarModoPrincipal === 'function') {
+            cambiarModoPrincipal('operativo');
+        }
+
         if (destino === 'base-datos') {
-            setTimeout(() => {
-                window.abrirModalBaseDatosGeneral();
-            }, 100);
+            // Abre el modal de Base de Datos General IECG
+            if (typeof abrirModalBaseDatosGeneral === 'function') {
+                abrirModalBaseDatosGeneral();
+            }
         } else if (destino === 'riesgos-art6') {
-            if (typeof openModal === 'function') openModal('modal-riesgos-inicio');
+            // Abre el modal de riesgos
+            openModal('modal-riesgos-inicio');
         } else {
-            if (typeof mostrarSeccionTab === 'function') mostrarSeccionTab(destino);
+            // Navega a la pestaña de sección correspondiente (dashboard, areas, matriz, cronograma, etc.)
+            if (typeof mostrarSeccionTab === 'function') {
+                mostrarSeccionTab(destino);
+            }
         }
     }
 };
