@@ -3008,10 +3008,11 @@ window.abrirModalAltaAccionVinculadaDesdeHitoDirecto = function(claveHito) {
 // =========================================================================
 // FUNCIONES GLOBALES: BASE DE DATOS Y GESTIÓN DE MODALES
 // =========================================================================
+// =========================================================================
+// APERTURA BLINDADA DE LA BASE DE DATOS GENERAL
+// =========================================================================
 window.abrirModalBaseDatosGeneral = function() {
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
-        renderBaseDatosGeneralJerarquica();
-    }
+    // 1. Abrir primero el modal para garantizar que el usuario lo vea
     if (typeof openModal === 'function') {
         openModal('modal-base-datos-general');
     } else {
@@ -3020,6 +3021,13 @@ window.abrirModalBaseDatosGeneral = function() {
             modal.classList.remove('hidden');
             modal.style.display = 'flex';
         }
+    }
+
+    // 2. Renderizar el contenido con protección contra errores
+    try {
+        window.renderBaseDatosGeneralJerarquica();
+    } catch (err) {
+        console.error("Error al renderizar Base de Datos General:", err);
     }
 };
 
@@ -6395,194 +6403,262 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 // =========================================================================
 // 2. Renderizado del Árbol Jerárquico: Hito Padre -> Acciones Hijas (Corregido)
 // =========================================================================
+// =========================================================================
+// RENDERIZADOR JERÁRQUICO CON PASTILLA MÉTRICA Y CÉDULA TÉCNICA
+// =========================================================================
 window.renderBaseDatosGeneralJerarquica = function() {
-    var contenedor = document.getElementById('cuerpoBaseDatosGeneral');
+    const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral') || 
+                       document.getElementById('contenedorJerarquicoBD');
     if (!contenedor) return;
 
-    var elFiltro = document.getElementById('filtroPanelBDGeneral');
-    var filtroPanel = elFiltro ? elFiltro.value : 'TODOS';
-    var elBuscador = document.getElementById('buscadorBDGeneral');
-    var query = elBuscador ? elBuscador.value.toLowerCase().trim() : '';
+    // Detectar filtro de panel y buscador
+    const selectFiltro = document.getElementById('filtroPanelBDGeneral') || document.getElementById('selectFiltroPanelBaseDatos');
+    const panelFiltro = selectFiltro ? selectFiltro.value : 'TODOS';
 
-    var mapaHitos = {};
+    const inputBuscar = document.getElementById('buscadorBDGeneral') || document.getElementById('inputBuscarEnBaseDatosGeneral');
+    const textoBusqueda = inputBuscar ? inputBuscar.value.toLowerCase().trim() : '';
 
-    accionesDataset.forEach(function(act) {
-        var idHito = act.clave_hito || act.id.split('-A-')[0];
-        if (filtroPanel !== 'TODOS' && act.panel !== filtroPanel) return;
+    const dataset = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) ? accionesDataset : [];
 
-        var idClave = act.clave_accion || act.id;
-        var textoMatch = !query || 
-            idClave.toLowerCase().indexOf(query) !== -1 ||
-            idHito.toLowerCase().indexOf(query) !== -1 ||
-            (act.hito && act.hito.toLowerCase().indexOf(query) !== -1) ||
-            (act.accion && act.accion.toLowerCase().indexOf(query) !== -1) ||
-            (act.responsable && act.responsable.toLowerCase().indexOf(query) !== -1);
+    // 1. FILTRADO
+    let accionesFiltradas = dataset.filter(item => {
+        const idClave = (item.clave_accion || item.id || '').toLowerCase();
+        const hito = (item.hito || '').toLowerCase();
+        const accion = (item.accion || '').toLowerCase();
+        const norma = (item.fundamento_juridico || '').toLowerCase();
+        const resp = (item.responsable || '').toLowerCase();
+        const panel = (item.panel || 'A').toUpperCase();
 
-        if (!textoMatch) return;
+        const coincidePanel = (panelFiltro === 'TODOS') || (panel === panelFiltro.toUpperCase());
+        const coincideTexto = !textoBusqueda || 
+            idClave.includes(textoBusqueda) || 
+            hito.includes(textoBusqueda) || 
+            accion.includes(textoBusqueda) || 
+            norma.includes(textoBusqueda) || 
+            resp.includes(textoBusqueda);
 
-        if (!mapaHitos[idHito]) {
-            mapaHitos[idHito] = {
-                clave_hito: idHito,
-                panel: act.panel,
-                area: act.area,
-                nombreHito: act.hito,
+        return coincidePanel && coincideTexto;
+    });
+
+    // 2. AGRUPAR POR HITO
+    const mapaHitos = {};
+    accionesFiltradas.forEach(act => {
+        const claveHito = act.clave_hito || (act.clave_accion ? act.clave_accion.split('-A-')[0] : act.id.split('-A-')[0]) || 'HITO-GRAL';
+        if (!mapaHitos[claveHito]) {
+            mapaHitos[claveHito] = {
+                clave_hito: claveHito,
+                panel: act.panel || 'A',
+                area: act.area || `Panel ${act.panel}`,
+                titulo: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
         }
-        mapaHitos[idHito].acciones.push(act);
+        mapaHitos[claveHito].acciones.push(act);
     });
 
-    var listaHitos = Object.values(mapaHitos);
+    const listaHitos = Object.values(mapaHitos);
 
+    // 3. ACTUALIZAR PASTILLA MÉTRICA DINÁMICA
+    const lblPanel = document.getElementById('labelFiltroPanelActivo');
+    const cntHitos = document.getElementById('countHitosFiltrados');
+    const cntAcciones = document.getElementById('countAccionesFiltradas');
+
+    if (lblPanel) {
+        lblPanel.innerText = panelFiltro === 'TODOS' 
+            ? 'Todos los Paneles (A - J):' 
+            : `Panel ${panelFiltro}:`;
+    }
+    if (cntHitos) cntHitos.innerText = `${listaHitos.length} Hitos`;
+    if (cntAcciones) cntAcciones.innerText = `${accionesFiltradas.length} Acciones`;
+
+    // 4. SI ESTÁ VACÍO
     if (listaHitos.length === 0) {
-        contenedor.innerHTML = '<div class="bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">' +
-            '<i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>' +
-            '<p class="font-bold text-sm text-slate-600">No se encontraron hitos o acciones con el criterio seleccionado.</p>' +
-            '</div>';
+        contenedor.innerHTML = `
+            <div class="p-12 text-center bg-slate-50 border border-slate-200 rounded-3xl space-y-2">
+                <i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>
+                <h4 class="font-bold text-slate-700 text-sm">No se encontraron registros</h4>
+                <p class="text-xs text-slate-400">Prueba cambiando el panel seleccionado o el término de búsqueda.</p>
+            </div>
+        `;
         return;
     }
 
-    var htmlFinal = '';
+    // 5. RENDERIZAR
+    contenedor.innerHTML = listaHitos.map(hito => {
+        const sumaAvance = hito.acciones.reduce((acc, cur) => acc + (Number(cur.avance) || 0), 0);
+        const promedioAvance = Math.round(sumaAvance / (hito.acciones.length || 1));
 
-    listaHitos.forEach(function(h) {
-        var sumaAvance = h.acciones.reduce(function(acc, curr) {
-            return acc + (Number(curr.avance) || 0);
-        }, 0);
-        var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
-        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200';
+        const accionesHTML = hito.acciones.map(act => {
+            const claveAccion = act.clave_accion || act.id;
+            const avanceNum = Number(act.avance) || 0;
+            const estatus = act.estatus || 'En Proceso';
 
-        // Evaluar permisos de usuario para los botones del hito
-        var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
-            ? resolverPanelesUsuario(currentUser)
-            : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
-        var esAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin'));
-        var esTitularHito = esAdmin || misPaneles.includes(h.panel);
+            const badgeEstatus = estatus === 'Concluido' 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : (estatus === 'Validación' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200');
 
-        var botonesCabeceraHito = '';
-        if (esTitularHito) {
-            botonesCabeceraHito = 
-                '<div class="flex flex-wrap items-center gap-1.5">' +
-                    '<button type="button" onclick="abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\')" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"><i class="fa-solid fa-plus text-[10px]"></i> + Acción</button>' +
-                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center gap-1.5 transition"><i class="fa-solid fa-link text-[10px]"></i> Vincular</button>' +
-                    '<button type="button" onclick="abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition"><i class="fa-solid fa-pen-to-square text-[10px]"></i> Modificar Hito</button>' +
-                    '<button type="button" onclick="solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ')" class="p-1.5 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1 transition" title="Eliminar Hito"><i class="fa-solid fa-trash-can text-[11px]"></i></button>' +
-                '</div>';
-        } else {
-            botonesCabeceraHito = 
-                '<div class="flex items-center gap-2">' +
-                    '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 flex items-center gap-1"><i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Consulta</span>' +
-                    '<button type="button" onclick="abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs flex items-center gap-1 transition shadow-2xs"><i class="fa-solid fa-link text-amber-600"></i> Solicitar Vínculo</button>' +
-                '</div>';
-        }
-
-        // Bloque de Acciones en Cascada Completa
-        var filasAccionesHTML = '';
-        h.acciones.forEach(function(a, idx) {
-            var idClaveAccion = a.clave_accion || (h.clave_hito + '-A-' + String(idx + 1).padStart(4, '0'));
-            var esTitularAccion = esAdmin || misPaneles.includes(a.panel) || misPaneles.includes(h.panel);
-            var estaVinculada = Boolean(a.panel_coresponsable && misPaneles.includes(a.panel_coresponsable));
-            var tienePermisoOperativo = esTitularAccion || estaVinculada;
-
-            // Estatus visual
-            var badgeEst = 'bg-blue-50 text-blue-700 border-blue-200';
-            if (a.estatus === 'Concluido') badgeEst = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-            else if (a.estatus === 'Validación') badgeEst = 'bg-purple-50 text-purple-700 border-purple-200';
-            else if (a.estatus && a.estatus.indexOf('Tercero') !== -1) badgeEst = 'bg-amber-50 text-amber-800 border-amber-200';
-
-            // Archivos adjuntos de Drive
-            var listaArchivos = a.archivosDrive || [];
-            if (listaArchivos.length === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
-                listaArchivos = [{ nombre: 'Expediente Oficial Acreditado', url: a.driveUrl }];
-            }
-
-            var chipsArchivos = '';
+            const listaArchivos = act.archivosDrive || [];
+            let enlacesDriveHTML = '';
             if (listaArchivos.length > 0) {
-                chipsArchivos = listaArchivos.map(function(doc) {
-                    return '<a href="' + doc.url + '" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold transition" title="Abrir archivo en Google Drive">' +
-                        '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
-                        '<span class="truncate max-w-[260px]">' + (doc.nombre || 'Documento Soporte') + '</span>' +
-                        '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-emerald-500"></i>' +
-                    '</a>';
-                }).join('');
+                enlacesDriveHTML = listaArchivos.map(arch => `
+                    <a href="${arch.url}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">
+                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
+                        <span class="truncate max-w-[200px]">${arch.nombre}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
+                    </a>
+                `).join('');
+            } else if (act.driveUrl && act.driveUrl.trim() !== '') {
+                enlacesDriveHTML = `
+                    <a href="${act.driveUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">
+                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
+                        <span>Expediente Digital Oficial</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
+                    </a>
+                `;
             } else {
-                chipsArchivos = '<span class="text-[11px] text-slate-400 italic flex items-center gap-1.5 py-0.5"><i class="fa-solid fa-circle-exclamation text-slate-300"></i> Sin archivos cargados en Drive</span>';
+                enlacesDriveHTML = `<span class="text-[11px] text-slate-400 italic">Sin archivos vinculados en Google Drive</span>`;
             }
 
-            // Botonera operativa por acción
-            var botonesAccion = '';
-            if (tienePermisoOperativo) {
-                botonesAccion = 
-                    '<div class="flex items-center gap-1.5">' +
-                        '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs inline-flex items-center gap-1 shadow-2xs transition" title="Subir archivo a Drive"><i class="fa-solid fa-cloud-arrow-up"></i> + Subir</button>' +
-                        '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs inline-flex items-center gap-1 transition"><i class="fa-solid fa-pen text-indigo-600"></i> Editar</button>' +
-                        '<button type="button" onclick="solicitarEliminacionAccion(\'' + idClaveAccion + '\')" class="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-xs transition" title="Baja de acción"><i class="fa-solid fa-trash-can"></i></button>' +
-                    '</div>';
-            } else {
-                botonesAccion = '<span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-1 rounded-md">Solo Lectura</span>';
-            }
+            const detalleOperativo = act.detalle_operativo || act.accion || 'Sin detalle operativo registrado.';
+            const fundamentoJuridico = act.fundamento_juridico || 'Decreto No. 345 del H. Congreso del Estado de Guanajuato & Lineamientos de Liquidación.';
+            const riesgo = act.riesgo_vinculado || 'Sin contingencia crítica tipificada.';
+            const inst1 = act.instrumento_1 || 'No especificado';
+            const inst2 = act.instrumento_2 || 'No especificado';
+            const inst3 = act.instrumento_3 || 'No especificado';
+            const sugerenciaExp = act.sugerencia_expediente_tecnico || act.docRequerido || 'Cédula circunstanciada con firmas oficiales de entrega-recepción.';
 
-            filasAccionesHTML += 
-                '<div class="p-4 bg-slate-50/60 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all space-y-2.5">' +
-                    '<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">' +
-                        '<div class="flex items-center gap-2">' +
-                            '<span class="font-mono font-bold text-xs text-indigo-900 bg-white px-2 py-0.5 rounded-md border border-slate-200">' + idClaveAccion + '</span>' +
-                            '<span class="font-bold text-slate-900 text-xs">' + (a.accion || 'Acción institucional') + '</span>' +
-                        '</div>' +
-                        '<div class="flex flex-wrap items-center gap-2">' +
-                            '<span class="text-[11px] font-semibold text-slate-500"><i class="fa-solid fa-user-tie text-slate-400 mr-1"></i>' + (a.responsable || 'Comisión') + '</span>' +
-                            '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ' + badgeEst + '">' + (a.estatus || 'En Proceso') + '</span>' +
-                            '<span class="font-mono font-black text-xs ' + (Number(a.avance) === 100 ? 'text-emerald-600' : 'text-indigo-600') + '">' + (a.avance || 0) + '%</span>' +
-                            botonesAccion +
-                        '</div>' +
-                    '</div>' +
+            return `
+                <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-2xs hover:border-indigo-300 transition-all space-y-3.5">
                     
-                    '<!-- Fila integrada de Documentos Soporte -->' +
-                    '<div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-0.5">' +
-                        '<span class="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 flex items-center gap-1">' +
-                            '<i class="fa-solid fa-paperclip text-slate-400"></i> Expedientes Drive:' +
-                        '</span>' +
-                        '<div class="flex flex-wrap items-center gap-1.5">' +
-                            chipsArchivos +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-        });
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div class="flex items-start gap-2.5">
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-900 font-mono font-black text-xs shrink-0 mt-0.5">
+                                ${claveAccion}
+                            </span>
+                            <div>
+                                <h5 class="text-xs font-black text-slate-900 leading-snug">${act.accion}</h5>
+                                <span class="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                                    <i class="fa-solid fa-user-tie text-indigo-600"></i> Responsable: <strong>${act.responsable}</strong>
+                                </span>
+                            </div>
+                        </div>
 
-        // Contenedor principal de cada Hito a todo lo largo
-        htmlFinal += 
-            '<div class="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-md transition-all p-5 sm:p-6 space-y-4">' +
-                
-                '<!-- Cabecera del Hito (Todo a lo largo, sin cortes) -->' +
-                '<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">' +
-                    '<div class="flex items-start gap-3">' +
-                        '<span class="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 font-mono font-black text-xs flex items-center justify-center border border-indigo-100 shrink-0 mt-0.5">' +
-                            h.panel +
-                        '</span>' +
-                        '<div>' +
-                            '<div class="flex flex-wrap items-center gap-2 mb-1">' +
-                                '<span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">' + h.clave_hito + '</span>' +
-                                '<span class="text-xs font-semibold text-slate-500">' + h.area + '</span>' +
-                                '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black border ' + badgeColor + '">' + promedioHito + '% Avance (' + h.acciones.length + ' Acc.)</span>' +
-                            '</div>' +
-                            '<h3 class="font-black text-slate-900 text-sm sm:text-base leading-snug">' + h.nombreHito + '</h3>' +
-                        '</div>' +
-                    '</div>' +
-                    
-                    '<!-- Botonera del Hito -->' +
-                    '<div class="shrink-0 self-start md:self-auto">' +
-                        botonesCabeceraHito +
-                    '</div>' +
-                '</div>' +
+                        <div class="flex items-center gap-2 self-end lg:self-auto shrink-0">
+                            <span class="px-2.5 py-1 rounded-xl font-bold text-[10px] border ${badgeEstatus}">
+                                ${estatus} (${avanceNum}%)
+                            </span>
+                            <button type="button" onclick="cargarAccionEnBuzonDirecto('${claveAccion}')" 
+                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir
+                            </button>
+                            <button type="button" onclick="abrirModalDesdeGrafica('${claveAccion}')" 
+                                    class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-200">
+                                <i class="fa-solid fa-pen text-[10px]"></i> Editar
+                            </button>
+                        </div>
+                    </div>
 
-                '<!-- Lista de Acciones y Soportes -->' +
-                '<div class="space-y-3">' +
-                    filasAccionesHTML +
-                '</div>' +
+                    <!-- CÉDULA TÉCNICA NORMATIVA -->
+                    <div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 space-y-2.5 text-xs">
+                        
+                        <!-- FUNDAMENTO JURÍDICO DESTACADO -->
+                        <div class="bg-amber-50/90 border border-amber-300 rounded-xl p-3 shadow-2xs">
+                            <span class="text-[10px] font-black uppercase text-amber-900 tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-scale-balanced text-amber-600"></i> Fundamento Jurídico (Decreto No. 345 & Lineamientos):
+                            </span>
+                            <p class="font-bold text-amber-950 text-xs mt-1 leading-relaxed">
+                                ${fundamentoJuridico}
+                            </p>
+                        </div>
 
-            '</div>';
-    });
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                                    <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i> Detalle Operativo:
+                                </span>
+                                <p class="text-[11px] text-slate-700 leading-snug">${detalleOperativo}</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                                <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block mb-1">
+                                    <i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> Riesgo Vinculado (Art. 6):
+                                </span>
+                                <p class="text-[11px] text-slate-700 leading-snug">${riesgo}</p>
+                            </div>
+                        </div>
 
-    contenedor.innerHTML = htmlFinal;
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div class="bg-white p-2 rounded-xl border border-slate-200 text-[10.5px]">
+                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase">Instrumento 1:</span>
+                                <span class="text-slate-600 truncate block">${inst1}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-200 text-[10.5px]">
+                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase">Instrumento 2:</span>
+                                <span class="text-slate-600 truncate block">${inst2}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-200 text-[10.5px]">
+                                <span class="font-bold text-indigo-900 block text-[9.5px] uppercase">Instrumento 3:</span>
+                                <span class="text-slate-600 truncate block">${inst3}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-start gap-2">
+                            <i class="fa-solid fa-file-circle-check text-emerald-600 text-sm mt-0.5 shrink-0"></i>
+                            <div>
+                                <span class="font-bold text-slate-800 text-[10.5px] block">Sugerencia de Expediente Técnico Probatorio:</span>
+                                <p class="text-[11px] text-slate-600 leading-tight">${sugerenciaExp}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Drive -->
+                    <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1 shrink-0">
+                            <i class="fa-brands fa-google-drive text-amber-500"></i> Expedientes Drive:
+                        </span>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            ${enlacesDriveHTML}
+                        </div>
+                    </div>
+
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-2xl bg-indigo-600 text-white font-mono font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
+                            ${hito.panel}
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-xs bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
+                                    ${hito.clave_hito}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-500">${hito.area}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    ${promedioAvance}% Avance (${hito.acciones.length} Acc.)
+                                </span>
+                            </div>
+                            <h4 class="text-sm font-black text-slate-900 mt-1">${hito.titulo}</h4>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
+                        <button type="button" onclick="abrirModalAltaAccionVinculadaDesdeHitoDirecto('${hito.clave_hito}')" 
+                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                            <i class="fa-solid fa-plus text-[10px]"></i> + Acción
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pl-0 md:pl-3">
+                    ${accionesHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
 };
         
 // 3. Abrir Alta de Hito (Con candado de seguridad, autenticación y preselección de panel)
@@ -9781,6 +9857,11 @@ window.abrirBandejaNotificacionesVinculacion = function() {
             </div>
 
         </div>
+<!-- CONTENEDOR DINÁMICO DONDE SE INYECTAN LOS HITOS Y ACCIONES -->
+        <div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs max-h-[75vh]" id="contenedorHitosBaseDatosGeneral">
+            <!-- Aquí JavaScript inyecta las tarjetas automáticamente -->
+        </div>
+    
 
         <!-- Contenedor Desplazable del Árbol Jerárquico Hitos ➔ Acciones -->
        <!-- REESTRUCTURACIÓN SPLIT-SCREEN (MAESTRO 62% - EXPEDIENTE EN VIVO 38%) -->
@@ -9980,37 +10061,30 @@ window.cerrarDistribuidorInicio = function() {
 };
 
 // 3. Navegación directa hacia las secciones mapeadas
+// =========================================================================
+// NAVEGACIÓN DESDE EL DISTRIBUIDOR DE INICIO (MENU SWEETWATER / AMAZON)
+// =========================================================================
 window.navegarDesdeDistribuidor = function(modo, destino) {
-    cerrarDistribuidorInicio();
+    if (typeof cerrarDistribuidorInicio === 'function') {
+        cerrarDistribuidorInicio();
+    } else if (typeof closeModal === 'function') {
+        closeModal('modal-distribuidor-inicio');
+    }
 
     if (modo === 'gerencial') {
-        // Activa la vista gerencial principal
-        if (typeof cambiarModoPrincipal === 'function') {
-            cambiarModoPrincipal('gerencial');
-        }
-        // Selecciona la perspectiva correspondiente de las 4 opciones
-        if (typeof seleccionarPerspectivaGerencial === 'function') {
-            seleccionarPerspectivaGerencial(destino);
-        }
+        if (typeof cambiarModoPrincipal === 'function') cambiarModoPrincipal('gerencial');
+        if (typeof seleccionarPerspectivaGerencial === 'function') seleccionarPerspectivaGerencial(destino);
     } else {
-        // Modo operativo
-        if (typeof cambiarModoPrincipal === 'function') {
-            cambiarModoPrincipal('operativo');
-        }
-
+        if (typeof cambiarModoPrincipal === 'function') cambiarModoPrincipal('operativo');
+        
         if (destino === 'base-datos') {
-            // Abre el modal de Base de Datos General IECG
-            if (typeof abrirModalBaseDatosGeneral === 'function') {
-                abrirModalBaseDatosGeneral();
-            }
+            setTimeout(() => {
+                window.abrirModalBaseDatosGeneral();
+            }, 100);
         } else if (destino === 'riesgos-art6') {
-            // Abre el modal de riesgos
-            openModal('modal-riesgos-inicio');
+            if (typeof openModal === 'function') openModal('modal-riesgos-inicio');
         } else {
-            // Navega a la pestaña de sección correspondiente (dashboard, areas, matriz, cronograma, etc.)
-            if (typeof mostrarSeccionTab === 'function') {
-                mostrarSeccionTab(destino);
-            }
+            if (typeof mostrarSeccionTab === 'function') mostrarSeccionTab(destino);
         }
     }
 };
