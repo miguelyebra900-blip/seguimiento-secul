@@ -6425,19 +6425,44 @@ h.acciones.forEach(function(a) {
                 listaArchivos = [{ nombre: 'Expediente Digital Oficial', url: a.driveUrl }];
             }
 
+// Evaluación de permisos para la acción y sus archivos
+            var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
+                ? resolverPanelesUsuario(currentUser)
+                : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
+            var esAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || currentUser.rol === 'master_admin'));
+            var esTitularAccion = esAdmin || misPaneles.includes(a.panel) || (h && misPaneles.includes(h.panel));
+            var estaVinculada = Boolean(a.panel_coresponsable && misPaneles.includes(a.panel_coresponsable));
+            var tienePermisoOperativo = esTitularAccion || estaVinculada;
+
             var chipsArchivos = '';
             if (listaArchivos.length > 0) {
-                chipsArchivos = listaArchivos.map(function(doc) {
-                    return '<a href="' + doc.url + '" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">' +
-                        '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
-                        '<span class="truncate max-w-[210px]">' + (doc.nombre || 'Expediente Drive') + '</span>' +
-                        '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>' +
-                    '</a>';
+                chipsArchivos = listaArchivos.map(function(doc, docIdx) {
+                    var nombreDoc = doc.nombre || 'Expediente Drive';
+                    var urlDoc = doc.url || '#';
+                    var fileId = doc.id || doc.fileId || '';
+
+                    // Botón de eliminar con confirmación condicionado a permisos
+                    var btnEliminarArchivo = '';
+                    if (tienePermisoOperativo) {
+                        btnEliminarArchivo = 
+                            '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); confirmarEliminacionArchivoDrive(\'' + idClaveAccion + '\', ' + docIdx + ', \'' + (nombreDoc.replace(/'/g, "\\'")) + '\', \'' + fileId + '\', \'' + urlDoc + '\')" class="ml-1 p-0.5 px-1.5 text-emerald-700 hover:text-white hover:bg-rose-600 rounded-md transition text-[10px]" title="Eliminar archivo de Drive y Base de Datos">' +
+                                '<i class="fa-solid fa-xmark"></i>' +
+                            '</button>';
+                    }
+
+                    return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition group">' +
+                        '<a href="' + urlDoc + '" target="_blank" class="inline-flex items-center gap-1.5 truncate max-w-[210px]">' +
+                            '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
+                            '<span class="truncate">' + nombreDoc + '</span>' +
+                            '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>' +
+                        '</a>' +
+                        btnEliminarArchivo +
+                    '</div>';
                 }).join('');
             } else {
                 chipsArchivos = '<span class="text-[11px] text-slate-400 italic">Sin evidencias vinculadas en Google Drive</span>';
             }
-
+    
             var detalleOp = a.detalle_operativo || a.accion || 'Sin detalle operativo registrado.';
             var fundJuridico = a.fundamento_juridico || 'Decreto 345 (Art. 5 Transitorio); Lineamientos Liquidación IEC (Arts. 5, 7, 17)';
             var riesgoArt6 = a.riesgo_vinculado || 'Sin contingencia crítica tipificada.';
@@ -9493,6 +9518,88 @@ window.abrirBandejaNotificacionesVinculacion = function() {
     }
 
     openModal('modal-bandeja-notificaciones');
+};
+
+window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArchivo, nombreArchivo, fileId, urlArchivo) {
+    if (!confirm('¿Confirmas la eliminación del archivo "' + nombreArchivo + '"?\n\nEsta acción lo desvinculará de la Base de Datos y lo eliminará de Google Drive.')) {
+        return;
+    }
+
+    // 1. Localizar la acción en el dataset
+    var accionObj = (typeof accionesDataset !== 'undefined') 
+        ? accionesDataset.find(function(item) { return (item.clave_accion || item.id) === idClaveAccion; })
+        : null;
+
+    if (!accionObj) {
+        alert('Error: No se encontró la acción en el dataset local.');
+        return;
+    }
+
+    // Extraer File ID de Google Drive si no viene explícito
+    var idDriveReal = fileId;
+    if (!idDriveReal && urlArchivo) {
+        var matchDrive = urlArchivo.match(/[-\w]{25,}/);
+        if (matchDrive) idDriveReal = matchDrive[0];
+    }
+
+    try {
+        // 2. Notificar / Eliminar en Google Drive vía backend (Apps Script o Webhook de Drive)
+        if (idDriveReal && typeof URL_APPS_SCRIPT_DRIVE !== 'undefined' && URL_APPS_SCRIPT_DRIVE) {
+            fetch(URL_APPS_SCRIPT_DRIVE, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'deleteFile',
+                    fileId: idDriveReal,
+                    claveAccion: idClaveAccion,
+                    usuario: currentUser ? (currentUser.nombre || currentUser.email) : 'Sistema'
+                })
+            }).catch(function(err) {
+                console.warn('Aviso: Intento de borrado en Drive enviado:', err);
+            });
+        }
+
+        // 3. Modificar el arreglo de archivos en memoria
+        var archivosActuales = Array.isArray(accionObj.archivosDrive) ? [...accionObj.archivosDrive] : [];
+        if (archivosActuales.length > indexArchivo) {
+            archivosActuales.splice(indexArchivo, 1);
+        } else if (accionObj.driveUrl) {
+            accionObj.driveUrl = '';
+        }
+        accionObj.archivosDrive = archivosActuales;
+
+        // Si ya no quedan archivos, limpiar url principal de compatibilidad
+        var nuevaUrlPrincipal = archivosActuales.length > 0 ? (archivosActuales[0].url || '') : '';
+        accionObj.driveUrl = nuevaUrlPrincipal;
+
+        // 4. Persistir la actualización en Supabase
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            var updatePayload = {
+                archivosDrive: archivosActuales,
+                driveUrl: nuevaUrlPrincipal
+            };
+
+            var res = await supabaseClient
+                .from('acciones')
+                .update(updatePayload)
+                .or('clave_accion.eq.' + idClaveAccion + ',id.eq.' + idClaveAccion);
+
+            if (res.error) {
+                console.error('Error al actualizar en Supabase:', res.error);
+                alert('Aviso: El archivo se desvinculó localmente pero ocurrió un detalle con Supabase: ' + res.error.message);
+            }
+        }
+
+        // 5. Refrescar la vista de inmediato
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+            renderBaseDatosGeneralJerarquica();
+        }
+
+    } catch (e) {
+        console.error('Error en proceso de eliminación:', e);
+        alert('Ocurrió un error inesperado al procesar la eliminación: ' + e.message);
+    }
 };
         
 </script>
