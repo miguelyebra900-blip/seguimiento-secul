@@ -6207,26 +6207,31 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
     var mapaHitos = {};
 
-    accionesDataset.forEach(function(act) {
-        var idHito = act.clave_hito || act.id.split('-A-')[0];
-        if (filtroPanel !== 'TODOS' && act.panel !== filtroPanel) return;
+  (accionesDataset || []).forEach(function(act) {
+        var cAccion = (act.clave_accion || act.id || '').trim();
+        var idHito = (act.clave_hito || (cAccion ? cAccion.split('-A-')[0] : '') || 'HITO-GRAL').trim();
+        var panelAct = (act.panel || (cAccion ? cAccion.charAt(0) : 'A')).toUpperCase().trim();
 
-        var idClave = act.clave_accion || act.id;
-        var textoMatch = !query || 
-            idClave.toLowerCase().indexOf(query) !== -1 ||
-            idHito.toLowerCase().indexOf(query) !== -1 ||
-            (act.hito && act.hito.toLowerCase().indexOf(query) !== -1) ||
-            (act.accion && act.accion.toLowerCase().indexOf(query) !== -1) ||
-            (act.responsable && act.responsable.toLowerCase().indexOf(query) !== -1);
+        // Comparación insensible a mayúsculas/minúsculas
+        if (filtroPanel !== 'TODOS' && panelAct !== String(filtroPanel).toUpperCase().trim()) return;
 
-        if (!textoMatch) return;
+        var textSearch = [
+            cAccion,
+            idHito,
+            act.hito || '',
+            act.accion || '',
+            act.responsable || '',
+            act.fundamento_juridico || ''
+        ].join(' ').toLowerCase();
+
+        if (query && textSearch.indexOf(query) === -1) return;
 
         if (!mapaHitos[idHito]) {
             mapaHitos[idHito] = {
                 clave_hito: idHito,
-                panel: act.panel,
-                area: act.area,
-                nombreHito: act.hito,
+                panel: panelAct,
+                area: act.area || ('Panel ' + panelAct),
+                nombreHito: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
         }
@@ -6235,6 +6240,15 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
     var listaHitos = Object.values(mapaHitos);
 
+    // Actualizar contadores dinámicos superiores
+    var cntHitos = document.getElementById('countHitosFiltrados');
+    var cntAcciones = document.getElementById('countAccionesFiltradas');
+    if (cntHitos) cntHitos.innerText = listaHitos.length + ' Hitos';
+    if (cntAcciones) {
+        var totalAcc = listaHitos.reduce(function(acc, h) { return acc + h.acciones.length; }, 0);
+        cntAcciones.innerText = totalAcc + ' Acciones';
+    }
+    
     if (listaHitos.length === 0) {
         contenedor.innerHTML = '<div class="bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-400 space-y-2">' +
             '<i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>' +
