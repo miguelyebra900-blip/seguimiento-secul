@@ -9541,7 +9541,7 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
     }
 
     try {
-        // LLAMADA A APPS SCRIPT (IMAGEN 1)
+        // 1. Enviar orden a Google Apps Script para enviarlo a la papelera de Drive
         if (typeof URL_APPS_SCRIPT_DRIVE !== 'undefined' && URL_APPS_SCRIPT_DRIVE) {
             fetch(URL_APPS_SCRIPT_DRIVE, {
                 method: 'POST',
@@ -9559,7 +9559,7 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
             });
         }
 
-        // Actualizar en memoria local
+        // 2. Modificar el arreglo en la memoria local
         var archivosActuales = Array.isArray(accionObj.archivosDrive) ? [...accionObj.archivosDrive] : [];
         if (archivosActuales.length > indexArchivo) {
             archivosActuales.splice(indexArchivo, 1);
@@ -9571,29 +9571,49 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
         var nuevaUrlPrincipal = archivosActuales.length > 0 ? (archivosActuales[0].url || '') : '';
         accionObj.driveUrl = nuevaUrlPrincipal;
 
-        // Persistir en Supabase
+        // 3. Persistir en Supabase usando las columnas reales confirmadas
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-           var res = await supabaseClient
-                .from('acciones_transicion')
-                .update({
-                    archivosDrive: archivosActuales,
-                    driveUrl: nuevaUrlPrincipal
-                })
-                .or('clave_accion.eq.' + idClaveAccion + ',id.eq.' + idClaveAccion);
             
-            if (res.error) {
-                console.error('Error al actualizar en Supabase:', res.error);
-                alert('Aviso: El archivo se desvinculó localmente pero falló la sincronización con Supabase: ' + res.error.message);
+            // A) Actualizar drive_url en acciones_transicion
+            var resAccion = await supabaseClient
+                .from('acciones_transicion')
+                .update({ 
+                    drive_url: nuevaUrlPrincipal,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('clave_accion', idClaveAccion);
+
+            if (resAccion.error) {
+                console.error('Error al actualizar acciones_transicion:', resAccion.error);
+                alert('Aviso: ' + resAccion.error.message);
+                return;
+            }
+
+            // B) Si el archivo estaba en la tabla relacional de evidencias_expedientes, eliminar su fila
+            try {
+                if (idDriveReal) {
+                    await supabaseClient
+                        .from('evidencias_expedientes')
+                        .delete()
+                        .or('id_drive.eq.' + idDriveReal + ',url_drive.eq.' + urlArchivo);
+                } else if (urlArchivo) {
+                    await supabaseClient
+                        .from('evidencias_expedientes')
+                        .delete()
+                        .eq('url_drive', urlArchivo);
+                }
+            } catch (errEv) {
+                console.warn('Nota sobre tabla evidencias_expedientes:', errEv);
             }
         }
 
-        // Refrescar tarjetas en pantalla
+        // 4. Refrescar la vista en pantalla de inmediato
         if (typeof renderBaseDatosGeneralJerarquica === 'function') {
             renderBaseDatosGeneralJerarquica();
         }
 
     } catch (e) {
-        console.error('Error en proceso de eliminación:', e);
+        console.error('Error general en la eliminación:', e);
         alert('Ocurrió un error inesperado al procesar la eliminación: ' + e.message);
     }
 };
