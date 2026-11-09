@@ -9573,14 +9573,14 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
 
         // Persistir en Supabase
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            var res = await supabaseClient
-                .from('acciones')
+           var res = await supabaseClient
+                .from('acciones_transicion')
                 .update({
                     archivosDrive: archivosActuales,
                     driveUrl: nuevaUrlPrincipal
                 })
                 .or('clave_accion.eq.' + idClaveAccion + ',id.eq.' + idClaveAccion);
-
+            
             if (res.error) {
                 console.error('Error al actualizar en Supabase:', res.error);
                 alert('Aviso: El archivo se desvinculó localmente pero falló la sincronización con Supabase: ' + res.error.message);
