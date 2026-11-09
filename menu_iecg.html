@@ -2982,56 +2982,6 @@ window.renderBaseDatosGeneralJerarquica = function() {
     }).join('');
 };
 
-        // Tarjeta contenedora del Hito Rector
-        return `
-            <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
-                
-                <!-- Cabecera del Hito Rector -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-3">
-                        <span class="w-9 h-9 rounded-2xl bg-indigo-600 text-white font-mono font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                            ${hito.panel}
-                        </span>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold text-xs bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
-                                    ${hito.clave_hito}
-                                </span>
-                                <span class="text-xs font-semibold text-slate-500">${hito.area}</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                    ${promedioAvance}% Avance (${hito.acciones.length} Acc.)
-                                </span>
-                            </div>
-                            <h4 class="text-sm font-black text-slate-900 mt-1">${hito.titulo}</h4>
-                        </div>
-                    </div>
-
-                    <!-- Botones de Acción del Hito -->
-                    <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
-                        <button type="button" onclick="abrirModalAltaAccionVinculadaDesdeHitoDirecto('${hito.clave_hito}')" 
-                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-solid fa-plus text-[10px]"></i> + Acción
-                        </button>
-                        <button type="button" onclick="abrirModalVinculacionHitoPadre('${hito.clave_hito}')" 
-                                class="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition flex items-center gap-1">
-                            <i class="fa-solid fa-link text-[10px]"></i> Vincular
-                        </button>
-                        <button type="button" onclick="abrirModalModificarHitoDirecto('${hito.clave_hito}')" 
-                                class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition flex items-center gap-1">
-                            <i class="fa-solid fa-pen-to-square text-[10px]"></i> Modificar Hito
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Lista de Acciones asociadas al Hito -->
-                <div class="space-y-3 pl-0 md:pl-3">
-                    ${accionesHTML}
-                </div>
-
-            </div>
-        `;
-    }).join('');
-};
 
 // Función auxiliar para registrar nueva acción asignada a este hito específico
 window.abrirModalAltaAccionVinculadaDesdeHitoDirecto = function(claveHito) {
