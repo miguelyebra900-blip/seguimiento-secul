@@ -3012,22 +3012,20 @@ window.abrirModalAltaAccionVinculadaDesdeHitoDirecto = function(claveHito) {
 // APERTURA BLINDADA DE LA BASE DE DATOS GENERAL
 // =========================================================================
 window.abrirModalBaseDatosGeneral = function() {
-    // 1. Abrir primero el modal para garantizar que el usuario lo vea
-    if (typeof openModal === 'function') {
-        openModal('modal-base-datos-general');
-    } else {
-        const modal = document.getElementById('modal-base-datos-general');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-        }
+    // 1. Mostrar el modal en pantalla primero
+    const modal = document.getElementById('modal-base-datos-general');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
     }
 
-    // 2. Renderizar el contenido con protección contra errores
+    // 2. Renderizar los datos dentro de un bloque protegido
     try {
-        window.renderBaseDatosGeneralJerarquica();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+            renderBaseDatosGeneralJerarquica();
+        }
     } catch (err) {
-        console.error("Error al renderizar Base de Datos General:", err);
+        console.error("Aviso en renderizado de Base de Datos:", err);
     }
 };
 
@@ -9857,19 +9855,9 @@ window.abrirBandejaNotificacionesVinculacion = function() {
             </div>
 
         </div>
-<!-- CONTENEDOR DINÁMICO DONDE SE INYECTAN LOS HITOS Y ACCIONES -->
+<!-- CUERPO DESPLAZABLE MAESTRO (AMPLIO Y LIMPIO) -->
         <div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs max-h-[75vh]" id="contenedorHitosBaseDatosGeneral">
-            <!-- Aquí JavaScript inyecta las tarjetas automáticamente -->
-        </div>
-    
-
-        <!-- Contenedor Desplazable del Árbol Jerárquico Hitos ➔ Acciones -->
-       <!-- REESTRUCTURACIÓN SPLIT-SCREEN (MAESTRO 62% - EXPEDIENTE EN VIVO 38%) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 overflow-hidden max-h-[76vh] bg-slate-100/50">
-        
-        <!-- COLUMNA IZQUIERDA (62%): TABLA DE HITOS Y ACCIONES -->
-        <div class="col-span-12 w-full overflow-y-auto pr-2 space-y-4 text-xs" id="cuerpoBaseDatosGeneral">
-            <!-- Inyección interactiva con JavaScript (tu función sigue inyectando aquí) -->
+            <!-- Aquí JavaScript inyecta las tarjetas automáticamente con su cédula técnica -->
         </div>
 
         <!-- Footer Informativo -->
