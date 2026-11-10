@@ -9950,24 +9950,24 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
     if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
 
     try {
-        var esLiderOAdmin = Boolean(currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || (currentUser.nombre || '').includes('Líder')));
+        var esLiderOAdmin = Boolean(typeof currentUser !== 'undefined' && currentUser && (currentUser.esAdmin || currentUser.rol === 'admin' || (currentUser.nombre || '').includes('Líder')));
         var misPaneles = (typeof currentUser !== 'undefined' && currentUser && currentUser.paneles_autorizados)
             ? currentUser.paneles_autorizados
             : ['B', 'D'];
 
-        var { data, error } = await supabaseClient
+        var res = await supabaseClient
             .from('solicitudes_auditoria')
             .select('*')
             .eq('tipo', 'SOLICITUD_VINCULACION');
 
-        if (error || !data) return;
+        if (res.error || !res.data) return;
 
-        // Si es Líder/Admin, ve en "Recibidas" todas las solicitudes PENDIENTES para poder autorizarlas
+        var data = res.data;
+
         if (esLiderOAdmin) {
             window.solicitudesRecibidas = data.filter(function(s) { return s.estatus === 'PENDIENTE'; });
             window.solicitudesEnviadas = data;
         } else {
-            // Usuario operativo
             window.solicitudesRecibidas = data.filter(function(s) {
                 var destino = s.panel_destino || '';
                 var esMiDestino = misPaneles.some(function(p) { return destino.includes(p); });
@@ -9979,9 +9979,9 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
             });
         }
 
-        var totalPendientes = window.solicitudesRecibidas.length;
+        var totalPendientes = (window.solicitudesRecibidas || []).length;
 
-        // A) Badge en el botón Avisos superior
+        // 1. Badge superior Avisos
         var btnAvisos = Array.from(document.querySelectorAll('button, a, div')).find(function(el) {
             var txt = (el.innerText || el.textContent || '').trim();
             return txt.includes('Avisos') && !el.closest('#modal-inicio') && !el.closest('#modal-bitacora-avisos');
@@ -10000,12 +10000,11 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
             }
         }
 
-        // B) Campanita / Banner inyectado en el menú inicial (Imagen 2)
+        // 2. Banner de inicio fijo
         var bannerExistente = document.getElementById('alerta-solicitudes-inicio-fija');
         if (bannerExistente) bannerExistente.remove();
 
         if (totalPendientes > 0) {
-            // Contenedor principal blanco del modal inicial
             var modalInicioCard = document.querySelector('#modal-inicio .bg-white') || 
                                   document.querySelector('#modal-inicio [class*="max-w-"]') ||
                                   document.querySelector('#modal-inicio');
@@ -10028,19 +10027,17 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
                         '<i class="fa-solid fa-inbox text-[10px]"></i> Ver Avisos' +
                     '</button>';
 
-                // Se inserta de manera fija arriba del botón "Centro Maestro"
-                var centroMaestro = modalInicioCard.querySelector('[class*="bg-amber"], [class*="bg-slate-900"], .grid') || modalInicioCard.children[1] || modalInicioCard.firstChild;
-                if (centroMaestro && centroMaestro.parentNode) {
-                    centroMaestro.parentNode.insertBefore(banner, centroMaestro);
+                var referencia = modalInicioCard.querySelector('[class*="bg-amber"], [class*="bg-slate-900"], .grid') || modalInicioCard.children[1] || modalInicioCard.firstChild;
+                if (referencia && referencia.parentNode) {
+                    referencia.parentNode.insertBefore(banner, referencia);
                 }
             }
         }
-
     } catch (err) {
         console.error('Error al actualizar avisos:', err);
     }
 };
-
+        
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(window.cargarNotificacionesVinculacionAuditoria, 1000);
     setInterval(window.cargarNotificacionesVinculacionAuditoria, 30000);
