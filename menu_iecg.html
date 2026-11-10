@@ -9521,7 +9521,7 @@ window.abrirBandejaNotificacionesVinculacion = function() {
 };
 
 window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArchivo, nombreArchivo, fileId, urlArchivo) {
-    if (!confirm('¿Confirmas la eliminación del archivo "' + nombreArchivo + '"?\n\nEsta acción lo desvinculará de la Base de Datos y lo enviará a la papelera de Google Drive.')) {
+    if (!confirm('¿Confirmas la eliminación definitiva del archivo "' + nombreArchivo + '"?\n\nEsta acción lo desvinculará de la Base de Datos y lo enviará a la papelera de Google Drive.')) {
         return;
     }
 
@@ -9530,10 +9530,11 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
         : null;
 
     if (!accionObj) {
-        alert('Error: No se encontró la acción en el dataset local.');
+        alert('Error: No se encontró la acción en memoria.');
         return;
     }
 
+    // 1. Extraer ID del archivo de Drive
     var idDriveReal = fileId;
     if (!idDriveReal && urlArchivo) {
         var matchDrive = urlArchivo.match(/[-\w]{25,}/);
@@ -9541,7 +9542,7 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
     }
 
     try {
-        // 1. Enviar orden a Google Apps Script para enviarlo a la papelera de Drive
+        // 2. ENVIAR A PAPELERA EN GOOGLE DRIVE (Vía Apps Script)
         if (typeof URL_APPS_SCRIPT_DRIVE !== 'undefined' && URL_APPS_SCRIPT_DRIVE) {
             fetch(URL_APPS_SCRIPT_DRIVE, {
                 method: 'POST',
@@ -9555,69 +9556,57 @@ window.confirmarEliminacionArchivoDrive = async function(idClaveAccion, indexArc
                     usuario: (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || currentUser.email) : 'Sistema'
                 })
             }).catch(function(err) {
-                console.warn('Aviso: Intento de borrado en Drive:', err);
+                console.warn('Aviso sobre Apps Script:', err);
             });
         }
 
-        // 2. Modificar el arreglo en la memoria local
-        var archivosActuales = Array.isArray(accionObj.archivosDrive) ? [...accionObj.archivosDrive] : [];
-        if (archivosActuales.length > indexArchivo) {
-            archivosActuales.splice(indexArchivo, 1);
-        } else if (accionObj.driveUrl) {
-            accionObj.driveUrl = '';
-        }
-        accionObj.archivosDrive = archivosActuales;
-
-        var nuevaUrlPrincipal = archivosActuales.length > 0 ? (archivosActuales[0].url || '') : '';
-        accionObj.driveUrl = nuevaUrlPrincipal;
-
-        // 3. Persistir en Supabase usando las columnas reales confirmadas
+        // 3. ELIMINACIÓN PERMANENTE EN SUPABASE
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
             
-            // A) Actualizar drive_url en acciones_transicion
-            var resAccion = await supabaseClient
+            // A) Borrar físicamente el registro en evidencias_expedientes usando sus columnas reales
+            var queryBorrado = supabaseClient.from('evidencias_expedientes').delete();
+
+            if (urlArchivo && urlArchivo !== '#' && urlArchivo.trim() !== '') {
+                // Borra por coincidencia exacta de la URL del archivo
+                await queryBorrado.eq('drive_url', urlArchivo.trim());
+            } else if (nombreArchivo) {
+                // Alternativa de seguridad si no hay URL directa
+                await queryBorrado
+                    .eq('clave_accion', idClaveAccion)
+                    .eq('nombre_archivo', nombreArchivo.trim());
+            }
+
+            // B) Reorganizar evidencias locales en memoria
+            var archivosActuales = Array.isArray(accionObj.archivosDrive) ? [...accionObj.archivosDrive] : [];
+            if (archivosActuales.length > indexArchivo) {
+                archivosActuales.splice(indexArchivo, 1);
+            }
+            accionObj.archivosDrive = archivosActuales;
+
+            // C) Actualizar la URL representativa en acciones_transicion
+            var nuevaUrlPrincipal = archivosActuales.length > 0 ? (archivosActuales[0].url || '') : null;
+            accionObj.drive_url = nuevaUrlPrincipal;
+            accionObj.driveUrl = nuevaUrlPrincipal;
+
+            await supabaseClient
                 .from('acciones_transicion')
                 .update({ 
                     drive_url: nuevaUrlPrincipal,
                     updated_at: new Date().toISOString()
                 })
                 .eq('clave_accion', idClaveAccion);
-
-            if (resAccion.error) {
-                console.error('Error al actualizar acciones_transicion:', resAccion.error);
-                alert('Aviso: ' + resAccion.error.message);
-                return;
-            }
-
-            // B) Si el archivo estaba en la tabla relacional de evidencias_expedientes, eliminar su fila
-            try {
-                if (idDriveReal) {
-                    await supabaseClient
-                        .from('evidencias_expedientes')
-                        .delete()
-                        .or('id_drive.eq.' + idDriveReal + ',url_drive.eq.' + urlArchivo);
-                } else if (urlArchivo) {
-                    await supabaseClient
-                        .from('evidencias_expedientes')
-                        .delete()
-                        .eq('url_drive', urlArchivo);
-                }
-            } catch (errEv) {
-                console.warn('Nota sobre tabla evidencias_expedientes:', errEv);
-            }
         }
 
-        // 4. Refrescar la vista en pantalla de inmediato
+        // 4. REFRESCAR VISTA INMEDIATA
         if (typeof renderBaseDatosGeneralJerarquica === 'function') {
             renderBaseDatosGeneralJerarquica();
         }
 
     } catch (e) {
-        console.error('Error general en la eliminación:', e);
-        alert('Ocurrió un error inesperado al procesar la eliminación: ' + e.message);
+        console.error('Error durante la eliminación:', e);
+        alert('Ocurrió un error al procesar la eliminación: ' + e.message);
     }
 };
-        
 </script>
 
     <!-- ========================================================================= -->
