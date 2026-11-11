@@ -6752,12 +6752,16 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     // =====================================================================
     // BIFURCACIÓN EXCLUSIVA PARA HITOS RECTORES (SIN DRIVE NI ACCIONES)
     // =====================================================================
+// =====================================================================
+    // BIFURCACIÓN EXCLUSIVA PARA HITOS RECTORES
+    // =====================================================================
     if (tipo === 'HITO') {
         if (!nuevoTitulo) {
             alert('El título del hito rector no puede quedar vacío.');
             return;
         }
-if (btnGuardar) {
+
+        if (btnGuardar) {
             btnGuardar.disabled = true;
             btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Hito Rector...';
         }
@@ -6770,37 +6774,145 @@ if (btnGuardar) {
                 ? document.getElementById('editItemPanel').value 
                 : 'I';
 
-            // 1. Sincronizar en la tabla real de acciones_transicion en Supabase (evita el 404)
+            // 1. Guardar en Supabase usando las columnas reales
             if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                await supabaseClient
+                var resSupabase = await supabaseClient
                     .from('acciones_transicion')
                     .update({ 
                         hito: nuevoTitulo,
-                        marco_legal: marcoLegal,
-                        panel: panelHito
+                        fundamento_juridico: marcoLegal,
+                        panel: panelHito,
+                        updated_at: new Date().toISOString()
                     })
                     .or('clave_hito.eq.' + claveOriginal + ',clave_accion.ilike.' + claveOriginal + '%');
+                
+                if (resSupabase.error) {
+                    console.error('Error Supabase Hito:', resSupabase.error);
+                }
             }
 
-            // 2. Actualizar en memoria local (accionesDataset) para que mapaHitos tome el nuevo nombre
+            // 2. Sincronizar memoria local (accionesDataset)
             if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
                 accionesDataset.forEach(function(a) {
                     var cAcc = (a.clave_accion || a.id || '').trim();
                     var cHito = (a.clave_hito || '').trim();
                     if (cHito === claveOriginal || cAcc.startsWith(claveOriginal)) {
                         a.hito = nuevoTitulo;
-                        if (marcoLegal) a.marco_legal = marcoLegal;
+                        a.fundamento_juridico = marcoLegal;
                     }
                 });
             }
 
-            // 3. Cerrar el modal
+            // 3. Cerrar modal y feedback
             if (typeof closeModal === 'function') {
                 closeModal('modal-edicion-dinamica');
             } else {
                 var m = document.getElementById('modal-edicion-dinamica');
                 if (m) m.classList.add('hidden');
             }
+
+            // 4. Refrescar el tablero en vivo
+            var selectFiltro = document.getElementById('filtroPanelBDGeneral');
+            if (selectFiltro) selectFiltro.dispatchEvent(new Event('change'));
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Hito Actualizado',
+                    text: 'Hito Rector propagado exitosamente en base de datos.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+
+        } catch (err) {
+            console.error('Error al guardar hito:', err);
+            alert('Error al guardar: ' + err.message);
+        } finally {
+            if (btnGuardar) {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
+            }
+        }
+        return; // Termina el flujo para hitos
+    }
+
+    // =====================================================================
+    // GUARDADO PARA ACCIÓN OPERATIVA (COLUMNAS EXACTAS DE SUPABASE)
+    // =====================================================================
+    var inputAvance = document.getElementById('inputAvancesSliderEdit');
+    var selectEstatus = document.getElementById('selectEstatusEdit');
+    var valAvance = inputAvance ? Number(inputAvance.value) : 0;
+    var valEstatus = selectEstatus ? selectEstatus.value : 'En Proceso';
+
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Acción...';
+    }
+
+    try {
+        // 1. Guardar en Supabase usando las columnas reales (accion_especifica, avance, etc.)
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            var resAcc = await supabaseClient
+                .from('acciones_transicion')
+                .update({
+                    accion_especifica: nuevoTitulo,
+                    avance: valAvance,
+                    avance_porcentaje: valAvance,
+                    estatus: valEstatus,
+                    updated_at: new Date().toISOString()
+                })
+                .or('clave_accion.eq.' + claveOriginal + ',id.eq.' + claveOriginal);
+
+            if (resAcc.error) {
+                console.error('Error Supabase Acción:', resAcc.error);
+            }
+        }
+
+        // 2. Sincronizar memoria local
+        if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
+            var itemMem = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
+            });
+            if (itemMem) {
+                itemMem.accion_especifica = nuevoTitulo;
+                itemMem.accion = nuevoTitulo;
+                itemMem.avance = valAvance;
+                itemMem.estatus = valEstatus;
+            }
+        }
+
+        // 3. Cerrar modal y feedback
+        if (typeof closeModal === 'function') {
+            closeModal('modal-edicion-dinamica');
+        } else {
+            var modalBox = document.getElementById('modal-edicion-dinamica');
+            if (modalBox) modalBox.classList.add('hidden');
+        }
+
+        // 4. Refrescar el tablero en vivo
+        var selFiltroAcc = document.getElementById('filtroPanelBDGeneral');
+        if (selFiltroAcc) selFiltroAcc.dispatchEvent(new Event('change'));
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Acción Actualizada',
+                text: 'Cambios guardados correctamente en la base de datos.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+    } catch (errAcc) {
+        console.error('Error al guardar acción:', errAcc);
+        alert('Error al guardar acción: ' + errAcc.message);
+    } finally {
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
+        }
+    }
 
             // 4. Re-renderizar de inmediato el tablero disparando los filtros del panel
             var selectFiltro = document.getElementById('filtroPanelBDGeneral');
