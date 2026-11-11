@@ -8152,16 +8152,17 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         // Ocultar campos exclusivos de acción
         if (bloqueAccion) bloqueAccion.classList.add('hidden');
         // Ocultar slider de avance manual y estatus normativo (el avance es derivado matemático)
+       // Ocultar slider manual de avance y estatus normativo de forma segura
         var sliderAvance = document.getElementById('inputAvancesSliderEdit');
         if (sliderAvance) {
-            var contSlider = sliderAvance.closest('div.flex') || sliderAvance.closest('div') || sliderAvance.parentElement;
-            if (contSlider) contSlider.classList.add('hidden');
+            var rowSlider = sliderAvance.closest('.flex.items-center') || sliderAvance.parentElement;
+            if (rowSlider) rowSlider.style.display = 'none';
         }
 
         var selEstatus = document.getElementById('selectEstatusEdit');
         if (selEstatus) {
-            var contEstatus = selEstatus.closest('div') || selEstatus.parentElement;
-            if (contEstatus) contEstatus.classList.add('hidden');
+            var colEstatus = selEstatus.parentElement;
+            if (colEstatus) colEstatus.style.display = 'none';
         }
 
         // Ocultar etiquetas de avance manual dentro del modal
@@ -8240,15 +8241,16 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         if (bloqueAccion) bloqueAccion.classList.remove('hidden');
 
         // Restaurar slider y estatus para acciones operativas
-        var sliderAvanceAcc = document.getElementById('inputAvancesSliderEdit');
+var sliderAvanceAcc = document.getElementById('inputAvancesSliderEdit');
         if (sliderAvanceAcc) {
-            var contSliderAcc = sliderAvanceAcc.closest('div.flex') || sliderAvanceAcc.closest('div') || sliderAvanceAcc.parentElement;
-            if (contSliderAcc) contSliderAcc.classList.remove('hidden');
+            var rowSliderAcc = sliderAvanceAcc.closest('.flex.items-center') || sliderAvanceAcc.parentElement;
+            if (rowSliderAcc) rowSliderAcc.style.display = '';
         }
+
         var selEstatusAcc = document.getElementById('selectEstatusEdit');
         if (selEstatusAcc) {
-            var contEstatusAcc = selEstatusAcc.closest('div') || selEstatusAcc.parentElement;
-            if (contEstatusAcc) contEstatusAcc.classList.remove('hidden');
+            var colEstatusAcc = selEstatusAcc.parentElement;
+            if (colEstatusAcc) colEstatusAcc.style.display = '';
         }
 
         // Restaurar etiquetas visibles en acciones
