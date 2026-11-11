@@ -6749,6 +6749,87 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var nuevoTitulo = document.getElementById('inputTituloEdit') ? document.getElementById('inputTituloEdit').value.trim() : '';
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
+    // =====================================================================
+    // BIFURCACIÓN EXCLUSIVA PARA HITOS RECTORES (SIN DRIVE NI ACCIONES)
+    // =====================================================================
+    if (tipo === 'HITO') {
+        if (!nuevoTitulo) {
+            alert('El título del hito rector no puede quedar vacío.');
+            return;
+        }
+
+        if (btnGuardar) {
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Hito Rector...';
+        }
+
+        try {
+            var marcoLegal = document.getElementById('selMarcoLegalEditDinamico') 
+                ? document.getElementById('selMarcoLegalEditDinamico').value 
+                : 'Decreto 345 - Extinción IEC';
+            var panelHito = document.getElementById('editItemPanel') 
+                ? document.getElementById('editItemPanel').value 
+                : 'A';
+
+            // Actualizar en base de datos Supabase
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                const { error: errHito } = await supabaseClient
+                    .from('hitos_rector')
+                    .update({
+                        descripcion: nuevoTitulo,
+                        hito: nuevoTitulo,
+                        marco_legal: marcoLegal,
+                        panel: panelHito,
+                        ultima_modificacion: new Date().toISOString()
+                    })
+                    .eq('clave_hito', claveOriginal);
+
+                // Si no existe la tabla hitos_rector, sincroniza el texto en la tabla acciones sin alterar entregables
+                if (errHito) {
+                    await supabaseClient
+                        .from('acciones_transicion')
+                        .update({ hito: nuevoTitulo })
+                        .eq('clave_hito', claveOriginal);
+                }
+            }
+
+            // Actualizar reflejo en memoria local
+            if (typeof accionesDataset !== 'undefined') {
+                accionesDataset.forEach(function(a) {
+                    if (a.clave_hito === claveOriginal || a.id === claveOriginal) {
+                        a.hito = nuevoTitulo;
+                    }
+                });
+            }
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Hito Actualizado',
+                    text: 'El Hito Rector [' + claveOriginal + '] se actualizó correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert('Hito Rector [' + claveOriginal + '] actualizado con éxito.');
+            }
+
+            closeModal('modal-edicion-dinamica');
+            if (typeof renderizarTablaUniversal === 'function') renderizarTablaUniversal();
+            if (typeof renderizarHitosVistaGeneral === 'function') renderizarHitosVistaGeneral();
+
+        } catch (err) {
+            console.error('Error al actualizar hito:', err);
+            alert('Error al guardar el hito: ' + err.message);
+        } finally {
+            if (btnGuardar) {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
+            }
+        }
+        return; // IMPORTANTE: Termina aquí y evita que se ejecute la subida a Drive de abajo
+    }
+
     if (btnGuardar) {
         btnGuardar.disabled = true;
         btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Consultando registros y subiendo a Drive...';
@@ -8016,12 +8097,13 @@ function manejarCambioExternaBaseEdit(selectEl) {
     }
 }
 
-// 4. Poblado inteligente al abrir el Modal de Edición desde la Base de Datos
 // =========================================================================
 // 4. POBLADO INTELIGENTE Y CLAVE CANÓNICA AUTOMÁTICA EN MODAL DE EDICIÓN
 // =========================================================================
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var modal = document.getElementById('modal-edicion-dinamica');
+    if (!modal) return;
+
     var inputTipo = document.getElementById('editItemTipo');
     var inputClave = document.getElementById('editItemClave');
     var inputPanel = document.getElementById('editItemPanel');
@@ -8031,73 +8113,129 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var txtTitulo = document.getElementById('inputTituloEdit');
     var bloqueAccion = document.getElementById('bloqueCamposAccion');
     var txtMotivo = document.getElementById('inputMotivoEdit');
+    var selInstancia = document.getElementById('selectInstanciaResponsableBaseEdit');
 
-    if (!modal) return;
     if (txtMotivo) txtMotivo.value = '';
-
     if (inputTipo) inputTipo.value = tipo;
     if (inputClave) inputClave.value = claveId;
     if (lblClave) lblClave.innerText = claveId;
 
+    // Detectar panel de la sesión activa
+    var miPanel = 'A';
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        if (currentUser.paneles_autorizados && currentUser.paneles_autorizados.length > 0) {
+            miPanel = currentUser.paneles_autorizados[0];
+        } else if (currentUser.panel) {
+            miPanel = currentUser.panel;
+        }
+    }
+
     if (tipo === 'HITO') {
-        var hitoItems = accionesDataset.filter(function(a) {
-            return (a.clave_hito === claveId) || a.id.startsWith(claveId) || a.id === claveId;
+        var hitoItems = (typeof accionesDataset !== 'undefined' ? accionesDataset : []).filter(function(a) {
+            return (a.clave_hito === claveId) || (a.id && a.id.startsWith(claveId)) || a.id === claveId;
         });
         var item = hitoItems[0] || {};
 
-        if (inputPanel) inputPanel.value = item.panel || 'A';
-        if (lblPanel) lblPanel.innerText = 'Panel ' + (item.panel || 'A') + ' (' + (item.area || '') + ')';
+        var panelFinal = item.panel || miPanel;
+        if (inputPanel) inputPanel.value = panelFinal;
+        if (lblPanel) lblPanel.innerText = 'Panel ' + panelFinal + ' (' + (item.area || 'Coordinación') + ')';
         if (lblTitulo) lblTitulo.innerText = 'Título Oficial del Hito Normativo:';
-        if (txtTitulo) txtTitulo.value = item.hito || '';
-        
+        if (txtTitulo) txtTitulo.value = item.hito || item.descripcion || '';
+
+        // Ocultar campos exclusivos de acción
         if (bloqueAccion) bloqueAccion.classList.add('hidden');
+
+        // Badge y Título
         var badge = document.getElementById('badgeTipoEdicion');
-        if (badge) badge.innerText = 'MODIFICACIÓN DE HITO NORMATIVO';
-        var tit = document.getElementById('tituloEdicionDinamica');
-        if (tit) tit.innerText = 'Gestión del Hito [' + claveId + ']';
-    } else {
-        var act = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveId) || (a.id === claveId) || (a.clave_hito === claveId);
-        });
-        if (!act) {
-            act = accionesDataset.find(function(a) {
-                return (a.id && a.id.includes(claveId)) || (a.clave_accion && a.clave_accion.includes(claveId));
-            });
+        if (badge) {
+            badge.innerText = 'MODIFICACIÓN DE HITO RECTOR';
+            badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300';
         }
+        var tit = document.getElementById('tituloEdicionDinamica');
+        if (tit) tit.innerText = 'Gestión del Hito Rector [' + claveId + ']';
+
+        // 1. RESTRINGIR INSTANCIA EJECUTORA AL PANEL DEL USUARIO
+        if (selInstancia) {
+            for (var i = 0; i < selInstancia.options.length; i++) {
+                if (selInstancia.options[i].value.startsWith(panelFinal) || selInstancia.options[i].text.includes('Panel ' + panelFinal)) {
+                    selInstancia.selectedIndex = i;
+                    break;
+                }
+            }
+            var esAdmin = typeof currentUser !== 'undefined' && currentUser && (currentUser.esAdmin || currentUser.rol === 'admin');
+            selInstancia.disabled = !esAdmin;
+        }
+
+        // 2. OCULTAR EVIDENCIA DOCUMENTAL (GOOGLE DRIVE)
+        var botonesDrive = modal.querySelectorAll('button[onclick*="Drive"], button[onclick*="Archivo"], [id*="evidencia"], [class*="border-dashed"]');
+        botonesDrive.forEach(function(b) {
+            var box = b.closest('div.border') || b.closest('.space-y-3') || b.parentElement;
+            if (box) box.classList.add('hidden');
+        });
+
+        // 3. MOSTRAR SELECTOR DE MARCO LEGAL
+        var marcoBox = document.getElementById('bloqueMarcoLegalDinamico');
+        if (!marcoBox) {
+            marcoBox = document.createElement('div');
+            marcoBox.id = 'bloqueMarcoLegalDinamico';
+            marcoBox.className = 'w-full mb-3 text-left';
+            marcoBox.innerHTML = 
+                '<label class="block text-xs font-black uppercase text-indigo-900 mb-1 flex items-center gap-1.5">' +
+                    '<i class="fa-solid fa-scale-balanced text-indigo-600"></i> Marco Legal / Fundamento Jurídico:' +
+                '</label>' +
+                '<select id="selMarcoLegalEditDinamico" class="w-full text-xs font-bold p-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">' +
+                    '<option value="Decreto 345 - Extinción IEC">Decreto 345 - Extinción IEC y Transferencia a SECUL</option>' +
+                    '<option value="Lineamientos Liquidación IEC">Lineamientos Generales del Proceso de Liquidación</option>' +
+                    '<option value="Lineamientos Comités Entrega">Lineamientos para Comités de Entrega-Recepción</option>' +
+                    '<option value="Ley del Patrimonio Inmobiliario Estatal">Ley del Patrimonio Inmobiliario del Estado de Guanajuato</option>' +
+                '</select>';
+            if (txtTitulo && txtTitulo.parentElement) {
+                txtTitulo.parentElement.parentNode.insertBefore(marcoBox, txtTitulo.parentElement.nextSibling);
+            }
+        } else {
+            marcoBox.classList.remove('hidden');
+        }
+
+    } else {
+        // MODO ACCIÓN (Restablecer comportamiento por defecto)
+        var act = accionesDataset.find(function(a) {
+            return (a.clave_accion === claveId) || (a.id === claveId);
+        });
         if (!act) return;
 
         if (inputPanel) inputPanel.value = act.panel || 'A';
-        if (lblPanel) lblPanel.innerText = 'Panel ' + act.panel + ' (' + act.area + ')';
+        if (lblPanel) lblPanel.innerText = 'Panel ' + (act.panel || 'A') + ' (' + (act.area || '') + ')';
         if (lblTitulo) lblTitulo.innerText = 'Descripción de la Acción / Entregable Específico:';
         if (txtTitulo) txtTitulo.value = act.accion || '';
 
-        var elResp = document.getElementById('inputRespEdit');
-        if (elResp) elResp.value = act.responsable || '';
-        var elEst = document.getElementById('selectEstatusEdit');
-        if (elEst) elEst.value = act.estatus || 'En Proceso';
-        var elSlider = document.getElementById('inputAvanceSliderEdit');
-        if (elSlider) elSlider.value = act.avance || 0;
-        var elLblAvance = document.getElementById('labelAvanceSliderEdit');
-        if (elLblAvance) elLblAvance.innerText = (act.avance || 0) + '%';
-
         if (bloqueAccion) bloqueAccion.classList.remove('hidden');
-        var badge2 = document.getElementById('badgeTipoEdicion');
-        if (badge2) badge2.innerText = 'MODIFICACIÓN DE ACCIÓN OPERATIVA';
-        var tit2 = document.getElementById('tituloEdicionDinamica');
-        if (tit2) tit2.innerText = 'Gestión de Acción [' + claveId + ']';
+
+        var badgeAcc = document.getElementById('badgeTipoEdicion');
+        if (badgeAcc) {
+            badgeAcc.innerText = 'EDICIÓN DE ACCIÓN OPERATIVA';
+            badgeAcc.className = 'px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300';
+        }
+        var titAcc = document.getElementById('tituloEdicionDinamica');
+        if (titAcc) titAcc.innerText = 'Gestión de Acción [' + claveId + ']';
+
+        if (selInstancia) selInstancia.disabled = false;
+
+        // Mostrar botones de Drive
+        var botonesDriveAcc = modal.querySelectorAll('button[onclick*="Drive"], button[onclick*="Archivo"], [id*="evidencia"], [class*="border-dashed"]');
+        botonesDriveAcc.forEach(function(b) {
+            var box = b.closest('div.border') || b.closest('.space-y-3') || b.parentElement;
+            if (box) box.classList.remove('hidden');
+        });
+
+        // Ocultar marco legal en acciones
+        var marcoBoxAcc = document.getElementById('bloqueMarcoLegalDinamico');
+        if (marcoBoxAcc) marcoBoxAcc.classList.add('hidden');
     }
 
-    // Configurar la Clave Canónica Automática (bloqueada por defecto)
-    const inputClaveCanonica = document.getElementById('inputClaveCanonicaEditable');
-    if (inputClaveCanonica) {
-        inputClaveCanonica.value = claveId;
-        inputClaveCanonica.readOnly = true;
-        inputClaveCanonica.style.backgroundColor = '#f1f5f9';
-        inputClaveCanonica.style.cursor = 'not-allowed';
-    }
-
-    openModal('modal-edicion-dinamica');
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
 };
+        
 // 5. Guardar y propagar en todo el sistema (gráficas, tarjetas, cronogramas y tablas)
 
         window.mostrarArchivosSeleccionadosBase = function(inputEl) {
