@@ -6757,8 +6757,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             alert('El título del hito rector no puede quedar vacío.');
             return;
         }
-
-        if (btnGuardar) {
+if (btnGuardar) {
             btnGuardar.disabled = true;
             btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Hito Rector...';
         }
@@ -6769,65 +6768,73 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 : 'Decreto 345 - Extinción IEC';
             var panelHito = document.getElementById('editItemPanel') 
                 ? document.getElementById('editItemPanel').value 
-                : 'A';
+                : 'I';
 
-            // Actualizar en base de datos Supabase
+            // 1. Sincronizar en la tabla real de acciones_transicion en Supabase (evita el 404)
             if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                const { error: errHito } = await supabaseClient
-                    .from('hitos_rector')
-                    .update({
-                        descripcion: nuevoTitulo,
+                await supabaseClient
+                    .from('acciones_transicion')
+                    .update({ 
                         hito: nuevoTitulo,
                         marco_legal: marcoLegal,
-                        panel: panelHito,
-                        ultima_modificacion: new Date().toISOString()
+                        panel: panelHito
                     })
-                    .eq('clave_hito', claveOriginal);
-
-                // Si no existe la tabla hitos_rector, sincroniza el texto en la tabla acciones sin alterar entregables
-                if (errHito) {
-                    await supabaseClient
-                        .from('acciones_transicion')
-                        .update({ hito: nuevoTitulo })
-                        .eq('clave_hito', claveOriginal);
-                }
+                    .or('clave_hito.eq.' + claveOriginal + ',clave_accion.ilike.' + claveOriginal + '%');
             }
 
-            // Actualizar reflejo en memoria local
-            if (typeof accionesDataset !== 'undefined') {
+            // 2. Actualizar en memoria local (accionesDataset) para que mapaHitos tome el nuevo nombre
+            if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
                 accionesDataset.forEach(function(a) {
-                    if (a.clave_hito === claveOriginal || a.id === claveOriginal) {
+                    var cAcc = (a.clave_accion || a.id || '').trim();
+                    var cHito = (a.clave_hito || '').trim();
+                    if (cHito === claveOriginal || cAcc.startsWith(claveOriginal)) {
                         a.hito = nuevoTitulo;
+                        if (marcoLegal) a.marco_legal = marcoLegal;
                     }
                 });
+            }
+
+            // 3. Cerrar el modal
+            if (typeof closeModal === 'function') {
+                closeModal('modal-edicion-dinamica');
+            } else {
+                var m = document.getElementById('modal-edicion-dinamica');
+                if (m) m.classList.add('hidden');
+            }
+
+            // 4. Re-renderizar de inmediato el tablero disparando los filtros del panel
+            var selectFiltro = document.getElementById('filtroPanelBDGeneral');
+            if (selectFiltro) {
+                selectFiltro.dispatchEvent(new Event('change'));
+            }
+            var buscador = document.getElementById('buscadorBDGeneral');
+            if (buscador) {
+                buscador.dispatchEvent(new Event('input'));
             }
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Hito Actualizado',
-                    text: 'El Hito Rector [' + claveOriginal + '] se actualizó correctamente.',
-                    timer: 2000,
+                    text: 'Título modificado y propagado correctamente.',
+                    timer: 1500,
                     showConfirmButton: false
                 });
             } else {
-                alert('Hito Rector [' + claveOriginal + '] actualizado con éxito.');
+                alert('Hito Rector actualizado correctamente.');
             }
 
-            closeModal('modal-edicion-dinamica');
-            if (typeof renderizarTablaUniversal === 'function') renderizarTablaUniversal();
-            if (typeof renderizarHitosVistaGeneral === 'function') renderizarHitosVistaGeneral();
-
         } catch (err) {
-            console.error('Error al actualizar hito:', err);
-            alert('Error al guardar el hito: ' + err.message);
+            console.error('Error al guardar hito:', err);
+            alert('Error al guardar: ' + err.message);
         } finally {
             if (btnGuardar) {
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
             }
         }
-        return; // IMPORTANTE: Termina aquí y evita que se ejecute la subida a Drive de abajo
+        return;
+        
     }
 
     if (btnGuardar) {
@@ -8144,6 +8151,28 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
 
         // Ocultar campos exclusivos de acción
         if (bloqueAccion) bloqueAccion.classList.add('hidden');
+        // Ocultar slider de avance manual y estatus normativo (el avance es derivado matemático)
+        var sliderAvance = document.getElementById('inputAvancesSliderEdit');
+        if (sliderAvance) {
+            var contSlider = sliderAvance.closest('div.flex') || sliderAvance.closest('div') || sliderAvance.parentElement;
+            if (contSlider) contSlider.classList.add('hidden');
+        }
+
+        var selEstatus = document.getElementById('selectEstatusEdit');
+        if (selEstatus) {
+            var contEstatus = selEstatus.closest('div') || selEstatus.parentElement;
+            if (contEstatus) contEstatus.classList.add('hidden');
+        }
+
+        // Ocultar etiquetas de avance manual dentro del modal
+        if (modal) {
+            modal.querySelectorAll('label, span, div, p').forEach(function(el) {
+                if (el.innerText && (el.innerText.includes('Porcentaje de Avance') || el.innerText.includes('Estatus Normativo:'))) {
+                    var box = el.closest('div');
+                    if (box) box.classList.add('hidden');
+                }
+            });
+        }
 
         // Badge y Título
         var badge = document.getElementById('badgeTipoEdicion');
@@ -8209,6 +8238,28 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         if (txtTitulo) txtTitulo.value = act.accion || '';
 
         if (bloqueAccion) bloqueAccion.classList.remove('hidden');
+
+        // Restaurar slider y estatus para acciones operativas
+        var sliderAvanceAcc = document.getElementById('inputAvancesSliderEdit');
+        if (sliderAvanceAcc) {
+            var contSliderAcc = sliderAvanceAcc.closest('div.flex') || sliderAvanceAcc.closest('div') || sliderAvanceAcc.parentElement;
+            if (contSliderAcc) contSliderAcc.classList.remove('hidden');
+        }
+        var selEstatusAcc = document.getElementById('selectEstatusEdit');
+        if (selEstatusAcc) {
+            var contEstatusAcc = selEstatusAcc.closest('div') || selEstatusAcc.parentElement;
+            if (contEstatusAcc) contEstatusAcc.classList.remove('hidden');
+        }
+
+        // Restaurar etiquetas visibles en acciones
+        if (modal) {
+            modal.querySelectorAll('label, span, div, p').forEach(function(el) {
+                if (el.innerText && (el.innerText.includes('Porcentaje de Avance') || el.innerText.includes('Estatus Normativo:'))) {
+                    var box = el.closest('div');
+                    if (box) box.classList.remove('hidden');
+                }
+            });
+        }
 
         var badgeAcc = document.getElementById('badgeTipoEdicion');
         if (badgeAcc) {
