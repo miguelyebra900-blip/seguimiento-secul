@@ -6927,7 +6927,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                     showConfirmButton: false
                 });
             }
-
         } catch (err) {
             console.error('Error al guardar hito:', err);
             alert('Error al guardar: ' + err.message);
@@ -6938,15 +6937,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             }
         }
         
-        return;
-        
-    }
-
-    if (btnGuardar) {
-        btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Consultando registros y subiendo a Drive...';
-    }
-
     try {
         var actExistente = accionesDataset.find(function(a) {
             return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
