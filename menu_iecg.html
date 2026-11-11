@@ -6752,6 +6752,9 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     // =====================================================================
     // 1. CASO: EDICIÓN EXCLUSIVA DE HITO RECTOR
     // =====================================================================
+ // =====================================================================
+    // 1. CASO: EDICIÓN EXCLUSIVA DE HITO RECTOR (TABLA hitos_transicion)
+    // =====================================================================
     if (tipo === 'HITO') {
         if (!nuevoTitulo) {
             alert('El título del hito rector no puede quedar vacío.');
@@ -6770,25 +6773,45 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             var panelHito = document.getElementById('editItemPanel') 
                 ? document.getElementById('editItemPanel').value 
                 : 'I';
+            
+            // Campos adicionales de la cédula del hito
+            var detalleOp = document.getElementById('editDetalleOperativo') 
+                ? document.getElementById('editDetalleOperativo').value.trim() 
+                : '';
+            var riesgoVinc = document.getElementById('editRiesgoVinculado') 
+                ? document.getElementById('editRiesgoVinculado').value 
+                : '';
 
-            // Actualización en Supabase (tabla acciones_transicion)
+            // 1. PERSISTENCIA REAL EN SUPABASE: TABLA hitos_transicion
             if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                var resSupabase = await supabaseClient
+                // Actualizar el Hito Padre
+                var resHitoDB = await supabaseClient
+                    .from('hitos_transicion')
+                    .update({ 
+                        titulo: nuevoTitulo,
+                        norma_fundamento: marcoLegal,
+                        detalle_operativo: detalleOp || nuevoTitulo,
+                        panel: panelHito,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('clave_hito', claveOriginal);
+
+                if (resHitoDB.error) {
+                    console.error('Error Supabase hitos_transicion:', resHitoDB.error);
+                }
+
+                // Actualizar en cascada el campo hito en acciones_transicion
+                await supabaseClient
                     .from('acciones_transicion')
                     .update({ 
                         hito: nuevoTitulo,
                         fundamento_juridico: marcoLegal,
-                        panel: panelHito,
                         updated_at: new Date().toISOString()
                     })
                     .or('clave_hito.eq.' + claveOriginal + ',clave_accion.ilike.' + claveOriginal + '%');
-
-                if (resSupabase.error) {
-                    console.error('Error Supabase Hito:', resSupabase.error);
-                }
             }
 
-            // Sincronizar memoria local
+            // 2. Sincronizar memoria local en vivo
             if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
                 accionesDataset.forEach(function(a) {
                     var cAcc = (a.clave_accion || a.id || '').trim();
@@ -6801,7 +6824,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 if (typeof guardarDataset === 'function') guardarDataset();
             }
 
-            // Cerrar modal
+            // 3. Cerrar modal
             if (typeof closeModal === 'function') {
                 closeModal('modal-edicion-dinamica');
             } else {
@@ -6812,21 +6835,24 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
-            // Refrescar vistas
-            if (typeof actualizarDashboard === 'function') actualizarDashboard();
-            var selectFiltro = document.getElementById('filtroPanelBDGeneral');
-            if (selectFiltro) selectFiltro.dispatchEvent(new Event('change'));
+            // 4. Refrescar vistas
+            if (typeof inicializarDatosDesdeSupabase === 'function') {
+                await inicializarDatosDesdeSupabase();
+            } else {
+                if (typeof actualizarDashboard === 'function') actualizarDashboard();
+                if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+            }
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Hito Actualizado',
-                    text: 'Título modificado y persistido correctamente en Supabase.',
+                    text: 'Título del hito rector guardado permanentemente en la base de datos.',
                     timer: 1500,
                     showConfirmButton: false
                 });
             } else {
-                alert('Hito Rector actualizado correctamente.');
+                alert('Hito Rector actualizado permanentemente.');
             }
 
         } catch (err) {
