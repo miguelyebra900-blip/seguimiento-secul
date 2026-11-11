@@ -6738,7 +6738,7 @@ window.abrirExpedienteODrivePanel = function(idClave, panelLetra) {
 // FUNCIÓN DE GUARDADO UNIFICADA CON SUFIJOS EN GOOGLE DRIVE (-0.001, -0.002)
 // =========================================================================
 window.guardarFormularioEdicionDinamica = async function(e) {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
     var tipo = document.getElementById('editItemTipo') ? document.getElementById('editItemTipo').value : 'HITO';
     var claveOriginal = document.getElementById('editItemClave') ? document.getElementById('editItemClave').value.trim() : '';
@@ -6750,13 +6750,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     var btnGuardar = document.getElementById('btnGuardarEdicionDinamica');
 
     // =====================================================================
-    // BIFURCACIÓN EXCLUSIVA PARA HITOS RECTORES (SIN DRIVE NI ACCIONES)
-    // =====================================================================
-// =====================================================================
-    // BIFURCACIÓN EXCLUSIVA PARA HITOS RECTORES
-    // =====================================================================
- // =====================================================================
-    // BIFURCACIÓN EXCLUSIVA PARA HITOS RECTORES
+    // 1. CASO: EDICIÓN EXCLUSIVA DE HITO RECTOR
     // =====================================================================
     if (tipo === 'HITO') {
         if (!nuevoTitulo) {
@@ -6777,7 +6771,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 ? document.getElementById('editItemPanel').value 
                 : 'I';
 
-            // 1. Persistencia directa en Supabase (tabla acciones_transicion)
+            // Actualización en Supabase (tabla acciones_transicion)
             if (typeof supabaseClient !== 'undefined' && supabaseClient) {
                 var resSupabase = await supabaseClient
                     .from('acciones_transicion')
@@ -6794,7 +6788,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
-            // 2. Actualizar memoria local en vivo
+            // Sincronizar memoria local
             if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
                 accionesDataset.forEach(function(a) {
                     var cAcc = (a.clave_accion || a.id || '').trim();
@@ -6804,24 +6798,24 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                         a.fundamento_juridico = marcoLegal;
                     }
                 });
+                if (typeof guardarDataset === 'function') guardarDataset();
             }
 
-            // 3. Cerrar modal de edición
-            var modalBox = document.getElementById('modal-edicion-dinamica');
-            if (modalBox) {
-                modalBox.classList.add('hidden');
-                modalBox.style.display = 'none';
+            // Cerrar modal
+            if (typeof closeModal === 'function') {
+                closeModal('modal-edicion-dinamica');
+            } else {
+                var modalBox = document.getElementById('modal-edicion-dinamica');
+                if (modalBox) {
+                    modalBox.classList.add('hidden');
+                    modalBox.style.display = 'none';
+                }
             }
 
-            // 4. Refrescar el tablero en vivo sin recargar
+            // Refrescar vistas
+            if (typeof actualizarDashboard === 'function') actualizarDashboard();
             var selectFiltro = document.getElementById('filtroPanelBDGeneral');
-            if (selectFiltro) {
-                selectFiltro.dispatchEvent(new Event('change'));
-            }
-            var buscador = document.getElementById('buscadorBDGeneral');
-            if (buscador) {
-                buscador.dispatchEvent(new Event('input'));
-            }
+            if (selectFiltro) selectFiltro.dispatchEvent(new Event('change'));
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
@@ -6844,286 +6838,114 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
             }
         }
-        return; // Detiene el flujo para que no ejecute el código de acción
-    }
-
-    // =====================================================================
-    // GUARDADO PARA ACCIÓN OPERATIVA (COLUMNAS EXACTAS DE SUPABASE)
-    // =====================================================================
-    var inputAvance = document.getElementById('inputAvancesSliderEdit');
-    var selectEstatus = document.getElementById('selectEstatusEdit');
-    var valAvance = inputAvance ? Number(inputAvance.value) : 0;
-    var valEstatus = selectEstatus ? selectEstatus.value : 'En Proceso';
-
-    if (btnGuardar) {
-        btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Acción...';
-    }
-
-    try {
-        // 1. Guardar en Supabase usando accion_especifica, avance y estatus
-        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            var resAcc = await supabaseClient
-                .from('acciones_transicion')
-                .update({
-                    accion_especifica: nuevoTitulo,
-                    avance: valAvance,
-                    avance_porcentaje: valAvance,
-                    estatus: valEstatus,
-                    updated_at: new Date().toISOString()
-                })
-                .or('clave_accion.eq.' + claveOriginal + ',id.eq.' + claveOriginal);
-
-            if (resAcc.error) {
-                console.error('Error Supabase Acción:', resAcc.error);
-            }
-        }
-
-        // 2. Sincronizar memoria local en vivo
-        if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
-            var itemMem = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
-            });
-            if (itemMem) {
-                itemMem.accion_especifica = nuevoTitulo;
-                itemMem.accion = nuevoTitulo;
-                itemMem.avance = valAvance;
-                itemMem.estatus = valEstatus;
-            }
-        }
-
-        // 3. Cerrar modal
-        var modalBoxAcc = document.getElementById('modal-edicion-dinamica');
-        if (modalBoxAcc) {
-            modalBoxAcc.classList.add('hidden');
-            modalBoxAcc.style.display = 'none';
-        }
-
-        // 4. Refrescar el tablero en vivo
-     var selectFiltro = document.getElementById('filtroPanelBDGeneral');
-            if (selectFiltro) {
-                selectFiltro.dispatchEvent(new Event('change'));
-            }
-
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Hito Actualizado',
-                    text: 'Título modificado y propagado correctamente en la base de datos.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            } else {
-                alert('Hito Rector actualizado correctamente.');
-            }
-        } catch (err) {
-            console.error('Error al guardar hito:', err);
-            alert('Error al guardar: ' + (err.message || err));
-        } finally {
-        
-        if (btnGuardar) {
-                btnGuardar.disabled = false;
-                btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
-            }
-        }
         return;
     }
-    // =====================================================================
-    // GUARDADO PARA ACCIÓN OPERATIVA (COLUMNAS EXACTAS DE SUPABASE)
-    // =====================================================================
-    var inputAvance = document.getElementById('inputAvancesSliderEdit');
-    var selectEstatus = document.getElementById('selectEstatusEdit');
-    var valAvance = inputAvance ? Number(inputAvance.value) : 0;
-    var valEstatus = selectEstatus ? selectEstatus.value : 'En Proceso';
 
+    // =====================================================================
+    // 2. CASO: EDICIÓN DE ACCIÓN OPERATIVA CON EVIDENCIAS EN DRIVE
+    // =====================================================================
     if (btnGuardar) {
         btnGuardar.disabled = true;
         btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Acción...';
     }
 
     try {
-        // 1. Guardar en Supabase usando las columnas reales (accion_especifica, avance, etc.)
-        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            var resAcc = await supabaseClient
-                .from('acciones_transicion')
-                .update({
-                    accion_especifica: nuevoTitulo,
-                    avance: valAvance,
-                    avance_porcentaje: valAvance,
-                    estatus: valEstatus,
-                    updated_at: new Date().toISOString()
-                })
-                .or('clave_accion.eq.' + claveOriginal + ',id.eq.' + claveOriginal);
-
-            if (resAcc.error) {
-                console.error('Error Supabase Acción:', resAcc.error);
-            }
-        }
-
-        // 2. Sincronizar memoria local
+        var actExistente = null;
         if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
-            var itemMem = accionesDataset.find(function(a) {
-                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal);
-            });
-            if (itemMem) {
-                itemMem.accion_especifica = nuevoTitulo;
-                itemMem.accion = nuevoTitulo;
-                itemMem.avance = valAvance;
-                itemMem.estatus = valEstatus;
-            }
-        }
-
-        // 3. Cerrar modal y feedback
-        if (typeof closeModal === 'function') {
-            closeModal('modal-edicion-dinamica');
-        } else {
-            var modalBox = document.getElementById('modal-edicion-dinamica');
-            if (modalBox) modalBox.classList.add('hidden');
-        }
-
-        // 4. Refrescar el tablero en vivo
-        var selFiltroAcc = document.getElementById('filtroPanelBDGeneral');
-        if (selFiltroAcc) selFiltroAcc.dispatchEvent(new Event('change'));
-
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Acción Actualizada',
-                text: 'Cambios guardados correctamente en la base de datos.',
-                timer: 1500,
-                showConfirmButton: false
+            actExistente = accionesDataset.find(function(a) {
+                return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
             });
         }
 
-    } catch (errAcc) {
-        console.error('Error al guardar acción:', errAcc);
-        alert('Error al guardar acción: ' + errAcc.message);
-   
-// 4. Re-renderizar de inmediato el tablero disparando los filtros del panel
-            var selectFiltro = document.getElementById('filtroPanelBDGeneral');
-            if (selectFiltro) {
-                selectFiltro.dispatchEvent(new Event('change'));
-            }
-            var buscador = document.getElementById('buscadorBDGeneral');
-            if (buscador) {
-                buscador.dispatchEvent(new Event('input'));
-            }
+        var panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Hito Actualizado',
-                    text: 'Título modificado y propagado correctamente.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            }
-        } catch (err) {
-            console.error('Error al guardar hito:', err);
-            alert('Error al guardar: ' + err.message);
-        } finally {
-            if (btnGuardar) {
-                btnGuardar.disabled = false;
-                btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
-            }
-        }
-        
-    try {
-        var actExistente = accionesDataset.find(function(a) {
-            return (a.clave_accion === claveOriginal) || (a.id === claveOriginal) || (a.clave_hito === claveOriginal);
-        });
-
-        const panelLetra = actExistente ? (actExistente.panel || 'I') : 'I';
-
-        // 1. Consultar registros existentes en Supabase para obtener el contador exacto
-        let contadorBase = 1;
-        if (supabaseClient) {
-            const { count, error: errCount } = await supabaseClient
+        // 1. Contador para archivos en Supabase
+        var contadorBase = 1;
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            var resCount = await supabaseClient
                 .from('evidencias_expedientes')
                 .select('*', { count: 'exact', head: true })
                 .eq('clave_accion', nuevaClave);
 
-            if (!errCount && count !== null) {
-                contadorBase = count + 1;
+            if (!resCount.error && resCount.count !== null) {
+                contadorBase = resCount.count + 1;
             }
         }
 
-        // 2. Procesar únicamente los archivos nuevos que el usuario adjunte en los inputs
-        const inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
-        let ultimoDriveUrl = actExistente ? actExistente.driveUrl : '';
-        let archivosNuevosSubidos = 0;
+        // 2. Procesar y subir archivos nuevos a Google Drive
+        var inputsArchivos = document.querySelectorAll('#contenedorCamposArchivosBase .input-archivo-dinamico');
+        var ultimoDriveUrl = actExistente ? actExistente.driveUrl : '';
+        var archivosNuevosSubidos = 0;
 
-        for (let input of inputsArchivos) {
-            // Verificamos que el input tenga un archivo nuevo físico seleccionado
+        for (var i = 0; i < inputsArchivos.length; i++) {
+            var input = inputsArchivos[i];
             if (input.files && input.files.length > 0) {
-                const archivoFisico = input.files[0];
-                const sufijoIndex = `-0.00${contadorBase}`;
-                const nombreNominalDrive = `[${nuevaClave}${sufijoIndex}] ${archivoFisico.name}`;
-                
-                // Subir a Google Drive
-                const urlSubida = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
+                var archivoFisico = input.files[0];
+                var sufijoIndex = '-0.00' + contadorBase;
+                var nombreNominalDrive = '[' + nuevaClave + sufijoIndex + '] ' + archivoFisico.name;
 
-                if (urlSubida && supabaseClient) {
-                    // INSERCIÓN OBLIGATORIA EN SUPABASE: Tabla evidencias_expedientes
-                    await supabaseClient.from('evidencias_expedientes').insert([{
-                        clave_accion: nuevaClave,
-                        nombre_archivo: nombreNominalDrive,
-                        drive_url: urlSubida
-                    }]);
+                if (typeof window.subirArchivoADrive === 'function') {
+                    var urlSubida = await window.subirArchivoADrive(archivoFisico, panelLetra, nombreNominalDrive);
 
-                    ultimoDriveUrl = urlSubida;
-                    archivosNuevosSubidos++;
-                    contadorBase++;
+                    if (urlSubida && typeof supabaseClient !== 'undefined' && supabaseClient) {
+                        await supabaseClient.from('evidencias_expedientes').insert([{
+                            clave_accion: nuevaClave,
+                            nombre_archivo: nombreNominalDrive,
+                            drive_url: urlSubida
+                        }]);
+
+                        ultimoDriveUrl = urlSubida;
+                        archivosNuevosSubidos++;
+                        contadorBase++;
+                    }
                 }
             }
         }
 
         var selInstancia = document.getElementById('selectInstanciaResponsableBaseEdit');
         var responsableCapturado = selInstancia ? selInstancia.value : (actExistente ? actExistente.responsable : 'Panel I');
-        
+
         var selEstatus = document.getElementById('selectEstatusEdit');
         var estatusCapturado = selEstatus ? selEstatus.value : (actExistente ? actExistente.estatus : 'En Proceso');
 
-        var sliderAvance = document.getElementById('inputAvanceSliderEdit');
+        var sliderAvance = document.getElementById('inputAvanceSliderEdit') || document.getElementById('inputAvancesSliderEdit');
         var avanceCapturado = sliderAvance ? (parseInt(sliderAvance.value, 10) || 0) : (actExistente ? actExistente.avance : 100);
 
         var act = actExistente;
         if (!act) {
             act = { id: claveOriginal, clave_accion: claveOriginal, clave_hito: claveOriginal.split('-A-')[0], panel: panelLetra };
-            accionesDataset.push(act);
+            if (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset)) {
+                accionesDataset.push(act);
+            }
         }
 
-// =========================================================================
-        // PASO A: Extraer el texto del campo de justificación técnica / auditoría
-        // =========================================================================
-        const textareaSustento = document.querySelector('#modal-edicion-dinamica textarea') 
-                              || document.getElementById('inputSustentoAuditoria')
-                              || document.querySelector('textarea[placeholder*="motivo u oficio"]');
-        const nuevaNota = textareaSustento ? textareaSustento.value.trim() : '';
+        // Bitácora de justificación técnica
+        var textareaSustento = document.querySelector('#modal-edicion-dinamica textarea') 
+                            || document.getElementById('inputSustentoAuditoria')
+                            || document.querySelector('textarea[placeholder*="motivo u oficio"]');
+        var nuevaNota = textareaSustento ? textareaSustento.value.trim() : '';
 
-        // =========================================================================
-        // PASO B: Concatenar historial cronológico acumulativo
-        // =========================================================================
-        const usuarioFirma = (typeof currentUser !== 'undefined' && currentUser) 
+        var usuarioFirma = (typeof currentUser !== 'undefined' && currentUser) 
             ? (currentUser.nombre || currentUser.usuario) 
             : 'Enlace Operativo';
-        const fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+        var fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
-        let historialNotas = act.nota_auditoria || act.observacion || '';
+        var historialNotas = act.nota_auditoria || act.observacion || '';
         if (nuevaNota) {
-            const entradaNueva = `[${fechaHora} - ${usuarioFirma}]: ${nuevaNota}`;
+            var entradaNueva = '[' + fechaHora + ' - ' + usuarioFirma + ']: ' + nuevaNota;
             historialNotas = historialNotas 
-                ? `${entradaNueva}\n--------------------------------------------------\n${historialNotas}` 
+                ? entradaNueva + '\n--------------------------------------------------\n' + historialNotas 
                 : entradaNueva;
         }
 
-        const avanceNum = Number(avanceCapturado) || 0;
-        const estatusTxt = estatusCapturado || (avanceNum === 100 ? 'Concluido' : (avanceNum >= 75 ? 'Validación' : 'En Proceso'));
-        const claveAccionActual = (act.clave_accion || act.id || '').trim();
-        const claveHitoPadre = (act.clave_hito || claveAccionActual.split('-A-')[0]).trim();
+        var avanceNum = Number(avanceCapturado) || 0;
+        var estatusTxt = estatusCapturado || (avanceNum === 100 ? 'Concluido' : (avanceNum >= 75 ? 'Validación' : 'En Proceso'));
+        var claveAccionActual = (act.clave_accion || act.id || '').trim();
+        var claveHitoPadre = (act.clave_hito || claveAccionActual.split('-A-')[0]).trim();
 
-        // Actualizar propiedades en memoria local
-        act.accion = nuevoTitulo;
+        // Actualizar objeto en memoria
+        act.accion = nuevoTitulo || act.accion;
+        act.accion_especifica = nuevoTitulo || act.accion_especifica;
         act.responsable = responsableCapturado;
         act.estatus = estatusTxt;
         act.avance = avanceNum;
@@ -7131,20 +6953,19 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         act.observacion = historialNotas;
         if (ultimoDriveUrl) act.driveUrl = ultimoDriveUrl;
 
-        guardarDataset();
+        if (typeof guardarDataset === 'function') guardarDataset();
 
-        if (supabaseClient) {
-            // Extraer consecutivo numérico para evitar el error NOT NULL
-            let consecutivoNum = 1;
-            const matchConsecutivo = claveAccionActual.match(/-A-(\d+)/);
+        // Persistir en Supabase
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            var consecutivoNum = 1;
+            var matchConsecutivo = claveAccionActual.match(/-A-(\d+)/);
             if (matchConsecutivo && matchConsecutivo[1]) {
                 consecutivoNum = parseInt(matchConsecutivo[1], 10) || 1;
             } else if (act.consecutivo_num !== undefined && act.consecutivo_num !== null) {
                 consecutivoNum = Number(act.consecutivo_num);
             }
 
-            // Guardar en acciones_transicion enviando campos obligatorios, avance y bitácora
-            const { error: errAccion } = await supabaseClient.from('acciones_transicion').upsert([{
+            var resAccion = await supabaseClient.from('acciones_transicion').upsert([{
                 clave_accion: claveAccionActual,
                 clave_hito: claveHitoPadre,
                 consecutivo_num: consecutivoNum,
@@ -7159,23 +6980,23 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 updated_at: new Date().toISOString()
             }], { onConflict: 'clave_accion' });
 
-            if (errAccion) throw errAccion;
+            if (resAccion.error) throw resAccion.error;
 
-            // 2. Recalcular y actualizar el promedio del Hito Padre en hitos_transicion
-            const accionesHermanas = accionesDataset.filter(a => {
-                const hBase = (a.clave_hito || (a.clave_accion || a.id).split('-A-')[0]).trim();
+            // Recalcular promedio del hito padre
+            var accionesHermanas = accionesDataset.filter(function(a) {
+                var hBase = (a.clave_hito || (a.clave_accion || a.id).split('-A-')[0]).trim();
                 return hBase === claveHitoPadre;
             });
 
-            let sumaTotal = 0;
-            accionesHermanas.forEach(a => {
+            var sumaTotal = 0;
+            accionesHermanas.forEach(function(a) {
                 if ((a.clave_accion === claveAccionActual) || (a.id === act.id)) {
                     sumaTotal += avanceNum;
                 } else {
                     sumaTotal += Number(a.avance || 0);
                 }
             });
-            const promedioHito = Math.round(sumaTotal / (accionesHermanas.length || 1));
+            var promedioHito = Math.round(sumaTotal / (accionesHermanas.length || 1));
 
             await supabaseClient
                 .from('hitos_transicion')
@@ -7185,23 +7006,45 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 })
                 .eq('clave_hito', claveHitoPadre);
         }
-        
-        alert(`¡Actualización exitosa! Se subieron ${archivosNuevosSubidos} archivo(s) nuevo(s) y se registraron en Supabase.`);
-        closeModal('modal-edicion-dinamica');
-        
-        actualizarDashboard();
+
+        // Cerrar modal
+        if (typeof closeModal === 'function') {
+            closeModal('modal-edicion-dinamica');
+        } else {
+            var modalBoxAcc = document.getElementById('modal-edicion-dinamica');
+            if (modalBoxAcc) {
+                modalBoxAcc.classList.add('hidden');
+                modalBoxAcc.style.display = 'none';
+            }
+        }
+
+        // Refrescar vistas
+        if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
-    } catch (err) {
-        alert('Error al procesar: ' + err.message);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Acción Actualizada',
+                text: 'Cambios y evidencias guardados exitosamente en Supabase.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } else {
+            alert('¡Actualización exitosa! Cambios registrados en Supabase.');
+        }
+
+    } catch (errAcc) {
+        console.error('Error al guardar acción:', errAcc);
+        alert('Error al guardar acción: ' + (errAcc.message || errAcc));
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-check me-1"></i> Aplicar y Propagar a Todo el Sistema';
+            btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
         }
     }
 };
-// =========================================================================
+        // =========================================================================
 // DESCARGA Y CARGA MASIVA DE PLANTILLA EXCEL / CSV
 // =========================================================================
 
