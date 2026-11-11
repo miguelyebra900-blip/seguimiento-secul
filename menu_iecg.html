@@ -6769,49 +6769,43 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             btnGuardar.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Actualizando Hito Rector...';
         }
 
-        try {
+ try {
             var marcoLegal = document.getElementById('selMarcoLegalEditDinamico') 
                 ? document.getElementById('selMarcoLegalEditDinamico').value 
                 : 'Decreto 345 - Extinción IEC';
             var panelHito = document.getElementById('editItemPanel') 
                 ? document.getElementById('editItemPanel').value 
                 : 'I';
-            
-            // Campos adicionales de la cédula del hito
             var detalleOp = document.getElementById('editDetalleOperativo') 
                 ? document.getElementById('editDetalleOperativo').value.trim() 
-                : '';
-            var riesgoVinc = document.getElementById('editRiesgoVinculado') 
-                ? document.getElementById('editRiesgoVinculado').value 
                 : '';
 
             // 1. PERSISTENCIA REAL EN SUPABASE: TABLA hitos_transicion
             if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                // Actualizar el Hito Padre
+                // Actualizar Hito Padre (solo columnas que sí existen en hitos_transicion)
                 var resHitoDB = await supabaseClient
                     .from('hitos_transicion')
                     .update({ 
                         titulo: nuevoTitulo,
-                        norma_fundamento: marcoLegal,
                         detalle_operativo: detalleOp || nuevoTitulo,
-                        panel: panelHito,
-                        updated_at: new Date().toISOString()
+                        normativa: marcoLegal,
+                        panel: panelHito
                     })
                     .eq('clave_hito', claveOriginal);
 
                 if (resHitoDB.error) {
                     console.error('Error Supabase hitos_transicion:', resHitoDB.error);
+                    throw resHitoDB.error;
                 }
 
-                // Actualizar en cascada el campo hito en acciones_transicion
+                // Actualizar en cascada el texto del hito en las acciones hijas
                 await supabaseClient
                     .from('acciones_transicion')
                     .update({ 
                         hito: nuevoTitulo,
-                        fundamento_juridico: marcoLegal,
-                        updated_at: new Date().toISOString()
+                        fundamento_juridico: marcoLegal
                     })
-                    .or('clave_hito.eq.' + claveOriginal + ',clave_accion.ilike.' + claveOriginal + '%');
+                    .eq('clave_hito', claveOriginal);
             }
 
             // 2. Sincronizar memoria local en vivo
@@ -6838,13 +6832,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 }
             }
 
-            // 4. Refrescar vistas
+            // 4. Refrescar vistas desde la base de datos
             if (typeof inicializarDatosDesdeSupabase === 'function') {
                 await inicializarDatosDesdeSupabase();
-            } else {
-                if (typeof actualizarDashboard === 'function') actualizarDashboard();
-                if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
             }
+            if (typeof actualizarDashboard === 'function') actualizarDashboard();
+            if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
@@ -6860,7 +6853,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
 
         } catch (err) {
             console.error('Error al guardar hito:', err);
-            alert('Error al guardar: ' + (err.message || err));
+            alert('Error al guardar: ' + (err.message || JSON.stringify(err)));
         } finally {
             if (btnGuardar) {
                 btnGuardar.disabled = false;
