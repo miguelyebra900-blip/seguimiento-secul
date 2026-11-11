@@ -7100,30 +7100,148 @@ window.enviarSolicitudVinculacionPanel = async function(e) {
 // =========================================================================
 
 // 1. Abrir Modal de Vinculación para Hito o Acción
+// =====================================================================
+// APERTURA DIFERENCIADA: HITO vs ACCIÓN EN MODAL VINCULAR ELEMENTO
+// =====================================================================
 window.abrirModalVincularElemento = function(tipo, claveId) {
     const modal = document.getElementById('modal-vincular-elemento');
     if (!modal) return;
 
-    document.getElementById('vinculoTipoItem').value = tipo;
-    document.getElementById('vinculoClaveItem').value = claveId;
-    document.getElementById('lblElementoSeleccionado').innerText = `[${tipo}] ${claveId}`;
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
 
-    let textoDesc = '';
-    if (tipo === 'HITO') {
-        const item = accionesDataset.find(a => (a.clave_hito === claveId) || a.id.startsWith(claveId));
-        textoDesc = item ? item.hito : 'Hito Normativo';
-    } else {
-        const act = accionesDataset.find(a => (a.clave_accion === claveId) || (a.id === claveId));
-        textoDesc = act ? act.accion : 'Acción Operativa';
+    var elTipo = document.getElementById('vinculoTipoItem');
+    var elClave = document.getElementById('vinculoClaveItem');
+    var elBadge = document.getElementById('lblElementoSeleccionado');
+    if (elTipo) elTipo.value = tipo;
+    if (elClave) elClave.value = claveId;
+    if (elBadge) elBadge.innerText = `[${tipo}] ${claveId}`;
+
+    const tabHitos = document.getElementById('tab-hitos');
+    const tabAccion = document.getElementById('tab-accion');
+
+    // Identificar el panel autorizado del usuario en sesión
+    var miPanel = 'A';
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        if (currentUser.paneles_autorizados && currentUser.paneles_autorizados.length > 0) {
+            miPanel = currentUser.paneles_autorizados[0];
+        } else if (currentUser.panel) {
+            miPanel = currentUser.panel;
+        }
     }
 
-    document.getElementById('descElementoSeleccionado').innerText = textoDesc;
-    document.getElementById('selPanelVinculadoDestino').selectedIndex = 0;
-    document.getElementById('txtFundamentoVinculo').value = '';
+    if (tipo === 'HITO') {
+        // 1. Mostrar pestaña de Hitos y ocultar pestaña de Acciones
+        if (tabHitos) tabHitos.classList.remove('hidden');
+        if (tabAccion) tabAccion.classList.add('hidden');
 
-    openModal('modal-vincular-elemento');
+        // 2. Ocultar bloque de subida de evidencias documentales (Drive)
+        var bloqueEvidencias = modal.querySelectorAll('[id*="evidencia"], [id*="Drive"], [class*="border-dashed"], input[type="file"]');
+        bloqueEvidencias.forEach(function(el) {
+            var contenedor = el.closest('div.space-y-2') || el.closest('div.border') || el.parentElement;
+            if (contenedor) contenedor.classList.add('hidden');
+        });
+
+        // 3. Fijar Instancia Ejecutora Responsable al panel autorizado de la sesión
+        var selEjecutora = modal.querySelector('select[name*="panel"], select[id*="AreaEjecutora"], select[id*="selArea"]');
+        if (selEjecutora) {
+            for (var i = 0; i < selEjecutora.options.length; i++) {
+                if (selEjecutora.options[i].value.startsWith(miPanel) || selEjecutora.options[i].text.includes('Panel ' + miPanel)) {
+                    selEjecutora.selectedIndex = i;
+                    break;
+                }
+            }
+            // Restringir si no es admin general
+            var esAdmin = typeof currentUser !== 'undefined' && currentUser && (currentUser.esAdmin || currentUser.rol === 'admin');
+            if (!esAdmin) {
+                selEjecutora.disabled = true;
+            }
+        }
+
+        // 4. Inyectar o asegurar el selector de Marco Legal / Fundamento Jurídico
+        var contenedorMarco = document.getElementById('contenedor-marco-legal-hito');
+        if (!contenedorMarco && tabHitos) {
+            contenedorMarco = document.createElement('div');
+            contenedorMarco.id = 'contenedor-marco-legal-hito';
+            contenedorMarco.className = 'w-full mb-4 text-left';
+            contenedorMarco.innerHTML = 
+                '<label class="block text-xs font-black uppercase text-indigo-900 mb-1.5 flex items-center gap-1.5">' +
+                    '<i class="fa-solid fa-scale-balanced text-indigo-600"></i> Marco Legal / Fundamento Jurídico Vinculado:' +
+                '</label>' +
+                '<select id="selMarcoLegalHito" class="w-full text-xs font-bold p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">' +
+                    '<option value="Decreto 345 - Extinción IEC">Decreto 345 - Extinción IEC y Transferencia a SECUL</option>' +
+                    '<option value="Lineamientos Liquidación IEC">Lineamientos Generales del Proceso de Liquidación</option>' +
+                    '<option value="Lineamientos Comités de Entrega">Lineamientos para Comités de Entrega-Recepción</option>' +
+                    '<option value="Ley del Patrimonio Estatal">Ley del Patrimonio Inmobiliario del Estado de Guanajuato</option>' +
+                '</select>' +
+                '<p class="text-[10px] text-slate-500 mt-1 font-medium">Fundamento normativo aplicable al cumplimiento de este hito rector.</p>';
+            tabHitos.prepend(contenedorMarco);
+        } else if (contenedorMarco) {
+            contenedorMarco.classList.remove('hidden');
+        }
+
+        // Cargar descripción del hito en el formulario
+        var itemHito = (typeof hitosDataset !== 'undefined')
+            ? hitosDataset.find(function(h) { return (h.clave_hito || h.id) === claveId; })
+            : null;
+        if (!itemHito && typeof accionesDataset !== 'undefined') {
+            itemHito = accionesDataset.find(function(a) { return (a.clave_hito || a.id) === claveId; });
+        }
+        var descInput = tabHitos.querySelector('textarea, input[type="text"]');
+        if (descInput && itemHito) {
+            descInput.value = itemHito.hito || itemHito.descripcion || itemHito.accion || descInput.value;
+        }
+
+    } else {
+        // MODO ACCIÓN: Restablecer flujo normal de acciones
+        if (tabHitos) tabHitos.classList.add('hidden');
+        if (tabAccion) tabAccion.classList.remove('hidden');
+
+        // Mostrar bloque de evidencias para acciones
+        var bloqueEvidenciasAcc = modal.querySelectorAll('[id*="evidencia"], [id*="Drive"], [class*="border-dashed"], input[type="file"]');
+        bloqueEvidenciasAcc.forEach(function(el) {
+            var contenedor = el.closest('div.space-y-2') || el.closest('div.border') || el.parentElement;
+            if (contenedor) contenedor.classList.remove('hidden');
+        });
+
+        // Ocultar selector de marco legal en acciones si existe
+        var marcoLegalExistente = document.getElementById('contenedor-marco-legal-hito');
+        if (marcoLegalExistente) marcoLegalExistente.classList.add('hidden');
+
+        // Habilitar selección libre de responsable
+        var selEjecutoraAcc = modal.querySelector('select[name*="panel"], select[id*="AreaEjecutora"], select[id*="selArea"]');
+        if (selEjecutoraAcc) selEjecutoraAcc.disabled = false;
+    }
 };
 
+// =====================================================================
+// GUARDADO AISLADO: DISPARA SOLO EL FORMULARIO CORRESPONDIENTE
+// =====================================================================
+window.dispararGuardadoModalUniversal = async function() {
+    var tipo = document.getElementById('vinculoTipoItem') ? document.getElementById('vinculoTipoItem').value : '';
+    const tabHitos = document.getElementById('tab-hitos');
+    const esHito = (tipo === 'HITO') || (tabHitos && !tabHitos.classList.contains('hidden'));
+
+    if (esHito) {
+        // Enviar exclusivamente el formulario de Hitos
+        const btnForm1 = document.getElementById('btnSubmitFormHitosOculto');
+        if (btnForm1) {
+            btnForm1.click();
+        } else if (tabHitos) {
+            tabHitos.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    } else {
+        // Enviar exclusivamente el formulario de Acciones
+        const btnForm2 = document.getElementById('btnSubmitFormAccionOculto');
+        if (btnForm2) {
+            btnForm2.click();
+        } else {
+            const tabAccion = document.getElementById('tab-accion');
+            if (tabAccion) tabAccion.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    }
+};
+        
 // 2. Procesar Vinculación y Propagar a Todo el Ecosistema
 window.ejecutarVinculacionElementoGlobal = function(e) {
     e.preventDefault();
