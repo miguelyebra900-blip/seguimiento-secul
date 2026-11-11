@@ -6905,23 +6905,19 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             selFiltroAcc.dispatchEvent(new Event('change'));
         }
 
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Acción Actualizada',
-                text: 'Cambios guardados correctamente en la base de datos.',
-                timer: 1500,
-        if (typeof Swal !== 'undefined') {
+      if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Hito Actualizado',
-                    text: 'Título modificado y propagado correctamente.',
+                    text: 'Título modificado y propagado correctamente en la base de datos.',
                     timer: 1500,
                     showConfirmButton: false
                 });
             } else {
                 alert('Hito Rector actualizado correctamente.');
             }
+        }
+    
         } catch (err) {
             console.error('Error al guardar hito:', err);
             alert('Error al guardar: ' + (err.message || err));
