@@ -8104,16 +8104,6 @@ function manejarCambioExternaBaseEdit(selectEl) {
     }
 }
 
- // 1. Mostrar fondo borroso y FORZAR la tarjeta blanca visible
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-
-    // Remover hidden del contenedor blanco interior
-    var cajaBlanca = modal.querySelector('.bg-white') || modal.children[0];
-    if (cajaBlanca) {
-        cajaBlanca.classList.remove('hidden');
-        cajaBlanca.style.display = 'flex';
-    }       
 
 // =========================================================================
 // 4. POBLADO INTELIGENTE Y CLAVE CANÓNICA AUTOMÁTICA EN MODAL DE EDICIÓN
@@ -8125,6 +8115,7 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var modal = document.getElementById('modal-edicion-dinamica');
     if (!modal) return;
 
+  // Mostrar fondo borroso y asegurar la tarjeta blanca visible
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
     var cajaBlanca = modal.querySelector('.bg-white') || modal.children[0];
