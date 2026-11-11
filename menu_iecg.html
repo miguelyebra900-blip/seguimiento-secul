@@ -8104,6 +8104,17 @@ function manejarCambioExternaBaseEdit(selectEl) {
     }
 }
 
+ // 1. Mostrar fondo borroso y FORZAR la tarjeta blanca visible
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+
+    // Remover hidden del contenedor blanco interior
+    var cajaBlanca = modal.querySelector('.bg-white') || modal.children[0];
+    if (cajaBlanca) {
+        cajaBlanca.classList.remove('hidden');
+        cajaBlanca.style.display = 'flex';
+    }       
+        
 // =========================================================================
 // 4. POBLADO INTELIGENTE Y CLAVE CANÓNICA AUTOMÁTICA EN MODAL DE EDICIÓN
 // =========================================================================
@@ -8151,20 +8162,21 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
 
         // Ocultar campos exclusivos de acción
         if (bloqueAccion) bloqueAccion.classList.add('hidden');
-        // Ocultar slider de avance manual y estatus normativo (el avance es derivado matemático)
+
        // Ocultar slider manual de avance y estatus normativo de forma segura
+        // Ocultar slider y estatus sin tocar contenedores padres ni la tarjeta blanca
         var sliderAvance = document.getElementById('inputAvancesSliderEdit');
         if (sliderAvance) {
-            var rowSlider = sliderAvance.closest('.flex.items-center') || sliderAvance.parentElement;
-            if (rowSlider) rowSlider.style.display = 'none';
+            var contSlider = sliderAvance.parentElement;
+            if (contSlider) contSlider.style.display = 'none';
         }
-
         var selEstatus = document.getElementById('selectEstatusEdit');
         if (selEstatus) {
-            var colEstatus = selEstatus.parentElement;
-            if (colEstatus) colEstatus.style.display = 'none';
+            var contEstatus = selEstatus.parentElement;
+            if (contEstatus) contEstatus.style.display = 'none';
         }
-
+      
+        
         // Ocultar etiquetas de avance manual dentro del modal
         if (modal) {
             modal.querySelectorAll('label, span, div, p').forEach(function(el) {
@@ -8285,8 +8297,14 @@ var sliderAvanceAcc = document.getElementById('inputAvancesSliderEdit');
         if (marcoBoxAcc) marcoBoxAcc.classList.add('hidden');
     }
 
-    modal.classList.remove('hidden');
+modal.classList.remove('hidden');
     modal.style.display = 'flex';
+
+    var cajaBlanca = modal.querySelector('.bg-white') || modal.children[0];
+    if (cajaBlanca) {
+        cajaBlanca.classList.remove('hidden');
+        cajaBlanca.style.display = 'flex';
+    }
 };
         
 // 5. Guardar y propagar en todo el sistema (gráficas, tarjetas, cronogramas y tablas)
