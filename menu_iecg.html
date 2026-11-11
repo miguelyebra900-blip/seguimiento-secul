@@ -6907,14 +6907,8 @@ window.guardarFormularioEdicionDinamica = async function(e) {
     } catch (errAcc) {
         console.error('Error al guardar acción:', errAcc);
         alert('Error al guardar acción: ' + errAcc.message);
-    } finally {
-        if (btnGuardar) {
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
-        }
-    }
-
-            // 4. Re-renderizar de inmediato el tablero disparando los filtros del panel
+   
+// 4. Re-renderizar de inmediato el tablero disparando los filtros del panel
             var selectFiltro = document.getElementById('filtroPanelBDGeneral');
             if (selectFiltro) {
                 selectFiltro.dispatchEvent(new Event('change'));
@@ -6924,7 +6918,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 buscador.dispatchEvent(new Event('input'));
             }
 
-if (typeof Swal !== 'undefined') {
+            if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Hito Actualizado',
@@ -6932,14 +6926,9 @@ if (typeof Swal !== 'undefined') {
                     timer: 1500,
                     showConfirmButton: false
                 });
-            } else {
-                alert('Hito Rector actualizado correctamente.');
-     }
+            }
+
         } catch (err) {
-            console.error('Error al guardar hito:', err);
-            alert('Error al guardar: ' + err.message);
-        } finally {
-        
             console.error('Error al guardar hito:', err);
             alert('Error al guardar: ' + err.message);
         } finally {
@@ -6948,6 +6937,7 @@ if (typeof Swal !== 'undefined') {
                 btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
             }
         }
+        
         return;
         
     }
