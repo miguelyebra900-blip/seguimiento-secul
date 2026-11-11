@@ -6917,18 +6917,16 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             alert('Acción actualizada correctamente.');
         }
 
-    } catch (errAcc) {
-        console.error('Error al guardar acción:', errAcc);
-        alert('Error al guardar acción: ' + (errAcc.message || errAcc));
-    } finally {
-        if (btnGuardar) {
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
+   } catch (err) {
+            console.error('Error al guardar hito:', err);
+            alert('Error al guardar: ' + (err.message || err));
+        } finally {
+            if (btnGuardar) {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
+            }
         }
-    }
-};
-        
-        return; // Termina el flujo para hitos
+        return;
     }
 
     // =====================================================================
