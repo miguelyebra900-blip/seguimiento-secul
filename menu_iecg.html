@@ -6900,12 +6900,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
 
         // 4. Refrescar el tablero en vivo
-        var selFiltroAcc = document.getElementById('filtroPanelBDGeneral');
-        if (selFiltroAcc) {
-            selFiltroAcc.dispatchEvent(new Event('change'));
-        }
+     var selectFiltro = document.getElementById('filtroPanelBDGeneral');
+            if (selectFiltro) {
+                selectFiltro.dispatchEvent(new Event('change'));
+            }
 
-      if (typeof Swal !== 'undefined') {
+            if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
                     title: 'Hito Actualizado',
@@ -6916,13 +6916,12 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             } else {
                 alert('Hito Rector actualizado correctamente.');
             }
-        }
-    
         } catch (err) {
             console.error('Error al guardar hito:', err);
             alert('Error al guardar: ' + (err.message || err));
         } finally {
-            if (btnGuardar) {
+        
+        if (btnGuardar) {
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> Aplicar y Propagar a Todo el Sistema';
             }
