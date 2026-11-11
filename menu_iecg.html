@@ -9645,20 +9645,17 @@ window.abrirModalVinculacionParaAccionEspecifica = function(claveHito, claveAcci
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
 
-    // A) Identificar solicitante según panel activo seleccionado en pantalla
-    var selectorPanelActivo = document.querySelector('select[id*="panel"], select[id*="area"], #filtro-panel-global');
-    var panelActualFiltro = selectorPanelActivo ? selectorPanelActivo.value : '';
+    // 1. Identificar Comisión Solicitante (Sesión actual)
+    var panelSolicitante = 'Panel B, D (Jurídico)';
+    var nombreSolicitante = 'Dirección General Jurídica';
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        if (currentUser.paneles_autorizados && currentUser.paneles_autorizados.length > 0) {
+            panelSolicitante = currentUser.paneles_autorizados.join(', ');
+        }
+        nombreSolicitante = currentUser.nombre || currentUser.email || nombreSolicitante;
+    }
 
-    var panelSolicitante = panelActualFiltro || 
-        ((typeof currentUser !== 'undefined' && currentUser && currentUser.paneles_autorizados) 
-            ? currentUser.paneles_autorizados.join(', ') 
-            : 'Panel B, D (Jurídico)');
-
-    var nombreSolicitante = (typeof currentUser !== 'undefined' && currentUser) 
-        ? (currentUser.nombre || currentUser.email || 'Dirección General Jurídica') 
-        : 'Dirección General Jurídica';
-
-    // B) Identificar titular de la acción
+    // 2. Identificar Usuario Titular según el hito/acción
     var accionObj = (typeof accionesDataset !== 'undefined')
         ? accionesDataset.find(function(a) { return (a.clave_accion || a.id) === claveAccion; })
         : null;
@@ -9668,27 +9665,52 @@ window.abrirModalVinculacionParaAccionEspecifica = function(claveHito, claveAcci
         var matchP = claveHito.match(/^[A-Z]+/);
         if (matchP) panelTitular = matchP[0];
     }
+    
     var titularTexto = (accionObj && accionObj.responsable) 
         ? ('Panel ' + panelTitular + ' (' + accionObj.responsable + ')')
-        : ('Panel ' + (panelTitular || 'I') + ' - Fiscalización & Auditorías (ASEG)');
+        : ('Panel ' + (panelTitular || 'H') + ' (Archivo Institucional)');
 
-    // C) Inyectar valores respetando las etiquetas superiores
+    // 3. Inyectar en el Header Oscuro Y en la Tarjeta Espejo Blanca
     setTimeout(function() {
-        var bloqueEncabezado = modal.querySelector('.grid, .flex.justify-between');
-        if (bloqueEncabezado) {
-            bloqueEncabezado.innerHTML = 
-                '<div class="text-left">' +
-                    '<span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">COMISIÓN SOLICITANTE:</span>' +
-                    '<strong class="text-xs font-bold text-slate-800">' + panelSolicitante + ' (' + nombreSolicitante + ')</strong>' +
+        // A) Header oscuro superior
+        var headerBarra = modal.querySelector('.bg-gradient-to-r, [class*="from-slate-900"], .p-4.border-b');
+        if (headerBarra) {
+            var gridEncabezado = headerBarra.querySelector('.grid, .flex.justify-between');
+            if (gridEncabezado) {
+                gridEncabezado.innerHTML = 
+                    '<div class="text-left">' +
+                        '<span class="block text-[10px] font-black uppercase tracking-wider text-purple-300">COMISIÓN SOLICITANTE:</span>' +
+                        '<strong class="text-xs font-bold text-white">' + panelSolicitante + ' (' + nombreSolicitante + ')</strong>' +
+                    '</div>' +
+                    '<div class="text-right">' +
+                        '<span class="block text-[10px] font-black uppercase tracking-wider text-purple-300">USUARIO TITULAR:</span>' +
+                        '<strong class="text-xs font-bold text-amber-300">' + titularTexto + '</strong>' +
+                    '</div>';
+            }
+        }
+
+        // B) Tarjeta Espejo Blanca con subtítulos descriptivos
+        var tarjetaEspejo = Array.from(modal.querySelectorAll('div')).find(function(el) {
+            return el.textContent && el.textContent.includes('COMISIÓN SOLICITANTE:') && el.classList.contains('rounded-xl') || el.classList.contains('border');
+        });
+
+        if (tarjetaEspejo) {
+            tarjetaEspejo.className = 'w-full mb-4 p-3.5 bg-purple-50/70 border border-purple-200 rounded-xl grid grid-cols-2 gap-3 shadow-xs text-left';
+            tarjetaEspejo.innerHTML = 
+                '<div>' +
+                    '<span class="block text-[11px] font-black uppercase tracking-wider text-purple-900">COMISIÓN SOLICITANTE:</span>' +
+                    '<strong class="block text-xs font-extrabold text-slate-800 mt-0.5">' + panelSolicitante + ' (' + nombreSolicitante + ')</strong>' +
+                    '<span class="block text-[10px] text-slate-500 font-medium leading-tight mt-1">panel o área que solicita vincular hito o acción</span>' +
                 '</div>' +
                 '<div class="text-right">' +
-                    '<span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">USUARIO TITULAR:</span>' +
-                    '<strong class="text-xs font-bold text-purple-700">' + titularTexto + '</strong>' +
+                    '<span class="block text-[11px] font-black uppercase tracking-wider text-indigo-900">USUARIO TITULAR:</span>' +
+                    '<strong class="block text-xs font-extrabold text-purple-700 mt-0.5">' + titularTexto + '</strong>' +
+                    '<span class="block text-[10px] text-slate-500 font-medium leading-tight mt-1">panel o área dueña o titular de hito o acción a vincular</span>' +
                 '</div>';
         }
     }, 60);
 
-    // D) Cascada de preselección de listas
+    // 4. Seleccionar combos subordinados automáticamente
     setTimeout(function() {
         var sArea = document.getElementById('selFiltroAreaVinculo');
         if (sArea && panelTitular) {
@@ -9724,11 +9746,11 @@ window.abrirModalVinculacionParaAccionEspecifica = function(claveHito, claveAcci
                         }
                     }
                 }
-            }, 100);
-        }, 100);
-    }, 120);
+            }, 80);
+        }, 80);
+    }, 100);
 };
-
+        
 // =========================================================================
 // 2. ENVIAR SOLICITUD A SUPABASE
 // =========================================================================
@@ -9834,11 +9856,14 @@ window.cerrarModalBitacoraAvisos = function() {
 
 window.autorizarSolicitudDesdeMenu = async function(idSolicitud, claveAccion) {
     if (!confirm('¿Confirmas la autorización de esta solicitud de vinculación?')) return;
-    try {
-        var nombreResolutor = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || currentUser.email) : 'Líder Proyecto';
 
-        // 1. Actualizar estatus en solicitudes_auditoria
-        await supabaseClient
+    try {
+        var nombreResolutor = (typeof currentUser !== 'undefined' && currentUser) 
+            ? (currentUser.nombre || currentUser.email) 
+            : 'Líder Proyecto';
+
+        // 1. Marcar como AUTORIZADO en Supabase
+        var resUpdate = await supabaseClient
             .from('solicitudes_auditoria')
             .update({
                 estatus: 'AUTORIZADO',
@@ -9847,7 +9872,9 @@ window.autorizarSolicitudDesdeMenu = async function(idSolicitud, claveAccion) {
             })
             .eq('id', idSolicitud);
 
-        // 2. Marcar la acción como vinculada en acciones_transicion
+        if (resUpdate.error) throw resUpdate.error;
+
+        // 2. Si venía asociada a una acción específica, vincularla
         if (claveAccion) {
             await supabaseClient
                 .from('acciones_transicion')
@@ -9858,11 +9885,30 @@ window.autorizarSolicitudDesdeMenu = async function(idSolicitud, claveAccion) {
                 .eq('clave_accion', claveAccion);
         }
 
-        alert('✅ Solicitud autorizada y vinculación aplicada.');
-        window.cargarNotificacionesVinculacionAuditoria();
-        window.cambiarPestanaAvisos('RECIBIDAS');
+        alert('✅ Solicitud autorizada y vinculación aplicada correctamente.');
+
+        // 3. Recargar notificaciones inmediatamente en tiempo real
+        if (typeof window.cargarNotificacionesVinculacionAuditoria === 'function') {
+            await window.cargarNotificacionesVinculacionAuditoria();
+        }
+
+        // 4. Actualizar la bandeja interna del modal de avisos
+        if (typeof window.cambiarPestanaAvisos === 'function') {
+            window.cambiarPestanaAvisos('RECIBIDAS');
+        }
+
+        // 5. Auto-cierre: si ya no quedan solicitudes pendientes, cerrar la bitácora
+        var restantes = (window.solicitudesRecibidas || []).length;
+        if (restantes === 0) {
+            var modalBitacora = document.getElementById('modal-bitacora-avisos');
+            if (modalBitacora) {
+                modalBitacora.classList.add('hidden');
+                modalBitacora.style.display = 'none';
+            }
+        }
     } catch (err) {
-        alert('Error al autorizar: ' + err.message);
+        console.error('Error al autorizar solicitud:', err);
+        alert('Ocurrió un error al autorizar: ' + (err.message || err));
     }
 };
 
@@ -9954,16 +10000,19 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
         var misPaneles = (typeof currentUser !== 'undefined' && currentUser && currentUser.paneles_autorizados)
             ? currentUser.paneles_autorizados
             : ['B', 'D'];
+        var miEmail = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.email || '') : '';
+        var miNombre = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || '') : '';
 
+        // Consulta de solicitudes de vinculación
         var res = await supabaseClient
             .from('solicitudes_auditoria')
             .select('*')
             .eq('tipo', 'SOLICITUD_VINCULACION');
 
-        if (res.error || !res.data) return;
+        if (!res || res.error || !res.data) return;
+        var data = res.data || [];
 
-        var data = res.data;
-
+        // Filtro por rol / panel destino
         if (esLiderOAdmin) {
             window.solicitudesRecibidas = data.filter(function(s) { return s.estatus === 'PENDIENTE'; });
             window.solicitudesEnviadas = data;
@@ -9971,65 +10020,101 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
             window.solicitudesRecibidas = data.filter(function(s) {
                 var destino = s.panel_destino || '';
                 var esMiDestino = misPaneles.some(function(p) { return destino.includes(p); });
-                return esMiDestino && s.estatus === 'PENDIENTE';
+                var noEsMia = (s.usuario_id !== miEmail && s.solicitante !== miNombre);
+                return esMiDestino && noEsMia && s.estatus === 'PENDIENTE';
             });
             window.solicitudesEnviadas = data.filter(function(s) {
                 var origen = s.panel_origen || s.panel_solicitante || '';
-                return misPaneles.some(function(p) { return origen.includes(p); });
+                var esMiOrigen = misPaneles.some(function(p) { return origen.includes(p); });
+                return (s.usuario_id === miEmail || s.solicitante === miNombre || esMiOrigen);
             });
         }
 
         var totalPendientes = (window.solicitudesRecibidas || []).length;
 
-        // 1. Badge superior Avisos
-        var btnAvisos = Array.from(document.querySelectorAll('button, a, div')).find(function(el) {
+        // -------------------------------------------------------------
+        // A) BADGE DINÁMICO EN EL BOTÓN "AVISOS" DE LA BARRA SUPERIOR
+        // -------------------------------------------------------------
+        // Localizar el botón específico del navbar que contiene "Avisos"
+        var btnAvisosNavbar = Array.from(document.querySelectorAll('header button, header a, nav button, nav a, .navbar button, .navbar a')).find(function(el) {
             var txt = (el.innerText || el.textContent || '').trim();
             return txt.includes('Avisos') && !el.closest('#modal-inicio') && !el.closest('#modal-bitacora-avisos');
         });
 
-        if (btnAvisos) {
-            btnAvisos.onclick = window.abrirModalBitacoraAvisos;
-            var bExist = btnAvisos.querySelector('.badge-notif-vinculacion');
-            if (bExist) bExist.remove();
+        // Respaldo por selector general si no está dentro de header/nav
+        if (!btnAvisosNavbar) {
+            btnAvisosNavbar = Array.from(document.querySelectorAll('button, a')).find(function(el) {
+                var txt = (el.innerText || el.textContent || '').trim();
+                return txt.includes('Avisos') && !el.closest('#modal-inicio') && !el.closest('#modal-bitacora-avisos');
+            });
+        }
 
+        if (btnAvisosNavbar) {
+            // Asignar apertura de bitácora
+            btnAvisosNavbar.onclick = function() {
+                if (typeof window.abrirModalBitacoraAvisos === 'function') {
+                    window.abrirModalBitacoraAvisos();
+                }
+            };
+
+            // Limpiar badge anterior
+            var badgeExistente = btnAvisosNavbar.querySelector('.badge-notif-vinculacion-navbar');
+            if (badgeExistente) badgeExistente.remove();
+
+            // Si hay pendientes, inyectar el indicador rojo parpadeante
             if (totalPendientes > 0) {
                 var badge = document.createElement('span');
-                badge.className = 'badge-notif-vinculacion inline-flex items-center justify-center bg-rose-500 text-white text-[10px] h-4 min-w-[16px] px-1 rounded-full font-black ml-1.5 shadow-xs animate-pulse';
+                badge.className = 'badge-notif-vinculacion-navbar inline-flex items-center justify-center bg-rose-600 text-white text-[10px] font-black h-4.5 min-w-[18px] px-1.5 rounded-full ml-1.5 shadow-sm animate-pulse';
                 badge.innerText = totalPendientes;
-                btnAvisos.appendChild(badge);
+                btnAvisosNavbar.appendChild(badge);
             }
         }
 
-        // 2. Banner de inicio fijo
-        var bannerExistente = document.getElementById('alerta-solicitudes-inicio-fija');
-        if (bannerExistente) bannerExistente.remove();
+        // -------------------------------------------------------------
+        // B) TARJETA / BANNER DESTACADO DENTRO DEL MODAL DE INICIO
+        // -------------------------------------------------------------
+        var toastExistente = document.getElementById('toast-notificacion-vinculacion-usuario');
+        if (toastExistente) toastExistente.remove();
 
         if (totalPendientes > 0) {
-            var modalInicioCard = document.querySelector('#modal-inicio .bg-white') || 
-                                  document.querySelector('#modal-inicio [class*="max-w-"]') ||
-                                  document.querySelector('#modal-inicio');
+            var tarjetaAvisoDirectivo = Array.from(document.querySelectorAll('div')).find(function(el) {
+                return el.textContent && el.textContent.includes('AVISO DIRECTIVO ENTRANTE');
+            });
 
-            if (modalInicioCard) {
-                var banner = document.createElement('div');
-                banner.id = 'alerta-solicitudes-inicio-fija';
-                banner.className = 'w-full mb-3 px-4 py-2.5 bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-xl shadow-md flex items-center justify-between text-left';
-                banner.innerHTML = 
-                    '<div class="flex items-center gap-2.5">' +
-                        '<div class="w-7 h-7 rounded-lg bg-amber-400 text-slate-900 flex items-center justify-center font-black text-xs shrink-0 shadow-xs">' +
-                            '<i class="fa-solid fa-bell animate-bounce"></i>' +
+            var contenedorDestino = null;
+            if (tarjetaAvisoDirectivo) {
+                contenedorDestino = tarjetaAvisoDirectivo.parentNode;
+            } else {
+                contenedorDestino = document.querySelector('#modal-inicio .bg-white') || 
+                                    document.querySelector('#modal-inicio [class*="max-w-"]') || 
+                                    document.querySelector('#modal-inicio');
+            }
+
+            if (contenedorDestino) {
+                var toastContenedor = document.createElement('div');
+                toastContenedor.id = 'toast-notificacion-vinculacion-usuario';
+                toastContenedor.className = 'w-full mt-3 p-3.5 bg-gradient-to-r from-purple-900 to-indigo-950 border border-purple-500/50 rounded-2xl shadow-xl text-white flex items-center justify-between text-left';
+                toastContenedor.innerHTML = 
+                    '<div class="flex items-center gap-3">' +
+                        '<div class="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md">' +
+                            '<i class="fa-solid fa-link animate-bounce"></i>' +
                         '</div>' +
                         '<div>' +
-                            '<div class="text-[11px] font-black uppercase tracking-wide text-amber-300">Solicitudes de Vinculación (' + totalPendientes + ')</div>' +
-                            '<div class="text-[10px] text-slate-200 font-medium">Hay co-responsabilidades pendientes de revisión.</div>' +
+                            '<div class="flex items-center gap-2">' +
+                                '<span class="text-[11px] font-black uppercase tracking-wider text-amber-300">Solicitud de Vinculación</span>' +
+                                '<span class="bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">' + totalPendientes + ' PENDIENTE' + (totalPendientes > 1 ? 'S' : '') + '</span>' +
+                            '</div>' +
+                            '<p class="text-xs font-bold text-slate-100 mt-0.5">Tienes entregables pendientes por validar co-responsabilidad.</p>' +
                         '</div>' +
                     '</div>' +
-                    '<button type="button" onclick="abrirModalBitacoraAvisos()" class="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-lg text-[11px] font-black transition flex items-center gap-1 shadow-xs shrink-0">' +
-                        '<i class="fa-solid fa-inbox text-[10px]"></i> Ver Avisos' +
+                    '<button type="button" onclick="abrirModalBitacoraAvisos()" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md shrink-0">' +
+                        '<i class="fa-solid fa-inbox text-[11px]"></i> Ver Bandeja' +
                     '</button>';
 
-                var referencia = modalInicioCard.querySelector('[class*="bg-amber"], [class*="bg-slate-900"], .grid') || modalInicioCard.children[1] || modalInicioCard.firstChild;
-                if (referencia && referencia.parentNode) {
-                    referencia.parentNode.insertBefore(banner, referencia);
+                if (tarjetaAvisoDirectivo) {
+                    tarjetaAvisoDirectivo.insertAdjacentElement('afterend', toastContenedor);
+                } else {
+                    contenedorDestino.prepend(toastContenedor);
                 }
             }
         }
@@ -10037,6 +10122,7 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
         console.error('Error al actualizar avisos:', err);
     }
 };
+        
         
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(window.cargarNotificacionesVinculacionAuditoria, 1000);
