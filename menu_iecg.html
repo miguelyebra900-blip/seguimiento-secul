@@ -8114,13 +8114,24 @@ function manejarCambioExternaBaseEdit(selectEl) {
         cajaBlanca.classList.remove('hidden');
         cajaBlanca.style.display = 'flex';
     }       
-        
+
 // =========================================================================
 // 4. POBLADO INTELIGENTE Y CLAVE CANÓNICA AUTOMÁTICA EN MODAL DE EDICIÓN
 // =========================================================================
+// =====================================================================
+// 4. POBLADO INTELIGENTE Y CLAVE CANÓNICA AUTOMÁTICA EN MODAL DE EDICIÓN
+// =====================================================================
 window.abrirModalEdicionDinamica = function(tipo, claveId) {
     var modal = document.getElementById('modal-edicion-dinamica');
     if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    var cajaBlanca = modal.querySelector('.bg-white') || modal.children[0];
+    if (cajaBlanca) {
+        cajaBlanca.classList.remove('hidden');
+        cajaBlanca.style.display = 'flex';
+    }
 
     var inputTipo = document.getElementById('editItemTipo');
     var inputClave = document.getElementById('editItemClave');
