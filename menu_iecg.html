@@ -10043,41 +10043,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(window.cargarNotificacionesVinculacionAuditoria, 30000);
 });
         
-        // Separar Recibidas (para mí) de Enviadas (por mí)
-        window.solicitudesRecibidas = data.filter(function(s) {
-            var destino = s.panel_destino || '';
-            var esMiDestino = misPaneles.some(function(p) { return destino.includes(p); });
-            var noEsMia = (s.usuario_id !== miEmail && s.solicitante !== miNombre);
-            return esMiDestino && noEsMia && s.estatus === 'PENDIENTE';
-        });
-
-        window.solicitudesEnviadas = data.filter(function(s) {
-            var origen = s.panel_origen || s.panel_solicitante || '';
-            var esMiOrigen = misPaneles.some(function(p) { return origen.includes(p); });
-            return (s.usuario_id === miEmail || s.solicitante === miNombre || esMiOrigen);
-        });
-
-        var pendientesRecibidas = window.solicitudesRecibidas.length;
-
-        // A) Badge en el botón Avisos superior
-        var btnAvisos = Array.from(document.querySelectorAll('button, a, div')).find(function(el) {
-            var txt = (el.innerText || el.textContent || '').trim();
-            return txt.includes('Avisos') && !el.closest('#modal-inicio') && !el.closest('#modal-bitacora-avisos');
-        });
-
-        if (btnAvisos) {
-            btnAvisos.onclick = window.abrirModalBitacoraAvisos;
-            var bExist = btnAvisos.querySelector('.badge-notif-vinculacion');
-            if (bExist) bExist.remove();
-
-            if (pendientesRecibidas > 0) {
-                var badge = document.createElement('span');
-                badge.className = 'badge-notif-vinculacion inline-flex items-center justify-center bg-rose-500 text-white text-[10px] h-4 min-w-[16px] px-1 rounded-full font-black ml-1.5 shadow-xs animate-pulse';
-                badge.innerText = pendientesRecibidas;
-                btnAvisos.appendChild(badge);
-            }
-        }
-
+      
     
         
     </script>
