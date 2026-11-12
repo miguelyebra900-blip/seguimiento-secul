@@ -11162,6 +11162,103 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
         sugerencia_expediente_tecnico: (document.getElementById('alta_sug_expediente')?.value || '').trim()
     };
 };
+
+// =========================================================================
+// SINCRONIZACIÓN EN VIVO: SUPABASE (accionesDataset) -> VISTA GERENCIAL
+// =========================================================================
+window.perspectivaGerencialActual = 'ley';
+
+window.sincronizarVistaGerencialConSupabase = function() {
+    const dataset = Array.isArray(accionesDataset) ? accionesDataset : [];
+    const totalAcciones = dataset.length;
+    if (totalAcciones === 0) return;
+
+    // 1. Cálculo real sobre las 40 acciones (o las que existan en Supabase)
+    const concluidas = dataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100);
+    const totalConcluidas = concluidas.length;
+    const porcentajeReal = ((totalConcluidas / totalAcciones) * 100).toFixed(1);
+
+    // 2. Actualizar KPI 1: Progreso de Obligaciones + Anillo Radial
+    const elPctText = document.getElementById('kpiRadialPctText');
+    const elGaugeCenter = document.getElementById('gaugeCenterLabel');
+    if (elPctText) {
+        elPctText.innerText = `${porcentajeReal}%`;
+        const subSolventadas = elPctText.nextElementSibling;
+        if (subSolventadas) subSolventadas.innerText = `${totalConcluidas} de ${totalAcciones} Solventadas`;
+    }
+    if (elGaugeCenter) elGaugeCenter.innerText = `${porcentajeReal}%`;
+
+    // Redibujar canvas radial #gaugeRadialGerencial con datos reales
+    const canvasRadial = document.getElementById('gaugeRadialGerencial');
+    if (canvasRadial && typeof Chart !== 'undefined') {
+        if (window.instanciaGaugeGerencial) window.instanciaGaugeGerencial.destroy();
+        window.instanciaGaugeGerencial = new Chart(canvasRadial.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [totalConcluidas, Math.max(0, totalAcciones - totalConcluidas)],
+                    backgroundColor: ['#4f46e5', '#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: false,
+                cutout: '76%',
+                plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } }
+            }
+        });
+    }
+
+    // 3. Actualizar KPI 2: Artículos Cumplidos ("X de Y") y barra de progreso
+    const elAccionesTxt = document.getElementById('kpiAccionesCompletasTxt');
+    if (elAccionesTxt) {
+        elAccionesTxt.innerText = `${totalConcluidas} de ${totalAcciones}`;
+        const cardKpi2 = elAccionesTxt.closest('.bg-white');
+        if (cardKpi2) {
+            const subPadron = cardKpi2.querySelector('.text-slate-500');
+            if (subPadron) subPadron.innerText = `Padrón de ${totalConcluidas} compromisos acreditados`;
+            const barraVerde = cardKpi2.querySelector('.bg-emerald-500');
+            if (barraVerde) barraVerde.style.width = `${porcentajeReal}%`;
+            const linkAuditar = cardKpi2.querySelector('.underline');
+            if (linkAuditar) linkAuditar.innerText = `Auditar las ${totalConcluidas} acciones concluidas →`;
+        }
+    }
+
+    // 4. Actualizar textos estáticos residuales de "35" o "17 de 35" en el cuerpo gerencial
+    const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
+    if (cuerpoGerencial && cuerpoGerencial.innerHTML.trim() !== '') {
+        cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
+            .replace(/las 35\s*Acciones/gi, `las ${totalAcciones} Acciones`)
+            .replace(/de 35 Solventadas/gi, `de ${totalAcciones} Solventadas`)
+            .replace(/\b17 de 35\b/g, `${totalConcluidas} de ${totalAcciones}`)
+            .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
+    }
+};
+
+// Interceptar seleccionarPerspectivaGerencial original para que siempre refresque cifras reales
+if (typeof window.seleccionarPerspectivaGerencial === 'function') {
+    const _origSeleccionarPerspectiva = window.seleccionarPerspectivaGerencial;
+    window.seleccionarPerspectivaGerencial = function(perspectiva) {
+        window.perspectivaGerencialActual = perspectiva;
+        _origSeleccionarPerspectiva(perspectiva);
+        window.sincronizarVistaGerencialConSupabase();
+    };
+}
+
+// Hook automático sobre actualizarDashboard para que cualquier cambio en Supabase actualice la Vista Gerencial
+if (typeof window.actualizarDashboard === 'function') {
+    const _origActualizarDashboard = window.actualizarDashboard;
+    window.actualizarDashboard = function() {
+        _origActualizarDashboard();
+        window.sincronizarVistaGerencialConSupabase();
+    };
+}
+
+// Disparo inicial tras cargar Supabase
+setTimeout(() => {
+    window.sincronizarVistaGerencialConSupabase();
+}, 800);
+
     
 </script>
     <!-- Descripción de la Acción -->
