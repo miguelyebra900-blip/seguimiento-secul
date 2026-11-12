@@ -11173,7 +11173,7 @@ window.sincronizarVistaGerencialConSupabase = function() {
     const totalAcciones = dataset.length;
     if (totalAcciones === 0) return;
 
-    // 1. Cálculo real sobre las 40 acciones (o las que existan en Supabase)
+    // 1. Cálculo real sobre las acciones de Supabase
     const concluidas = dataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100);
     const totalConcluidas = concluidas.length;
     const porcentajeReal = ((totalConcluidas / totalAcciones) * 100).toFixed(1);
@@ -11188,10 +11188,17 @@ window.sincronizarVistaGerencialConSupabase = function() {
     }
     if (elGaugeCenter) elGaugeCenter.innerText = `${porcentajeReal}%`;
 
-    // Redibujar canvas radial #gaugeRadialGerencial con datos reales
+    // Destruir CUALQUIER instancia previa en #gaugeRadialGerencial antes de redibujar
     const canvasRadial = document.getElementById('gaugeRadialGerencial');
     if (canvasRadial && typeof Chart !== 'undefined') {
-        if (window.instanciaGaugeGerencial) window.instanciaGaugeGerencial.destroy();
+        const chartPrevio = Chart.getChart(canvasRadial);
+        if (chartPrevio) {
+            chartPrevio.destroy();
+        }
+        if (window.instanciaGaugeGerencial) {
+            window.instanciaGaugeGerencial.destroy();
+        }
+
         window.instanciaGaugeGerencial = new Chart(canvasRadial.getContext('2d'), {
             type: 'doughnut',
             data: {
@@ -11234,7 +11241,7 @@ window.sincronizarVistaGerencialConSupabase = function() {
             .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
     }
 };
-
+    
 // Interceptar seleccionarPerspectivaGerencial original para que siempre refresque cifras reales
 if (typeof window.seleccionarPerspectivaGerencial === 'function') {
     const _origSeleccionarPerspectiva = window.seleccionarPerspectivaGerencial;
