@@ -10521,18 +10521,16 @@ window.sincronizarVistaGerencialConSupabase = function() {
     const totalConcluidas = dataset.filter(esConcluida).length;
     const porcentajeReal = Number(((totalConcluidas / totalAcciones) * 100).toFixed(1));
 
-    // 1. Anillo radial superior
-    if (typeof renderGaugeRadial === 'function') {
-        renderGaugeRadial(porcentajeReal);
-    }
+    // 1. Anillo radial y KPIs superiores
+    if (typeof renderGaugeRadial === 'function') renderGaugeRadial(porcentajeReal);
 
-    // 2. KPI 1 y KPI 2 superiores
     const elPctText = document.getElementById('kpiRadialPctText');
     const elGaugeCenter = document.getElementById('gaugeCenterLabel');
     if (elPctText) {
         elPctText.innerText = `${porcentajeReal}%`;
-        const subSolventadas = elPctText.nextElementSibling;
-        if (subSolventadas) subSolventadas.innerText = `${totalConcluidas} de ${totalAcciones} Solventadas`;
+        if (elPctText.nextElementSibling) {
+            elPctText.nextElementSibling.innerText = `${totalConcluidas} de ${totalAcciones} Solventadas`;
+        }
     }
     if (elGaugeCenter) elGaugeCenter.innerText = `${porcentajeReal}%`;
 
@@ -10550,92 +10548,102 @@ window.sincronizarVistaGerencialConSupabase = function() {
         }
     }
 
-    // 3. Sincronizar Ficha Oscura y los 4 Pilares Mandatorios (Paneles A-J = 40 Acciones)
+    // 2. Localizar Ficha Oscura y rediseñar los 4 Bloques con aritmética exacta
     const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
-    if (!cuerpoGerencial || cuerpoGerencial.innerHTML.trim() === '') return;
+    if (!cuerpoGerencial) return;
 
-    cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
-        .replace(/Cómputo Nominal de las \d+\s*Acciones/gi, `Cómputo Nominal de las ${totalAcciones} Acciones`)
-        .replace(/\(\d+ de \d+\s*Solventadas\)/gi, `(${totalConcluidas} de ${totalAcciones} Solventadas)`)
-        .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
+    cuerpoGerencial.querySelectorAll('h3, span').forEach(el => {
+        if (el.children.length === 0) {
+            const t = el.textContent.trim();
+            if (t.startsWith('Matriz de 4 Pilares Mandatorios')) {
+                el.textContent = `Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las ${totalAcciones} Acciones`;
+            } else if (t.startsWith('AVANCE GLOBAL:')) {
+                el.textContent = `AVANCE GLOBAL: ${porcentajeReal}%`;
+            } else if (/^\(\d+ de \d+\s*Solventadas\)$/i.test(t)) {
+                el.textContent = `(${totalConcluidas} de ${totalAcciones} Solventadas)`;
+            }
+        }
+    });
 
-    // Mejorar distribución visual de 4 columnas estrechas a 2 columnas amplias y legibles
-    const gridBloques = cuerpoGerencial.querySelector('.grid');
-    if (gridBloques) {
-        gridBloques.classList.remove('lg:grid-cols-4', 'md:grid-cols-4', 'grid-cols-4');
-        gridBloques.classList.add('grid-cols-1', 'lg:grid-cols-2', 'gap-5');
-    }
-
-    const configuracionBloques = [
-        { paneles: ['A', 'C', 'E', 'H'], barColor: 'bg-blue-400',    badgeColor: 'text-blue-300' },    // Bloque 1
-        { paneles: ['F', 'I'],           barColor: 'bg-amber-400',   badgeColor: 'text-amber-300' },   // Bloque 2
-        { paneles: ['D'],                barColor: 'bg-purple-400',  badgeColor: 'text-purple-300' },  // Bloque 3
-        { paneles: ['B', 'G', 'J'],      barColor: 'bg-emerald-400', badgeColor: 'text-emerald-300' }  // Bloque 4
+    const bloquesConfig = [
+        { titulo: 'BLOQUE 1', paneles: ['A', 'C', 'E', 'H'], barColor: '#60a5fa', textAccent: 'text-blue-300' },
+        { titulo: 'BLOQUE 2', paneles: ['F', 'I'],           barColor: '#fbbf24', textAccent: 'text-amber-300' },
+        { titulo: 'BLOQUE 3', paneles: ['D'],                barColor: '#c084fc', textAccent: 'text-purple-300' },
+        { titulo: 'BLOQUE 4', paneles: ['B', 'G', 'J'],      barColor: '#34d399', textAccent: 'text-emerald-300' }
     ];
 
-    const tarjetasBloque = cuerpoGerencial.querySelectorAll('.grid > div');
-    if (tarjetasBloque.length >= 4) {
-        configuracionBloques.forEach((cfg, idx) => {
-            const card = tarjetasBloque[idx];
-            if (!card) return;
+    bloquesConfig.forEach(cfg => {
+        const nodos = Array.from(cuerpoGerencial.querySelectorAll('span')).filter(
+            el => el.children.length === 0 && el.textContent.trim().toUpperCase() === cfg.titulo
+        );
+        if (nodos.length === 0) return;
 
-            const accionesBloque = dataset.filter(a => cfg.paneles.includes((a.panel || '').toUpperCase()));
-            const totalB = accionesBloque.length;
-            const concluidasB = accionesBloque.filter(esConcluida).length;
-            
-            // Aritmética exacta: % de acciones concluidas al 100% + promedio físico de avances
-            const pctConcluidasB = totalB > 0 ? Number(((concluidasB / totalB) * 100).toFixed(1)) : 0;
-            const sumaAvancesB = accionesBloque.reduce((acc, item) => acc + (Number(item.avance) || 0), 0);
-            const pctPromedioB = totalB > 0 ? Number((sumaAvancesB / totalB).toFixed(1)) : 0;
+        // Subir hasta la tarjeta del bloque (div con onclick="abrirModalDetalleMandatoCompleto...")
+        const card = nodos[0].closest('[onclick*="abrirModalDetalleMandatoCompleto"]');
+        if (!card) return;
 
-            // Actualizar cualquier texto porcentual grande en la cabecera de la tarjeta (ej. 50%, 40%, 33.3%, 100%)
-            card.querySelectorAll('span, div, p, h3, h4').forEach(el => {
-                if (el.children.length === 0) {
-                    const txt = el.textContent.trim();
-                    if (/^\d+(\.\d+)?%$/.test(txt) && !el.closest('ul')) {
-                        el.textContent = `${pctConcluidasB}%`;
-                    }
-                    if (/de \d+ Concluidas/i.test(txt)) {
-                        el.textContent = `${concluidasB} de ${totalB} Concluidas (Avance físico: ${pctPromedioB}%)`;
-                    }
-                    if (/Universo Total \(\d+/i.test(txt)) {
-                        el.textContent = `Universo Total (${totalB} Acciones):`;
-                    }
+        // Forzar acomodo en 2 columnas amplias (2x2) en el grid padre
+        if (card.parentElement) {
+            card.parentElement.style.display = 'grid';
+            card.parentElement.style.gridTemplateColumns = window.innerWidth >= 1024 ? 'repeat(2, minmax(0, 1fr))' : '1fr';
+            card.parentElement.style.gap = '1.25rem';
+        }
+
+        const accionesB = dataset.filter(a => cfg.paneles.includes((a.panel || '').toUpperCase()));
+        const totalB = accionesB.length;
+        const concluidasB = accionesB.filter(esConcluida).length;
+        const pctRealB = totalB > 0 ? Number(((concluidasB / totalB) * 100).toFixed(1)) : 0;
+        const promFisicoB = totalB > 0
+            ? Number((accionesB.reduce((s, a) => s + (Number(a.avance) || 0), 0) / totalB).toFixed(1))
+            : 0;
+
+        // Actualizar el porcentaje grande (clase text-xl) y los textos de conteo
+        const elPctGrande = card.querySelector('.text-xl');
+        if (elPctGrande) elPctGrande.textContent = `${pctRealB}%`;
+
+        card.querySelectorAll('span').forEach(el => {
+            if (el.children.length === 0) {
+                const t = el.textContent.trim();
+                if (/de \d+ Concluidas/i.test(t)) {
+                    el.textContent = `${concluidasB} de ${totalB} Concluidas · Prom. físico ${promFisicoB}%`;
                 }
-            });
-
-            // Reemplazar lista amontonada por tarjetas limpias, legibles y con padding para el scroll
-            const contenedorLista = card.querySelector('.space-y-1\\.5, .space-y-2, ul, [class*="overflow-y"]');
-            if (contenedorLista && accionesBloque.length > 0) {
-                contenedorLista.className = "space-y-2 max-h-64 overflow-y-auto pr-3 mt-3";
-                contenedorLista.innerHTML = `
-                    <!-- Barra de progreso visual del bloque -->
-                    <div class="w-full bg-white/10 rounded-full h-2 mb-3 overflow-hidden">
-                        <div class="${cfg.barColor} h-2 rounded-full transition-all duration-500" style="width: ${pctConcluidasB}%"></div>
-                    </div>
-                ` + accionesBloque.map(act => {
-                    const av = Number(act.avance) || 0;
-                    const badgeStyle = av === 100 
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
-                        : (av > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-500/20 text-slate-300 border-slate-500/30');
-                    const clave = act.clave_accion || act.id || '';
-                    const tituloCompleto = act.hito || act.accion || 'Acción operativa';
-
-                    return `
-                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition">
-                            <div class="min-w-0 flex-1">
-                                <span class="font-mono text-[10px] ${cfg.badgeColor} font-bold block">${clave}</span>
-                                <span class="text-xs text-slate-100 font-medium leading-snug block">${tituloCompleto}</span>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-lg border font-mono font-black text-xs shrink-0 ${badgeStyle}">
-                                ${av}%
-                            </span>
-                        </div>
-                    `;
-                }).join('');
+                if (/Universo Total \(\d+/i.test(t)) {
+                    el.textContent = `Universo Total (${totalB} Acciones):`;
+                }
             }
         });
-    }
+
+        // Reemplazar la lista <ul> por tarjetas limpias, legibles y con margen para el scroll
+        const ulLista = card.querySelector('ul');
+        if (ulLista && accionesB.length > 0) {
+            ulLista.style.maxHeight = '260px';
+            ulLista.style.overflowY = 'auto';
+            ulLista.style.paddingRight = '10px';
+            ulLista.innerHTML = `
+                <li style="list-style:none; margin-bottom:10px;">
+                    <div style="width:100%; background:rgba(255,255,255,0.1); height:7px; border-radius:999px; overflow:hidden;">
+                        <div style="width:${pctRealB}%; background:${cfg.barColor}; height:100%; border-radius:999px; transition:width 0.4s;"></div>
+                    </div>
+                </li>
+            ` + accionesB.map(act => {
+                const av = Number(act.avance) || 0;
+                const badgeCls = av === 100
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                    : (av > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-600/30 text-slate-300 border-slate-500/40');
+                return `
+                    <li class="flex items-center justify-between gap-3 p-2.5 mb-1.5 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-700/70 transition">
+                        <div class="min-w-0 flex-1">
+                            <span class="font-mono text-[10px] ${cfg.textAccent} font-bold block">${act.clave_accion || act.id}</span>
+                            <span class="text-xs text-slate-100 font-medium leading-snug block">${act.hito || act.accion}</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg border font-mono font-black text-xs shrink-0 ${badgeCls}">
+                            ${av}%
+                        </span>
+                    </li>
+                `;
+            }).join('');
+        }
+    });
 };
         
 // ESTOS 3 DISPARADORES SON LOS QUE EJECUTAN LA FUNCIÓN AL LLEGAR SUPABASE:
