@@ -8788,161 +8788,133 @@ if (tipo === 'resumen') {
                         <span class="text-[10px] font-black uppercase tracking-wider text-sky-400 bg-sky-950/80 px-2.5 py-1 rounded-md border border-sky-800">
                             Ficha de Decisión Directiva
                         </span>
-                        <h3 class="text-base font-black tracking-tight mt-1 text-slate-100">
-                            Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las 35 Acciones
+    
+<h3 class="text-base font-black tracking-tight mt-1 text-slate-100">
+                            Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las ${accionesDataset.length} Acciones
                         </h3>
                         <p class="text-xs text-slate-400 mt-0.5">Haz clic sobre cualquier bloque para auditar su marco legal, qué exige la norma y plazos de ley.</p>
                     </div>
                     <div class="flex items-center gap-2 bg-slate-800/90 px-3.5 py-1.5 rounded-2xl border border-slate-700 self-start md:self-auto">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-xs font-black text-sky-300">AVANCE GLOBAL: 48.6%</span>
-                        <span class="text-[11px] text-slate-400 font-bold">(17 de 35 Solventadas)</span>
+                        <span class="text-xs font-black text-sky-300">
+                            AVANCE GLOBAL: ${accionesDataset.length > 0 ? ((accionesDataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length / accionesDataset.length) * 100).toFixed(1) : 0}%
+                        </span>
+                        <span class="text-[11px] text-slate-400 font-bold">
+                            (${accionesDataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length} de ${accionesDataset.length} Solventadas)
+                        </span>
                     </div>
                 </div>
 
-                <!-- Las 4 Columnas con TODAS sus acciones visibles -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <!-- 4 Pilares en 2 Columnas Amplias Conectados Directamente a Supabase -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    ${[
+                        {
+                            num: 1,
+                            paneles: ['A', 'C', 'E', 'H'],
+                            titulo: 'PERSONAL, PATRIMONIO & ARCHIVO',
+                            norma: 'Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17, 18, 30',
+                            blindaje: 'Protección irrestricta a derechos laborales y certeza registral de bienes e inmuebles.',
+                            border: 'border-blue-500/50 hover:border-blue-400 hover:shadow-blue-500/10',
+                            headerBg: 'bg-blue-600 group-hover:bg-blue-500',
+                            textColor: 'text-blue-400',
+                            subColor: 'text-indigo-300',
+                            barBg: 'bg-blue-500'
+                        },
+                        {
+                            num: 2,
+                            paneles: ['F', 'I'],
+                            titulo: 'CIERRE FISCAL, CUENTAS & AUDITORÍA',
+                            norma: 'Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 22, 23, 27',
+                            blindaje: 'Extinción de personalidad fiscal en el SAT Celaya y solventación de cuenta pública.',
+                            border: 'border-amber-500/50 hover:border-amber-400 hover:shadow-amber-500/10',
+                            headerBg: 'bg-amber-600 group-hover:bg-amber-500',
+                            textColor: 'text-amber-400',
+                            subColor: 'text-amber-300',
+                            barBg: 'bg-amber-500'
+                        },
+                        {
+                            num: 3,
+                            paneles: ['D'],
+                            titulo: 'FIDEICOMISOS BANORTE',
+                            norma: 'Arts. 67 al 76 • Lineamientos Art. 10 • Dec. Gub. 19',
+                            blindaje: 'Desvincula pasivos fiduciarios y formaliza la titularidad del fondo a SECUL.',
+                            border: 'border-purple-500/50 hover:border-purple-400 hover:shadow-purple-500/10',
+                            headerBg: 'bg-purple-600 group-hover:bg-purple-500',
+                            textColor: 'text-purple-400',
+                            subColor: 'text-purple-300',
+                            barBg: 'bg-purple-500'
+                        },
+                        {
+                            num: 4,
+                            paneles: ['B', 'G', 'J'],
+                            titulo: 'GOBERNANZA & SISTEMAS TI',
+                            norma: 'Lineamientos Comités Arts. 3, 9, 34 • Arts. 11, 29',
+                            blindaje: 'Actas protocolizadas del Comité e infraestructura tecnológica migrada íntegramente.',
+                            border: 'border-emerald-500/50 hover:border-emerald-400 hover:shadow-emerald-500/10',
+                            headerBg: 'bg-emerald-600 group-hover:bg-emerald-500',
+                            textColor: 'text-emerald-400',
+                            subColor: 'text-emerald-300',
+                            barBg: 'bg-emerald-500'
+                        }
+                    ].map(b => {
+                        const accs = accionesDataset.filter(a => b.paneles.includes((a.panel || '').toUpperCase()));
+                        const tot = accs.length;
+                        const concl = accs.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length;
+                        const pctExacto = tot > 0 ? Number(((concl / tot) * 100).toFixed(1)) : 0;
+                        const promFisico = tot > 0 ? Number((accs.reduce((s, a) => s + (Number(a.avance) || 0), 0) / tot).toFixed(1)) : 0;
 
-                    <!-- COLUMNA 1: 18 ACCIONES -->
-                    <div onclick="abrirModalDetalleMandatoCompleto(1)" class="bg-slate-800/80 rounded-2xl border border-blue-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/10 transition cursor-pointer group shadow-inner">
-                        <div class="space-y-2.5">
-                            <div class="bg-blue-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-blue-500 transition">
-                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 1</span>
-                                <h4 class="font-black text-xs">PERSONAL, PATRIMONIO & ARCHIVO</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 5° Transitorio • Lineamientos Arts. 5, 7, 15, 17, 18, 30</span>
+                        return `
+                        <div onclick="abrirModalDetalleMandatoCompleto(${b.num})" class="bg-slate-800/85 rounded-2xl border ${b.border} p-5 flex flex-col justify-between space-y-3.5 hover:shadow-lg transition cursor-pointer group shadow-inner">
+                            <div class="space-y-3">
+                                <div class="${b.headerBg} text-white p-3 rounded-xl text-center shadow-xs transition">
+                                    <span class="block text-[10px] font-black uppercase tracking-wider opacity-85">BLOQUE ${b.num}</span>
+                                    <h4 class="font-black text-sm">${b.titulo}</h4>
+                                    <span class="block text-[10px] opacity-85 mt-0.5">${b.norma}</span>
+                                </div>
+
+                                <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-2">
+                                    <div>
+                                        <span class="text-2xl font-black ${b.textColor}">${pctExacto}%</span>
+                                        <span class="text-[11px] text-slate-400 font-semibold ml-1.5">(Avance físico: ${promFisico}%)</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-200">${concl} de ${tot} Concluidas</span>
+                                </div>
+
+                                <div class="w-full bg-slate-900/90 rounded-full h-2 overflow-hidden">
+                                    <div class="${b.barBg} h-2 rounded-full transition-all duration-500" style="width: ${pctExacto}%"></div>
+                                </div>
+
+                                <div class="text-xs ${b.subColor} font-bold flex items-center justify-between pt-0.5">
+                                    <span>Universo Total (${tot} Acciones):</span>
+                                    <span class="underline">Ver Ley y Plazos →</span>
+                                </div>
+
+                                <ul class="text-xs space-y-2 font-medium text-slate-200 max-h-64 overflow-y-auto pr-3">
+                                    ${accs.map(a => {
+                                        const av = Number(a.avance) || 0;
+                                        const badgeColor = av === 100
+                                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                            : (av > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-700/50 text-slate-300 border-slate-600');
+                                        return `
+                                            <li class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60">
+                                                <div class="min-w-0 flex-1">
+                                                    <span class="font-mono text-[10px] ${b.subColor} font-bold block">${a.clave_accion || a.id}</span>
+                                                    <span class="text-slate-100 leading-snug block">${a.hito || a.accion}</span>
+                                                </div>
+                                                <span class="px-2.5 py-1 rounded-lg border font-mono font-black text-xs shrink-0 ${badgeColor}">${av}%</span>
+                                            </li>
+                                        `;
+                                    }).join('')}
+                                </ul>
                             </div>
 
-                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
-                                <span class="text-xl font-black text-blue-400">50%</span>
-                                <span class="text-[10.5px] font-bold text-slate-300">9 de 18 Concluidas</span>
+                            <div class="p-2.5 bg-slate-950/75 rounded-xl border border-slate-800 text-[11px] text-slate-300 leading-snug">
+                                <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
+                                ${b.blindaje}
                             </div>
-
-                            <div class="text-[10px] text-indigo-300 font-bold flex items-center justify-between pb-1">
-                                <span>Universo Total (18 Acciones):</span>
-                                <span class="underline">Ver Ley y Plazos →</span>
-                            </div>
-
-                            <ul class="text-[10px] space-y-1 font-medium text-slate-200 max-h-72 overflow-y-auto pr-1">
-                                ${catalogo35Juridico[1].acciones.map(a => `
-                                    <li class="flex items-center justify-between py-0.5 border-b border-slate-700/40 last:border-0">
-                                        <span class="truncate pr-1">• ${a.nombre}</span>
-                                        <span class="font-bold ${a.pct === 100 ? 'text-emerald-400' : (a.pct >= 70 ? 'text-amber-400' : 'text-blue-400')} shrink-0">${a.pct}%</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
                         </div>
-
-                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
-                            Protección irrestricta a derechos laborales y certeza registral de bienes e inmuebles.
-                        </div>
-                    </div>
-
-                    <!-- COLUMNA 2: 10 ACCIONES -->
-                    <div onclick="abrirModalDetalleMandatoCompleto(2)" class="bg-slate-800/80 rounded-2xl border border-amber-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/10 transition cursor-pointer group shadow-inner">
-                        <div class="space-y-2.5">
-                            <div class="bg-amber-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-amber-500 transition">
-                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 2</span>
-                                <h4 class="font-black text-xs">CIERRE FISCAL, CUENTAS & Auditoría</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Art. 24 Fracc. I • Lineamientos Arts. 5, 10, 22, 23, 27</span>
-                            </div>
-
-                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
-                                <span class="text-xl font-black text-amber-400">40%</span>
-                                <span class="text-[10.5px] font-bold text-slate-300">4 de 10 Concluidas</span>
-                            </div>
-
-                            <div class="text-[10px] text-amber-300 font-bold flex items-center justify-between pb-1">
-                                <span>Universo Total (10 Acciones):</span>
-                                <span class="underline">Ver Ley y Plazos →</span>
-                            </div>
-
-                            <ul class="text-[10px] space-y-1 font-medium text-slate-200 max-h-72 overflow-y-auto pr-1">
-                                ${catalogo35Juridico[2].acciones.map(a => `
-                                    <li class="flex items-center justify-between py-0.5 border-b border-slate-700/40 last:border-0">
-                                        <span class="truncate pr-1">• ${a.nombre}</span>
-                                        <span class="font-bold ${a.pct === 100 ? 'text-emerald-400' : (a.pct >= 60 ? 'text-amber-400' : 'text-rose-400')} shrink-0">${a.pct}%</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-
-                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
-                            Extinción de personalidad fiscal en el SAT Celaya y solventación de cuenta pública.
-                        </div>
-                    </div>
-
-                    <!-- COLUMNA 3: 3 ACCIONES -->
-                    <div onclick="abrirModalDetalleMandatoCompleto(3)" class="bg-slate-800/80 rounded-2xl border border-purple-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/10 transition cursor-pointer group shadow-inner">
-                        <div class="space-y-2.5">
-                            <div class="bg-purple-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-purple-500 transition">
-                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 3</span>
-                                <h4 class="font-black text-xs">FIDEICOMISOS BANORTE</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Arts. 67 al 76 • Lineamientos Art. 10 • Dec. Gub. 19</span>
-                            </div>
-
-                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
-                                <span class="text-xl font-black text-purple-400">33.3%</span>
-                                <span class="text-[10.5px] font-bold text-slate-300">1 de 3 Concluidas</span>
-                            </div>
-
-                            <div class="text-[10px] text-purple-300 font-bold flex items-center justify-between pb-1">
-                                <span>Universo Total (3 Acciones):</span>
-                                <span class="underline">Ver Ley y Plazos →</span>
-                            </div>
-
-                            <ul class="text-[10px] space-y-1.5 font-medium text-slate-200">
-                                ${catalogo35Juridico[3].acciones.map(a => `
-                                    <li class="flex items-center justify-between py-1 border-b border-slate-700/40 last:border-0">
-                                        <span class="truncate pr-1">• ${a.nombre}</span>
-                                        <span class="font-bold ${a.pct === 100 ? 'text-emerald-400' : 'text-purple-300'} shrink-0">${a.pct}%</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-
-                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
-                            Desvincula pasivos fiduciarios y formaliza la titularidad del fondo a SECUL.
-                        </div>
-                    </div>
-
-                    <!-- COLUMNA 4: 4 ACCIONES -->
-                    <div onclick="abrirModalDetalleMandatoCompleto(4)" class="bg-slate-800/80 rounded-2xl border border-emerald-500/50 p-4 flex flex-col justify-between space-y-3 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 transition cursor-pointer group shadow-inner">
-                        <div class="space-y-2.5">
-                            <div class="bg-emerald-600 text-white p-2.5 rounded-xl text-center shadow-xs group-hover:bg-emerald-500 transition">
-                                <span class="block text-[9.5px] font-black uppercase tracking-wider opacity-85">BLOQUE 4</span>
-                                <h4 class="font-black text-xs">GOBERNANZA & SISTEMAS TI</h4>
-                                <span class="block text-[8px] opacity-80 mt-0.5">Lineamientos Comités Arts. 3, 9, 34 • Arts. 11, 29</span>
-                            </div>
-
-                            <div class="flex items-baseline justify-between border-b border-slate-700/60 pb-1.5">
-                                <span class="text-xl font-black text-emerald-400">100%</span>
-                                <span class="text-[10.5px] font-bold text-slate-300">4 de 4 Concluidas</span>
-                            </div>
-
-                            <div class="text-[10px] text-emerald-300 font-bold flex items-center justify-between pb-1">
-                                <span>Universo Total (4 Acciones):</span>
-                                <span class="underline">Ver Ley y Plazos →</span>
-                            </div>
-
-                            <ul class="text-[10px] space-y-1.5 font-medium text-slate-200">
-                                ${catalogo35Juridico[4].acciones.map(a => `
-                                    <li class="flex items-center justify-between py-1 border-b border-slate-700/40 last:border-0">
-                                        <span class="truncate pr-1">• ${a.nombre}</span>
-                                        <span class="font-bold text-emerald-400 shrink-0">100%</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-
-                        <div class="p-2 bg-slate-950/70 rounded-xl border border-slate-800 text-[9px] text-slate-300 leading-snug">
-                            <strong class="text-amber-300 block mb-0.5">🛡️ BLINDAJE DE LEY:</strong>
-                            Actas protocolizadas del Comité e infraestructura tecnológica migrada íntegramente.
-                        </div>
-                    </div>
-
+                        `;
+                    }).join('')}
                 </div>
 
                 <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -8955,7 +8927,7 @@ if (tipo === 'resumen') {
                 </div>
 
             </div>
-        `;
+     `;
         return;
     }
 
@@ -10510,6 +10482,9 @@ document.addEventListener('DOMContentLoaded', function() {
    // =========================================================================
 // SINCRONIZACIÓN COMPLETA + DISPARADORES AUTOMÁTICOS CON SUPABASE (40 ACC)
 // =========================================================================
+// =========================================================================
+// SINCRONIZACIÓN DE KPIS SUPERIORES CON SUPABASE (40 ACCIONES)
+// =========================================================================
 window.perspectivaGerencialActual = 'ley';
 
 window.sincronizarVistaGerencialConSupabase = function() {
@@ -10517,13 +10492,13 @@ window.sincronizarVistaGerencialConSupabase = function() {
     const totalAcciones = dataset.length;
     if (totalAcciones === 0) return;
 
-    const esConcluida = (a) => a.estatus === 'Concluido' || Number(a.avance) === 100;
-    const totalConcluidas = dataset.filter(esConcluida).length;
+    const totalConcluidas = dataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100).length;
     const porcentajeReal = Number(((totalConcluidas / totalAcciones) * 100).toFixed(1));
 
-    // 1. Anillo radial y KPIs superiores
+    // 1. Anillo radial superior
     if (typeof renderGaugeRadial === 'function') renderGaugeRadial(porcentajeReal);
 
+    // 2. KPI 1 y KPI 2 superiores
     const elPctText = document.getElementById('kpiRadialPctText');
     const elGaugeCenter = document.getElementById('gaugeCenterLabel');
     if (elPctText) {
@@ -10547,104 +10522,20 @@ window.sincronizarVistaGerencialConSupabase = function() {
             if (linkAuditar) linkAuditar.innerText = `Auditar las ${totalConcluidas} acciones concluidas →`;
         }
     }
-
-    // 2. Localizar Ficha Oscura y rediseñar los 4 Bloques con aritmética exacta
-    const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
-    if (!cuerpoGerencial) return;
-
-    cuerpoGerencial.querySelectorAll('h3, span').forEach(el => {
-        if (el.children.length === 0) {
-            const t = el.textContent.trim();
-            if (t.startsWith('Matriz de 4 Pilares Mandatorios')) {
-                el.textContent = `Matriz de 4 Pilares Mandatorios • Cómputo Nominal de las ${totalAcciones} Acciones`;
-            } else if (t.startsWith('AVANCE GLOBAL:')) {
-                el.textContent = `AVANCE GLOBAL: ${porcentajeReal}%`;
-            } else if (/^\(\d+ de \d+\s*Solventadas\)$/i.test(t)) {
-                el.textContent = `(${totalConcluidas} de ${totalAcciones} Solventadas)`;
-            }
-        }
-    });
-
-    const bloquesConfig = [
-        { titulo: 'BLOQUE 1', paneles: ['A', 'C', 'E', 'H'], barColor: '#60a5fa', textAccent: 'text-blue-300' },
-        { titulo: 'BLOQUE 2', paneles: ['F', 'I'],           barColor: '#fbbf24', textAccent: 'text-amber-300' },
-        { titulo: 'BLOQUE 3', paneles: ['D'],                barColor: '#c084fc', textAccent: 'text-purple-300' },
-        { titulo: 'BLOQUE 4', paneles: ['B', 'G', 'J'],      barColor: '#34d399', textAccent: 'text-emerald-300' }
-    ];
-
-    bloquesConfig.forEach(cfg => {
-        const nodos = Array.from(cuerpoGerencial.querySelectorAll('span')).filter(
-            el => el.children.length === 0 && el.textContent.trim().toUpperCase() === cfg.titulo
-        );
-        if (nodos.length === 0) return;
-
-        // Subir hasta la tarjeta del bloque (div con onclick="abrirModalDetalleMandatoCompleto...")
-        const card = nodos[0].closest('[onclick*="abrirModalDetalleMandatoCompleto"]');
-        if (!card) return;
-
-        // Forzar acomodo en 2 columnas amplias (2x2) en el grid padre
-        if (card.parentElement) {
-            card.parentElement.style.display = 'grid';
-            card.parentElement.style.gridTemplateColumns = window.innerWidth >= 1024 ? 'repeat(2, minmax(0, 1fr))' : '1fr';
-            card.parentElement.style.gap = '1.25rem';
-        }
-
-        const accionesB = dataset.filter(a => cfg.paneles.includes((a.panel || '').toUpperCase()));
-        const totalB = accionesB.length;
-        const concluidasB = accionesB.filter(esConcluida).length;
-        const pctRealB = totalB > 0 ? Number(((concluidasB / totalB) * 100).toFixed(1)) : 0;
-        const promFisicoB = totalB > 0
-            ? Number((accionesB.reduce((s, a) => s + (Number(a.avance) || 0), 0) / totalB).toFixed(1))
-            : 0;
-
-        // Actualizar el porcentaje grande (clase text-xl) y los textos de conteo
-        const elPctGrande = card.querySelector('.text-xl');
-        if (elPctGrande) elPctGrande.textContent = `${pctRealB}%`;
-
-        card.querySelectorAll('span').forEach(el => {
-            if (el.children.length === 0) {
-                const t = el.textContent.trim();
-                if (/de \d+ Concluidas/i.test(t)) {
-                    el.textContent = `${concluidasB} de ${totalB} Concluidas · Prom. físico ${promFisicoB}%`;
-                }
-                if (/Universo Total \(\d+/i.test(t)) {
-                    el.textContent = `Universo Total (${totalB} Acciones):`;
-                }
-            }
-        });
-
-        // Reemplazar la lista <ul> por tarjetas limpias, legibles y con margen para el scroll
-        const ulLista = card.querySelector('ul');
-        if (ulLista && accionesB.length > 0) {
-            ulLista.style.maxHeight = '260px';
-            ulLista.style.overflowY = 'auto';
-            ulLista.style.paddingRight = '10px';
-            ulLista.innerHTML = `
-                <li style="list-style:none; margin-bottom:10px;">
-                    <div style="width:100%; background:rgba(255,255,255,0.1); height:7px; border-radius:999px; overflow:hidden;">
-                        <div style="width:${pctRealB}%; background:${cfg.barColor}; height:100%; border-radius:999px; transition:width 0.4s;"></div>
-                    </div>
-                </li>
-            ` + accionesB.map(act => {
-                const av = Number(act.avance) || 0;
-                const badgeCls = av === 100
-                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                    : (av > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-600/30 text-slate-300 border-slate-500/40');
-                return `
-                    <li class="flex items-center justify-between gap-3 p-2.5 mb-1.5 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-700/70 transition">
-                        <div class="min-w-0 flex-1">
-                            <span class="font-mono text-[10px] ${cfg.textAccent} font-bold block">${act.clave_accion || act.id}</span>
-                            <span class="text-xs text-slate-100 font-medium leading-snug block">${act.hito || act.accion}</span>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-lg border font-mono font-black text-xs shrink-0 ${badgeCls}">
-                            ${av}%
-                        </span>
-                    </li>
-                `;
-            }).join('');
-        }
-    });
 };
+
+// Refrescar perspectiva activa cuando Supabase termine de descargar las 40 acciones
+let _ultimoTotalSincronizado = 0;
+setInterval(() => {
+    if (Array.isArray(accionesDataset) && accionesDataset.length !== _ultimoTotalSincronizado) {
+        _ultimoTotalSincronizado = accionesDataset.length;
+        window.sincronizarVistaGerencialConSupabase();
+        if (typeof window.seleccionarPerspectivaGerencial === 'function') {
+            window.seleccionarPerspectivaGerencial(window.perspectivaGerencialActual || 'resumen');
+        }
+    }
+}, 600);
+        
         
 // ESTOS 3 DISPARADORES SON LOS QUE EJECUTAN LA FUNCIÓN AL LLEGAR SUPABASE:
 if (typeof window.seleccionarPerspectivaGerencial === 'function') {
@@ -11331,108 +11222,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
 // =========================================================================
 // SINCRONIZACIÓN EN VIVO: SUPABASE (40 ACCIONES) -> KPIs + 4 PILARES
 // =========================================================================
-window.perspectivaGerencialActual = 'ley';
 
-window.sincronizarVistaGerencialConSupabase = function() {
-    const dataset = Array.isArray(accionesDataset) ? accionesDataset : [];
-    const totalAcciones = dataset.length;
-    if (totalAcciones === 0) return;
-
-    const esConcluida = (a) => a.estatus === 'Concluido' || Number(a.avance) === 100;
-    const totalConcluidas = dataset.filter(esConcluida).length;
-    const porcentajeReal = Number(((totalConcluidas / totalAcciones) * 100).toFixed(1));
-
-    // 1. Anillo radial superior
-    if (typeof renderGaugeRadial === 'function') {
-        renderGaugeRadial(porcentajeReal);
-    }
-
-    // 2. KPI 1 y KPI 2 superiores
-    const elPctText = document.getElementById('kpiRadialPctText');
-    const elGaugeCenter = document.getElementById('gaugeCenterLabel');
-    if (elPctText) {
-        elPctText.innerText = `${porcentajeReal}%`;
-        const subSolventadas = elPctText.nextElementSibling;
-        if (subSolventadas) subSolventadas.innerText = `${totalConcluidas} de ${totalAcciones} Solventadas`;
-    }
-    if (elGaugeCenter) elGaugeCenter.innerText = `${porcentajeReal}%`;
-
-    const elAccionesTxt = document.getElementById('kpiAccionesCompletasTxt');
-    if (elAccionesTxt) {
-        elAccionesTxt.innerText = `${totalConcluidas} de ${totalAcciones}`;
-        const cardKpi2 = elAccionesTxt.closest('.bg-white');
-        if (cardKpi2) {
-            const subPadron = cardKpi2.querySelector('.text-slate-500');
-            if (subPadron) subPadron.innerText = `Padrón de ${totalConcluidas} compromisos acreditados`;
-            const barraVerde = cardKpi2.querySelector('.bg-emerald-500');
-            if (barraVerde) barraVerde.style.width = `${porcentajeReal}%`;
-            const linkAuditar = cardKpi2.querySelector('.underline');
-            if (linkAuditar) linkAuditar.innerText = `Auditar las ${totalConcluidas} acciones concluidas →`;
-        }
-    }
-
-    // 3. Sincronizar Ficha Oscura y los 4 Pilares Mandatorios (A-J = 100% del universo)
-    const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
-    if (!cuerpoGerencial || cuerpoGerencial.innerHTML.trim() === '') return;
-
-    // Empatar encabezado de la Ficha Oscura (AVANCE GLOBAL y subtítulo)
-    cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
-        .replace(/Cómputo Nominal de las \d+\s*Acciones/gi, `Cómputo Nominal de las ${totalAcciones} Acciones`)
-        .replace(/\(\d+ de \d+\s*Solventadas\)/gi, `(${totalConcluidas} de ${totalAcciones} Solventadas)`)
-        .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
-
-    // Mapeo completo de los 10 paneles (A-J) en los 4 Bloques
-    const configuracionBloques = [
-        { numero: 1, paneles: ['A', 'C', 'E', 'H'], colorPct: 'text-blue-400' },
-        { numero: 2, paneles: ['F', 'I'],           colorPct: 'text-amber-400' },
-        { numero: 3, paneles: ['D'],                colorPct: 'text-purple-400' },
-        { numero: 4, paneles: ['B', 'G', 'J'],      colorPct: 'text-emerald-400' }
-    ];
-
-    const tarjetasBloque = cuerpoGerencial.querySelectorAll('.grid > div');
-    if (tarjetasBloque.length >= 4) {
-        configuracionBloques.forEach((cfg, idx) => {
-            const card = tarjetasBloque[idx];
-            if (!card) return;
-
-            const accionesBloque = dataset.filter(a => cfg.paneles.includes((a.panel || '').toUpperCase()));
-            const totalB = accionesBloque.length;
-            const concluidasB = accionesBloque.filter(esConcluida).length;
-            const pctB = totalB > 0 ? Number(((concluidasB / totalB) * 100).toFixed(1)) : 0;
-
-            // Actualizar porcentaje grande y texto "X de Y Concluidas"
-            const elBigPct = card.querySelector('.text-2xl, .text-3xl');
-            if (elBigPct) elBigPct.innerText = `${pctB}%`;
-
-            card.querySelectorAll('span, div, p').forEach(el => {
-                if (el.children.length === 0) {
-                    if (/de \d+ Concluidas/i.test(el.textContent)) {
-                        el.textContent = `${concluidasB} de ${totalB} Concluidas`;
-                    }
-                    if (/Universo Total \(\d+/i.test(el.textContent)) {
-                        el.textContent = `Universo Total (${totalB} Acciones):`;
-                    }
-                }
-            });
-
-            // Actualizar lista de acciones reales dentro del bloque
-            const contenedorLista = card.querySelector('.space-y-1\\.5, .space-y-2, ul');
-            if (contenedorLista && accionesBloque.length > 0) {
-                contenedorLista.innerHTML = accionesBloque.map(act => {
-                    const av = Number(act.avance) || 0;
-                    const colorAv = av === 100 ? 'text-emerald-400' : (av >= 70 ? 'text-blue-300' : 'text-amber-400');
-                    const tituloCorto = (act.hito || act.accion || '').slice(0, 26);
-                    return `
-                        <div class="flex items-center justify-between text-[11px] py-0.5 border-b border-white/5">
-                            <span class="text-slate-300 truncate pr-2">• ${tituloCorto}...</span>
-                            <span class="font-mono font-bold ${colorAv} shrink-0">${av}%</span>
-                        </div>
-                    `;
-                }).join('');
-            }
-        });
-    }
-};
     
 </script>
     <!-- Descripción de la Acción -->
