@@ -243,7 +243,7 @@
 
 
     
-    </script>
+    
     
 </head>
 
@@ -10511,7 +10511,134 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(window.cargarNotificacionesVinculacionAuditoria, 30000);
 });
         
-      
+   // =========================================================================
+// SINCRONIZACIÓN COMPLETA + DISPARADORES AUTOMÁTICOS CON SUPABASE (40 ACC)
+// =========================================================================
+window.perspectivaGerencialActual = 'ley';
+
+window.sincronizarVistaGerencialConSupabase = function() {
+    const dataset = Array.isArray(accionesDataset) ? accionesDataset : [];
+    const totalAcciones = dataset.length;
+    if (totalAcciones === 0) return;
+
+    const esConcluida = (a) => a.estatus === 'Concluido' || Number(a.avance) === 100;
+    const totalConcluidas = dataset.filter(esConcluida).length;
+    const porcentajeReal = Number(((totalConcluidas / totalAcciones) * 100).toFixed(1));
+
+    // 1. Anillo radial superior
+    if (typeof renderGaugeRadial === 'function') {
+        renderGaugeRadial(porcentajeReal);
+    }
+
+    // 2. KPI 1 y KPI 2 superiores
+    const elPctText = document.getElementById('kpiRadialPctText');
+    const elGaugeCenter = document.getElementById('gaugeCenterLabel');
+    if (elPctText) {
+        elPctText.innerText = `${porcentajeReal}%`;
+        const subSolventadas = elPctText.nextElementSibling;
+        if (subSolventadas) subSolventadas.innerText = `${totalConcluidas} de ${totalAcciones} Solventadas`;
+    }
+    if (elGaugeCenter) elGaugeCenter.innerText = `${porcentajeReal}%`;
+
+    const elAccionesTxt = document.getElementById('kpiAccionesCompletasTxt');
+    if (elAccionesTxt) {
+        elAccionesTxt.innerText = `${totalConcluidas} de ${totalAcciones}`;
+        const cardKpi2 = elAccionesTxt.closest('.bg-white');
+        if (cardKpi2) {
+            const subPadron = cardKpi2.querySelector('.text-slate-500');
+            if (subPadron) subPadron.innerText = `Padrón de ${totalConcluidas} compromisos acreditados`;
+            const barraVerde = cardKpi2.querySelector('.bg-emerald-500');
+            if (barraVerde) barraVerde.style.width = `${porcentajeReal}%`;
+            const linkAuditar = cardKpi2.querySelector('.underline');
+            if (linkAuditar) linkAuditar.innerText = `Auditar las ${totalConcluidas} acciones concluidas →`;
+        }
+    }
+
+    // 3. Sincronizar Ficha Oscura y los 4 Pilares Mandatorios (Paneles A-J = 40 Acciones)
+    const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
+    if (!cuerpoGerencial || cuerpoGerencial.innerHTML.trim() === '') return;
+
+    cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
+        .replace(/Cómputo Nominal de las \d+\s*Acciones/gi, `Cómputo Nominal de las ${totalAcciones} Acciones`)
+        .replace(/\(\d+ de \d+\s*Solventadas\)/gi, `(${totalConcluidas} de ${totalAcciones} Solventadas)`)
+        .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
+
+    const configuracionBloques = [
+        { paneles: ['A', 'C', 'E', 'H'] }, // Bloque 1: Personal, Patrimonio & Archivo
+        { paneles: ['F', 'I'] },           // Bloque 2: Cierre Fiscal, Cuentas & Auditoría
+        { paneles: ['D'] },                // Bloque 3: Fideicomisos Banorte
+        { paneles: ['B', 'G', 'J'] }       // Bloque 4: Gobernanza & Sistemas TI
+    ];
+
+    const tarjetasBloque = cuerpoGerencial.querySelectorAll('.grid > div');
+    if (tarjetasBloque.length >= 4) {
+        configuracionBloques.forEach((cfg, idx) => {
+            const card = tarjetasBloque[idx];
+            if (!card) return;
+
+            const accionesBloque = dataset.filter(a => cfg.paneles.includes((a.panel || '').toUpperCase()));
+            const totalB = accionesBloque.length;
+            const concluidasB = accionesBloque.filter(esConcluida).length;
+            const pctB = totalB > 0 ? Number(((concluidasB / totalB) * 100).toFixed(1)) : 0;
+
+            const elBigPct = card.querySelector('.text-2xl, .text-3xl');
+            if (elBigPct) elBigPct.innerText = `${pctB}%`;
+
+            card.querySelectorAll('span, div, p').forEach(el => {
+                if (el.children.length === 0) {
+                    if (/de \d+ Concluidas/i.test(el.textContent)) {
+                        el.textContent = `${concluidasB} de ${totalB} Concluidas`;
+                    }
+                    if (/Universo Total \(\d+/i.test(el.textContent)) {
+                        el.textContent = `Universo Total (${totalB} Acciones):`;
+                    }
+                }
+            });
+
+            const contenedorLista = card.querySelector('.space-y-1\\.5, .space-y-2, ul');
+            if (contenedorLista && accionesBloque.length > 0) {
+                contenedorLista.innerHTML = accionesBloque.map(act => {
+                    const av = Number(act.avance) || 0;
+                    const colorAv = av === 100 ? 'text-emerald-400' : (av >= 70 ? 'text-blue-300' : 'text-amber-400');
+                    const tituloCorto = (act.hito || act.accion || '').slice(0, 26);
+                    return `
+                        <div class="flex items-center justify-between text-[11px] py-0.5 border-b border-white/5">
+                            <span class="text-slate-300 truncate pr-2">• ${tituloCorto}...</span>
+                            <span class="font-mono font-bold ${colorAv} shrink-0">${av}%</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        });
+    }
+};
+
+// ESTOS 3 DISPARADORES SON LOS QUE EJECUTAN LA FUNCIÓN AL LLEGAR SUPABASE:
+if (typeof window.seleccionarPerspectivaGerencial === 'function') {
+    const _origPersp = window.seleccionarPerspectivaGerencial;
+    window.seleccionarPerspectivaGerencial = function(perspectiva) {
+        window.perspectivaGerencialActual = perspectiva;
+        _origPersp(perspectiva);
+        window.sincronizarVistaGerencialConSupabase();
+    };
+}
+
+if (typeof window.actualizarDashboard === 'function') {
+    const _origDash = window.actualizarDashboard;
+    window.actualizarDashboard = function() {
+        _origDash();
+        window.sincronizarVistaGerencialConSupabase();
+    };
+}
+
+// Vigilante automático: en cuanto accionesDataset supere las 30 iniciales (al llegar Supabase), actualiza
+let _ultimoTotalSincronizado = 0;
+setInterval(() => {
+    if (Array.isArray(accionesDataset) && accionesDataset.length !== _ultimoTotalSincronizado) {
+        _ultimoTotalSincronizado = accionesDataset.length;
+        window.sincronizarVistaGerencialConSupabase();
+    }
+}, 600);   
     
         
     </script>
