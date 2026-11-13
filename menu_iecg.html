@@ -11168,6 +11168,9 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
 // =========================================================================
 // SINCRONIZACIÓN EN VIVO: SUPABASE (accionesDataset) -> VISTA GERENCIAL
 // =========================================================================
+// =========================================================================
+// SINCRONIZACIÓN EN VIVO: SUPABASE (40 ACCIONES) -> KPIs + 4 PILARES
+// =========================================================================
 window.perspectivaGerencialActual = 'ley';
 
 window.sincronizarVistaGerencialConSupabase = function() {
@@ -11175,16 +11178,16 @@ window.sincronizarVistaGerencialConSupabase = function() {
     const totalAcciones = dataset.length;
     if (totalAcciones === 0) return;
 
-    const concluidas = dataset.filter(a => a.estatus === 'Concluido' || Number(a.avance) === 100);
-    const totalConcluidas = concluidas.length;
+    const esConcluida = (a) => a.estatus === 'Concluido' || Number(a.avance) === 100;
+    const totalConcluidas = dataset.filter(esConcluida).length;
     const porcentajeReal = Number(((totalConcluidas / totalAcciones) * 100).toFixed(1));
 
-    // 1. Llamar a tu función nativa limpia
+    // 1. Anillo radial superior
     if (typeof renderGaugeRadial === 'function') {
         renderGaugeRadial(porcentajeReal);
     }
 
-    // 2. Actualizar textos de KPIs superiores
+    // 2. KPI 1 y KPI 2 superiores
     const elPctText = document.getElementById('kpiRadialPctText');
     const elGaugeCenter = document.getElementById('gaugeCenterLabel');
     if (elPctText) {
@@ -11208,41 +11211,68 @@ window.sincronizarVistaGerencialConSupabase = function() {
         }
     }
 
-    // 3. Actualizar textos estáticos residuales de "35" o "17 de 35" en el cuerpo gerencial
+    // 3. Sincronizar Ficha Oscura y los 4 Pilares Mandatorios (A-J = 100% del universo)
     const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
-    if (cuerpoGerencial && cuerpoGerencial.innerHTML.trim() !== '') {
-        cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
-            .replace(/las 35\s*Acciones/gi, `las ${totalAcciones} Acciones`)
-            .replace(/de 35 Solventadas/gi, `de ${totalAcciones} Solventadas`)
-            .replace(/\b17 de 35\b/g, `${totalConcluidas} de ${totalAcciones}`)
-            .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
+    if (!cuerpoGerencial || cuerpoGerencial.innerHTML.trim() === '') return;
+
+    // Empatar encabezado de la Ficha Oscura (AVANCE GLOBAL y subtítulo)
+    cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
+        .replace(/Cómputo Nominal de las \d+\s*Acciones/gi, `Cómputo Nominal de las ${totalAcciones} Acciones`)
+        .replace(/\(\d+ de \d+\s*Solventadas\)/gi, `(${totalConcluidas} de ${totalAcciones} Solventadas)`)
+        .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
+
+    // Mapeo completo de los 10 paneles (A-J) en los 4 Bloques
+    const configuracionBloques = [
+        { numero: 1, paneles: ['A', 'C', 'E', 'H'], colorPct: 'text-blue-400' },
+        { numero: 2, paneles: ['F', 'I'],           colorPct: 'text-amber-400' },
+        { numero: 3, paneles: ['D'],                colorPct: 'text-purple-400' },
+        { numero: 4, paneles: ['B', 'G', 'J'],      colorPct: 'text-emerald-400' }
+    ];
+
+    const tarjetasBloque = cuerpoGerencial.querySelectorAll('.grid > div');
+    if (tarjetasBloque.length >= 4) {
+        configuracionBloques.forEach((cfg, idx) => {
+            const card = tarjetasBloque[idx];
+            if (!card) return;
+
+            const accionesBloque = dataset.filter(a => cfg.paneles.includes((a.panel || '').toUpperCase()));
+            const totalB = accionesBloque.length;
+            const concluidasB = accionesBloque.filter(esConcluida).length;
+            const pctB = totalB > 0 ? Number(((concluidasB / totalB) * 100).toFixed(1)) : 0;
+
+            // Actualizar porcentaje grande y texto "X de Y Concluidas"
+            const elBigPct = card.querySelector('.text-2xl, .text-3xl');
+            if (elBigPct) elBigPct.innerText = `${pctB}%`;
+
+            card.querySelectorAll('span, div, p').forEach(el => {
+                if (el.children.length === 0) {
+                    if (/de \d+ Concluidas/i.test(el.textContent)) {
+                        el.textContent = `${concluidasB} de ${totalB} Concluidas`;
+                    }
+                    if (/Universo Total \(\d+/i.test(el.textContent)) {
+                        el.textContent = `Universo Total (${totalB} Acciones):`;
+                    }
+                }
+            });
+
+            // Actualizar lista de acciones reales dentro del bloque
+            const contenedorLista = card.querySelector('.space-y-1\\.5, .space-y-2, ul');
+            if (contenedorLista && accionesBloque.length > 0) {
+                contenedorLista.innerHTML = accionesBloque.map(act => {
+                    const av = Number(act.avance) || 0;
+                    const colorAv = av === 100 ? 'text-emerald-400' : (av >= 70 ? 'text-blue-300' : 'text-amber-400');
+                    const tituloCorto = (act.hito || act.accion || '').slice(0, 26);
+                    return `
+                        <div class="flex items-center justify-between text-[11px] py-0.5 border-b border-white/5">
+                            <span class="text-slate-300 truncate pr-2">• ${tituloCorto}...</span>
+                            <span class="font-mono font-bold ${colorAv} shrink-0">${av}%</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        });
     }
 };
-    
-// Interceptar seleccionarPerspectivaGerencial original para que siempre refresque cifras reales
-if (typeof window.seleccionarPerspectivaGerencial === 'function') {
-    const _origSeleccionarPerspectiva = window.seleccionarPerspectivaGerencial;
-    window.seleccionarPerspectivaGerencial = function(perspectiva) {
-        window.perspectivaGerencialActual = perspectiva;
-        _origSeleccionarPerspectiva(perspectiva);
-        window.sincronizarVistaGerencialConSupabase();
-    };
-}
-
-// Hook automático sobre actualizarDashboard para que cualquier cambio en Supabase actualice la Vista Gerencial
-if (typeof window.actualizarDashboard === 'function') {
-    const _origActualizarDashboard = window.actualizarDashboard;
-    window.actualizarDashboard = function() {
-        _origActualizarDashboard();
-        window.sincronizarVistaGerencialConSupabase();
-    };
-}
-
-// Disparo inicial tras cargar Supabase
-setTimeout(() => {
-    window.sincronizarVistaGerencialConSupabase();
-}, 800);
-
     
 </script>
     <!-- Descripción de la Acción -->
