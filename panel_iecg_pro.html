@@ -2022,7 +2022,7 @@
 
     </div>
 </div>    
-    <div id="modal-agregar-archivos-rapido" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+ <div id="modal-agregar-archivos-rapido" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -2034,49 +2034,44 @@
                     <p class="text-[11px] text-slate-300 font-mono" id="rapidoSubtituloClave">Clave: --</p>
                 </div>
             </div>
+            <!-- Botón de cerrar (aquí termina el header) -->
             <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="text-slate-400 hover:text-white text-lg transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
+
+        <!-- FORMULARIO DE CARGA (Aquí es donde debe ir el campo de subcarpeta) -->
         <form onsubmit="guardarArchivoRapido(event)" class="p-6 space-y-4 text-xs text-slate-700">
             <input type="hidden" id="rapidoClaveAccion">
             
-            <!-- Datos de referencia (Solo lectura) -->
+            <!-- Datos de referencia -->
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase">Compromiso / Título:</span>
-                    <p id="rapidoTextoTitulo" class="font-bold text-slate-900 text-xs mt-0.5">--</p>
-                </div>
-                <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
-                    <div>
-                        <span class="text-[9.5px] font-bold text-slate-400 uppercase">Área / Responsable:</span>
-                        <p id="rapidoTextoResponsable" class="font-semibold text-slate-700 text-[11px] mt-0.5 truncate">--</p>
-                    </div>
-                    <div>
-                        <span class="text-[9.5px] font-bold text-slate-400 uppercase">Panel:</span>
-                        <p id="rapidoTextoPanel" class="font-semibold text-slate-700 text-[11px] mt-0.5">--</p>
-                    </div>
-                </div>
+                ...
+            </div>
+
+            <!-- ASIGNAR O CREAR SUBCARPETA EN GOOGLE DRIVE -->
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Nombre de Subcarpeta / Expediente (Opcional):</label>
+                <input type="text" id="rapidoSubcarpetaInput" placeholder="Ej. Adendas_Banorte, Facturas_2026..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                <span class="text-[10px] text-slate-400 block mt-1">Si escribes un nombre, se creará o agrupará automáticamente como subcarpeta dentro del directorio raíz de este Panel en Google Drive.</span>
             </div>
 
             <!-- Input de Archivo -->
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Seleccionar Archivo PDF de Evidencia:</label>
-                <input type="file" id="rapidoFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" class="w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50 p-1" required>
+                <input type="file" id="rapidoFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" class="w-full text-xs ..." required>
             </div>
 
-            <!-- Nota u Observación opcional -->
+            <!-- Nota u Observación -->
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Nota o Justificación Breve (Opcional):</label>
-                <textarea id="rapidoNota" rows="2" placeholder="Ej. Se anexa oficio complementario de validación..." class="w-full p-2.5 border rounded-xl bg-slate-50"></textarea>
+                <textarea id="rapidoNota" rows="2" ...></textarea>
             </div>
 
             <!-- Botones de Acción -->
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancelar</button>
-                <button type="submit" id="btnSubmitRapido" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Subir y Registrar Archivo
-                </button>
+                <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="px-4 py-2 bg-slate-200 ...">Cancelar</button>
+                <button type="submit" id="btnSubmitRapido" class="px-5 py-2 bg-emerald-600 ...">Subir y Registrar Archivo</button>
             </div>
         </form>
     </div>
@@ -2608,19 +2603,18 @@
         const APPS_SCRIPT_DRIVE_URL = "  https://script.google.com/macros/s/AKfycbwNOO8iEfHE5bs10QAbn4AQcaJfZTZeGqG1zqQS3U8k7-59x5-AZ1M9ZbOAPx0Ku69Y/exec";
       
         const GOOGLE_DRIVE_PARENTS = {
-            "GENERAL": "1mUFs_lZvM8sndqbh5wV7OaZM5UV40LHP",
-            "A": "141ND05zMzxXTGFG6DNbkDhxBiLOpm7QA",
-            "B": "175HlCsI3a7UpGLZT2eyoKEfPYN8Edb8l",
-            "C": "1li-_rQXR2D6TBXpc7USuqJuvei1uGamw",
-            "D": "1IqG8rOUqqKCgDCnwVdRsGy2O9ZrsoOzD",
-            "E": "1mXRkPTOEom5gQH1_r2sNUmI6y1-lYFs8",
-            "F": "1g920TIAvEnLUMtLK7Dv-A7kxJbSCW0EL",
-            "G": "1mgAyvyAcYRcv-tv-uW9T39FZloigGS3S",
-            "H": "1VkJ97bZJTc1hmPZjtFT1P0LfixM9LQ3h",
-            "I": "1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9",
-            "J": "1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas"
-        };
 
+    "GENERAL": "1mUFs_lZvM8sndqbh5wV7OaZM5UV40LHP",
+    "A": "141ND05zMzxXTGFG6DNbkDhxBiLOpm7QA",
+    "B": "1kb6Et43Q3DaJBCTBvTZzeVCSqa7N6nas",
+    "C": "175HlCsI3a7UpGLZT2eyoKEfPYN8Edb8l",
+    "D": "1IqG8rOUqqKCgDCnwVdRsGy2O9ZrsoOzD",
+    "E": "1mXRkPTOEom5gQH1_r2sNUmI6y1-lYFs8",
+    "F": "1g920TIAvEnLUMtLK7Dv-A7kxJbSCW0EL",
+    "G": "1mgAyvyAcYRcv-tv-uW9T39FZloigGS3S",
+    "H": "1VkJ97bZJTc1hmPZjtFT1P0LfixM9LQ3h",
+    "I": "1hQlXnDTvZVF3GazHPDXXvRWCEmfECcW9"
+};
         // FUNCIONES GLOBALES DE APERTURA Y CIERRE DE MODALES
         window.openModal = function(id) {
             const m = document.getElementById(id);
@@ -9570,6 +9564,7 @@ window.guardarArchivoRapido = async function(e) {
     const claveAccion = document.getElementById('rapidoClaveAccion').value;
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
+    const subcarpetaVal = document.getElementById('rapidoSubcarpetaInput')?.value.trim() || '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("Por favor seleccione un archivo.");
@@ -9603,11 +9598,34 @@ window.guardarArchivoRapido = async function(e) {
         const sufijoIndex = `-0.00${contadorBase}`;
         const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
 
-        // 2. Subir a Google Drive
-        const urlDrive = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
-        if (!urlDrive || !urlDrive.startsWith('http')) {
-            throw new Error("No se pudo obtener el enlace de Google Drive.");
+        // 2. Subir a Google Drive enviando la subcarpeta configurada por el usuario
+        const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(archivoFisico);
+        });
+
+        const payloadDrive = {
+            accion: 'subirArchivo',
+            fileName: nombreNominalDrive,
+            mimeType: archivoFisico.type || 'application/octet-stream',
+            fileData: base64Data,
+            panel: act.panel,
+            subcarpeta: subcarpetaVal // <--- Aquí viaja el nombre de la subcarpeta hacia Apps Script para alojarla en la ruta correcta de Drive
+        };
+
+        const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
+            method: 'POST',
+            body: JSON.stringify(payloadDrive)
+        });
+        const dataDrive = await resDrive.json();
+
+        if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
+            throw new Error(dataDrive.message || "No se pudo obtener el enlace de Google Drive.");
         }
+
+        const urlDrive = dataDrive.fileUrl;
 
         // 3. Registrar en Supabase (Tabla evidencias_expedientes)
         if (supabaseClient) {
@@ -9618,17 +9636,17 @@ window.guardarArchivoRapido = async function(e) {
                     nombre_archivo: nombreNominalDrive,
                     drive_url: urlDrive
                 }]);
+
             if (errInsert) throw errInsert;
         }
 
-        // 4. Actualizar memoria local
-        act.driveUrl = urlDrive;
-        if (!act.archivosDrive) act.archivosDrive = [];
+        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
         act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
+        act.driveUrl = urlDrive;
         
         guardarDataset();
 
-        alert(`¡Archivo agregado exitosamente con sufijo [${sufijoIndex}]!`);
+        alert(`¡Archivo agregado exitosamente ${subcarpetaVal ? 'en la subcarpeta "' + subcarpetaVal + '"' : ''} con sufijo [${sufijoIndex}]!`);
         closeModal('modal-agregar-archivos-rapido');
 
         // Sincronizar UI en tiempo real
