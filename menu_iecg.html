@@ -11180,7 +11180,9 @@ window.sincronizarVistaGerencialConSupabase = function() {
     const porcentajeReal = Number(((totalConcluidas / totalAcciones) * 100).toFixed(1));
 
     // 1. Llamar a tu función nativa limpia
-    renderGaugeRadial(porcentajeReal);
+    if (typeof renderGaugeRadial === 'function') {
+        renderGaugeRadial(porcentajeReal);
+    }
 
     // 2. Actualizar textos de KPIs superiores
     const elPctText = document.getElementById('kpiRadialPctText');
@@ -11206,7 +11208,7 @@ window.sincronizarVistaGerencialConSupabase = function() {
         }
     }
 
-    // 3. Actualizar textos fijos de "35" en el cuerpo de la Vista Gerencial
+    // 3. Actualizar textos estáticos residuales de "35" o "17 de 35" en el cuerpo gerencial
     const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
     if (cuerpoGerencial && cuerpoGerencial.innerHTML.trim() !== '') {
         cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
@@ -11216,61 +11218,6 @@ window.sincronizarVistaGerencialConSupabase = function() {
             .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
     }
 };
-
-    // Destruir CUALQUIER instancia previa en #gaugeRadialGerencial antes de redibujar
-    const canvasRadial = document.getElementById('gaugeRadialGerencial');
-    if (canvasRadial && typeof Chart !== 'undefined') {
-        const chartPrevio = Chart.getChart(canvasRadial);
-        if (chartPrevio) {
-            chartPrevio.destroy();
-        }
-        if (window.instanciaGaugeGerencial) {
-            window.instanciaGaugeGerencial.destroy();
-        }
-
-        window.instanciaGaugeGerencial = new Chart(canvasRadial.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [totalConcluidas, Math.max(0, totalAcciones - totalConcluidas)],
-                    backgroundColor: ['#4f46e5', '#e2e8f0'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: false,
-                cutout: '76%',
-                plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } }
-            }
-        });
-    }
-
-    // 3. Actualizar KPI 2: Artículos Cumplidos ("X de Y") y barra de progreso
-    const elAccionesTxt = document.getElementById('kpiAccionesCompletasTxt');
-    if (elAccionesTxt) {
-        elAccionesTxt.innerText = `${totalConcluidas} de ${totalAcciones}`;
-        const cardKpi2 = elAccionesTxt.closest('.bg-white');
-        if (cardKpi2) {
-            const subPadron = cardKpi2.querySelector('.text-slate-500');
-            if (subPadron) subPadron.innerText = `Padrón de ${totalConcluidas} compromisos acreditados`;
-            const barraVerde = cardKpi2.querySelector('.bg-emerald-500');
-            if (barraVerde) barraVerde.style.width = `${porcentajeReal}%`;
-            const linkAuditar = cardKpi2.querySelector('.underline');
-            if (linkAuditar) linkAuditar.innerText = `Auditar las ${totalConcluidas} acciones concluidas →`;
-        }
-    }
-
-    // 4. Actualizar textos estáticos residuales de "35" o "17 de 35" en el cuerpo gerencial
-    const cuerpoGerencial = document.getElementById('contenedorCuerpoPerspectiva');
-    if (cuerpoGerencial && cuerpoGerencial.innerHTML.trim() !== '') {
-        cuerpoGerencial.innerHTML = cuerpoGerencial.innerHTML
-            .replace(/las 35\s*Acciones/gi, `las ${totalAcciones} Acciones`)
-            .replace(/de 35 Solventadas/gi, `de ${totalAcciones} Solventadas`)
-            .replace(/\b17 de 35\b/g, `${totalConcluidas} de ${totalAcciones}`)
-            .replace(/\b48\.6%\b/g, `${porcentajeReal}%`);
-    }
-};
-    
     
 // Interceptar seleccionarPerspectivaGerencial original para que siempre refresque cifras reales
 if (typeof window.seleccionarPerspectivaGerencial === 'function') {
