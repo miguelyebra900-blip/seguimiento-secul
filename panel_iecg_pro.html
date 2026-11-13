@@ -435,7 +435,7 @@
                 </div>
                 <div class="md:col-span-3">
                     <select id="proSelectPanel" onchange="renderExploradorPro()" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option value="TODOS">Todos los Paneles (A – J)</option>
+                        <option value="TODOS">Todos los Paneles (A – I)</option>
                         <option value="A">Panel A · Recursos Humanos</option>
                         <option value="B">Panel B · Gobernanza & Comité</option>
                         <option value="C">Panel C · Jurídico & Litigios</option>
@@ -634,7 +634,7 @@
                 <!-- 2. Pastilla Dinámica -->
                 <div class="flex items-center gap-2 bg-indigo-50/80 border border-indigo-200/80 px-3 py-1.5 rounded-xl font-bold text-indigo-950 shrink-0">
                     <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-                    <span class="text-[11px] font-black uppercase tracking-wider text-indigo-800" id="labelFiltroPanelActivo">TODOS LOS PANELES (A - J):</span>
+                    <span class="text-[11px] font-black uppercase tracking-wider text-indigo-800" id="labelFiltroPanelActivo">TODOS LOS PANELES (A – I):</span>
                     <div class="flex items-center gap-1.5 font-mono text-[11px]">
                         <span class="bg-white px-2 py-0.5 rounded-lg border border-indigo-100 text-indigo-700 font-black" id="countHitosFiltrados">0 Hitos</span>
                         <span class="text-slate-300">|</span>
@@ -642,24 +642,38 @@
                     </div>
                 </div>
 
-                <!-- 3. Selector de Panel -->
+                <!-- 3. Selector de Panel (Homologado con Explorador Principal A–I) -->
                 <select id="filtroPanelBDGeneral" onchange="renderBaseDatosGeneralJerarquica()" 
-                        class="p-1.5 border border-slate-300 rounded-xl bg-slate-50 font-bold text-indigo-950 text-xs w-52 shrink-0 focus:ring-2 focus:ring-indigo-500">
-                    <option value="TODOS">Todos los Paneles (A - J)</option>
-                    <option value="A">Panel A - Recursos Humanos</option>
-                    <option value="B">Panel B - Asuntos Jurídicos</option>
-                    <option value="C">Panel C - Inmuebles & Predios</option>
-                    <option value="D">Panel D - Fideicomisos FIARCA</option>
-                    <option value="E">Panel E - Control Patrimonial</option>
-                    <option value="F">Panel F - Financiero / SAT</option>
-                    <option value="G">Panel G - Tecnologías (TI)</option>
-                    <option value="H">Panel H - Archivo & AGEG</option>
-                    <option value="I">Panel I - Fiscalización Auditorías</option>
-                    <option value="J">Panel J - Gobernanza Líder</option>
+                        class="p-1.5 border border-slate-300 rounded-xl bg-slate-50 font-bold text-indigo-950 text-xs w-60 shrink-0 focus:ring-2 focus:ring-indigo-500">
+                    <option value="TODOS">Todos los Paneles (A – I)</option>
+                    <option value="A">Panel A · Recursos Humanos</option>
+                    <option value="B">Panel B · Gobernanza & Comité</option>
+                    <option value="C">Panel C · Jurídico & Litigios</option>
+                    <option value="D">Panel D · Fideicomisos FIARCA</option>
+                    <option value="E">Panel E · Muebles e Inmuebles</option>
+                    <option value="F">Panel F · Cierre Fiscal & Cuentas</option>
+                    <option value="G">Panel G · Sistemas TI & DGTIT</option>
+                    <option value="H">Panel H · Archivo & Entrega</option>
+                    <option value="I">Panel I · Auditoría & ASEG</option>
                 </select>
 
-                <!-- 4. Buscador -->
-                <div class="relative w-60 shrink-0">
+                <!-- 4. Filtro Rápido Jurídico dentro de Base de Datos -->
+                <select id="filtroJuridicoBDGeneral" onchange="renderBaseDatosGeneralJerarquica()"
+                        class="p-1.5 border border-amber-300 rounded-xl bg-amber-50/60 font-bold text-amber-950 text-xs w-48 shrink-0 focus:ring-2 focus:ring-amber-500">
+                    <option value="TODOS">Filtro Jurídico: Todos</option>
+                    <option value="ART6">⚖️ Solo Art. 6 (Terceros)</option>
+                    <option value="TRAMITE">📂 Solo Asuntos en Trámite</option>
+                    <option value="PENDIENTES">⏳ Solo Pendientes (<100%)</option>
+                </select>
+
+                <!-- 5. Botón Contraer / Expandir Hitos -->
+                <button type="button" onclick="toggleModoCompactoBD()" id="btnContraerExpandirBD"
+                        class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs flex items-center gap-1.5 transition shrink-0 shadow-2xs">
+                    <i class="fa-solid fa-compress text-indigo-600"></i> <span id="txtBtnContraerBD">Contraer Hitos</span>
+                </button>
+
+                <!-- 5. Buscador -->
+                <div class="relative w-56 shrink-0">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
                     <input type="text" id="buscadorBDGeneral" oninput="renderBaseDatosGeneralJerarquica()" 
                            placeholder="Buscar clave, tema o norma..." 
@@ -7282,6 +7296,19 @@ window.cargarArchivoDirectoDesdeExcel = function(idClave, panelLetra) {
 // =========================================================================
 // 2. Renderizado del Árbol Jerárquico: Hito Padre -> Acciones Hijas (Corregido)
 // =========================================================================
+
+        window.__bdModoCompacto = false;
+        window.toggleModoCompactoBD = function() {
+            window.__bdModoCompacto = !window.__bdModoCompacto;
+            var txt = document.getElementById('txtBtnContraerBD');
+            var ico = document.querySelector('#btnContraerExpandirBD i');
+            if (txt) txt.innerText = window.__bdModoCompacto ? 'Expandir Hitos' : 'Contraer Hitos';
+            if (ico) ico.className = window.__bdModoCompacto ? 'fa-solid fa-expand text-indigo-600' : 'fa-solid fa-compress text-indigo-600';
+            if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+                renderBaseDatosGeneralJerarquica();
+            }
+        };
+
 window.renderBaseDatosGeneralJerarquica = function() {
     var contenedor = document.getElementById('contenedorHitosBaseDatosGeneral') || 
                      document.getElementById('contenedorJerarquicoBD');
@@ -7304,7 +7331,15 @@ window.renderBaseDatosGeneralJerarquica = function() {
         var resp = (item.responsable || '').toLowerCase();
         var panel = (item.panel || (idClave ? idClave.charAt(0) : 'A')).toUpperCase().trim();
 
+        var selJurBD = document.getElementById('filtroJuridicoBDGeneral');
+        var jurFiltro = selJurBD ? selJurBD.value : 'TODOS';
+        var coincideJur = true;
+        if (jurFiltro === 'ART6') coincideJur = Boolean(item.vinculo_art6 && item.vinculo_art6.startsWith('SÍ'));
+        else if (jurFiltro === 'TRAMITE') coincideJur = Boolean(item.etiqueta_tramite && item.etiqueta_tramite.startsWith('ASUNTO EN TRÁMITE'));
+        else if (jurFiltro === 'PENDIENTES') coincideJur = (Number(item.avance) || 0) < 100;
+
         var coincidePanel = (panelFiltro === 'TODOS') || (panel === String(panelFiltro).toUpperCase().trim());
+        if (!coincideJur) return false;
         var coincideTexto = !textoBusqueda || 
             idClave.indexOf(textoBusqueda) !== -1 || 
             hito.indexOf(textoBusqueda) !== -1 || 
@@ -7345,7 +7380,7 @@ window.renderBaseDatosGeneralJerarquica = function() {
     var cntAcciones = document.getElementById('countAccionesFiltradas');
 
     if (lblPanel) {
-        lblPanel.innerText = panelFiltro === 'TODOS' ? 'TODOS LOS PANELES (A - J):' : ('PANEL ' + panelFiltro + ':');
+        lblPanel.innerText = panelFiltro === 'TODOS' ? 'TODOS LOS PANELES (A – I):' : ('PANEL ' + panelFiltro + ':');
     }
     if (cntHitos) cntHitos.innerText = listaHitos.length + ' Hitos';
     if (cntAcciones) cntAcciones.innerText = accionesFiltradas.length + ' Acciones';
@@ -7475,21 +7510,22 @@ h.acciones.forEach(function(a) {
                 htmlInstrumentos += '</div>';
             }
 
-            filasAccionesHTML += 
-                '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5">' +
+            var displayClaseAcciones = window.__bdModoCompacto ? 'hidden' : '';
+        filasAccionesHTML += 
+                '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 ' + displayClaseAcciones + ' hito-acciones-container-' + h.clave_hito + '">' +
                     
                     // Cabecera Acción
                     '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">' +
                         '<div class="flex items-start gap-3">' +
                             '<span class="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-indigo-950 font-mono font-black text-xs shrink-0 mt-0.5">' + idClaveAccion + '</span>' +
                             '<div>' +
-                                '<div class="flex flex-wrap items-center gap-1.5 mb-1">' +
-                                    ((a.vinculo_art6 && a.vinculo_art6.startsWith('SÍ'))
-                                        ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300"><i class="fa-solid fa-scale-balanced mr-1"></i>' + a.vinculo_art6 + '</span>'
-                                        : '<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Gestión Interna</span>') +
+                                '<div class="flex flex-wrap items-center gap-1.5 mb-1.5">' +
                                     ((a.etiqueta_tramite && a.etiqueta_tramite.startsWith('ASUNTO EN TRÁMITE'))
                                         ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 text-sky-900 border border-sky-300"><i class="fa-solid fa-folder-open mr-1"></i>Asunto en Trámite (Art. 7/18)</span>'
-                                        : '') +
+                                        : '<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Gestión Interna</span>') +
+                                    ((a.vinculo_art6 && a.vinculo_art6.startsWith('SÍ'))
+                                        ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300"><i class="fa-solid fa-scale-balanced mr-1"></i>' + a.vinculo_art6 + '</span>'
+                                        : '<span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">Control Directo Liquidador</span>') +
                                 '</div>' +
                                 '<h5 class="text-xs sm:text-sm font-black text-slate-900 leading-snug">' + a.accion + '</h5>' +
                                 '<span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">' +
@@ -7578,8 +7614,8 @@ h.acciones.forEach(function(a) {
         htmlFinal += 
             '<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 mb-5">' +
                 
-                // Cabecera del Hito Rector
-                '<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">' +
+                // Cabecera del Hito Rector (Clicable para Contraer/Expandir)
+                '<div onclick="var els=document.querySelectorAll('.hito-acciones-container-' + h.clave_hito + ''); els.forEach(function(el){el.classList.toggle('hidden');});" class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4 cursor-pointer hover:bg-slate-50/60 p-2 rounded-xl transition" title="Clic para contraer / expandir este hito">' +
                     '<div class="flex items-start gap-3">' +
                         '<span class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-mono font-black text-sm flex items-center justify-center shrink-0 shadow-xs mt-0.5">' +
                             h.panel +
@@ -11824,16 +11860,54 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             }
         };
 
-        const _origAbrirVinculoEsp = window.abrirModalVinculacionParaAccionEspecifica;
+        // REEMPLAZO LIMPIO DE VINCULACIÓN PARA EVITAR QUE TARJETA ESPEJO DEFORME EL OVERLAY
         window.abrirModalVinculacionParaAccionEspecifica = function(claveHito, claveAccion) {
-            if (typeof _origAbrirVinculoEsp === 'function') {
-                _origAbrirVinculoEsp(claveHito, claveAccion);
-            }
             const m = document.getElementById('modal-vinculacion-universal');
-            if (m) {
-                m.classList.remove('hidden');
-                m.style.display = 'flex';
-                m.style.zIndex = '70';
+            if (!m) return;
+
+            // Restaurar estructura limpia del overlay por si quedó alterado
+            m.className = 'fixed inset-0 z-50 modal-glass flex items-center justify-center p-4';
+            m.style.display = 'flex';
+            m.style.zIndex = '70';
+
+            const panelSolicitante = (typeof currentUser !== 'undefined' && currentUser && Array.isArray(currentUser.paneles_autorizados) && currentUser.paneles_autorizados.length > 0)
+                ? 'Panel ' + currentUser.paneles_autorizados.join(', ')
+                : 'Panel B / Líder de Proyecto';
+            const nombreSolicitante = (typeof currentUser !== 'undefined' && currentUser && currentUser.nombre)
+                ? currentUser.nombre
+                : 'Enlace Institucional';
+
+            const accionObj = (typeof accionesDataset !== 'undefined')
+                ? accionesDataset.find(a => (a.clave_accion || a.id) === claveAccion)
+                : null;
+            const panelTitular = accionObj ? accionObj.panel : (claveHito ? claveHito.split('-')[0] : 'A');
+            const titularTexto = accionObj && accionObj.responsable
+                ? `Panel ${panelTitular} (${accionObj.responsable})`
+                : `Panel ${panelTitular}`;
+
+            const elMiPanel = document.getElementById('vinculoMiPanelTexto');
+            const elMiNombre = document.getElementById('vinculoMiNombreTexto');
+            if (elMiPanel) elMiPanel.innerText = panelSolicitante;
+            if (elMiNombre) elMiNombre.innerText = `${nombreSolicitante} → Titular: ${titularTexto}`;
+
+            // Poblar selector de Hito Objetivo y Acción Objetivo
+            const selFiltro = document.getElementById('selFiltroAreaVinculo');
+            if (selFiltro) selFiltro.value = 'TODOS';
+            if (typeof filtrarHitosPorAreaEnVinculo === 'function') {
+                filtrarHitosPorAreaEnVinculo();
+            }
+
+            const selHito = document.getElementById('selVinculoHitoObjetivo');
+            if (selHito && claveHito) {
+                selHito.value = claveHito;
+                if (typeof actualizarAccionesParaVinculoUniversal === 'function') {
+                    actualizarAccionesParaVinculoUniversal();
+                }
+            }
+
+            const selAcc = document.getElementById('selVinculoAccionObjetivo');
+            if (selAcc && claveAccion) {
+                selAcc.value = claveAccion;
             }
         };
 
