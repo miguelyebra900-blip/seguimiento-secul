@@ -16,8 +16,6 @@
             --surface: #ffffff;
             --ink-primary: #0f172a;
             --ink-secondary: #475569;
-            --accent-indigo: #4f46e5;
-            --accent-cyan: #0284c7;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -26,7 +24,7 @@
         }
         .font-mono-code { font-family: 'JetBrains Mono', monospace; }
         .modal-glass {
-            background-color: rgba(15, 23, 42, 0.55);
+            background-color: rgba(15, 23, 42, 0.58);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
         }
@@ -39,8 +37,8 @@
         }
         .tech-card:hover {
             transform: translateY(-2px);
-            border-color: #cbd5e1;
-            box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.09);
+            border-color: #94a3b8;
+            box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.1);
         }
         .drawer-backdrop {
             background: rgba(15, 23, 42, 0.45);
@@ -58,7 +56,15 @@
             color: #ffffff;
             box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.25);
         }
-        /* Custom subtle scrollbars */
+        /* Asegurar que submodales y edición siempre queden encima del Modal Base de Datos (z-40) */
+        #modal-edicion-dinamica,
+        #modal-agregar-archivos-rapido,
+        #modal-vinculacion-universal,
+        #modal-buzon-universal,
+        #modal-bitacora-avisos,
+        #modal-contacto-notificaciones {
+            z-index: 60 !important;
+        }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -104,9 +110,9 @@
 <body class="antialiased min-h-screen flex flex-col">
 
     <!-- ========================================================================= -->
-    <!-- TOP NAVBAR EJECUTIVO MINIMALISTA (SIN AMONTONAMIENTOS)                    -->
+    <!-- TOP NAVBAR EJECUTIVO MINIMALISTA                                          -->
     <!-- ========================================================================= -->
-    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
         <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             
             <!-- Identidad y Versión v2 -->
@@ -126,15 +132,17 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Prórroga Art. 6
                         </span>
                     </div>
-                    <p class="text-[11px] text-slate-500">Decreto Legislativo No. 345 · Matriz Jurídico-Operativa (35 Acciones + 2 Cierre)</p>
+                    <p class="text-[11px] text-slate-500">Decreto Legislativo No. 345 · Matriz Jurídico-Operativa (35 Acciones + 2 Cierre Formal)</p>
                 </div>
             </div>
 
             <!-- Herramientas Directas & Modal Madre -->
             <div class="flex items-center gap-2 sm:gap-2.5 text-xs">
-                <button type="button" onclick="openModal('modal-contacto-notificaciones')" class="px-2.5 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold transition flex items-center gap-1.5" title="Avisos y Notificaciones">
+                <!-- Botón Avisos conectado a Bitácora de Solicitudes y Canales -->
+                <button type="button" onclick="abrirCentroAvisosPro()" class="relative px-2.5 py-1.5 rounded-xl text-slate-700 hover:text-slate-900 bg-slate-100/80 hover:bg-slate-200/70 font-bold transition flex items-center gap-1.5" title="Bandeja de Avisos, Vinculaciones y Canales de Notificación">
                     <i class="fa-solid fa-bell text-amber-500"></i>
                     <span class="hidden lg:inline">Avisos</span>
+                    <span id="badgeContadorNotif" class="hidden px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[9px] font-extrabold">0</span>
                 </button>
 
                 <!-- Dropdown Carpetas Drive A-J -->
@@ -166,7 +174,7 @@
                     <span class="hidden sm:inline">Riesgos Art. 6</span>
                 </button>
 
-                <!-- BOTÓN MADRE: MODAL BASE DE DATOS GENERAL (INTACTO) -->
+                <!-- BOTÓN MADRE: MODAL BASE DE DATOS GENERAL -->
                 <button type="button" onclick="abrirModalBaseDatosGeneral()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-indigo-950 text-white font-bold flex items-center gap-2 shadow-sm transition">
                     <i class="fa-solid fa-database text-amber-400"></i>
                     <span>Base de Datos IECG</span>
@@ -188,54 +196,58 @@
     </header>
 
     <!-- ========================================================================= -->
-    <!-- CONTENIDO PRINCIPAL: ARQUITECTURA LIMPIA POR BLOQUES Y ANALÍTICA          -->
+    <!-- CONTENIDO PRINCIPAL                                                       -->
     <!-- ========================================================================= -->
     <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- 1. BANDA DE 4 KPIS EJECUTIVOS (LIMPIOS Y AUDITABLES) -->
+        <!-- 1. BANDA DE 4 KPIS EJECUTIVOS INTERACTIVOS -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="tech-card p-5 flex items-center justify-between">
+            <!-- KPI 1: Avance Global Matriz v2 (Clic abre Modal con las 37 acciones) -->
+            <div onclick="abrirModalAuditoriaAnalitica('GLOBAL')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Avance Global Matriz v2</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Avance Global Matriz v2</span>
                     <div class="flex items-baseline gap-2 mt-1">
                         <span id="proKpiAvance" class="text-3xl font-extrabold text-slate-900">--%</span>
                         <span id="proKpiConcluidas" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">-- concluidas</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-1.5">Ponderado sobre 37 compromisos</p>
+                    <p class="text-[11px] text-indigo-600 font-semibold mt-1.5 group-hover:underline">Clic para auditar las 37 acciones →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
             </div>
 
-            <div onclick="filtrarVistaPro('TRAMITE')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
+            <!-- KPI 2: Asuntos en Trámite -->
+            <div onclick="abrirModalAuditoriaAnalitica('TRAMITE')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-sky-600">Asuntos en Trámite (Art. 7/18)</span>
                     <div class="flex items-baseline gap-2 mt-1">
                         <span id="proKpiTramite" class="text-3xl font-extrabold text-slate-900">--</span>
                         <span class="text-xs font-semibold text-sky-700">acciones</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-1.5 group-hover:text-sky-700 transition">Clic para filtrar asuntos concatenados →</p>
+                    <p class="text-[11px] text-sky-700 font-semibold mt-1.5 group-hover:underline">Ver desglose por rama jurídica →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl group-hover:bg-sky-600 group-hover:text-white transition">
                     <i class="fa-solid fa-folder-tree"></i>
                 </div>
             </div>
 
-            <div onclick="filtrarVistaPro('ART6')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
+            <!-- KPI 3: Salvedad Terceros Art. 6 -->
+            <div onclick="abrirModalAuditoriaAnalitica('ART6')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Salvedad Terceros (Art. 6)</span>
                     <div class="flex items-baseline gap-2 mt-1">
                         <span id="proKpiArt6" class="text-3xl font-extrabold text-slate-900">--</span>
                         <span class="text-xs font-semibold text-amber-700">protegidas</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-1.5 group-hover:text-amber-700 transition">Dependientes de terceros / federación →</p>
+                    <p class="text-[11px] text-amber-700 font-semibold mt-1.5 group-hover:underline">Ver 15 protegidas vs 22 internas →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition">
                     <i class="fa-solid fa-scale-balanced"></i>
                 </div>
             </div>
 
+            <!-- KPI 4: Expedientes Drive -->
             <div onclick="abrirModalBaseDatosGeneral()" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Expedientes Drive A–J</span>
@@ -243,26 +255,30 @@
                         <span id="proKpiDrive" class="text-3xl font-extrabold text-slate-900">--</span>
                         <span class="text-xs font-semibold text-emerald-700">vinculados</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-1.5 group-hover:text-emerald-700 transition">Gestionar en Base de Datos IECG →</p>
+                    <p class="text-[11px] text-emerald-700 font-semibold mt-1.5 group-hover:underline">Gestionar en Base de Datos IECG →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition">
                     <i class="fa-brands fa-google-drive"></i>
                 </div>
             </div>
         </section>
 
-        <!-- 2. ZONA DE GRÁFICOS EJECUTIVOS DIGERIBLES (3 VISUALIZACIONES LIMPIAS) -->
+        <!-- 2. ZONA DE GRÁFICOS EJECUTIVOS INTERACTIVOS (CLIC EN BARRA/DONA/TARJETA ABRE DESGLOSE) -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <!-- Gráfico 1: Avance por Bloque Estratégico (4 Bloques) -->
             <div class="tech-card p-5 lg:col-span-5 flex flex-col justify-between">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h2 class="text-sm font-extrabold text-slate-900">Avance por Bloque del Marco Jurídico</h2>
-                        <p class="text-[11px] text-slate-500">Porcentaje promedio de cumplimiento por bloque rector</p>
+                        <h2 class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                            Avance por Bloque del Marco Jurídico
+                        </h2>
+                        <p class="text-[11px] text-slate-500">Clic en cualquier barra para auditar qué impide el 100%</p>
                     </div>
-                    <span class="text-[10px] font-mono-code font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-600">4 BLOQUES</span>
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('BLOQUE', 'Bloque 1')" class="text-[10px] font-mono-code font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                        4 BLOQUES <i class="fa-solid fa-expand ml-1"></i>
+                    </button>
                 </div>
-                <div class="h-56 relative">
+                <div class="h-56 relative cursor-pointer">
                     <canvas id="proChartBloques"></canvas>
                 </div>
             </div>
@@ -272,32 +288,96 @@
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <h2 class="text-sm font-extrabold text-slate-900">Avance por Panel (A – J)</h2>
-                        <p class="text-[11px] text-slate-500">Distribución operativa por área responsable</p>
+                        <p class="text-[11px] text-slate-500">Clic en una barra para ver acciones y brechas del panel</p>
                     </div>
-                    <span class="text-[10px] font-mono-code font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-600">PANELES</span>
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('PANEL', 'F')" class="text-[10px] font-mono-code font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                        PANELES <i class="fa-solid fa-expand ml-1"></i>
+                    </button>
                 </div>
-                <div class="h-56 relative">
+                <div class="h-56 relative cursor-pointer">
                     <canvas id="proChartPaneles"></canvas>
                 </div>
             </div>
 
-            <!-- Gráfico 3: Composición Jurídica (Internas vs Art. 6 vs Asuntos en Trámite) -->
+            <!-- Gráfico 3: Naturaleza Jurídica (Internas vs Art. 6) -->
             <div class="tech-card p-5 lg:col-span-3 flex flex-col justify-between">
-                <div class="mb-3">
-                    <h2 class="text-sm font-extrabold text-slate-900">Naturaleza Jurídica</h2>
-                    <p class="text-[11px] text-slate-500">Control interno vs. prórroga Art. 6</p>
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-900">Naturaleza Jurídica</h2>
+                        <p class="text-[11px] text-slate-500">Clic en segmento para comparar</p>
+                    </div>
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('NATURALEZA')" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">
+                        22 vs 15
+                    </button>
                 </div>
-                <div class="h-48 relative flex items-center justify-center">
+                <div class="h-44 relative flex items-center justify-center cursor-pointer">
                     <canvas id="proChartNaturaleza"></canvas>
                 </div>
                 <div class="flex justify-center gap-3 text-[10px] font-bold text-slate-600 pt-2 border-t border-slate-100">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-600"></span> Interna</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Art. 6 Terceros</span>
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('NATURALEZA', 'INTERNA')" class="flex items-center gap-1 hover:text-indigo-700">
+                        <span class="w-2 h-2 rounded-full bg-indigo-600"></span> Internas (22)
+                    </button>
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('NATURALEZA', 'ART6')" class="flex items-center gap-1 hover:text-amber-700">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Art. 6 Terceros (15)
+                    </button>
                 </div>
             </div>
         </section>
 
-        <!-- 3. EXPLORADOR EJECUTIVO DE BLOQUES Y ACCIONES (CERO SATURACIÓN + DRAWER JURÍDICO) -->
+        <!-- 3. GUÍA EXPLICATIVA DE LOS 4 BLOQUES DEL MARCO JURÍDICO (PARA CUALQUIER USUARIO) -->
+        <section class="tech-card p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600">Arquitectura Normativa del Proceso</span>
+                    <h2 class="text-sm font-extrabold text-slate-900">¿Cómo se organiza el cierre del IEC? (Guía de los 4 Bloques)</h2>
+                </div>
+                <span class="text-[11px] text-slate-500">Haz clic en un bloque para filtrar sus acciones abajo</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-xs">
+                <div onclick="seleccionarBloqueDesdeGuia('Bloque 1')" class="p-3.5 rounded-2xl bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100 hover:border-indigo-300 cursor-pointer transition space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-indigo-950">Bloque 1 · Personal, Patrimonio y Archivo</span>
+                        <span class="text-[10px] font-mono-code font-bold text-indigo-600">Paneles A, C, E, H</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-snug">
+                        <strong>Qué abarca:</strong> Traspaso de 303 plazas a DGRH, finiquitos, resguardo de bienes muebles/inmuebles, juicios y transferencia documental al AGEG (Decreto 345 Art. 5° Trans. y Arts. 5, 7, 15, 17, 18, 30).
+                    </p>
+                </div>
+
+                <div onclick="seleccionarBloqueDesdeGuia('Bloque 2')" class="p-3.5 rounded-2xl bg-sky-50/50 hover:bg-sky-50 border border-sky-100 hover:border-sky-300 cursor-pointer transition space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-sky-950">Bloque 2 · Cierre Fiscal, Cuentas y Auditoría</span>
+                        <span class="text-[10px] font-mono-code font-bold text-sky-600">Paneles F, I</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-snug">
+                        <strong>Qué abarca:</strong> Liquidación contable, Cuenta Liquidadora, reintegros a SF/TESOFE, cancelación de cuentas bancarias, baja de RFC ante SAT Celaya y atención a auditorías ASEG (Arts. 5, 10, 16, 19, 22, 23, 27).
+                    </p>
+                </div>
+
+                <div onclick="seleccionarBloqueDesdeGuia('Bloque 3')" class="p-3.5 rounded-2xl bg-amber-50/50 hover:bg-amber-50 border border-amber-100 hover:border-amber-300 cursor-pointer transition space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-amber-950">Bloque 3 · Fideicomisos Banorte (FIARCA)</span>
+                        <span class="text-[10px] font-mono-code font-bold text-amber-700">Panel D</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-snug">
+                        <strong>Qué abarca:</strong> Formalización del 2do Convenio Modificatorio con Fiduciaria Banorte, cese de pasivos fiduciarios y traslado de titularidad a Secretaría de Cultura (Decreto 345 Art. 6° Trans. y Art. 72 LOPE).
+                    </p>
+                </div>
+
+                <div onclick="seleccionarBloqueDesdeGuia('Bloque 4')" class="p-3.5 rounded-2xl bg-purple-50/50 hover:bg-purple-50 border border-purple-100 hover:border-purple-300 cursor-pointer transition space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-purple-950">Bloque 4 · Gobernanza, TI y Cierre Formal</span>
+                        <span class="text-[10px] font-mono-code font-bold text-purple-700">Paneles B, G, J</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-snug">
+                        <strong>Qué abarca:</strong> Actas protocolizadas del Comité de Extinción, Informe Final del Liquidador, baja de usuarios SAP/DGTIT/SRFT y blindaje jurídico de salvedades por terceros (Arts. 3, 5, 6, 11, 29, 34).
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. EXPLORADOR EJECUTIVO DE BLOQUES Y ACCIONES -->
         <section class="tech-card p-5 sm:p-6 space-y-5">
             <!-- Barra de Filtros Inteligentes -->
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -307,7 +387,7 @@
                         Explorador Jurídico-Operativo por Bloque y Hito
                     </h2>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        Haz clic en cualquier acción para desplegar su <strong>cita textual al pie de la letra</strong>, el <strong>diferenciador de asunto en trámite</strong> y su <strong>cierre de pinza</strong>.
+                        Haz clic en cualquier tarjeta para desplegar su <strong>cita textual al pie de la letra</strong>, editarla en la matriz o subir evidencia a Drive.
                     </p>
                 </div>
 
@@ -316,15 +396,30 @@
                         Todas (37)
                     </button>
                     <button type="button" onclick="filtrarVistaPro('TRAMITE')" id="pillPro_TRAMITE" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100 transition">
-                        Asuntos en Trámite
+                        Asuntos en Trámite (11)
                     </button>
                     <button type="button" onclick="filtrarVistaPro('ART6')" id="pillPro_ART6" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">
-                        Protegidas Art. 6
+                        Protegidas Art. 6 (15)
                     </button>
                     <button type="button" onclick="filtrarVistaPro('CIERRE')" id="pillPro_CIERRE" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-50 text-purple-800 border border-purple-200 hover:bg-purple-100 transition">
-                        Cierre de Pinza
+                        <i class="fa-solid fa-shield-check mr-1"></i> Cierre Formal de Liquidación (2)
                     </button>
                 </div>
+            </div>
+
+            <!-- Banner contextual cuando se selecciona "Cierre Formal de Liquidación" -->
+            <div id="bannerCierreFormal" class="hidden p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-slate-50 border border-purple-200 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="font-extrabold text-purple-950 flex items-center gap-2">
+                        <i class="fa-solid fa-stamp text-purple-600"></i> Protocolo de Cierre Formal de Liquidación y Blindaje del Liquidador
+                    </span>
+                    <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-mono-code text-[10px] font-bold">Arts. 5, 6, 18 párr. 3° y 19</span>
+                </div>
+                <p class="text-slate-700 leading-relaxed">
+                    Estas <strong>2 acciones estratégicas</strong> permiten que el Liquidador concluya formalmente su encargo y presente su <strong>Informe Final (Art. 5)</strong> ante el Comité de Extinción y la Secretaría de la Honestidad sin quedar detenido indefinidamente por trámites de terceros:
+                    <strong>(1)</strong> consolida en la <em>Cuenta Liquidadora (Art. 19)</em> y en el <em>Acta de Salvedades (Art. 6)</em> los 15 asuntos dependientes de terceros para transferir su seguimiento a la Secretaría de Cultura, y
+                    <strong>(2)</strong> garantiza la integridad técnica de llaves únicas en Supabase para auditar cada expediente.
+                </p>
             </div>
 
             <!-- Selectores de Bloque, Panel y Búsqueda -->
@@ -358,20 +453,57 @@
                 </div>
             </div>
 
-            <!-- Grid Limpio de Tarjetas de Acción (Cero Amontonamiento) -->
+            <!-- Grid Limpio de Tarjetas de Acción -->
             <div id="proGridAcciones" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                <!-- Renderizado dinámicamente desde accionesDataset -->
+                <!-- Renderizado dinámicamente -->
             </div>
         </section>
 
     </main>
 
     <!-- ========================================================================= -->
+    <!-- MODAL ANALÍTICO INTERACTIVO (DESGLOSE DE KPIs Y GRÁFICAS AL HACER CLIC)   -->
+    <!-- ========================================================================= -->
+    <div id="modal-auditoria-analitica" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 px-6 py-4 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    </div>
+                    <div>
+                        <span id="audAnaliticaBadge" class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-amber-300">AUDITORÍA DE CUMPLIMIENTO</span>
+                        <h3 id="audAnaliticaTitulo" class="text-base font-extrabold text-white">Desglose Detallado</h3>
+                    </div>
+                </div>
+                <button type="button" onclick="cerrarModalAuditoriaAnalitica()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Resumen de Contadores y Descripción -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shrink-0">
+                <p id="audAnaliticaDesc" class="text-slate-700 font-medium leading-snug max-w-2xl"></p>
+                <div id="audAnaliticaPills" class="flex flex-wrap items-center gap-2 shrink-0"></div>
+            </div>
+
+            <!-- Lista de Acciones con Semáforo de Brecha y Acceso Directo -->
+            <div id="audAnaliticaLista" class="p-5 overflow-y-auto space-y-2.5 flex-1 text-xs bg-slate-100/50"></div>
+
+            <div class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
+                <span>Haz clic en cualquier fila para abrir su cita legal al pie de la letra o editar su avance.</span>
+                <button type="button" onclick="cerrarModalAuditoriaAnalitica()" class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition">
+                    Cerrar Desglose
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
     <!-- CAJÓN LATERAL (SLIDE-OVER DRAWER) DE SUSTENTO JURÍDICO LITERAL            -->
     <!-- ========================================================================= -->
     <div id="proDrawerOverlay" onclick="cerrarDrawerJuridico()" class="fixed inset-0 z-40 hidden drawer-backdrop transition-opacity"></div>
     <aside id="proDrawerPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-2xl bg-white shadow-2xl border-l border-slate-200 flex flex-col drawer-panel">
-        <!-- Header del Drawer -->
         <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
                 <span id="drawerPanelBadge" class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-mono-code font-bold text-sm flex items-center justify-center">A</span>
@@ -385,12 +517,9 @@
             </button>
         </div>
 
-        <!-- Contenido Desplazable del Drawer -->
         <div class="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
-            <!-- Badges de Estado -->
             <div id="drawerBadges" class="flex flex-wrap gap-2"></div>
 
-            <!-- Descripción de la Acción -->
             <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Acción Operativa Específica</span>
                 <p id="drawerAccion" class="text-sm font-bold text-slate-900 leading-relaxed"></p>
@@ -400,7 +529,6 @@
                 </div>
             </div>
 
-            <!-- Diferenciador de Asunto en Trámite -->
             <div id="drawerTramiteBox" class="p-4 rounded-2xl bg-sky-50/80 border border-sky-200 space-y-1">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-800 flex items-center gap-1.5">
                     <i class="fa-solid fa-folder-open"></i> Clasificación de Asunto en Trámite (Arts. 7, 15 y 18)
@@ -408,7 +536,6 @@
                 <p id="drawerTramiteTexto" class="text-xs font-semibold text-sky-950 leading-relaxed"></p>
             </div>
 
-            <!-- Fundamento Legal Específico -->
             <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-1.5">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                     <i class="fa-solid fa-gavel text-amber-600"></i> Fundamento Legal Específico
@@ -416,7 +543,6 @@
                 <p id="drawerFundamento" class="text-xs font-bold text-amber-950 leading-relaxed"></p>
             </div>
 
-            <!-- Cita Textual al Pie de la Letra y Facultad del Liquidador -->
             <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-200 space-y-2">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
                     <i class="fa-solid fa-quote-left text-indigo-600"></i> Cita Textual Literal y Justificación de Facultad
@@ -424,20 +550,18 @@
                 <div id="drawerCitaLiteral" class="text-xs text-slate-800 whitespace-pre-line leading-relaxed bg-white p-3.5 rounded-xl border border-indigo-100"></div>
             </div>
 
-            <!-- Acción de Cierre de Pinza & Tercero Art. 6 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <span class="text-[10px] font-bold uppercase text-slate-500">Tercero / Autoridad Externa (Art. 6)</span>
                     <p id="drawerTercero" class="text-xs font-bold text-slate-800"></p>
                 </div>
                 <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-1">
-                    <span class="text-[10px] font-bold uppercase text-emerald-800">Mecanismo de Cierre de Pinza</span>
+                    <span class="text-[10px] font-bold uppercase text-emerald-800">Protocolo de Cierre Formal de Liquidación</span>
                     <p id="drawerCierrePinza" class="text-xs font-semibold text-emerald-950"></p>
                 </div>
             </div>
         </div>
 
-        <!-- Footer del Drawer con Acciones Directas hacia el Modal Madre / Drive -->
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <button type="button" id="drawerBtnDrive" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
                 <i class="fa-solid fa-cloud-arrow-up"></i> Subir Evidencia Drive
@@ -1077,6 +1201,40 @@
 
                     <input type="text" id="nuevoHitoNorma" placeholder="El fundamento seleccionado aparecerá aquí..." 
                            class="w-full p-2.5 border rounded-xl bg-white font-bold text-xs text-indigo-950 border-indigo-200 focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+
+                
+                <!-- ETIQUETADO ESTRATÉGICO ART. 6 (TERCEROS) Y ASUNTO EN TRÁMITE (ARTS. 7, 15 Y 18) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-amber-50/70 p-4 rounded-2xl border border-amber-200">
+                    <div>
+                        <label class="block font-extrabold text-amber-950 text-xs mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-scale-balanced text-amber-600"></i> ¿Depende de Terceros / Autoridad Externa (Art. 6)?
+                        </label>
+                        <select id="nuevoHitoArt6Select" class="w-full p-2.5 border border-amber-300 rounded-xl bg-white text-xs font-bold text-slate-800">
+                            <option value="NO">NO — Gestión interna directa del Liquidador</option>
+                            <option value="SÍ — Nuevo Vínculo Art. 6">SÍ — Protegida por Prórroga Art. 6 (Dependiente de Terceros)</option>
+                            <option value="SÍ — Riesgo Mapeado (R-01)">SÍ — Riesgo Crítico R-01 (Búsqueda 2,570 Faltantes)</option>
+                            <option value="SÍ — Riesgo Mapeado (R-02)">SÍ — Riesgo Crítico R-02 (Baja RFC SAT Celaya)</option>
+                            <option value="SÍ — Riesgo Mapeado (R-03)">SÍ — Riesgo Crítico R-03 (Convenio Banorte FIARCA)</option>
+                            <option value="SÍ — Riesgo Mapeado (R-04)">SÍ — Riesgo Crítico R-04 (Acuerdos de Destino Inmuebles)</option>
+                            <option value="SÍ — Riesgo Mapeado (R-05)">SÍ — Riesgo Crítico R-05 (Firmas Acta Comité)</option>
+                        </select>
+                        <input type="text" id="nuevoHitoTerceroNombre" placeholder="Nombre del tercero o autoridad externa (ej. SAT, SF, Banorte)..." class="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs mt-1.5">
+                    </div>
+                    <div>
+                        <label class="block font-extrabold text-sky-950 text-xs mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-folder-tree text-sky-600"></i> ¿Es Asunto en Trámite (Arts. 7, 15 fracc. VI y 18)?
+                        </label>
+                        <select id="nuevoHitoTramiteSelect" class="w-full p-2.5 border border-sky-300 rounded-xl bg-white text-xs font-bold text-slate-800">
+                            <option value="NO APLICA — Acción Ordinaria de Cierre">NO — Acción ordinaria dentro del corte</option>
+                            <option value="ASUNTO EN TRÁMITE: Juicios y Sustitución Procesal (Art. 7 párr. 2°)">SÍ — Asunto en Trámite: Juicios y Sustitución Procesal</option>
+                            <option value="ASUNTO EN TRÁMITE: Regularización de Bienes Inmuebles (Arts. 7 y 18)">SÍ — Asunto en Trámite: Regularización de Inmuebles</option>
+                            <option value="ASUNTO EN TRÁMITE: Depuración de Bienes Muebles (Arts. 7 y 18 párr. 3°)">SÍ — Asunto en Trámite: Depuración de Muebles</option>
+                            <option value="ASUNTO EN TRÁMITE: Fideicomisos Públicos FIARCA (Art. 7 párr. 1°)">SÍ — Asunto en Trámite: Fideicomisos Públicos</option>
+                            <option value="ASUNTO EN TRÁMITE: Personal y Convenios Laborales (Arts. 5 y 17)">SÍ — Asunto en Trámite: Personal y Convenios Laborales</option>
+                        </select>
+                        <span class="text-[10px] text-sky-800 block mt-1.5">Se registrará en la Cuenta Liquidadora (Art. 19) para traslado a SCUL.</span>
+                    </div>
                 </div>
 
                 <!-- Contenedor de Acciones -->
@@ -2022,6 +2180,38 @@
         </div>
     </div>
 
+    
+    <!-- CLASIFICACIÓN JURÍDICA: ARTÍCULO 6 (TERCEROS) Y ASUNTO EN TRÁMITE -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200">
+        <div>
+            <label class="block font-extrabold text-amber-950 text-[11px] mb-1">
+                <i class="fa-solid fa-scale-balanced text-amber-600 mr-1"></i> Vínculo Artículo 6 (Terceros):
+            </label>
+            <select id="selectArt6Edit" class="w-full p-2 border border-amber-300 rounded-xl bg-white text-xs font-bold text-slate-800">
+                <option value="NO">NO — Gestión interna directa</option>
+                <option value="SÍ — Nuevo Vínculo Art. 6">SÍ — Protegida Art. 6 (Terceros)</option>
+                <option value="SÍ — Riesgo Mapeado (R-01)">SÍ — Riesgo R-01 (Faltantes)</option>
+                <option value="SÍ — Riesgo Mapeado (R-02)">SÍ — Riesgo R-02 (SAT RFC)</option>
+                <option value="SÍ — Riesgo Mapeado (R-03)">SÍ — Riesgo R-03 (Banorte FIARCA)</option>
+                <option value="SÍ — Riesgo Mapeado (R-04)">SÍ — Riesgo R-04 (Acuerdos Destino)</option>
+                <option value="SÍ — Riesgo Mapeado (R-05)">SÍ — Riesgo R-05 (Firmas Acta)</option>
+            </select>
+        </div>
+        <div>
+            <label class="block font-extrabold text-sky-950 text-[11px] mb-1">
+                <i class="fa-solid fa-folder-open text-sky-600 mr-1"></i> Etiqueta Asunto en Trámite:
+            </label>
+            <select id="selectTramiteEdit" class="w-full p-2 border border-sky-300 rounded-xl bg-white text-xs font-bold text-slate-800">
+                <option value="NO APLICA — Acción Ordinaria">NO — Acción Ordinaria</option>
+                <option value="ASUNTO EN TRÁMITE: Juicios y Sustitución Procesal (Art. 7 párr. 2°)">SÍ — Asunto en Trámite: Juicios</option>
+                <option value="ASUNTO EN TRÁMITE: Regularización de Bienes Inmuebles (Arts. 7 y 18)">SÍ — Asunto en Trámite: Inmuebles</option>
+                <option value="ASUNTO EN TRÁMITE: Depuración de Bienes Muebles (Arts. 7 y 18 párr. 3°)">SÍ — Asunto en Trámite: Muebles</option>
+                <option value="ASUNTO EN TRÁMITE: Fideicomisos Públicos FIARCA (Art. 7 párr. 1°)">SÍ — Asunto en Trámite: Fideicomisos</option>
+                <option value="ASUNTO EN TRÁMITE: Personal y Convenios Laborales (Arts. 5 y 17)">SÍ — Asunto en Trámite: Laboral</option>
+            </select>
+        </div>
+    </div>
+
     <!-- Estatus y Avance -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
         <div>
@@ -2396,7 +2586,7 @@
 </div>
 
     <!-- ========================================================================= -->
-    <!-- MOTOR JAVASCRIPT PRESERVADO (_v2) + CONTROLADOR UI EJECUTIVA              -->
+    <!-- MOTOR JAVASCRIPT PRESERVADO (_v2) + CONTROLADORES INTERACTIVOS PRO        -->
     <!-- ========================================================================= -->
     <script>
         // CONFIGURACIÓN DE ENDPOINT Y DICCIONARIO DE CARPETAS GOOGLE DRIVE (A-J)
@@ -2932,7 +3122,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acción Ordinaria de Cierre Programático (Art. 13 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Integrar acuse de entrega ante SF y acta de transferencia de seguimiento a la Secretaría de Cultura.",
+    "instrumento_3": "Cierre Formal de Liquidación: Integrar acuse de entrega ante SF y acta de transferencia de seguimiento a la Secretaría de Cultura.",
     "sugerencia_expediente_tecnico": "Integrar acuse de entrega ante SF y acta de transferencia de seguimiento a la Secretaría de Cultura.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acción Ordinaria de Cierre Programático (Art. 13 Lineamientos IEC)",
@@ -2967,7 +3157,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acción Ordinaria de Cierre Programático (Art. 12 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Validar cierre trimestral en sistema presupuestario y entregar soporte a la Secretaría de Cultura.",
+    "instrumento_3": "Cierre Formal de Liquidación: Validar cierre trimestral en sistema presupuestario y entregar soporte a la Secretaría de Cultura.",
     "sugerencia_expediente_tecnico": "Validar cierre trimestral en sistema presupuestario y entregar soporte a la Secretaría de Cultura.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acción Ordinaria de Cierre Programático (Art. 12 Lineamientos IEC)",
@@ -3002,7 +3192,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (R-03): Fiduciaria Banorte (Tercero privado) y Consejería Jurídica del Ejecutivo",
     "instrumento_1": "Bloque: Bloque 3 — Fideicomisos Banorte (FIARCA)",
     "instrumento_2": "ASUNTO EN TRÁMITE: Atención de Asuntos en Trámite — Fideicomiso Público FIARCA (Art. 7 párr. 1° Lineamientos IEC — Formalización de 2do Convenio Modificatorio en curso).",
-    "instrumento_3": "Cierre de Pinza: Si persiste retraso de firma bancaria, documentar oficio de gestión como asunto en trámite Art. 7 y trasladar seguimiento al Ente Receptor bajo salvedad Art. 6.",
+    "instrumento_3": "Cierre Formal de Liquidación: Si persiste retraso de firma bancaria, documentar oficio de gestión como asunto en trámite Art. 7 y trasladar seguimiento al Ente Receptor bajo salvedad Art. 6.",
     "sugerencia_expediente_tecnico": "Si persiste retraso de firma bancaria, documentar oficio de gestión como asunto en trámite Art. 7 y trasladar seguimiento al Ente Receptor bajo salvedad Art. 6.",
     "bloque_estrategico": "Bloque 3 — Fideicomisos Banorte (FIARCA)",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Atención de Asuntos en Trámite — Fideicomiso Público FIARCA (Art. 7 párr. 1° Lineamientos IEC — Formalización de 2do Convenio Modificatorio en curso).",
@@ -3037,7 +3227,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 3 — Fideicomisos Banorte (FIARCA)",
     "instrumento_2": "ASUNTO EN TRÁMITE: Atención de Asuntos en Trámite — Fideicomiso Público FIARCA (Art. 7 párr. 1° y Art. 17 párr. 2° Lineamientos IEC — Cesión de derechos y obligaciones fiduciarias).",
-    "instrumento_3": "Cierre de Pinza: Formalizar acta de entrega de derechos/obligaciones fiduciarias y corte de pasivos al momento de entrada en vigor del Decreto 345.",
+    "instrumento_3": "Cierre Formal de Liquidación: Formalizar acta de entrega de derechos/obligaciones fiduciarias y corte de pasivos al momento de entrada en vigor del Decreto 345.",
     "sugerencia_expediente_tecnico": "Formalizar acta de entrega de derechos/obligaciones fiduciarias y corte de pasivos al momento de entrada en vigor del Decreto 345.",
     "bloque_estrategico": "Bloque 3 — Fideicomisos Banorte (FIARCA)",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Atención de Asuntos en Trámite — Fideicomiso Público FIARCA (Art. 7 párr. 1° y Art. 17 párr. 2° Lineamientos IEC — Cesión de derechos y obligaciones fiduciarias).",
@@ -3072,7 +3262,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Órganos Jurisdiccionales (Juzgados/Tribunales) y Secretaría de Cultura",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Juicios y Sustitución Procesal (Art. 7, párrafo segundo, Lineamientos IEC — Litigios activos pendientes de resolución jurisdiccional).",
-    "instrumento_3": "Cierre de Pinza: Entregar relación detallada de juicios (Art. 15 fracc. VI) y acuses de promoción de sustitución procesal en el Acta de Entrega-Recepción Extraordinaria.",
+    "instrumento_3": "Cierre Formal de Liquidación: Entregar relación detallada de juicios (Art. 15 fracc. VI) y acuses de promoción de sustitución procesal en el Acta de Entrega-Recepción Extraordinaria.",
     "sugerencia_expediente_tecnico": "Entregar relación detallada de juicios (Art. 15 fracc. VI) y acuses de promoción de sustitución procesal en el Acta de Entrega-Recepción Extraordinaria.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Juicios y Sustitución Procesal (Art. 7, párrafo segundo, Lineamientos IEC — Litigios activos pendientes de resolución jurisdiccional).",
@@ -3107,7 +3297,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Autoridades Federales y Agrarias (RAN, INAH, Procuraduría Agraria / Ejidos)",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Regularización de Bienes Inmuebles (Art. 7 y Art. 18 párr. 2° Lineamientos IEC — Predios con trámites agrarios/registrales pendientes).",
-    "instrumento_3": "Cierre de Pinza: Documentar expediente técnico-jurídico por predio (Art. 18 párr. 1°) y transferirlo como asunto en trámite al Ente Receptor bajo Art. 18 párr. 2° y Art. 6.",
+    "instrumento_3": "Cierre Formal de Liquidación: Documentar expediente técnico-jurídico por predio (Art. 18 párr. 1°) y transferirlo como asunto en trámite al Ente Receptor bajo Art. 18 párr. 2° y Art. 6.",
     "sugerencia_expediente_tecnico": "Documentar expediente técnico-jurídico por predio (Art. 18 párr. 1°) y transferirlo como asunto en trámite al Ente Receptor bajo Art. 18 párr. 2° y Art. 6.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Regularización de Bienes Inmuebles (Art. 7 y Art. 18 párr. 2° Lineamientos IEC — Predios con trámites agrarios/registrales pendientes).",
@@ -3142,7 +3332,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Depuración y Alta de Bienes Muebles (Art. 7 y Art. 18 párr. 1° Lineamientos IEC — Conciliación contable-patrimonial en curso).",
-    "instrumento_3": "Cierre de Pinza: Cruzar cédula de capitalización con libros contables depurados (Art. 16) antes del cierre de Cuenta Liquidadora (Art. 19).",
+    "instrumento_3": "Cierre Formal de Liquidación: Cruzar cédula de capitalización con libros contables depurados (Art. 16) antes del cierre de Cuenta Liquidadora (Art. 19).",
     "sugerencia_expediente_tecnico": "Cruzar cédula de capitalización con libros contables depurados (Art. 16) antes del cierre de Cuenta Liquidadora (Art. 19).",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Depuración y Alta de Bienes Muebles (Art. 7 y Art. 18 párr. 1° Lineamientos IEC — Conciliación contable-patrimonial en curso).",
@@ -3177,7 +3367,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (R-01): Dirección de Control Patrimonial (SF) y Archivo Histórico",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Depuración y Regularización de Bienes Muebles No Localizados (Art. 7 y Art. 18 párr. 3° Lineamientos IEC — 2,570 activos en aclaración).",
-    "instrumento_3": "Cierre de Pinza: Registrar activos en aclaración dentro de la Cuenta Liquidadora (Art. 19), informar al Comité y transferir formalmente el asunto en trámite a SCUL (Art. 18 párr. 3°).",
+    "instrumento_3": "Cierre Formal de Liquidación: Registrar activos en aclaración dentro de la Cuenta Liquidadora (Art. 19), informar al Comité y transferir formalmente el asunto en trámite a SCUL (Art. 18 párr. 3°).",
     "sugerencia_expediente_tecnico": "Registrar activos en aclaración dentro de la Cuenta Liquidadora (Art. 19), informar al Comité y transferir formalmente el asunto en trámite a SCUL (Art. 18 párr. 3°).",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Depuración y Regularización de Bienes Muebles No Localizados (Art. 7 y Art. 18 párr. 3° Lineamientos IEC — 2,570 activos en aclaración).",
@@ -3212,7 +3402,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Transferencia de Personal y Expedientes Laborales (Decreto 345 Art. 5° Transitorio y Art. 5 párr. 2° Lineamientos IEC — Cierre de 303 expedientes).",
-    "instrumento_3": "Cierre de Pinza: Concluir foliado y entrega del 100% de los 303 expedientes laborales con acuse de recepción de la Secretaría de Cultura.",
+    "instrumento_3": "Cierre Formal de Liquidación: Concluir foliado y entrega del 100% de los 303 expedientes laborales con acuse de recepción de la Secretaría de Cultura.",
     "sugerencia_expediente_tecnico": "Concluir foliado y entrega del 100% de los 303 expedientes laborales con acuse de recepción de la Secretaría de Cultura.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Transferencia de Personal y Expedientes Laborales (Decreto 345 Art. 5° Transitorio y Art. 5 párr. 2° Lineamientos IEC — Cierre de 303 expedientes).",
@@ -3247,7 +3437,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Resguardo Temporal de Estructura de Liquidación (Art. 7 párr. 1° y Art. 15 fracc. II Lineamientos IEC — Plaza Nivel 8 y 131 bienes).",
-    "instrumento_3": "Cierre de Pinza: Al presentar el Informe Final, devolver los 131 bienes mediante acta complementaria y liberar/transferir la plaza Nivel 8 conforme a DGRH.",
+    "instrumento_3": "Cierre Formal de Liquidación: Al presentar el Informe Final, devolver los 131 bienes mediante acta complementaria y liberar/transferir la plaza Nivel 8 conforme a DGRH.",
     "sugerencia_expediente_tecnico": "Al presentar el Informe Final, devolver los 131 bienes mediante acta complementaria y liberar/transferir la plaza Nivel 8 conforme a DGRH.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Resguardo Temporal de Estructura de Liquidación (Art. 7 párr. 1° y Art. 15 fracc. II Lineamientos IEC — Plaza Nivel 8 y 131 bienes).",
@@ -3282,7 +3472,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Tribunal de Conciliación y Arbitraje (Autoridad Jurisdiccional Laboral)",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Finiquitos y Convenios Laborales ante Tribunal (Art. 5 párr. 2°, Art. 6 y Art. 17 párr. 1° Lineamientos IEC — Ratificación en curso).",
-    "instrumento_3": "Cierre de Pinza: Acreditar depósito/suficiencia presupuestal de convenios pendientes y documentar citas ante Tribunal bajo salvedad del Art. 6.",
+    "instrumento_3": "Cierre Formal de Liquidación: Acreditar depósito/suficiencia presupuestal de convenios pendientes y documentar citas ante Tribunal bajo salvedad del Art. 6.",
     "sugerencia_expediente_tecnico": "Acreditar depósito/suficiencia presupuestal de convenios pendientes y documentar citas ante Tribunal bajo salvedad del Art. 6.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Finiquitos y Convenios Laborales ante Tribunal (Art. 5 párr. 2°, Art. 6 y Art. 17 párr. 1° Lineamientos IEC — Ratificación en curso).",
@@ -3317,7 +3507,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): DGTIT de la Secretaría de Finanzas y SHCP (Usuarios SRFT)",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Acción Técnica TI (Arts. 11 y 29 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Conservar acuses de solicitud de baja ante DGTIT y SF (manteniendo activo usuario SRFT solo hasta el informe definitivo de julio conforme al Art. 29 párr. 3°).",
+    "instrumento_3": "Cierre Formal de Liquidación: Conservar acuses de solicitud de baja ante DGTIT y SF (manteniendo activo usuario SRFT solo hasta el informe definitivo de julio conforme al Art. 29 párr. 3°).",
     "sugerencia_expediente_tecnico": "Conservar acuses de solicitud de baja ante DGTIT y SF (manteniendo activo usuario SRFT solo hasta el informe definitivo de julio conforme al Art. 29 párr. 3°).",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Acción Técnica TI (Arts. 11 y 29 Lineamientos IEC)",
@@ -3352,7 +3542,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Acción de Entrega-Recepción TI (Art. 11 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Incluir anexo técnico de licencias, claves y respaldos en el Acta de Entrega-Recepción Extraordinaria (Art. 37).",
+    "instrumento_3": "Cierre Formal de Liquidación: Incluir anexo técnico de licencias, claves y respaldos en el Acta de Entrega-Recepción Extraordinaria (Art. 37).",
     "sugerencia_expediente_tecnico": "Incluir anexo técnico de licencias, claves y respaldos en el Acta de Entrega-Recepción Extraordinaria (Art. 37).",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Acción de Entrega-Recepción TI (Art. 11 Lineamientos IEC)",
@@ -3387,7 +3577,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acción Contable de Cierre (Art. 16 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Emitir balanza de comprobación depurada y estados financieros en ceros (salvo partidas transferidas a Cuenta Liquidadora Art. 19).",
+    "instrumento_3": "Cierre Formal de Liquidación: Emitir balanza de comprobación depurada y estados financieros en ceros (salvo partidas transferidas a Cuenta Liquidadora Art. 19).",
     "sugerencia_expediente_tecnico": "Emitir balanza de comprobación depurada y estados financieros en ceros (salvo partidas transferidas a Cuenta Liquidadora Art. 19).",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acción Contable de Cierre (Art. 16 Lineamientos IEC)",
@@ -3422,7 +3612,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Secretaría de Finanzas (Emisor CFDI) y Servicio de Administración Tributaria (SAT)",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acción Fiscal-Contable (Art. 22 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Integrar acuses de cancelación de CFDI/recibos oficiales o emisión de complementos PPD previos a la baja del RFC.",
+    "instrumento_3": "Cierre Formal de Liquidación: Integrar acuses de cancelación de CFDI/recibos oficiales o emisión de complementos PPD previos a la baja del RFC.",
     "sugerencia_expediente_tecnico": "Integrar acuses de cancelación de CFDI/recibos oficiales o emisión de complementos PPD previos a la baja del RFC.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acción Fiscal-Contable (Art. 22 Lineamientos IEC)",
@@ -3457,7 +3647,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acción de Pago de Pasivos (Art. 17 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Conciliar pasivos en cero y suscribir anexo de cesión de compromisos vigentes a favor de la Secretaría de Cultura.",
+    "instrumento_3": "Cierre Formal de Liquidación: Conciliar pasivos en cero y suscribir anexo de cesión de compromisos vigentes a favor de la Secretaría de Cultura.",
     "sugerencia_expediente_tecnico": "Conciliar pasivos en cero y suscribir anexo de cesión de compromisos vigentes a favor de la Secretaría de Cultura.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acción de Pago de Pasivos (Art. 17 Lineamientos IEC)",
@@ -3492,7 +3682,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Instrumento Contable de Cierre (Arts. 19 y 20 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Conciliar pólizas de traspaso de la 'Cuenta Liquidadora' contra la cuenta de patrimonio recibido de la Dirección General de Contabilidad Gubernamental (SF).",
+    "instrumento_3": "Cierre Formal de Liquidación: Conciliar pólizas de traspaso de la 'Cuenta Liquidadora' contra la cuenta de patrimonio recibido de la Dirección General de Contabilidad Gubernamental (SF).",
     "sugerencia_expediente_tecnico": "Conciliar pólizas de traspaso de la 'Cuenta Liquidadora' contra la cuenta de patrimonio recibido de la Dirección General de Contabilidad Gubernamental (SF).",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Instrumento Contable de Cierre (Arts. 19 y 20 Lineamientos IEC)",
@@ -3527,7 +3717,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acción de Reintegro Patrimonial (Art. 23 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Anexar comprobante de transferencia bancaria y recibo oficial de aprovechamientos emitido por la SF.",
+    "instrumento_3": "Cierre Formal de Liquidación: Anexar comprobante de transferencia bancaria y recibo oficial de aprovechamientos emitido por la SF.",
     "sugerencia_expediente_tecnico": "Anexar comprobante de transferencia bancaria y recibo oficial de aprovechamientos emitido por la SF.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acción de Reintegro Patrimonial (Art. 23 Lineamientos IEC)",
@@ -3562,7 +3752,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Instrumento de Planeación y Seguimiento (Art. 3 fracc. II Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Mantener alineadas las fechas del Cronograma con las actas del Comité y las prórrogas justificadas bajo el Art. 6.",
+    "instrumento_3": "Cierre Formal de Liquidación: Mantener alineadas las fechas del Cronograma con las actas del Comité y las prórrogas justificadas bajo el Art. 6.",
     "sugerencia_expediente_tecnico": "Mantener alineadas las fechas del Cronograma con las actas del Comité y las prórrogas justificadas bajo el Art. 6.",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Instrumento de Planeación y Seguimiento (Art. 3 fracc. II Lineamientos IEC)",
@@ -3597,7 +3787,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (R-05): Integrantes del Comité de Extinción (SF, SH, Consejería Jurídica, SCUL)",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Formalización Colegiada (Arts. 3, 4 y 9 Lineamientos Comités de Extinción)",
-    "instrumento_3": "Cierre de Pinza: Recabar el 100% de firmas autógrafas en el Acta Protocolizada del Comité y asentar en ella la relación expresa de salvedades del Art. 6.",
+    "instrumento_3": "Cierre Formal de Liquidación: Recabar el 100% de firmas autógrafas en el Acta Protocolizada del Comité y asentar en ella la relación expresa de salvedades del Art. 6.",
     "sugerencia_expediente_tecnico": "Recabar el 100% de firmas autógrafas en el Acta Protocolizada del Comité y asentar en ella la relación expresa de salvedades del Art. 6.",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Formalización Colegiada (Arts. 3, 4 y 9 Lineamientos Comités de Extinción)",
@@ -3632,7 +3822,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "NO APLICA — Obligación Archivística de Cierre (Arts. 30 al 33 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Suscribir actas de transferencia documental con SCUL y AGEG, y presentar el reporte de inventario al Comité (Art. 32).",
+    "instrumento_3": "Cierre Formal de Liquidación: Suscribir actas de transferencia documental con SCUL y AGEG, y presentar el reporte de inventario al Comité (Art. 32).",
     "sugerencia_expediente_tecnico": "Suscribir actas de transferencia documental con SCUL y AGEG, y presentar el reporte de inventario al Comité (Art. 32).",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "NO APLICA — Obligación Archivística de Cierre (Arts. 30 al 33 Lineamientos IEC)",
@@ -3667,7 +3857,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "NO APLICA — Acto Protocolario de Entrega-Recepción (Arts. 15, 36 y 37 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Integrar los 8 rubros del Art. 15 en los formatos reglamentarios y suscribir el Acta de Entrega-Recepción Extraordinaria con intervención de la SH.",
+    "instrumento_3": "Cierre Formal de Liquidación: Integrar los 8 rubros del Art. 15 en los formatos reglamentarios y suscribir el Acta de Entrega-Recepción Extraordinaria con intervención de la SH.",
     "sugerencia_expediente_tecnico": "Integrar los 8 rubros del Art. 15 en los formatos reglamentarios y suscribir el Acta de Entrega-Recepción Extraordinaria con intervención de la SH.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "NO APLICA — Acto Protocolario de Entrega-Recepción (Arts. 15, 36 y 37 Lineamientos IEC)",
@@ -3702,7 +3892,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "NO APLICA — Transferencia de Parque Vehicular (Arts. 7, 18 y 37 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Anexar facturas/títulos, tarjetas de circulación, resguardos y actas de entrega física de las 39 unidades vehiculares.",
+    "instrumento_3": "Cierre Formal de Liquidación: Anexar facturas/títulos, tarjetas de circulación, resguardos y actas de entrega física de las 39 unidades vehiculares.",
     "sugerencia_expediente_tecnico": "Anexar facturas/títulos, tarjetas de circulación, resguardos y actas de entrega física de las 39 unidades vehiculares.",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "NO APLICA — Transferencia de Parque Vehicular (Arts. 7, 18 y 37 Lineamientos IEC)",
@@ -3737,7 +3927,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (R-04): Consejería Jurídica del Ejecutivo y Secretaría de Finanzas (Padrón Inmobiliario)",
     "instrumento_1": "Bloque: Bloque 1 — Personal, Patrimonio & Archivo",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Acuerdos de Destino e Inmuebles (Art. 18, párrafos 1° y 2°, Lineamientos IEC — Sujeto a formalización con SF y Consejería Jurídica).",
-    "instrumento_3": "Cierre de Pinza: Entregar expedientes inmobiliarios completos a SF y Dirección General Jurídica de SCUL para reputarlos recibidos de conformidad (Art. 18 párr. 2°).",
+    "instrumento_3": "Cierre Formal de Liquidación: Entregar expedientes inmobiliarios completos a SF y Dirección General Jurídica de SCUL para reputarlos recibidos de conformidad (Art. 18 párr. 2°).",
     "sugerencia_expediente_tecnico": "Entregar expedientes inmobiliarios completos a SF y Dirección General Jurídica de SCUL para reputarlos recibidos de conformidad (Art. 18 párr. 2°).",
     "bloque_estrategico": "Bloque 1 — Personal, Patrimonio & Archivo",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Acuerdos de Destino e Inmuebles (Art. 18, párrafos 1° y 2°, Lineamientos IEC — Sujeto a formalización con SF y Consejería Jurídica).",
@@ -3772,7 +3962,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Entrega de Expedientes de Evaluación y Fiscalización (Art. 14 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Presentar informe de estatus de evaluaciones al Comité y transferir expedientes de recomendaciones/auditoría a la Secretaría de Cultura.",
+    "instrumento_3": "Cierre Formal de Liquidación: Presentar informe de estatus de evaluaciones al Comité y transferir expedientes de recomendaciones/auditoría a la Secretaría de Cultura.",
     "sugerencia_expediente_tecnico": "Presentar informe de estatus de evaluaciones al Comité y transferir expedientes de recomendaciones/auditoría a la Secretaría de Cultura.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Entrega de Expedientes de Evaluación y Fiscalización (Art. 14 Lineamientos IEC)",
@@ -3807,7 +3997,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Secretaría de Finanzas (Subsecretaría de Finanzas / Presupuesto)",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Gestión Presupuestal de Transición (Art. 9 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Integrar folios de adecuaciones presupuestales tramitadas y validadas por la SF.",
+    "instrumento_3": "Cierre Formal de Liquidación: Integrar folios de adecuaciones presupuestales tramitadas y validadas por la SF.",
     "sugerencia_expediente_tecnico": "Integrar folios de adecuaciones presupuestales tramitadas y validadas por la SF.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Gestión Presupuestal de Transición (Art. 9 Lineamientos IEC)",
@@ -3842,7 +4032,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Reintegro de Recursos Estatales (Art. 10 párr. 1° Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Archivar comprobantes SPEI y recibos oficiales de reintegro expedidos por la SF.",
+    "instrumento_3": "Cierre Formal de Liquidación: Archivar comprobantes SPEI y recibos oficiales de reintegro expedidos por la SF.",
     "sugerencia_expediente_tecnico": "Archivar comprobantes SPEI y recibos oficiales de reintegro expedidos por la SF.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Reintegro de Recursos Estatales (Art. 10 párr. 1° Lineamientos IEC)",
@@ -3877,7 +4067,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Conciliación Previa a Transferencia (Art. 10 párrs. 1° y 4° Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Entregar estados de cuenta en $0.00 y acuse de solicitud de cancelación ante la Dirección General de Contabilidad Gubernamental (SF).",
+    "instrumento_3": "Cierre Formal de Liquidación: Entregar estados de cuenta en $0.00 y acuse de solicitud de cancelación ante la Dirección General de Contabilidad Gubernamental (SF).",
     "sugerencia_expediente_tecnico": "Entregar estados de cuenta en $0.00 y acuse de solicitud de cancelación ante la Dirección General de Contabilidad Gubernamental (SF).",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Conciliación Previa a Transferencia (Art. 10 párrs. 1° y 4° Lineamientos IEC)",
@@ -3912,7 +4102,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Tesorería de la Federación (TESOFE) / SHCP y Secretaría de Cultura Federal",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Reintegro de Recursos Federales (Art. 10 párr. 3° y Art. 28 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Resguardar líneas de captura TESOFE, comprobantes de entero federal y oficios de traslado de proyectos vigentes a SCUL.",
+    "instrumento_3": "Cierre Formal de Liquidación: Resguardar líneas de captura TESOFE, comprobantes de entero federal y oficios de traslado de proyectos vigentes a SCUL.",
     "sugerencia_expediente_tecnico": "Resguardar líneas de captura TESOFE, comprobantes de entero federal y oficios de traslado de proyectos vigentes a SCUL.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Reintegro de Recursos Federales (Art. 10 párr. 3° y Art. 28 Lineamientos IEC)",
@@ -3947,7 +4137,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Transferencia de Productos Financieros (Art. 10 párr. 2° Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Conciliar intereses devengados en estados de cuenta bancarios contra fichas de depósito a la SF.",
+    "instrumento_3": "Cierre Formal de Liquidación: Conciliar intereses devengados en estados de cuenta bancarios contra fichas de depósito a la SF.",
     "sugerencia_expediente_tecnico": "Conciliar intereses devengados en estados de cuenta bancarios contra fichas de depósito a la SF.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Transferencia de Productos Financieros (Art. 10 párr. 2° Lineamientos IEC)",
@@ -3982,7 +4172,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Secretaría de Finanzas (Subsecretaría de Finanzas / Inversión Pública)",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Cédula de Inversión Pública (Arts. 25, 26 y 27 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Anexar cédula remitida, notificación de procedencia de la SF y comprobantes de reducción líquida de montos no comprometidos.",
+    "instrumento_3": "Cierre Formal de Liquidación: Anexar cédula remitida, notificación de procedencia de la SF y comprobantes de reducción líquida de montos no comprometidos.",
     "sugerencia_expediente_tecnico": "Anexar cédula remitida, notificación de procedencia de la SF y comprobantes de reducción líquida de montos no comprometidos.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Cédula de Inversión Pública (Arts. 25, 26 y 27 Lineamientos IEC)",
@@ -4017,7 +4207,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Acto Conclusivo del Liquidador (Art. 5 párr. 1° y Art. 34 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Acompañar el Informe Final con el balance de la Cuenta Liquidadora (Art. 19) y la matriz de asuntos transferidos bajo salvedad del Art. 6.",
+    "instrumento_3": "Cierre Formal de Liquidación: Acompañar el Informe Final con el balance de la Cuenta Liquidadora (Art. 19) y la matriz de asuntos transferidos bajo salvedad del Art. 6.",
     "sugerencia_expediente_tecnico": "Acompañar el Informe Final con el balance de la Cuenta Liquidadora (Art. 19) y la matriz de asuntos transferidos bajo salvedad del Art. 6.",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Acto Conclusivo del Liquidador (Art. 5 párr. 1° y Art. 34 Lineamientos IEC)",
@@ -4052,7 +4242,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Rendición Periódica de Cuentas (Art. 34 Lineamientos IEC y Art. 9 fracc. III Lineamientos Comités)",
-    "instrumento_3": "Cierre de Pinza: Integrar expediente cronológico con los acuses de recibo de todos los reportes mensuales presentados al Comité.",
+    "instrumento_3": "Cierre Formal de Liquidación: Integrar expediente cronológico con los acuses de recibo de todos los reportes mensuales presentados al Comité.",
     "sugerencia_expediente_tecnico": "Integrar expediente cronológico con los acuses de recibo de todos los reportes mensuales presentados al Comité.",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Rendición Periódica de Cuentas (Art. 34 Lineamientos IEC y Art. 9 fracc. III Lineamientos Comités)",
@@ -4087,7 +4277,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (R-02): Servicio de Administración Tributaria (SAT Celaya — Autoridad Federal)",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Diligencia Fiscal Previa (Art. 5 párrs. 2° y 3°, Art. 6 y Art. 21 párr. 2° Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Acreditar opinión positiva de cumplimiento, cero adeudos fiscales y acuse de cita/aviso de inicio de liquidación ante el SAT.",
+    "instrumento_3": "Cierre Formal de Liquidación: Acreditar opinión positiva de cumplimiento, cero adeudos fiscales y acuse de cita/aviso de inicio de liquidación ante el SAT.",
     "sugerencia_expediente_tecnico": "Acreditar opinión positiva de cumplimiento, cero adeudos fiscales y acuse de cita/aviso de inicio de liquidación ante el SAT.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Diligencia Fiscal Previa (Art. 5 párrs. 2° y 3°, Art. 6 y Art. 21 párr. 2° Lineamientos IEC)",
@@ -4122,7 +4312,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (R-02): Servicio de Administración Tributaria (SAT Celaya — Autoridad Federal)",
     "instrumento_1": "Bloque: Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "instrumento_2": "NO APLICA — Acto Fiscal Conclusivo (Art. 5 párr. 3° y Art. 6 Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Obtener acuse definitivo de cancelación de RFC por liquidación/cese de operaciones y notificarlo por oficio al Comité de Extinción.",
+    "instrumento_3": "Cierre Formal de Liquidación: Obtener acuse definitivo de cancelación de RFC por liquidación/cese de operaciones y notificarlo por oficio al Comité de Extinción.",
     "sugerencia_expediente_tecnico": "Obtener acuse definitivo de cancelación de RFC por liquidación/cese de operaciones y notificarlo por oficio al Comité de Extinción.",
     "bloque_estrategico": "Bloque 2 — Cierre Fiscal, Cuentas & Auditoría",
     "etiqueta_tramite": "NO APLICA — Acto Fiscal Conclusivo (Art. 5 párr. 3° y Art. 6 Lineamientos IEC)",
@@ -4140,10 +4330,10 @@ async function inicializarDatosDesdeSupabase() {
     "panel": "B",
     "clave_area": "JUR_C",
     "area": "Asuntos Jurídicos & Contencioso",
-    "hito": "CIERRE DE PINZA JURÍDICA: SALVEDADES ART. 6 Y CUENTA LIQUIDADORA (SUGERENCIA 1)",
-    "accion": "[SUGERENCIA 1 — CIERRE DE PINZA] Suscripción del Acta de Salvedades del Art. 6 y conciliación final de la Cuenta Liquidadora para transferir formalmente al Ente Receptor los asuntos dependientes de terceros sin impedir el cese de funciones del liquidador.",
-    "accion_especifica": "[SUGERENCIA 1 — CIERRE DE PINZA] Suscripción del Acta de Salvedades del Art. 6 y conciliación final de la Cuenta Liquidadora para transferir formalmente al Ente Receptor los asuntos dependientes de terceros sin impedir el cese de funciones del liquidador.",
-    "detalle_operativo": "[SUGERENCIA 1 — CIERRE DE PINZA] Suscripción del Acta de Salvedades del Art. 6 y conciliación final de la Cuenta Liquidadora para transferir formalmente al Ente Receptor los asuntos dependientes de terceros sin impedir el cese de funciones del liquidador.",
+    "hito": "CIERRE FORMAL DE LIQUIDACIÓN: SALVEDADES ART. 6 Y CUENTA LIQUIDADORA (SUGERENCIA 1)",
+    "accion": "[CIERRE FORMAL DE LIQUIDACIÓN] Suscripción del Acta de Salvedades del Art. 6 y conciliación final de la Cuenta Liquidadora para transferir formalmente al Ente Receptor los asuntos dependientes de terceros sin impedir el cese de funciones del liquidador.",
+    "accion_especifica": "[CIERRE FORMAL DE LIQUIDACIÓN] Suscripción del Acta de Salvedades del Art. 6 y conciliación final de la Cuenta Liquidadora para transferir formalmente al Ente Receptor los asuntos dependientes de terceros sin impedir el cese de funciones del liquidador.",
+    "detalle_operativo": "[CIERRE FORMAL DE LIQUIDACIÓN] Suscripción del Acta de Salvedades del Art. 6 y conciliación final de la Cuenta Liquidadora para transferir formalmente al Ente Receptor los asuntos dependientes de terceros sin impedir el cese de funciones del liquidador.",
     "responsable": "Panel B - Asuntos Jurídicos & Contencioso-CJU-SECUL",
     "estatus": "En Espera Tercero (Art. 6)",
     "avance": 50,
@@ -4157,7 +4347,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Art. 6 Lineamientos • Salvedad legal (Art. 6): Comité de Extinción, Secretaría de la Honestidad y Secretaría de Cultura",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Consolidación de Salvedades Art. 6 y Cuenta Liquidadora (Arts. 6, 7, 18 párr. 3° y 19 Lineamientos IEC).",
-    "instrumento_3": "Cierre de Pinza: Incorporar tabla de las 12 acciones Art. 6 en el Acta del Comité y en el Informe Final como asuntos transferidos al Ente Receptor.",
+    "instrumento_3": "Cierre Formal de Liquidación: Incorporar tabla de las 12 acciones Art. 6 en el Acta del Comité y en el Informe Final como asuntos transferidos al Ente Receptor.",
     "sugerencia_expediente_tecnico": "Incorporar tabla de las 12 acciones Art. 6 en el Acta del Comité y en el Informe Final como asuntos transferidos al Ente Receptor.",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "ASUNTO EN TRÁMITE: Asuntos en Trámite — Consolidación de Salvedades Art. 6 y Cuenta Liquidadora (Arts. 6, 7, 18 párr. 3° y 19 Lineamientos IEC).",
@@ -4175,10 +4365,10 @@ async function inicializarDatosDesdeSupabase() {
     "panel": "G",
     "clave_area": "TIT_S",
     "area": "Tecnologías de la Información (TI)",
-    "hito": "CIERRE DE PINZA TÉCNICA: HOMOLOGACIÓN DE LLAVES PRIMARIAS SUPABASE (SUGERENCIA 2)",
-    "accion": "[SUGERENCIA 2 — CIERRE DE PINZA] Validación de unicidad de claves primarias (PTR_I-H-0002-A-0001 y FIN_P-H-0008-A-0002) y despliegue de etiquetas de fundamento literal y filtro Art. 6 en el Tablero Directivo.",
-    "accion_especifica": "[SUGERENCIA 2 — CIERRE DE PINZA] Validación de unicidad de claves primarias (PTR_I-H-0002-A-0001 y FIN_P-H-0008-A-0002) y despliegue de etiquetas de fundamento literal y filtro Art. 6 en el Tablero Directivo.",
-    "detalle_operativo": "[SUGERENCIA 2 — CIERRE DE PINZA] Validación de unicidad de claves primarias (PTR_I-H-0002-A-0001 y FIN_P-H-0008-A-0002) y despliegue de etiquetas de fundamento literal y filtro Art. 6 en el Tablero Directivo.",
+    "hito": "INTEGRIDAD TÉCNICA DE BASE DE DATOS: HOMOLOGACIÓN DE LLAVES PRIMARIAS SUPABASE (SUGERENCIA 2)",
+    "accion": "[INTEGRIDAD TÉCNICA DE DATOS] Validación de unicidad de claves primarias (PTR_I-H-0002-A-0001 y FIN_P-H-0008-A-0002) y despliegue de etiquetas de fundamento literal y filtro Art. 6 en el Tablero Directivo.",
+    "accion_especifica": "[INTEGRIDAD TÉCNICA DE DATOS] Validación de unicidad de claves primarias (PTR_I-H-0002-A-0001 y FIN_P-H-0008-A-0002) y despliegue de etiquetas de fundamento literal y filtro Art. 6 en el Tablero Directivo.",
+    "detalle_operativo": "[INTEGRIDAD TÉCNICA DE DATOS] Validación de unicidad de claves primarias (PTR_I-H-0002-A-0001 y FIN_P-H-0008-A-0002) y despliegue de etiquetas de fundamento literal y filtro Art. 6 en el Tablero Directivo.",
     "responsable": "Panel G - Tecnologías de la Información (TI) -CTI-SECUL",
     "estatus": "En Proceso",
     "avance": 75,
@@ -4192,7 +4382,7 @@ async function inicializarDatosDesdeSupabase() {
     "riesgo_vinculado": "Sin contingencia crítica tipificada.",
     "instrumento_1": "Bloque: Bloque 4 — Gobernanza & Sistemas TI",
     "instrumento_2": "NO APLICA — Control Técnico de Integridad de Base de Datos (Art. 3 fracc. II Lineamientos IEC)",
-    "instrumento_3": "Cierre de Pinza: Ejecutar script de actualización en Supabase con las 35 claves únicas + 2 acciones de cierre.",
+    "instrumento_3": "Cierre Formal de Liquidación: Ejecutar script de actualización en Supabase con las 35 claves únicas + 2 acciones de cierre.",
     "sugerencia_expediente_tecnico": "Ejecutar script de actualización en Supabase con las 35 claves únicas + 2 acciones de cierre.",
     "bloque_estrategico": "Bloque 4 — Gobernanza & Sistemas TI",
     "etiqueta_tramite": "NO APLICA — Control Técnico de Integridad de Base de Datos (Art. 3 fracc. II Lineamientos IEC)",
@@ -5498,7 +5688,10 @@ async function guardarNuevoHitoConAcciones(e) {
             peso: 33.33,
             estatus: estatusAccion,
             avance: estatusAccion === 'Concluido' ? 100 : (estatusAccion === 'Validación' ? 75 : 40),
-            tercero: "Interna",
+            vinculo_art6: (document.getElementById("nuevoHitoArt6Select")?.value || "NO"),
+            etiqueta_tramite: (document.getElementById("nuevoHitoTramiteSelect")?.value || "NO APLICA — Acción Ordinaria"),
+            tercero_externo: (document.getElementById("nuevoHitoTerceroNombre")?.value || "N/A"),
+            tercero: (document.getElementById("nuevoHitoArt6Select")?.value || "NO").startsWith("SÍ") ? "Tercero Externo" : "Interna",
             terceroNombre: "Comité de Transición IECG",
             docRequerido: `Soporte Oficial ${cAccion}`,
             driveUrl: ""
@@ -5596,7 +5789,10 @@ function guardarAccionDesdeModalHito(e) {
         peso: 25,
         estatus: estatus,
         avance: avance,
-        tercero: "Interna",
+        vinculo_art6: (document.getElementById("nuevoHitoArt6Select")?.value || "NO"),
+            etiqueta_tramite: (document.getElementById("nuevoHitoTramiteSelect")?.value || "NO APLICA — Acción Ordinaria"),
+            tercero_externo: (document.getElementById("nuevoHitoTerceroNombre")?.value || "N/A"),
+            tercero: (document.getElementById("nuevoHitoArt6Select")?.value || "NO").startsWith("SÍ") ? "Tercero Externo" : "Interna",
         terceroNombre: "Comité Interno",
         docRequerido: "Soporte operativo asociado",
         driveUrl: ""
@@ -7754,6 +7950,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         act.avance = avanceNum;
         act.nota_auditoria = historialNotas;
         act.observacion = historialNotas;
+        var selA6Save = document.getElementById('selectArt6Edit');
+        if (selA6Save) act.vinculo_art6 = selA6Save.value;
+        var selTrSave = document.getElementById('selectTramiteEdit');
+        if (selTrSave) act.etiqueta_tramite = selTrSave.value;
         if (ultimoDriveUrl) act.driveUrl = ultimoDriveUrl;
 
         if (typeof guardarDataset === 'function') guardarDataset();
@@ -9083,6 +9283,14 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         if (lblPanel) lblPanel.innerText = 'Panel ' + (act.panel || 'A') + ' (' + (act.area || '') + ')';
         if (lblTitulo) lblTitulo.innerText = 'Descripción de la Acción / Entregable Específico:';
         if (txtTitulo) txtTitulo.value = act.accion || '';
+        var selA6 = document.getElementById('selectArt6Edit');
+        if (selA6) selA6.value = (act.vinculo_art6 && act.vinculo_art6.startsWith('SÍ')) ? (selA6.querySelector('option[value="' + act.vinculo_art6 + '"]') ? act.vinculo_art6 : 'SÍ — Nuevo Vínculo Art. 6') : 'NO';
+        var selTr = document.getElementById('selectTramiteEdit');
+        if (selTr && act.etiqueta_tramite) {
+            for (var k = 0; k < selTr.options.length; k++) {
+                if (act.etiqueta_tramite.startsWith(selTr.options[k].value.split(' (')[0])) { selTr.selectedIndex = k; break; }
+            }
+        }
 
         if (bloqueAccion) bloqueAccion.classList.remove('hidden');
 
@@ -11550,6 +11758,191 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
     
 
         // =====================================================================
+        // FIX CRÍTICO DE GESTIÓN DE MODALES (ELIMINAR RE-APERTURA DEL DISTRIBUIDOR)
+        // =====================================================================
+        window.openModal = function(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+            }
+        };
+
+        window.closeModal = function(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
+        };
+
+        // Conectar botón Avisos del Topbar a la Bitácora de Solicitudes o Canales
+        window.abrirCentroAvisosPro = function() {
+            if (typeof window.cargarNotificacionesVinculacionAuditoria === 'function') {
+                window.cargarNotificacionesVinculacionAuditoria();
+            }
+            if (typeof window.abrirModalBitacoraAvisos === 'function') {
+                window.abrirModalBitacoraAvisos();
+            } else {
+                openModal('modal-bitacora-avisos');
+            }
+        };
+
+        // Asegurar que los botones Editar / Subir / Vincular dentro de Base de Datos General funcionen siempre
+        const _origAbrirEdicion = window.abrirModalEdicionDinamica;
+        window.abrirModalEdicionDinamica = function(tipo, claveId) {
+            if (typeof _origAbrirEdicion === 'function') {
+                _origAbrirEdicion(tipo, claveId);
+            }
+            const m = document.getElementById('modal-edicion-dinamica');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+                m.style.zIndex = '70';
+            }
+        };
+
+        const _origAbrirRapido = window.abrirModalAgregarArchivosRapido;
+        window.abrirModalAgregarArchivosRapido = function(idClave) {
+            if (typeof _origAbrirRapido === 'function') {
+                _origAbrirRapido(idClave);
+            }
+            const m = document.getElementById('modal-agregar-archivos-rapido');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+                m.style.zIndex = '70';
+            }
+        };
+
+        const _origAbrirVinculoEsp = window.abrirModalVinculacionParaAccionEspecifica;
+        window.abrirModalVinculacionParaAccionEspecifica = function(claveHito, claveAccion) {
+            if (typeof _origAbrirVinculoEsp === 'function') {
+                _origAbrirVinculoEsp(claveHito, claveAccion);
+            }
+            const m = document.getElementById('modal-vinculacion-universal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+                m.style.zIndex = '70';
+            }
+        };
+
+        // =====================================================================
+        // MODAL ANALÍTICO INTERACTIVO (KPIS Y CLIC EN BARRAS / DONA DE GRÁFICAS)
+        // =====================================================================
+        window.abrirModalAuditoriaAnalitica = function(modo, filtroValor = '') {
+            const data = accionesDataset || [];
+            const modal = document.getElementById('modal-auditoria-analitica');
+            const badge = document.getElementById('audAnaliticaBadge');
+            const titulo = document.getElementById('audAnaliticaTitulo');
+            const desc = document.getElementById('audAnaliticaDesc');
+            const pills = document.getElementById('audAnaliticaPills');
+            const listaEl = document.getElementById('audAnaliticaLista');
+
+            let subset = data;
+            if (modo === 'GLOBAL') {
+                badge.innerText = 'MATRIZ COMPLETA · 37 COMPROMISOS';
+                titulo.innerText = 'Auditoría Integral de las 37 Acciones (Concluidas vs. En Proceso)';
+                desc.innerText = 'Listado maestro conectado al marco jurídico del Decreto 345 y Lineamientos IEC. Identifica qué acciones ya están al 100% y cuáles siguen abiertas.';
+            } else if (modo === 'TRAMITE') {
+                subset = data.filter(a => (a.etiqueta_tramite || '').startsWith('ASUNTO EN TRÁMITE'));
+                badge.innerText = 'ARTS. 7, 15 FRACC. VI Y 18 LINEAMIENTOS IEC';
+                titulo.innerText = `Asuntos en Trámite Concatenados (${subset.length} Acciones)`;
+                desc.innerText = 'Procedimientos activos por materia (Fideicomisos, Juicios, Inmuebles, Muebles y Laboral) que se documentan en expediente para su traslado al Ente Receptor.';
+            } else if (modo === 'ART6') {
+                subset = data.filter(a => (a.vinculo_art6 || '').startsWith('SÍ'));
+                badge.innerText = 'PRÓRROGA LEGAL ARTÍCULO 6';
+                titulo.innerText = `Acciones Protegidas por Dependencia de Terceros (${subset.length} Acciones)`;
+                desc.innerText = 'Obligaciones cuyo cierre depende de autoridades federales o terceros externos (SAT, Banorte, SF, RAN/INAH, Tribunales) y no computan como rezago del liquidador.';
+            } else if (modo === 'BLOQUE') {
+                subset = data.filter(a => (a.bloque_estrategico || '').startsWith(filtroValor));
+                const avgB = subset.length ? Math.round(subset.reduce((s, x) => s + (Number(x.avance) || 0), 0) / subset.length) : 0;
+                const brechas = subset.filter(x => Number(x.avance) < 100).length;
+                badge.innerText = `${filtroValor.toUpperCase()} · AVANCE ${avgB}%`;
+                titulo.innerText = `${subset[0]?.bloque_estrategico || filtroValor}`;
+                desc.innerText = `Este bloque integra ${subset.length} acciones. Actualmente ${subset.length - brechas} están concluidas al 100% y ${brechas} presentan brecha pendiente que impide llegar al 100%.`;
+            } else if (modo === 'PANEL') {
+                subset = data.filter(a => (a.panel || '').toUpperCase() === filtroValor.toUpperCase());
+                const avgP = subset.length ? Math.round(subset.reduce((s, x) => s + (Number(x.avance) || 0), 0) / subset.length) : 0;
+                badge.innerText = `PANEL ${filtroValor.toUpperCase()} · AVANCE ${avgP}%`;
+                titulo.innerText = `Desglose Operativo del Panel ${filtroValor.toUpperCase()} (${subset[0]?.area || ''})`;
+                desc.innerText = `Detalle de las ${subset.length} acciones asignadas al Panel ${filtroValor.toUpperCase()}, mostrando cuáles ya cerraron al 100% y qué pendientes detienen el cierre total.`;
+            } else if (modo === 'NATURALEZA') {
+                const art6List = data.filter(a => (a.vinculo_art6 || '').startsWith('SÍ'));
+                const intList = data.filter(a => !(a.vinculo_art6 || '').startsWith('SÍ'));
+                if (filtroValor === 'ART6') subset = art6List;
+                else if (filtroValor === 'INTERNA') subset = intList;
+                else subset = data;
+                badge.innerText = 'NATURALEZA JURÍDICA DE EJECUCIÓN';
+                titulo.innerText = `Comparativa: ${intList.length} Acciones Internas vs. ${art6List.length} Dependientes de Terceros (Art. 6)`;
+                desc.innerText = 'Diferenciación jurídica entre compromisos bajo control directo del equipo liquidador (22) y trámites condicionados a terceros externos (15).';
+            }
+
+            const concluidasCount = subset.filter(a => Number(a.avance) === 100).length;
+            const pendientesCount = subset.length - concluidasCount;
+            const art6SubCount = subset.filter(a => (a.vinculo_art6 || '').startsWith('SÍ')).length;
+
+            pills.innerHTML = `
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold">✅ ${concluidasCount} Concluidas (100%)</span>
+                <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold">⏳ ${pendientesCount} Impiden el 100%</span>
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 font-bold">⚖️ ${art6SubCount} Art. 6 Terceros</span>
+            `;
+
+            listaEl.innerHTML = subset.map(item => {
+                const clave = item.clave_accion || item.id;
+                const av = Number(item.avance) || 0;
+                const isDone = av === 100;
+                const isArt6 = (item.vinculo_art6 || '').startsWith('SÍ');
+                const isTramite = (item.etiqueta_tramite || '').startsWith('ASUNTO EN TRÁMITE');
+
+                return `
+                <div class="bg-white p-3.5 rounded-2xl border ${isDone ? 'border-emerald-200' : 'border-amber-200'} shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="space-y-1 min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono-code font-bold text-[10px]">Panel ${item.panel}</span>
+                            <span class="font-mono-code font-bold text-xs text-indigo-800">${clave}</span>
+                            ${isDone
+                                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Concluida (100%)</span>'
+                                : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Brecha: ${100 - av}% pendiente</span>`
+                            }
+                            ${isArt6 ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">Art. 6 Terceros</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">Interna</span>'}
+                            ${isTramite ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">Asunto en Trámite</span>' : ''}
+                        </div>
+                        <p class="font-bold text-slate-900 text-xs leading-snug">${item.accion}</p>
+                        <p class="text-[11px] text-slate-500">
+                            <strong class="text-slate-700">Marco Jurídico:</strong> ${item.fundamento_juridico}
+                            ${isArt6 ? ` · <strong class="text-amber-800">Tercero:</strong> ${item.tercero_externo}` : ''}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="cerrarModalAuditoriaAnalitica(); abrirDrawerJuridico('${clave}');" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 transition">
+                            Ver Cita Literal
+                        </button>
+                        <button type="button" onclick="cerrarModalAuditoriaAnalitica(); abrirModalEdicionDinamica('ACCION', '${clave}');" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] transition">
+                            Editar
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            openModal('modal-auditoria-analitica');
+        };
+
+        window.cerrarModalAuditoriaAnalitica = function() {
+            closeModal('modal-auditoria-analitica');
+        };
+
+        window.seleccionarBloqueDesdeGuia = function(bloquePrefix) {
+            const sel = document.getElementById('proSelectBloque');
+            if (sel) {
+                sel.value = bloquePrefix;
+                filtrarVistaPro('ALL');
+                sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        // =====================================================================
         // CAPA VISUAL EJECUTIVA PANEL IEC PRO (CONECTADA A accionesDataset _v2)
         // =====================================================================
         let filtroProActivo = 'ALL';
@@ -11568,6 +11961,10 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                     btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
                 }
             });
+            const bannerCierre = document.getElementById('bannerCierreFormal');
+            if (bannerCierre) {
+                bannerCierre.classList.toggle('hidden', tipo !== 'CIERRE');
+            }
             renderExploradorPro();
         };
 
@@ -11624,10 +12021,11 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                 const av = Number(item.avance) || 0;
                 const esTramite = (item.etiqueta_tramite || '').startsWith('ASUNTO EN TRÁMITE');
                 const esArt6 = (item.vinculo_art6 || '').startsWith('SÍ');
+                const esCierre = clave.includes('ASI_P-H-0007') || clave.includes('TIT_S-H-0003');
                 const barColor = av === 100 ? 'bg-emerald-500' : (esArt6 ? 'bg-amber-500' : 'bg-indigo-600');
 
                 return `
-                <article onclick="abrirDrawerJuridico('${clave}')" class="tech-card p-4 flex flex-col justify-between cursor-pointer group">
+                <article onclick="abrirDrawerJuridico('${clave}')" class="tech-card p-4 flex flex-col justify-between cursor-pointer group ${esCierre ? 'ring-2 ring-purple-300 bg-purple-50/20' : ''}">
                     <div class="space-y-2.5">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-1.5">
@@ -11645,9 +12043,10 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                         </div>
 
                         <div class="flex flex-wrap gap-1.5 pt-1">
+                            ${esCierre ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-purple-100 text-purple-900 border border-purple-300">Cierre Formal Liquidación</span>` : ''}
                             ${esTramite ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">Asunto en Trámite</span>` : ''}
                             ${esArt6 ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Art. 6 Terceros</span>` : ''}
-                            ${!esTramite && !esArt6 ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600">Gestión Interna</span>` : ''}
+                            ${!esTramite && !esArt6 && !esCierre ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600">Gestión Interna</span>` : ''}
                         </div>
                     </div>
 
@@ -11656,7 +12055,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                             <div class="${barColor} h-full rounded-full transition-all duration-300" style="width: ${av}%"></div>
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-slate-500">
-                            <span class="truncate max-w-[70%]"><i class="fa-solid fa-scale-balanced text-amber-600 mr-1"></i>${(item.fundamento_juridico || '').split(';')[0]}</span>
+                            <span class="truncate max-w-[68%]"><i class="fa-solid fa-scale-balanced text-amber-600 mr-1"></i>${(item.fundamento_juridico || '').split(';')[0]}</span>
                             <span class="font-bold text-indigo-600 group-hover:translate-x-0.5 transition">Ver cita →</span>
                         </div>
                     </div>
@@ -11668,7 +12067,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             const data = accionesDataset || [];
             if (data.length === 0) return;
 
-            // 1. Gráfica por Bloque
+            // 1. Gráfica por Bloque (CLIC EN BARRA ABRE DESGLOSE DEL BLOQUE)
             const ctxB = document.getElementById('proChartBloques');
             if (ctxB) {
                 if (chartProBloques) chartProBloques.destroy();
@@ -11693,8 +12092,19 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
+                        onClick: (evt, elems) => {
+                            if (elems && elems.length > 0) {
+                                const idx = elems[0].index;
+                                abrirModalAuditoriaAnalitica('BLOQUE', bloques[idx]);
+                            }
+                        },
                         plugins: {
                             legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: () => 'Clic para auditar acciones y brechas del bloque'
+                                }
+                            },
                             datalabels: {
                                 anchor: 'end',
                                 align: 'right',
@@ -11711,7 +12121,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                 });
             }
 
-            // 2. Gráfica por Panel (A - J)
+            // 2. Gráfica por Panel (A - I) (CLIC EN BARRA ABRE DESGLOSE DEL PANEL)
             const ctxP = document.getElementById('proChartPaneles');
             if (ctxP) {
                 if (chartProPaneles) chartProPaneles.destroy();
@@ -11733,8 +12143,19 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        onClick: (evt, elems) => {
+                            if (elems && elems.length > 0) {
+                                const idx = elems[0].index;
+                                abrirModalAuditoriaAnalitica('PANEL', paneles[idx]);
+                            }
+                        },
                         plugins: {
                             legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: () => 'Clic para auditar acciones del panel'
+                                }
+                            },
                             datalabels: {
                                 anchor: 'end',
                                 align: 'top',
@@ -11751,7 +12172,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                 });
             }
 
-            // 3. Dona Naturaleza Jurídica (Internas vs Art. 6)
+            // 3. Dona Naturaleza Jurídica (CLIC EN SEGMENTO ABRE COMPARATIVA 22 vs 15)
             const ctxN = document.getElementById('proChartNaturaleza');
             if (ctxN) {
                 if (chartProNaturaleza) chartProNaturaleza.destroy();
@@ -11760,7 +12181,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                 chartProNaturaleza = new Chart(ctxN, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Gestión Interna', 'Salvedad Art. 6 (Terceros)'],
+                        labels: ['Internas (Gestión Directa)', 'Salvedad Art. 6 (Terceros)'],
                         datasets: [{
                             data: [internas, art6],
                             backgroundColor: ['#4f46e5', '#f59e0b'],
@@ -11771,7 +12192,13 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        cutout: '68%',
+                        cutout: '65%',
+                        onClick: (evt, elems) => {
+                            if (elems && elems.length > 0) {
+                                const idx = elems[0].index;
+                                abrirModalAuditoriaAnalitica('NATURALEZA', idx === 0 ? 'INTERNA' : 'ART6');
+                            }
+                        },
                         plugins: {
                             legend: { display: false },
                             datalabels: {
@@ -11836,7 +12263,6 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             }, 260);
         };
 
-        // Enganchar actualización automática cuando Supabase o los modales actualicen datos
         const _origActualizarDashboard = window.actualizarDashboard;
         window.actualizarDashboard = function() {
             if (typeof _origActualizarDashboard === 'function') {
