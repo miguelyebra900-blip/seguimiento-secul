@@ -10524,20 +10524,6 @@ window.sincronizarVistaGerencialConSupabase = function() {
     }
 };
 
-// Refrescar perspectiva activa cuando Supabase termine de descargar las 40 acciones
-let _ultimoTotalSincronizado = 0;
-setInterval(() => {
-    if (Array.isArray(accionesDataset) && accionesDataset.length !== _ultimoTotalSincronizado) {
-        _ultimoTotalSincronizado = accionesDataset.length;
-        window.sincronizarVistaGerencialConSupabase();
-        if (typeof window.seleccionarPerspectivaGerencial === 'function') {
-            window.seleccionarPerspectivaGerencial(window.perspectivaGerencialActual || 'resumen');
-        }
-    }
-}, 600);
-        
-        
-// ESTOS 3 DISPARADORES SON LOS QUE EJECUTAN LA FUNCIÓN AL LLEGAR SUPABASE:
 if (typeof window.seleccionarPerspectivaGerencial === 'function') {
     const _origPersp = window.seleccionarPerspectivaGerencial;
     window.seleccionarPerspectivaGerencial = function(perspectiva) {
@@ -10555,16 +10541,18 @@ if (typeof window.actualizarDashboard === 'function') {
     };
 }
 
-// Vigilante automático: en cuanto accionesDataset supere las 30 iniciales (al llegar Supabase), actualiza
+// Vigilante automático único
 let _ultimoTotalSincronizado = 0;
 setInterval(() => {
     if (Array.isArray(accionesDataset) && accionesDataset.length !== _ultimoTotalSincronizado) {
         _ultimoTotalSincronizado = accionesDataset.length;
         window.sincronizarVistaGerencialConSupabase();
+        if (typeof window.seleccionarPerspectivaGerencial === 'function') {
+            window.seleccionarPerspectivaGerencial(window.perspectivaGerencialActual || 'resumen');
+        }
     }
-}, 600);   
-    
-        
+}, 600);
+
     </script>
 
     <!-- ========================================================================= -->
