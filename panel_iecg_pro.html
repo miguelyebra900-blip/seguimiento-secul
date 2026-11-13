@@ -91,18 +91,18 @@
         (function verificarAccesoProtegido() {
             const sesion = localStorage.getItem('secul_user');
             if (!sesion) {
-                window.location.replace('index.html');
+                window.__requiereLoginInicial = true;
                 return;
             }
             try {
                 const usuario = JSON.parse(sesion);
                 if (!usuario || !usuario.usuario) {
                     localStorage.removeItem('secul_user');
-                    window.location.replace('index.html');
+                    window.__requiereLoginInicial = true;
                 }
             } catch (e) {
                 localStorage.removeItem('secul_user');
-                window.location.replace('index.html');
+                window.__requiereLoginInicial = true;
             }
         })();
     </script>
@@ -181,7 +181,7 @@
                 </button>
 
                 <!-- Sesión -->
-                <div id="userSessionContainer" class="hidden sm:flex items-center gap-2 bg-slate-100/80 border border-slate-200 px-3 py-1.5 rounded-xl">
+                <div id="userSessionContainer" class="flex items-center gap-2 bg-slate-100/80 border border-slate-200 px-3 py-1.5 rounded-xl">
                     <span id="userStatusDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <div class="leading-none">
                         <span id="userNameDisplay" class="font-bold text-[11px] text-slate-800 block max-w-[110px] truncate">Sesión Activa</span>
@@ -274,7 +274,7 @@
                         </h2>
                         <p class="text-[11px] text-slate-500">Clic en cualquier barra para auditar qué impide el 100%</p>
                     </div>
-                    <button type="button" onclick="abrirModalAuditoriaAnalitica('BLOQUE', 'Bloque 1')" class="text-[10px] font-mono-code font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('TODOS_BLOQUES')" class="text-[10px] font-mono-code font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
                         4 BLOQUES <i class="fa-solid fa-expand ml-1"></i>
                     </button>
                 </div>
@@ -287,11 +287,11 @@
             <div class="tech-card p-5 lg:col-span-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h2 class="text-sm font-extrabold text-slate-900">Avance por Panel (A – J)</h2>
+                        <h2 class="text-sm font-extrabold text-slate-900">Avance por Panel (A – I)</h2>
                         <p class="text-[11px] text-slate-500">Clic en una barra para ver acciones y brechas del panel</p>
                     </div>
-                    <button type="button" onclick="abrirModalAuditoriaAnalitica('PANEL', 'F')" class="text-[10px] font-mono-code font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
-                        PANELES <i class="fa-solid fa-expand ml-1"></i>
+                    <button type="button" onclick="abrirModalAuditoriaAnalitica('TODOS_PANELES')" class="text-[10px] font-mono-code font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                        PANELES (A–I) <i class="fa-solid fa-expand ml-1"></i>
                     </button>
                 </div>
                 <div class="h-56 relative cursor-pointer">
@@ -564,11 +564,11 @@
 
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <button type="button" id="drawerBtnDrive" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Subir Evidencia Drive
+                <i class="fa-solid fa-cloud-arrow-up"></i> Subir Evidencia en Base de Datos
             </button>
             <div class="flex items-center gap-2">
                 <button type="button" id="drawerBtnEditar" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-pen-to-square"></i> Editar en Matriz
+                    <i class="fa-solid fa-database"></i> Gestionar / Editar en Base de Datos
                 </button>
                 <button type="button" onclick="cerrarDrawerJuridico()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition">
                     Cerrar
@@ -1777,12 +1777,13 @@
             </div>
 
             <div class="bg-slate-50 p-4 flex justify-between items-center border-t border-slate-200">
-                <span class="text-[11px] text-slate-400 font-medium">Validación en tiempo real • 30 Acciones</span>
+                <span class="text-[11px] text-slate-400 font-medium">Validación en tiempo real • 37 Acciones</span>
                 <button onclick="closeModal('modal-kpi-detalle')" class="btn-executive px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold">
                     Cerrar
                 </button>
             </div>
         </div>
+    </div>
     <div id="modal-detalle-kpi" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
         
@@ -7482,6 +7483,14 @@ h.acciones.forEach(function(a) {
                         '<div class="flex items-start gap-3">' +
                             '<span class="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-indigo-950 font-mono font-black text-xs shrink-0 mt-0.5">' + idClaveAccion + '</span>' +
                             '<div>' +
+                                '<div class="flex flex-wrap items-center gap-1.5 mb-1">' +
+                                    ((a.vinculo_art6 && a.vinculo_art6.startsWith('SÍ'))
+                                        ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300"><i class="fa-solid fa-scale-balanced mr-1"></i>' + a.vinculo_art6 + '</span>'
+                                        : '<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Gestión Interna</span>') +
+                                    ((a.etiqueta_tramite && a.etiqueta_tramite.startsWith('ASUNTO EN TRÁMITE'))
+                                        ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 text-sky-900 border border-sky-300"><i class="fa-solid fa-folder-open mr-1"></i>Asunto en Trámite (Art. 7/18)</span>'
+                                        : '') +
+                                '</div>' +
                                 '<h5 class="text-xs sm:text-sm font-black text-slate-900 leading-snug">' + a.accion + '</h5>' +
                                 '<span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">' +
                                     '<i class="fa-solid fa-user-tie text-indigo-600"></i> Instancia Responsable: <strong class="text-slate-800">' + (a.responsable || h.area) + '</strong>' +
@@ -11829,16 +11838,147 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
         };
 
         // =====================================================================
+        // PUENTE HACIA MODAL BASE DE DATOS IECG (ÚNICO PUNTO DE EDICIÓN)
+        // =====================================================================
+        window.irABaseDatosConAccion = function(claveAccion, abrirEditorInmediato = false) {
+            const item = (accionesDataset || []).find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+            abrirModalBaseDatosGeneral();
+
+            const selPanel = document.getElementById('filtroPanelBDGeneral');
+            const inpBuscar = document.getElementById('buscadorBDGeneral');
+            if (selPanel && item && item.panel) {
+                selPanel.value = item.panel;
+            }
+            if (inpBuscar) {
+                inpBuscar.value = claveAccion;
+            }
+            if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+                renderBaseDatosGeneralJerarquica();
+            }
+
+            if (abrirEditorInmediato) {
+                setTimeout(() => {
+                    if (typeof abrirModalEdicionDinamica === 'function') {
+                        abrirModalEdicionDinamica('ACCION', claveAccion);
+                    }
+                }, 120);
+            }
+        };
+
+        // =====================================================================
         // MODAL ANALÍTICO INTERACTIVO (KPIS Y CLIC EN BARRAS / DONA DE GRÁFICAS)
         // =====================================================================
         window.abrirModalAuditoriaAnalitica = function(modo, filtroValor = '') {
             const data = accionesDataset || [];
-            const modal = document.getElementById('modal-auditoria-analitica');
             const badge = document.getElementById('audAnaliticaBadge');
             const titulo = document.getElementById('audAnaliticaTitulo');
             const desc = document.getElementById('audAnaliticaDesc');
             const pills = document.getElementById('audAnaliticaPills');
             const listaEl = document.getElementById('audAnaliticaLista');
+
+            // MODO TODOS_BLOQUES: Presenta los 4 Bloques con su avance, acciones y brechas
+            if (modo === 'TODOS_BLOQUES') {
+                badge.innerText = 'ARQUITECTURA NORMATIVA · 4 BLOQUES';
+                titulo.innerText = 'Comparativa Integral de los 4 Bloques del Marco Jurídico';
+                desc.innerText = 'Resumen ejecutivo de los 4 bloques rectores. Selecciona cualquier bloque para inspeccionar las acciones que aún impiden llegar al 100%.';
+
+                const bloquesDef = [
+                    { key: 'Bloque 1', nombre: 'Bloque 1 — Personal, Patrimonio & Archivo (Paneles A, C, E, H)', color: 'indigo' },
+                    { key: 'Bloque 2', nombre: 'Bloque 2 — Cierre Fiscal, Cuentas & Auditoría (Paneles F, I)', color: 'sky' },
+                    { key: 'Bloque 3', nombre: 'Bloque 3 — Fideicomisos Banorte FIARCA (Panel D)', color: 'amber' },
+                    { key: 'Bloque 4', nombre: 'Bloque 4 — Gobernanza & Sistemas TI (Paneles B, G, J)', color: 'purple' }
+                ];
+
+                const totalConcl = data.filter(a => Number(a.avance) === 100).length;
+                pills.innerHTML = `
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 font-bold">4 Bloques Rectores</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold">✅ ${totalConcl} / ${data.length} Concluidas</span>
+                `;
+
+                listaEl.innerHTML = bloquesDef.map(b => {
+                    const items = data.filter(a => (a.bloque_estrategico || '').startsWith(b.key));
+                    const avg = items.length ? Math.round(items.reduce((s, x) => s + (Number(x.avance) || 0), 0) / items.length) : 0;
+                    const concl = items.filter(x => Number(x.avance) === 100).length;
+                    const brechas = items.filter(x => Number(x.avance) < 100);
+                    const art6B = items.filter(x => (x.vinculo_art6 || '').startsWith('SÍ')).length;
+
+                    return `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900">${b.nombre}</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                    <strong>${items.length}</strong> acciones totales · <strong class="text-emerald-700">${concl} concluidas</strong> · <strong class="text-amber-700">${brechas.length} pendientes</strong> · <strong class="text-indigo-700">${art6B} protegidas Art. 6</strong>
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="font-mono-code text-base font-extrabold text-indigo-700">${avg}%</span>
+                                <button type="button" onclick="abrirModalAuditoriaAnalitica('BLOQUE', '${b.key}')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-indigo-900 text-white font-bold text-[11px] transition">
+                                    Ver ${items.length} Acciones →
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="bg-indigo-600 h-full rounded-full" style="width: ${avg}%"></div>
+                        </div>
+                        ${brechas.length > 0 ? `
+                        <div class="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                            <strong class="text-slate-800">Principales brechas que impiden el 100%:</strong>
+                            ${brechas.slice(0, 3).map(x => `<span class="inline-block ml-1.5 px-2 py-0.5 rounded bg-white border border-slate-200 font-mono-code text-[10px]">${x.clave_accion} (${x.avance}%)</span>`).join('')}
+                            ${brechas.length > 3 ? `<span class="text-slate-400 ml-1">+${brechas.length - 3} más</span>` : ''}
+                        </div>` : ''}
+                    </div>`;
+                }).join('');
+
+                openModal('modal-auditoria-analitica');
+                return;
+            }
+
+            // MODO TODOS_PANELES: Presenta los Paneles A-I con su avance y brechas
+            if (modo === 'TODOS_PANELES') {
+                badge.innerText = 'ESTRUCTURA OPERATIVA · PANELES A–I';
+                titulo.innerText = 'Comparativa de Avance por Panel Operativo (A – I)';
+                desc.innerText = 'Desempeño consolidado de cada panel responsable. Selecciona un panel para inspeccionar sus acciones y brechas pendientes.';
+
+                const panelesDef = [
+                    { p: 'A', nom: 'Panel A · Recursos Humanos y Estructura' },
+                    { p: 'B', nom: 'Panel B · Gobernanza y Comité de Extinción' },
+                    { p: 'C', nom: 'Panel C · Asuntos Jurídicos y Litigios' },
+                    { p: 'D', nom: 'Panel D · Fideicomisos Banorte (FIARCA)' },
+                    { p: 'E', nom: 'Panel E · Bienes Muebles e Inmuebles' },
+                    { p: 'F', nom: 'Panel F · Cierre Fiscal, Cuentas y SAT' },
+                    { p: 'G', nom: 'Panel G · Sistemas TI y DGTIT' },
+                    { p: 'H', nom: 'Panel H · Archivo y Entrega-Recepción' },
+                    { p: 'I', nom: 'Panel I · Auditoría y Fiscalización ASEG' }
+                ];
+
+                pills.innerHTML = `<span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 font-bold">9 Paneles Activos (37 Acciones)</span>`;
+
+                listaEl.innerHTML = panelesDef.map(pd => {
+                    const items = data.filter(a => (a.panel || '').toUpperCase() === pd.p);
+                    const avg = items.length ? Math.round(items.reduce((s, x) => s + (Number(x.avance) || 0), 0) / items.length) : 0;
+                    const concl = items.filter(x => Number(x.avance) === 100).length;
+                    return `
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-slate-900 text-white font-mono-code font-bold text-xs flex items-center justify-center shrink-0">${pd.p}</span>
+                            <div>
+                                <h4 class="font-extrabold text-slate-900 text-xs">${pd.nom}</h4>
+                                <span class="text-[11px] text-slate-500">${items.length} acciones · ${concl} concluidas · ${items.length - concl} pendientes</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="font-mono-code font-extrabold text-sm ${avg === 100 ? 'text-emerald-600' : 'text-indigo-700'}">${avg}%</span>
+                            <button type="button" onclick="abrirModalAuditoriaAnalitica('PANEL', '${pd.p}')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 transition">
+                                Auditar Panel →
+                            </button>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                openModal('modal-auditoria-analitica');
+                return;
+            }
 
             let subset = data;
             if (modo === 'GLOBAL') {
@@ -11889,6 +12029,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                 <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 font-bold">⚖️ ${art6SubCount} Art. 6 Terceros</span>
             `;
 
+            // SIN BOTÓN EDITAR AQUÍ (La única edición es desde el Modal Base de Datos IECG)
             listaEl.innerHTML = subset.map(item => {
                 const clave = item.clave_accion || item.id;
                 const av = Number(item.avance) || 0;
@@ -11919,8 +12060,8 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                         <button type="button" onclick="cerrarModalAuditoriaAnalitica(); abrirDrawerJuridico('${clave}');" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 transition">
                             Ver Cita Literal
                         </button>
-                        <button type="button" onclick="cerrarModalAuditoriaAnalitica(); abrirModalEdicionDinamica('ACCION', '${clave}');" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] transition">
-                            Editar
+                        <button type="button" onclick="cerrarModalAuditoriaAnalitica(); irABaseDatosConAccion('${clave}', false);" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] border border-slate-200 transition">
+                            Ver en Base
                         </button>
                     </div>
                 </div>`;
@@ -12239,15 +12380,11 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
 
             document.getElementById('drawerBtnDrive').onclick = function() {
                 cerrarDrawerJuridico();
-                if (typeof abrirModalAgregarArchivosRapido === 'function') {
-                    abrirModalAgregarArchivosRapido(item.clave_accion || item.id);
-                }
+                irABaseDatosConAccion(item.clave_accion || item.id, true);
             };
             document.getElementById('drawerBtnEditar').onclick = function() {
                 cerrarDrawerJuridico();
-                if (typeof abrirModalEdicionDinamica === 'function') {
-                    abrirModalEdicionDinamica('ACCION', item.clave_accion || item.id);
-                }
+                irABaseDatosConAccion(item.clave_accion || item.id, true);
             };
 
             document.getElementById('proDrawerOverlay').classList.remove('hidden');
@@ -12274,6 +12411,9 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (typeof updateAuthUI === 'function') updateAuthUI();
+            if (window.__requiereLoginInicial) {
+                openModal('modal-auth');
+            }
             renderExploradorPro();
             renderGraficosPro();
             if (typeof inicializarDatosDesdeSupabase === 'function') {
