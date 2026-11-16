@@ -8590,8 +8590,19 @@ function resolverPanelesUsuario(user) {
     return ['A'];
 }
 
-// Actualizar siempre al cargar la página
-let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
+// --- VALIDACIÓN DEFENSIVA DE currentUser ---
+if (typeof currentUser === 'undefined' || !currentUser) {
+    console.warn("No hay una sesión activa de usuario, operando en modo consulta.");
+    currentUser = { 
+        usuario: "Invitado", 
+        nombre: "Modo Consulta", 
+        rol: "Consulta", 
+        paneles_autorizados: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] 
+    };
+}
+
+// Actualizar siempre al cargar la página de forma segura
+if (currentUser && typeof resolverPanelesUsuario === 'function') {
     currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
     localStorage.setItem('secul_user', JSON.stringify(currentUser));
 }
