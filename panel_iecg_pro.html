@@ -8591,7 +8591,7 @@ function resolverPanelesUsuario(user) {
 }
 
 // Actualizar siempre al cargar la página
-if (currentUser) {
+let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
     currentUser.paneles_autorizados = resolverPanelesUsuario(currentUser);
     localStorage.setItem('secul_user', JSON.stringify(currentUser));
 }
