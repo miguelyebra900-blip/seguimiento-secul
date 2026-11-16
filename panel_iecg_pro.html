@@ -2791,17 +2791,21 @@ function activarKpiNeon(elemento, tipoKpi) {
             }
             return data.fileUrl;
         };
-        // 1. CONEXIÓN A SUPABASE Y ESTADO DE SESIÓN
-        const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
+    // 1. CONEXIÓN A SUPABASE Y ESTADO DE SESIÓN
+const SUPABASE_URL = "https://ubfjuydblmntbkbzutvl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZmp1eWRibG1udGJrYnp1dHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTMyNDEsImV4cCI6MjEwMjgyOTI0MX0.uIuq0FuhnBhWgZpuMaaCQD__lls28MwjpRijA5K6bCY";
 
-        let supabaseClient = null;
-        if (typeof supabase !== 'undefined') {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
-
-        let currentUser = JSON.parse(localStorage.getItem('secul_user')) || null;
-        let chartEnlargedInstance = null;
+let supabaseClient = null;
+try {
+    if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("🟢 Cliente Supabase inicializado correctamente.");
+    } else {
+        console.warn("⚠️ La librería de Supabase no está disponible globalmente. Operando en modo local.");
+    }
+} catch (err) {
+    console.error("🔴 Error crítico al inicializar Supabase:", err.message);
+}
 
        function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
