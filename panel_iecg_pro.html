@@ -201,68 +201,89 @@
     <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <!-- 1. BANDA DE 4 KPIS EJECUTIVOS INTERACTIVOS -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- KPI 1: Avance Global Matriz v2 (Clic abre Modal con las 37 acciones) -->
-            <div onclick="abrirModalAuditoriaAnalitica('GLOBAL')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
-                <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Avance Global Matriz v2</span>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="proKpiAvance" class="text-3xl font-extrabold text-slate-900">--%</span>
-                        <span id="proKpiConcluidas" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">-- concluidas</span>
+       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- KPI 1: Avance Global Matriz -->
+            <div onclick="abrirModalAuditoriaAnalitica('GLOBAL')" class="tech-card p-5 flex flex-col justify-between cursor-pointer group hover:shadow-lg transition-all duration-300">
+                <div class="flex items-start justify-between gap-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-900/70">Avance Global Matriz</span>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
+                        <i class="fa-solid fa-chart-line"></i>
                     </div>
-                    <p class="text-[11px] text-indigo-600 font-semibold mt-1.5 group-hover:underline">Clic para auditar las 37 acciones →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition">
-                    <i class="fa-solid fa-chart-line"></i>
+                <div class="my-3">
+                    <div class="flex items-baseline gap-2.5">
+                        <span id="proKpiAvance" class="text-3xl font-black text-slate-900 tracking-tight">--%</span>
+                        <span id="proKpiConcluidas" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-100">-- concluidas</span>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-bold group-hover:text-indigo-800">
+                    <span>Auditar 37 acciones</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
                 </div>
             </div>
 
             <!-- KPI 2: Asuntos en Trámite -->
-            <div onclick="abrirModalAuditoriaAnalitica('TRAMITE')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
-                <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-sky-600">Asuntos en Trámite (Art. 7/18)</span>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="proKpiTramite" class="text-3xl font-extrabold text-slate-900">--</span>
-                        <span class="text-xs font-semibold text-sky-700">acciones</span>
+            <div onclick="abrirModalAuditoriaAnalitica('TRAMITE')" class="tech-card p-5 flex flex-col justify-between cursor-pointer group hover:shadow-lg transition-all duration-300">
+                <div class="flex items-start justify-between gap-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-sky-900/70">Asuntos en Trámite (Art. 7/18)</span>
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base group-hover:bg-sky-600 group-hover:text-white transition-colors shrink-0">
+                        <i class="fa-solid fa-folder-tree"></i>
                     </div>
-                    <p class="text-[11px] text-sky-700 font-semibold mt-1.5 group-hover:underline">Ver desglose por rama jurídica →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl group-hover:bg-sky-600 group-hover:text-white transition">
-                    <i class="fa-solid fa-folder-tree"></i>
+                <div class="my-3">
+                    <div class="flex items-baseline gap-2.5">
+                        <span id="proKpiTramite" class="text-3xl font-black text-slate-900 tracking-tight">--</span>
+                        <span class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-md border border-sky-100">acciones</span>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-sky-600 font-bold group-hover:text-sky-800">
+                    <span>Ver rama jurídica</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
                 </div>
             </div>
 
             <!-- KPI 3: Salvedad Terceros Art. 6 -->
-            <div onclick="abrirModalAuditoriaAnalitica('ART6')" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
-                <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Salvedad Terceros (Art. 6)</span>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="proKpiArt6" class="text-3xl font-extrabold text-slate-900">--</span>
-                        <span class="text-xs font-semibold text-amber-700">protegidas</span>
+            <div onclick="abrirModalAuditoriaAnalitica('ART6')" class="tech-card p-5 flex flex-col justify-between cursor-pointer group hover:shadow-lg transition-all duration-300">
+                <div class="flex items-start justify-between gap-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-900/70">Salvedad Terceros (Art. 6)</span>
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base group-hover:bg-amber-600 group-hover:text-white transition-colors shrink-0">
+                        <i class="fa-solid fa-scale-balanced"></i>
                     </div>
-                    <p class="text-[11px] text-amber-700 font-semibold mt-1.5 group-hover:underline">Ver 15 protegidas vs 22 internas →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition">
-                    <i class="fa-solid fa-scale-balanced"></i>
+                <div class="my-3">
+                    <div class="flex items-baseline gap-2.5">
+                        <span id="proKpiArt6" class="text-3xl font-black text-slate-900 tracking-tight">--</span>
+                        <span class="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-100">protegidas</span>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-amber-700 font-bold group-hover:text-amber-900">
+                    <span>Ver comparativa (15 vs 22)</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
                 </div>
             </div>
 
             <!-- KPI 4: Expedientes Drive -->
-            <div onclick="abrirModalBaseDatosGeneral()" class="tech-card p-5 flex items-center justify-between cursor-pointer group">
-                <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Expedientes Drive A–J</span>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="proKpiDrive" class="text-3xl font-extrabold text-slate-900">--</span>
-                        <span class="text-xs font-semibold text-emerald-700">vinculados</span>
+            <div onclick="abrirModalBaseDatosGeneral()" class="tech-card p-5 flex flex-col justify-between cursor-pointer group hover:shadow-lg transition-all duration-300">
+                <div class="flex items-start justify-between gap-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-900/70">Expedientes Drive A–J</span>
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
+                        <i class="fa-brands fa-google-drive"></i>
                     </div>
-                    <p class="text-[11px] text-emerald-700 font-semibold mt-1.5 group-hover:underline">Gestionar en Base de Datos IECG →</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition">
-                    <i class="fa-brands fa-google-drive"></i>
+                <div class="my-3">
+                    <div class="flex items-baseline gap-2.5">
+                        <span id="proKpiDrive" class="text-3xl font-black text-slate-900 tracking-tight">--</span>
+                        <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-100">vinculados</span>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-600 font-bold group-hover:text-emerald-800">
+                    <span>Gestionar Base de Datos</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
                 </div>
             </div>
-        </section>
 
+        </section>
+        
         <!-- 2. ZONA DE GRÁFICOS EJECUTIVOS INTERACTIVOS (CLIC EN BARRA/DONA/TARJETA ABRE DESGLOSE) -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <!-- Gráfico 1: Avance por Bloque Estratégico (4 Bloques) -->
