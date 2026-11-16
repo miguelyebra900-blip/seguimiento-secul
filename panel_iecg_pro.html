@@ -7520,7 +7520,75 @@ h.acciones.forEach(function(a) {
                 });
                 htmlInstrumentos += '</div>';
             }
+// --- NUEVOS BLOQUES ESTILIZADOS V8 (Cita, Criterio ASEG y Cierre de Pinza) ---
+            var htmlCriteriosAuditoria = '';
+            if (a.nota_auditoria && a.nota_auditoria.trim() !== '') {
+                htmlCriteriosAuditoria = 
+                    '<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">' +
+                        '<span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                            '<i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i> Criterio de Auditoría ASEG (Normativo):' +
+                        '</span>' +
+                        '<p class="text-slate-800 text-[11px] font-medium leading-relaxed">' + a.nota_auditoria + '</p>' +
+                    '</div>';
+            }
 
+            var htmlCitaLiteral = '';
+            if (a.cita_textual_literal && a.cita_textual_literal.trim() !== '') {
+                htmlCitaLiteral = 
+                    '<div class="p-3 bg-amber-50/50 rounded-xl border border-amber-200/80 space-y-1">' +
+                        '<span class="font-bold text-amber-950 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                            '<i class="fa-solid fa-quote-left text-amber-600"></i> Cita Textual Literal y Justificación:' +
+                        '</span>' +
+                        '<div class="text-slate-800 text-[11px] whitespace-pre-line leading-relaxed font-mono-code bg-white p-2.5 rounded-lg border border-amber-100">' + a.cita_textual_literal + '</div>' +
+                    '</div>';
+            }
+
+            var htmlCierrePinza = '';
+            if (a.accion_cierre_pinza && a.accion_cierre_pinza.trim() !== '') {
+                htmlCierrePinza = 
+                    '<div class="p-3 bg-purple-50/60 rounded-xl border border-purple-200 space-y-1">' +
+                        '<span class="font-bold text-purple-950 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                            '<i class="fa-solid fa-stamp text-purple-600"></i> Acción de Cierre de Pinza (Liquidador / Comité / Honestidad):' +
+                        '</span>' +
+                        '<p class="text-purple-950 text-[11px] font-semibold leading-snug">' + a.accion_cierre_pinza + '</p>' +
+                    '</div>';
+            }
+
+// --- NUEVOS BLOQUES ESTILIZADOS V8 ---
+            var htmlCriteriosAuditoria = '';
+            if (a.nota_auditoria && a.nota_auditoria.trim() !== '') {
+                htmlCriteriosAuditoria = 
+                    '<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">' +
+                        '<span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                            '<i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i> Criterio de Auditoría ASEG (Normativo):' +
+                        '</span>' +
+                        '<p class="text-slate-800 text-[11px] font-medium leading-relaxed">' + a.nota_auditoria + '</p>' +
+                    '</div>';
+            }
+
+            var htmlCitaLiteral = '';
+            if (a.cita_textual_literal && a.cita_textual_literal.trim() !== '') {
+                htmlCitaLiteral = 
+                    '<div class="p-3 bg-amber-50/50 rounded-xl border border-amber-200/80 space-y-1">' +
+                        '<span class="font-bold text-amber-950 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                            '<i class="fa-solid fa-quote-left text-amber-600"></i> Cita Textual Literal y Justificación:' +
+                        '</span>' +
+                        '<div class="text-slate-800 text-[11px] whitespace-pre-line leading-relaxed font-mono-code bg-white p-2.5 rounded-lg border border-amber-100">' + a.cita_textual_literal + '</div>' +
+                    '</div>';
+            }
+
+            var htmlCierrePinza = '';
+            if (a.accion_cierre_pinza && a.accion_cierre_pinza.trim() !== '') {
+                htmlCierrePinza = 
+                    '<div class="p-3 bg-purple-50/60 rounded-xl border border-purple-200 space-y-1">' +
+                        '<span class="font-bold text-purple-950 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                            '<i class="fa-solid fa-stamp text-purple-600"></i> Acción de Cierre de Pinza (Liquidador / Comité / Honestidad):' +
+                        '</span>' +
+                        '<p class="text-purple-950 text-[11px] font-semibold leading-snug">' + a.accion_cierre_pinza + '</p>' +
+                    '</div>';
+            }
+
+    
             var displayClaseAcciones = window.__bdModoCompacto ? 'hidden' : '';
         filasAccionesHTML += 
                 '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 ' + displayClaseAcciones + ' hito-acciones-container-' + h.clave_hito + '">' +
@@ -7589,10 +7657,15 @@ h.acciones.forEach(function(a) {
                         '</div>' +
 
                         // Instrumentos adaptativos (no se muestran cajas vacías)
-                        htmlInstrumentos +
+                     htmlInstrumentos +
 
-                        // Sugerencia de Expediente
-                        '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-2.5">' +
+                    // 👉 NUEVOS CAMPOS DE AUDITORÍA V8
+                    htmlCriteriosAuditoria +
+                    htmlCitaLiteral +
+                    htmlCierrePinza +
+
+                    // Sugerencia de Expediente
+                    '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-2.5">' +
                             '<i class="fa-solid fa-file-circle-check text-emerald-600 text-base mt-0.5 shrink-0"></i>' +
                             '<div>' +
                                 '<span class="font-bold text-slate-800 text-[11px] block">Sugerencia de Expediente Técnico Probatorio:</span>' +
