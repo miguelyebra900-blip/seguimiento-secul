@@ -7616,9 +7616,9 @@ h.acciones.forEach(function(a) {
                     '<span class="px-3 py-1 rounded-xl font-bold text-xs border ' + badgeEst + '">' + estatus + ' (' + avanceNum + '%)</span>' +
                     
                     // 1. + SUBIR
-                    '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">' +
-                        '<i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir' +
-                    '</button>' +
+                  '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">' +
+                    '<i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir' +
+                    '</button>'
                     
                     // 2. VINCULAR ACCIÓN DIRECTA (NUEVO BOTÓN)
                     '<button type="button" onclick="abrirModalVinculacionParaAccionEspecifica(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-purple-200">' +
@@ -9415,6 +9415,19 @@ window.abrirModalEdicionDinamica = function(tipo, claveId) {
         if (lblPanel) lblPanel.innerText = 'Panel ' + (act.panel || 'A') + ' (' + (act.area || '') + ')';
         if (lblTitulo) lblTitulo.innerText = 'Descripción de la Acción / Entregable Específico:';
         if (txtTitulo) txtTitulo.value = act.accion || '';
+
+        // 👉 AUTOSLECCIONAR LA INSTANCIA RESPONSABLE SEGÚN EL PANEL DE LA ACCIÓN
+        var selInstanciaBase = document.getElementById('selectInstanciaResponsableBaseEdit');
+        if (selInstanciaBase && act.panel) {
+            for (var idx = 0; idx < selInstanciaBase.options.length; idx++) {
+                var valOpt = selInstanciaBase.options[idx].value;
+                if (valOpt.includes('Panel ' + act.panel) || valOpt.includes('-' + act.panel + '-')) {
+                    selInstanciaBase.selectedIndex = idx;
+                    break;
+                }
+            }
+        }
+        
         var selA6 = document.getElementById('selectArt6Edit');
         if (selA6) selA6.value = (act.vinculo_art6 && act.vinculo_art6.startsWith('SÍ')) ? (selA6.querySelector('option[value="' + act.vinculo_art6 + '"]') ? act.vinculo_art6 : 'SÍ — Nuevo Vínculo Art. 6') : 'NO';
         var selTr = document.getElementById('selectTramiteEdit');
@@ -9637,19 +9650,18 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
     
     document.getElementById('rapidoClaveAccion').value = act.clave_accion || act.id;
     document.getElementById('rapidoSubtituloClave').innerText = `Clave: ${act.clave_accion || act.id}`;
-    document.getElementById('rapidoTextoTitulo').innerText = act.accion || act.hito || 'Sin descripción';
-    document.getElementById('rapidoTextoResponsable').innerText = act.responsable || 'No especificado';
-    document.getElementById('rapidoTextoPanel').innerText = `Panel ${act.panel || 'A'}`;
     
     // Limpiar campos de archivo y nota
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
     const notaInput = document.getElementById('rapidoNota');
     if (notaInput) notaInput.value = '';
+    const subcarpetaInput = document.getElementById('rapidoSubcarpetaInput');
+    if (subcarpetaInput) subcarpetaInput.value = '';
 
     openModal('modal-agregar-archivos-rapido');
 };
-
+    
 // Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
 window.guardarArchivoRapido = async function(e) {
     e.preventDefault();
