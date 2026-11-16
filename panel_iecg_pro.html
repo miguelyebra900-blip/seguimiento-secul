@@ -3054,17 +3054,17 @@ async function inicializarDatosDesdeSupabase() {
             localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
             console.log("¡Datos y evidencias sincronizados correctamente desde Supabase!");
 
-            if (typeof actualizarDashboard === 'function') actualizarDashboard();
-            if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
-            if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-            if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
-        }
+if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+        if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
 
-    } catch (err) {
+    } catch (err) { // <-- Aquí cierra correctamente el try y abre el catch
         console.error("Error al conectar con Supabase:", err.message);
         accionesDataset = ACCIONES_INICIALES;
     }
-}
+} // <-- Esta es la única llave que cierra la función async function inicializarDatosDesdeSupabase()
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
