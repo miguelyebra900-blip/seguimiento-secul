@@ -7424,38 +7424,7 @@ window.renderBaseDatosGeneralJerarquica = function() {
     // 5. Renderizado Jerárquico: Hito Rector contenedor + Acciones hijas adentro
     var htmlFinal = '';
 
-    listaHitos.forEach(function(h) {
-        var sumaAvance = h.acciones.reduce(function(acc, curr) {
-            return acc + (Number(curr.avance) || 0);
-        }, 0);
-        var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
-        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200';
-
-        // Ordenamiento cronológico de las acciones (-A-0001, -A-0002...)
-        h.acciones.sort(function(a, b) {
-            var cA = a.clave_accion || a.id || '';
-            var cB = b.clave_accion || b.id || '';
-            return cA.localeCompare(cB, undefined, { numeric: true });
-        });
-
-        // Botones de la cabecera del Hito
-        var botonesCabeceraHito = 
-            '<div class="flex flex-wrap items-center gap-1.5">' +
-                '<button type="button" onclick="if(typeof abrirAltaAccionParaHitoEspecifico===\'function\'){abrirAltaAccionParaHitoEspecifico(\'' + h.clave_hito + '\');}else if(typeof abrirModalAltaAccionVinculadaDesdeHitoDirecto===\'function\'){abrirModalAltaAccionVinculadaDesdeHitoDirecto(\'' + h.clave_hito + '\');}" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-2xs">' +
-                    '<i class="fa-solid fa-plus text-[10px]"></i> + Acción' +
-                '</button>' +
-                '<button type="button" onclick="if(typeof abrirModalVinculacionUniversalDirecta===\'function\') abrirModalVinculacionUniversalDirecta(\'' + h.clave_hito + '\', \'TODAS\');" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center gap-1.5 transition">' +
-                    '<i class="fa-solid fa-link text-[10px]"></i> Vincular' +
-                '</button>' +
-                '<button type="button" onclick="if(typeof abrirModalEdicionDinamica===\'function\') abrirModalEdicionDinamica(\'HITO\', \'' + h.clave_hito + '\');" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition">' +
-                    '<i class="fa-solid fa-pen-to-square text-[10px]"></i> Modificar Hito' +
-                '</button>' +
-                '<button type="button" onclick="if(typeof solicitarEliminacionHito===\'function\') solicitarEliminacionHito(\'' + h.clave_hito + '\', ' + h.acciones.length + ');" class="p-1.5 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1 transition" title="Eliminar Hito">' +
-                    '<i class="fa-solid fa-trash-can text-[11px]"></i>' +
-                '</button>' +
-            '</div>';
-var filasAccionesHTML = '';
-listaHitos.forEach(function(h) {
+   listaHitos.forEach(function(h) {
         var sumaAvance = h.acciones.reduce(function(acc, curr) {
             return acc + (Number(curr.avance) || 0);
         }, 0);
