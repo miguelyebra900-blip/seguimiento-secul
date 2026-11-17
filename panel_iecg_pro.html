@@ -7461,33 +7461,36 @@ window.renderBaseDatosGeneralJerarquica = function() {
             }
 
             // 1. Procesar Subcarpetas y asociar sus archivos en árbol jerárquico
+          // 1. Procesar Subcarpetas y asociar sus archivos en árbol jerárquico
             var subcarpetasDataset = Array.isArray(a.subcarpetas) ? a.subcarpetas : [];
             var htmlArbolCarpetas = '';
 
             if (subcarpetasDataset.length > 0) {
                 htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
-var archivosEnSub = listaArchivos.filter(function(doc) {
-    var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
-    var subNombre = (nombreSub || '').trim().toLowerCase();
-    return subDoc === subNombre;
-});
-var chipsArchivosSub = '';
-            if (archivosEnSub.length > 0) {
-                chipsArchivosSub = archivosEnSub.map(function(doc, docIdx) {
-                    var nombreDoc = doc.nombre || 'Evidencia Drive';
-                    var urlDoc = doc.url || '#';
-                    var claveSegura = a.clave_accion || a.id || '';
+                    // Filtrado insensible a mayúsculas, minúsculas y espacios para blindar el anidamiento
+                    var archivosEnSub = listaArchivos.filter(function(doc) {
+                        var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
+                        var subNombre = (nombreSub || '').trim().toLowerCase();
+                        return subDoc === subNombre;
+                    });
 
-                    return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
-                        '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
-                        '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[180px] underline">' + nombreDoc + '</a>' +
-                        '<i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-slate-400"></i>' +
-                        '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + claveSegura + '\', ' + docIdx + ')" class="ml-1 px-1 text-emerald-700 hover:text-white hover:bg-rose-600 rounded transition text-[10px]" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>' +
-                    '</div>';
-                }).join('');
-            } else {
-                chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
-            }               
+                    var chipsArchivosSub = '';
+                    if (archivosEnSub.length > 0) {
+                        chipsArchivosSub = archivosEnSub.map(function(doc, docIdx) {
+                            var nombreDoc = doc.nombre || 'Evidencia Drive';
+                            var urlDoc = doc.url || '#';
+                            var claveSegura = a.clave_accion || a.id || '';
+
+                            return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
+                                '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
+                                '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[180px] underline">' + nombreDoc + '</a>' +
+                                '<i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-slate-400"></i>' +
+                                '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + claveSegura + '\', ' + docIdx + ')" class="ml-1 px-1 text-emerald-700 hover:text-white hover:bg-rose-600 rounded transition text-[10px]" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>' +
+                            '</div>';
+                        }).join('');
+                    } else {
+                        chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
+                    }
 
                     return '<div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3 space-y-2 mb-2">' +
                         '<div class="flex items-center gap-2 text-indigo-950 font-black text-xs">' +
@@ -7503,7 +7506,6 @@ var chipsArchivosSub = '';
             } else {
                 htmlArbolCarpetas = '<span class="text-[11px] text-slate-400 italic">No hay subcarpetas creadas.</span>';
             }
-
             // Archivos sueltos en la raíz (sin subcarpeta)
            // Archivos sueltos en la raíz (sin subcarpeta)
             var archivosRaiz = listaArchivos.filter(doc => !doc.subcarpeta && !doc.carpeta);
