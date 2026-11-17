@@ -7426,19 +7426,21 @@ if (!mapaHitos[idHito]) {
     // 5. Renderizado Jerárquico: Hito Rector contenedor + Acciones hijas adentro
     var htmlFinal = '';
 
-   listaHitos.forEach(function(h) {
+ listaHitos.forEach(function(h) {
         var sumaAvance = h.acciones.reduce(function(acc, curr) {
             return acc + (Number(curr.avance) || 0);
         }, 0);
         var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
-        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200';
+        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-emerald-200';
+
+        // 👈 DEFINIR AQUÍ LA VARIABLE GLOBAL PARA EL HITO (Resuelve el error y el nombre del panel)
+        var areaRealPanel = (h.acciones && h.acciones.length > 0 && h.acciones[0].area) ? h.acciones[0].area : ('Panel ' + h.panel);
 
         h.acciones.sort(function(a, b) {
             var cA = a.clave_accion || a.id || '';
             var cB = b.clave_accion || b.id || '';
             return cA.localeCompare(cB, undefined, { numeric: true });
         });
-
         var filasAccionesHTML = '';
         
         h.acciones.forEach(function(a) {
