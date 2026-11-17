@@ -7435,10 +7435,9 @@ window.renderBaseDatosGeneralJerarquica = function() {
                     '<i class="fa-solid fa-trash-can text-[11px]"></i>' +
                 '</button>' +
             '</div>';
-
-        var filasAccionesHTML = '';
+var filasAccionesHTML = '';
         
-h.acciones.forEach(function(a) {
+        h.acciones.forEach(function(a) {
             var idClaveAccion = a.clave_accion || a.id;
             var avanceNum = Number(a.avance) || 0;
             var estatus = a.estatus || 'En Proceso';
@@ -7453,7 +7452,7 @@ h.acciones.forEach(function(a) {
                 listaArchivos = [{ nombre: 'Expediente Digital Oficial', url: a.driveUrl }];
             }
 
-// Evaluación de permisos para la acción y sus archivos
+            // Evaluación de permisos
             var misPaneles = (typeof resolverPanelesUsuario === 'function' && currentUser)
                 ? resolverPanelesUsuario(currentUser)
                 : (currentUser ? (currentUser.paneles_autorizados || ['A']) : []);
@@ -7469,7 +7468,6 @@ h.acciones.forEach(function(a) {
                     var urlDoc = doc.url || '#';
                     var fileId = doc.id || doc.fileId || '';
 
-                    // Botón de eliminar con confirmación condicionado a permisos
                     var btnEliminarArchivo = '';
                     if (tienePermisoOperativo) {
                         btnEliminarArchivo = 
@@ -7493,10 +7491,9 @@ h.acciones.forEach(function(a) {
     
             var detalleOp = a.detalle_operativo || a.accion || 'Sin detalle operativo registrado.';
             var fundJuridico = a.fundamento_juridico || 'Decreto 345 (Art. 5 Transitorio); Lineamientos Liquidación IEC (Arts. 5, 7, 17)';
-            var riesgoArt6 = a.riesgo_vinculado || 'Sin contingencia crítica tipificada.';
             var sugExp = a.sugerencia_expediente_tecnico || a.docRequerido || 'Cédula circunstanciada con firmas oficiales de entrega-recepción.';
 
-            // Filtrar solo los instrumentos que realmente existan y tengan contenido
+            // Instrumentos adaptativos
             var instrumentosValidos = [];
             [a.instrumento_1, a.instrumento_2, a.instrumento_3].forEach(function(inst, i) {
                 if (inst && inst.trim() !== '' && inst.trim() !== 'No especificado') {
@@ -7504,7 +7501,6 @@ h.acciones.forEach(function(a) {
                 }
             });
 
-            // Grid responsivo según la cantidad real de instrumentos
             var htmlInstrumentos = '';
             if (instrumentosValidos.length > 0) {
                 var gridCols = 'grid-cols-1';
@@ -7521,7 +7517,8 @@ h.acciones.forEach(function(a) {
                 });
                 htmlInstrumentos += '</div>';
             }
-// --- NUEVOS BLOQUES ESTILIZADOS V8 (Cita, Criterio ASEG y Cierre de Pinza) ---
+
+            // Bloques V8 Únicos y limpios
             var htmlCriteriosAuditoria = '';
             if (a.nota_auditoria && a.nota_auditoria.trim() !== '') {
                 htmlCriteriosAuditoria = 
@@ -7555,44 +7552,12 @@ h.acciones.forEach(function(a) {
                     '</div>';
             }
 
-// --- NUEVOS BLOQUES ESTILIZADOS V8 ---
-            var htmlCriteriosAuditoria = '';
-            if (a.nota_auditoria && a.nota_auditoria.trim() !== '') {
-                htmlCriteriosAuditoria = 
-                    '<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">' +
-                        '<span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
-                            '<i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i> Criterio de Auditoría ASEG (Normativo):' +
-                        '</span>' +
-                        '<p class="text-slate-800 text-[11px] font-medium leading-relaxed">' + a.nota_auditoria + '</p>' +
-                    '</div>';
-            }
-
-            var htmlCitaLiteral = '';
-            if (a.cita_textual_literal && a.cita_textual_literal.trim() !== '') {
-                htmlCitaLiteral = 
-                    '<div class="p-3 bg-amber-50/50 rounded-xl border border-amber-200/80 space-y-1">' +
-                        '<span class="font-bold text-amber-950 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
-                            '<i class="fa-solid fa-quote-left text-amber-600"></i> Cita Textual Literal y Justificación:' +
-                        '</span>' +
-                        '<div class="text-slate-800 text-[11px] whitespace-pre-line leading-relaxed font-mono-code bg-white p-2.5 rounded-lg border border-amber-100">' + a.cita_textual_literal + '</div>' +
-                    '</div>';
-            }
-
-            var htmlCierrePinza = '';
-            if (a.accion_cierre_pinza && a.accion_cierre_pinza.trim() !== '') {
-                htmlCierrePinza = 
-                    '<div class="p-3 bg-purple-50/60 rounded-xl border border-purple-200 space-y-1">' +
-                        '<span class="font-bold text-purple-950 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
-                            '<i class="fa-solid fa-stamp text-purple-600"></i> Acción de Cierre de Pinza (Liquidador / Comité / Honestidad):' +
-                        '</span>' +
-                        '<p class="text-purple-950 text-[11px] font-semibold leading-snug">' + a.accion_cierre_pinza + '</p>' +
-                    '</div>';
-            }
-
-    
             var displayClaseAcciones = window.__bdModoCompacto ? 'hidden' : '';
-        filasAccionesHTML += 
-'<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 w-full block relative ' + displayClaseAcciones + ' hito-acciones-container-' + h.clave_hito + '">' +                    // Cabecera Acción
+            
+            filasAccionesHTML += 
+                '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 w-full block relative ' + displayClaseAcciones + ' hito-acciones-container-' + h.clave_hito + '">' +
+                    
+                    // Cabecera Acción
                     '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">' +
                         '<div class="flex items-start gap-3">' +
                             '<span class="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-indigo-950 font-mono font-black text-xs shrink-0 mt-0.5">' + idClaveAccion + '</span>' +
@@ -7611,67 +7576,40 @@ h.acciones.forEach(function(a) {
                                 '</span>' +
                             '</div>' +
                         '</div>' +
-                        '<div class="flex items-center gap-2 self-end sm:self-auto shrink-0">' +
-                    '<span class="px-3 py-1 rounded-xl font-bold text-xs border ' + badgeEst + '">' + estatus + ' (' + avanceNum + '%)</span>' +
-                    
-                    // 1. + SUBIR
-                  '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">' +
-                    '<i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir' +
-                    '</button>'
-                    
-                    // 2. VINCULAR ACCIÓN DIRECTA (NUEVO BOTÓN)
-                    '<button type="button" onclick="abrirModalVinculacionParaAccionEspecifica(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-purple-200">' +
-                        '<i class="fa-solid fa-link text-[10px]"></i> Vincular' +
-                    '</button>' +
-                    
-                    // 3. EDITAR
-                    '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">' +
-                        '<i class="fa-solid fa-pen text-[10px]"></i> Editar' +
-                    '</button>' +
-
-                    // 4. ELIMINAR ACCIÓN
-                    '<button type="button" onclick="if(typeof solicitarEliminacionAccion===\'function\') solicitarEliminacionAccion(\'' + idClaveAccion + '\');" class="p-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition" title="Eliminar Acción">' +
-                        '<i class="fa-solid fa-trash-can text-[10px]"></i>' +
-                    '</button>' +
+                        '<div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">' +
+                            '<span class="px-3 py-1 rounded-xl font-bold text-xs border ' + badgeEst + '">' + estatus + ' (' + avanceNum + '%)</span>' +
+                            '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"><i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir</button>' +
+                            '<button type="button" onclick="abrirModalVinculacionParaAccionEspecifica(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-purple-200"><i class="fa-solid fa-link text-[10px]"></i> Vincular</button>' +
+                            '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200"><i class="fa-solid fa-pen text-[10px]"></i> Editar</button>' +
+                            '<button type="button" onclick="if(typeof solicitarEliminacionAccion===\'function\') solicitarEliminacionAccion(\'' + idClaveAccion + '\');" class="p-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition" title="Eliminar Acción"><i class="fa-solid fa-trash-can text-[10px]"></i></button>' +
                         '</div>' +
                     '</div>' +
 
                     // Cédula Técnica Normativa
                     '<div class="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-200/80 space-y-3 text-xs">' +
-                        
-                        // Fundamento Jurídico (Catálogo Decreto 345)
                         '<div class="bg-amber-50/80 border border-amber-300 rounded-xl p-3 shadow-2xs">' +
                             '<span class="text-[10px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">' +
                                 '<i class="fa-solid fa-scale-balanced text-amber-600"></i> FUNDAMENTO JURÍDICO (DECRETO NO. 345 & LINEAMIENTOS):' +
                             '</span>' +
                             '<p class="font-bold text-amber-950 text-xs sm:text-[13px] mt-1 leading-relaxed">' + fundJuridico + '</p>' +
                         '</div>' +
-
-                      // Detalle Operativo (Ancho completo)
                         '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">' +
                             '<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">' +
                                 '<i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i> DETALLE OPERATIVO:' +
                             '</span>' +
                             '<p class="text-[11px] text-slate-700 leading-relaxed">' + detalleOp + '</p>' +
                         '</div>' +
-
-                        // Instrumentos adaptativos (no se muestran cajas vacías)
-                     htmlInstrumentos +
-
-                    // 👉 NUEVOS CAMPOS DE AUDITORÍA V8
-                    htmlCriteriosAuditoria +
-                    htmlCitaLiteral +
-                    htmlCierrePinza +
-
-                    // Sugerencia de Expediente
-                    '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-2.5">' +
+                        htmlInstrumentos +
+                        htmlCriteriosAuditoria +
+                        htmlCitaLiteral +
+                        htmlCierrePinza +
+                        '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-2.5">' +
                             '<i class="fa-solid fa-file-circle-check text-emerald-600 text-base mt-0.5 shrink-0"></i>' +
                             '<div>' +
                                 '<span class="font-bold text-slate-800 text-[11px] block">Sugerencia de Expediente Técnico Probatorio:</span>' +
                                 '<p class="text-[11px] text-slate-600 leading-snug mt-0.5">' + sugExp + '</p>' +
                             '</div>' +
                         '</div>' +
-
                     '</div>' +
 
                     // Expedientes Drive
@@ -7683,8 +7621,10 @@ h.acciones.forEach(function(a) {
                             chipsArchivos +
                         '</div>' +
                     '</div>' +
+
                 '</div>';
         });
+        
         // Tarjeta Rectora del Hito (Contenedora con su nombre y cabecera)
         htmlFinal += 
             '<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 mb-5">' +
