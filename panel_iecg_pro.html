@@ -7652,6 +7652,40 @@ if (textoNotaAuditoria && textoNotaAuditoria.trim() !== '') {
                         '</div>' +
                     '</div>' +
 
+// Generar chips para las subcarpetas creadas
+            var chipsSubcarpetas = '';
+            if (Array.isArray(a.subcarpetas) && a.subcarpetas.length > 0) {
+                chipsSubcarpetas = a.subcarpetas.map(function(nombreSub) {
+                    return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-900 border border-indigo-200 rounded-lg text-[10.5px] font-bold shadow-2xs">' +
+                        '<i class="fa-solid fa-folder text-indigo-600"></i>' +
+                        '<span>' + nombreSub + '</span>' +
+                    '</div>';
+                }).join('');
+            } else {
+                chipsSubcarpetas = '<span class="text-[11px] text-slate-400 italic">Sin subcarpetas creadas</span>';
+            }
+
+            // Subcarpetas del Expediente
+            '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">' +
+                '<span class="text-[10px] font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 shrink-0">' +
+                    '<i class="fa-solid fa-folder-tree text-indigo-500"></i> SUBCARPETAS:' +
+                '</span>' +
+                '<div class="flex flex-wrap items-center gap-1.5">' + chipsSubcarpetas + '</div>' +
+            '</div>' +
+
+            // Expedientes Drive
+            '<div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">' +
+                '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">' +
+                    '<i class="fa-brands fa-google-drive text-amber-500"></i> EXPEDIENTES DRIVE:' +
+                '</span>' +
+                '<div class="flex flex-wrap items-center gap-1.5">' +
+                    chipsArchivos +
+                '</div>' +
+            '</div>' +
+
+        '</div>';
+    });
+               
                     // Expedientes Drive
                     '<div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">' +
                         '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">' +
@@ -7664,6 +7698,22 @@ if (textoNotaAuditoria && textoNotaAuditoria.trim() !== '') {
 
                 '</div>';
         });
+
+    // Sección 1: Subcarpetas del Expediente
+                    '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">' +
+                        '<span class="text-[10px] font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 shrink-0">' +
+                            '<i class="fa-solid fa-folder-tree text-indigo-500"></i> SUBCARPETAS:' +
+                        '</span>' +
+                        '<div class="flex flex-wrap items-center gap-1.5">' + chipsSubcarpetas + '</div>' +
+                    '</div>' +
+
+                    // Sección 2: Expedientes Drive (Archivos)
+                    '<div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">' +
+                        '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">' +
+                            '<i class="fa-brands fa-google-drive text-amber-500"></i> EXPEDIENTES DRIVE:' +
+                        '</span>' +
+                        '<div class="flex flex-wrap items-center gap-1.5">' + chipsArchivos + '</div>' +
+                    '</div>'
         
         // Tarjeta Rectora del Hito (Contenedora con su nombre y cabecera)
         htmlFinal += 
@@ -7701,6 +7751,9 @@ if (textoNotaAuditoria && textoNotaAuditoria.trim() !== '') {
 
     contenedor.innerHTML = htmlFinal;
 };
+
+
+    
 // 3. Abrir Alta de Hito (Con candado de seguridad, autenticación y preselección de panel)
 window.abrirAltaHitoDesdeBDGeneral = function() {
     // A. Candado de sesión activa
