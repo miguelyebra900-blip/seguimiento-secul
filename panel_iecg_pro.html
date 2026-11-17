@@ -9652,9 +9652,19 @@ window.guardarArchivoRapido = async function(e) {
                 }]);
             }
 
-            if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
-            act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
-        }
+if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
+        
+        // 1. Obtener la subcarpeta seleccionada en el <select> de tu modal de subida rápida
+        // (Asegúrate de que 'selectSubcarpetaDestino' sea el ID real de tu <select> en el HTML del modal)
+        const selectSub = document.getElementById('selectSubcarpetaDestino'); 
+        const subcarpetaElegida = selectSub ? selectSub.value : '';
+
+        // 2. Hacer push incluyendo la propiedad subcarpeta
+        act.archivosDrive.push({ 
+            nombre: nombreNominalDrive, 
+            url: urlDrive,
+            subcarpeta: subcarpetaElegida // 👈 Esto asegurará que caiga directamente en el árbol de la carpeta seleccionada
+        });
         
         guardarDataset();
         alert(`¡${fileInput.files.length} archivo(s) subido(s) y registrado(s) exitosamente en la subcarpeta seleccionada!`);
@@ -12620,35 +12630,49 @@ window.guardarNuevaCarpetaAccion = async function(e) {
         alert("Error al registrar la subcarpeta: " + err.message);
     }
 };
-
-        window.eliminarArchivoDriveIndividual = async function(claveAccion, indexArchivo) {
+window.eliminarArchivoDriveIndividual = async function(claveAccion, indexArchivo) {
     if (!confirm("¿Estás seguro de eliminar este archivo del expediente?")) return;
 
+    // 1. Buscar la acción localmente
     const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
     if (!act || !Array.isArray(act.archivosDrive)) return;
 
-    // Remover el archivo del arreglo local
+    // 2. Remover el archivo del arreglo local
     act.archivosDrive.splice(indexArchivo, 1);
 
-    // Guardar dataset local
-    if (typeof guardarDataset === 'function') guardarDataset();
+    // 3. Guardar en localStorage localmente
+    if (typeof guardarDataset === 'function') {
+        guardarDataset();
+    } else {
+        localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
+    }
 
-    // Sincronizar con Supabase
+    // 4. PERSISTIR EL CAMBIO EN SUPABASE (Para que no regrese al recargar)
     if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         try {
-            await supabaseClient
+            // Nota: Asegúrate de que el nombre de la columna en tu tabla de Supabase 
+            // sea 'archivos_drive' o 'archivosDrive' según lo tengas configurado.
+            const { error } = await supabaseClient
                 .from('acciones_transicion_v2')
-                .update({ archivos_drive: act.archivosDrive })
+                .update({ archivos_drive: act.archivosDrive }) 
                 .eq('clave_accion', claveAccion);
+
+            if (error) {
+                console.error("Error al sincronizar la eliminación en Supabase:", error.message);
+                alert("Se quitó localmente, pero hubo un error al sincronizar con Supabase: " + error.message);
+            }
         } catch (err) {
-            console.error("Error al actualizar Supabase tras eliminar archivo:", err);
+            console.error("Excepción al actualizar Supabase:", err);
         }
     }
 
-    alert("¡Archivo eliminado correctamente!");
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-};
+    alert("¡Archivo eliminado y sincronizado correctamente!");
 
+    // 5. Refrescar las vistas en pantalla
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') {
+        renderBaseDatosGeneralJerarquica();
+    }
+};
         function obtenerSiguienteNumeroSecuencial(listaArchivos) {
     if (!Array.isArray(listaArchivos) || listaArchivos.length === 0) return '0001';
     
