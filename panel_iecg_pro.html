@@ -12545,17 +12545,17 @@ window.guardarNuevaCarpetaAccion = async function(e) {
     const act = accionesDataset.find(a => (a.clave_accion === clave) || (a.id === clave));
     if (!act) return;
 
-    if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
-    if (!act.subcarpetas.includes(nombreCarpeta)) {
-        act.subcarpetas.push(nombreCarpeta);
-    }
+    try {
+        if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
+        if (!act.subcarpetas.includes(nombreCarpeta)) {
+            act.subcarpetas.push(nombreCarpeta);
+        }
 
-    // 1. Guardar localmente
-    guardarDataset();
+        // 1. Guardar localmente
+        guardarDataset();
 
-    // 2. Persistir en la base de datos de Supabase
-    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-        try {
+        // 2. Persistir en la base de datos de Supabase
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
             const { error } = await supabaseClient
                 .from('acciones_transicion_v2')
                 .update({ subcarpetas: act.subcarpetas })
@@ -12564,24 +12564,21 @@ window.guardarNuevaCarpetaAccion = async function(e) {
             if (error) {
                 console.error("Error al sincronizar subcarpetas en Supabase:", error.message);
             }
-        } catch (err) {
-            console.error("Excepción al actualizar subcarpetas:", err);
         }
-    }
 
-    alert(`¡Subcarpeta "${nombreCarpeta}" creada y registrada con éxito para la acción ${clave}!`);
-    closeModal('modal-crear-carpeta-accion');
-    
-    // Refrescar vistas
-    if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-};
+        alert(`¡Subcarpeta "${nombreCarpeta}" creada y registrada con éxito para la acción ${clave}!`);
+        closeModal('modal-crear-carpeta-accion');
+
+        // Refrescar vistas
+        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
         console.error("Error al crear carpeta:", err);
         alert("Error al registrar la subcarpeta: " + err.message);
     }
 };
+
     </script>
 </body>
 </html>
