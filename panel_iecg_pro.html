@@ -9752,9 +9752,15 @@ window.guardarArchivoRapido = async function(e) {
         guardarDataset();
 
         alert(`¡Archivo agregado exitosamente ${subcarpetaVal ? 'en la subcarpeta "' + subcarpetaVal + '"' : ''} con sufijo [${sufijoIndex}]!`);
-        closeModal('modal-agregar-archivos-rapido');
+// 👉 LIMPIAR EL INPUT DE ARCHIVO Y ETIQUETAS
+        const fileInputReset = document.getElementById('rapidoFileInput');
+        if (fileInputReset) fileInputReset.value = '';
+        const notaInputReset = document.getElementById('rapidoNota');
+        if (notaInputReset) notaInputReset.value = '';
+        const subcarpetaReset = document.getElementById('rapidoSubcarpetaInput');
+        if (subcarpetaReset) subcarpetaReset.value = '';
 
-        // Sincronizar UI en tiempo real
+        closeModal('modal-agregar-archivos-rapido');
         await inicializarDatosDesdeSupabase();
         actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
