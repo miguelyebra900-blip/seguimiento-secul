@@ -3082,7 +3082,7 @@ return {
                     peso: itemDB.peso || (matchOficial ? matchOficial.peso : (100 / 3)),
                     driveUrl: ultimaUrl,
                     archivosDrive: listaArchivos,
-                    subcarpetas: itemDB.subcarpetas || (matchOficial ? matchOficial.subcarpetas : []), // 👈 Lee directamente de Supabase
+                   subcarpetas: itemDB.subcarpetas || (matchOficial ? matchOficial.subcarpetas : []),
                     // 👉 MAPEO EXACTO DE LAS COLUMNAS CRÍTICAS V8
                     fundamento_juridico: itemDB.fundamento_juridico || '',
                     riesgo_vinculado: itemDB.riesgo_vinculado || '',
@@ -7389,14 +7389,12 @@ window.renderBaseDatosGeneralJerarquica = function() {
        var idHito = (act.hito_global || act.clave_hito || 'HITO-GRAL').trim();
         var panelAct = (act.panel || (cAccion ? cAccion.charAt(0) : 'A')).toUpperCase().trim();
 
- if (!mapaHitos[idHito]) {
-            // Tomar el área real de la acción correspondiente al panel, o resolverla limpiamente
-         // Asegúrate de extraer el nombre real del área del panel actual:
-        var areaRealPanel = h.acciones && h.acciones.length > 0 ? h.acciones[0].area : ('Panel ' + h.panel);
+if (!mapaHitos[idHito]) {
+            var areaRealPanel = act.area || ('Panel ' + panelAct);
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
-                area: areaReal, // 👈 Esto asigna correctamente Panel I · Auditoría & ASEG, Panel F, etc.
+                area: areaRealPanel, // 👈 Esto asigna correctamente el nombre real del panel
                 nombreHito: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
