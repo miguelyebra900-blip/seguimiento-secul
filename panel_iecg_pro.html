@@ -2318,7 +2318,7 @@
         <textarea id="inputMotivoEdit" rows="2" placeholder="Describa el motivo u oficio que respalda esta actualización..." class="w-full p-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 text-xs" required></textarea>
     </div>
 
-    <!-- Botones de Acción (Footer Superior a loswindow.agregarCampoArchivoBase = function() { Botones) -->
+  <!-- Botones de Acción del Modal de Edición -->
     <div class="flex justify-between items-center pt-3 border-t border-slate-100">
         <button type="button" onclick="closeModal('modal-edicion-dinamica')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">
             Cancelar
@@ -9620,6 +9620,7 @@ window.solicitarEliminacionAccion = function(claveAccion) {
 };
 
         // Abrir el Modal Express con los datos de la acción seleccionada
+// A. APERTURA DEL MODAL RÁPIDO (Carga Panel, Título, Clave y Subcarpetas en el Combobox)
 window.abrirModalAgregarArchivosRapido = function(idClave) {
     const act = accionesDataset.find(a => (a.clave_accion === idClave) || (a.id === idClave));
     if (!act) {
@@ -9627,20 +9628,20 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         return;
     }
     
-    // 1. Inyectar clave y ocultos
+    // Inyectar clave
     document.getElementById('rapidoClaveAccion').value = act.clave_accion || act.id;
     
     const elClave = document.getElementById('rapidoSubtituloClave');
     if (elClave) elClave.innerText = `Clave: ${act.clave_accion || act.id}`;
     
-    // 2. Inyectar Descripción de la Acción y Panel con precisión
+    // Inyectar Descripción de la Acción y Panel con precisión
     const elTitulo = document.getElementById('rapidoTextoTitulo');
     if (elTitulo) elTitulo.innerText = act.accion || act.hito || 'Sin descripción registrada';
     
     const elPanel = document.getElementById('rapidoTextoPanel');
     if (elPanel) elPanel.innerText = `Panel ${act.panel || 'A'} — ${act.area || 'Área Estratégica'}`;
 
-    // 3. Poblar el combobox con las subcarpetas creadas para esta acción
+    // Poblar el combobox con las subcarpetas creadas para esta acción
     const selectSub = document.getElementById('rapidoSubcarpetaSelect');
     if (selectSub) {
         selectSub.innerHTML = '<option value="">📁 Directorio Principal de la Acción (Raíz)</option>';
@@ -9654,7 +9655,7 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         }
     }
     
-    // 4. Limpiar campos de archivo y notas
+    // Limpiar campos de archivo y notas previas
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
     const notaInput = document.getElementById('rapidoNota');
@@ -9662,7 +9663,6 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
 
     openModal('modal-agregar-archivos-rapido');
 };
-        
         // Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
 window.guardarArchivoRapido = async function(e) {
     e.preventDefault();
@@ -12662,14 +12662,15 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
     <!-- SCRIPT DE GESTIÓN DE CARPETAS (JAVASCRIPT) -->
     <!-- ========================================================================= -->
     <script>
-        window.abrirModalCrearCarpetaAccion = function(clave) {
-            document.getElementById('carpetaClaveAccion').value = clave;
-            document.getElementById('lblClaveCarpetaModal').innerText = `Clave: ${clave}`;
-            document.getElementById('inputNombreNuevaSubcarpeta').value = '';
-            openModal('modal-crear-carpeta-accion');
-        };
+        // B. APERTURA Y REGISTRO DE SUBCARPETAS POR ACCIÓN
+window.abrirModalCrearCarpetaAccion = function(clave) {
+    document.getElementById('carpetaClaveAccion').value = clave;
+    document.getElementById('lblClaveCarpetaModal').innerText = `Clave: ${clave}`;
+    document.getElementById('inputNombreNuevaSubcarpeta').value = '';
+    openModal('modal-crear-carpeta-accion');
+};
 
-   window.guardarNuevaCarpetaAccion = async function(e) {
+        window.guardarNuevaCarpetaAccion = async function(e) {
     e.preventDefault();
     const clave = document.getElementById('carpetaClaveAccion').value;
     const nombreCarpeta = document.getElementById('inputNombreNuevaSubcarpeta').value.trim();
@@ -12678,18 +12679,31 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
     const act = accionesDataset.find(a => (a.clave_accion === clave) || (a.id === clave));
     if (!act) return;
 
-    if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
-    if (!act.subcarpetas.includes(nombreCarpeta)) {
-        act.subcarpetas.push(nombreCarpeta);
-    }
+    try {
+        // Enviar solicitud opcional a Google Apps Script para crear la carpeta físicamente en Drive
+        const payloadDrive = {
+            accion: 'crearSubcarpeta',
+            panel: act.panel,
+            claveAccion: clave,
+            nombreSubcarpeta: nombreCarpeta
+        };
 
-    guardarDataset();
-    alert(`¡Subcarpeta "${nombreCarpeta}" creada y registrada con éxito para la acción ${clave}!`);
-    closeModal('modal-crear-carpeta-accion');
-    
-    if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-};
+        await fetch(APPS_SCRIPT_DRIVE_URL, {
+            method: 'POST',
+            body: JSON.stringify(payloadDrive)
+        }).catch(err => console.log("Aviso Drive:", err));
+
+        if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
+        if (!act.subcarpetas.includes(nombreCarpeta)) {
+            act.subcarpetas.push(nombreCarpeta);
+        }
+
+        guardarDataset();
+        alert(`¡Subcarpeta "${nombreCarpeta}" creada y vinculada con éxito a la acción ${clave}!`);
+        closeModal('modal-crear-carpeta-accion');
+        
+        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
         console.error("Error al crear carpeta:", err);
