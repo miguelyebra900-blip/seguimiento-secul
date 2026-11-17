@@ -7381,30 +7381,28 @@ window.renderBaseDatosGeneralJerarquica = function() {
         return coincidePanel && coincideTexto;
     });
 
-    // 2. Agrupación canónica por Hito Rector
+    // 2. Diccionario institucional exacto de los 9 paneles
+    var NOMBRES_PANELES_OFICIALES = {
+        'A': 'Panel A · Recursos Humanos y Estructura',
+        'B': 'Panel B · Gobernanza y Comité de Extinción',
+        'C': 'Panel C · Asuntos Jurídicos y Litigios',
+        'D': 'Panel D · Fideicomisos Banorte (FIARCA)',
+        'E': 'Panel E · Bienes Muebles e Inmuebles',
+        'F': 'Panel F · Cierre Fiscal, Cuentas y SAT',
+        'G': 'Panel G · Sistemas TI y DGTIT',
+        'H': 'Panel H · Archivo y Entrega-Recepción',
+        'I': 'Panel I · Auditoría y Fiscalización ASEG'
+    };
+
+    // 3. Agrupación canónica por Hito Rector
     var mapaHitos = {};
     accionesFiltradas.forEach(function(act) {
         var cAccion = (act.clave_accion || act.id || '').trim();
-       var idHito = (act.hito_global || act.clave_hito || 'HITO-GRAL').trim();
+        var idHito = (act.hito_global || act.clave_hito || 'HITO-GRAL').trim();
         var panelAct = (act.panel || (cAccion ? cAccion.charAt(0) : 'A')).toUpperCase().trim();
-        
-if (!mapaHitos[idHito]) {
-            // Diccionario institucional exacto por letra de panel (A hasta I)
-            var NOMBRES_PANELES_OFICIALES = {
-                'A': 'Panel A · Recursos Humanos y Estructura',
-                'B': 'Panel B · Gobernanza y Comité de Extinción',
-                'C': 'Panel C · Asuntos Jurídicos y Litigios',
-                'D': 'Panel D · Fideicomisos Banorte (FIARCA)',
-                'E': 'Panel E · Bienes Muebles e Inmuebles',
-                'F': 'Panel F · Cierre Fiscal, Cuentas y SAT',
-                'G': 'Panel G · Sistemas TI y DGTIT',
-                'H': 'Panel H · Archivo y Entrega-Recepción',
-                'I': 'Panel I · Auditoría y Fiscalización ASEG'
-            };
 
-            // Forzar siempre el nombre oficial según la letra del panel, ignorando valores genéricos
+        if (!mapaHitos[idHito]) {
             var areaOficialPanel = NOMBRES_PANELES_OFICIALES[panelAct] || ('Panel ' + panelAct);
-
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
@@ -7413,11 +7411,9 @@ if (!mapaHitos[idHito]) {
                 acciones: []
             };
         }
-        
         mapaHitos[idHito].acciones.push(act);
     });
 
-    // 3. Ordenamiento cronológico de los Hitos (-H-0001, -H-0002...)
     var listaHitos = Object.values(mapaHitos).sort(function(a, b) {
         return a.clave_hito.localeCompare(b.clave_hito, undefined, { numeric: true });
     });
@@ -7438,24 +7434,22 @@ if (!mapaHitos[idHito]) {
         return;
     }
 
-    // 5. Renderizado Jerárquico: Hito Rector contenedor + Acciones hijas adentro
+    // 5. Renderizado Jerárquico Ordenado
     var htmlFinal = '';
 
- listaHitos.forEach(function(h) {
+    listaHitos.forEach(function(h) {
         var sumaAvance = h.acciones.reduce(function(acc, curr) {
             return acc + (Number(curr.avance) || 0);
         }, 0);
         var promedioHito = Math.round(sumaAvance / (h.acciones.length || 1));
-        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-emerald-200';
-
-        // 👈 DEFINIR AQUÍ LA VARIABLE GLOBAL PARA EL HITO (Resuelve el error y el nombre del panel)
-        var areaRealPanel = (h.acciones && h.acciones.length > 0 && h.acciones[0].area) ? h.acciones[0].area : ('Panel ' + h.panel);
+        var badgeColor = (promedioHito === 100) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200';
 
         h.acciones.sort(function(a, b) {
             var cA = a.clave_accion || a.id || '';
             var cB = b.clave_accion || b.id || '';
             return cA.localeCompare(cB, undefined, { numeric: true });
         });
+
         var filasAccionesHTML = '';
         
         h.acciones.forEach(function(a) {
@@ -7467,21 +7461,17 @@ if (!mapaHitos[idHito]) {
             if (estatus === 'Concluido' || avanceNum === 100) badgeEst = 'bg-emerald-50 text-emerald-700 border-emerald-200';
             else if (estatus === 'Validación') badgeEst = 'bg-amber-50 text-amber-800 border-amber-200';
 
-            // Archivos Drive
-// Archivos Drive
             var listaArchivos = Array.isArray(a.archivosDrive) ? a.archivosDrive : [];
             if (listaArchivos.length === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
                 listaArchivos = [{ nombre: 'Expediente Digital Oficial', url: a.driveUrl }];
             }
 
-            // 1. Procesar Subcarpetas y asociar sus archivos en árbol jerárquico
-          // 1. Procesar Subcarpetas y asociar sus archivos en árbol jerárquico
+            // Árbol de Subcarpetas
             var subcarpetasDataset = Array.isArray(a.subcarpetas) ? a.subcarpetas : [];
             var htmlArbolCarpetas = '';
 
             if (subcarpetasDataset.length > 0) {
                 htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
-                    // Filtrado insensible a mayúsculas, minúsculas y espacios para blindar el anidamiento
                     var archivosEnSub = listaArchivos.filter(function(doc) {
                         var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
                         var subNombre = (nombreSub || '').trim().toLowerCase();
@@ -7520,8 +7510,8 @@ if (!mapaHitos[idHito]) {
             } else {
                 htmlArbolCarpetas = '<span class="text-[11px] text-slate-400 italic">No hay subcarpetas creadas.</span>';
             }
-            // Archivos sueltos en la raíz (sin subcarpeta)
-           // Archivos sueltos en la raíz (sin subcarpeta)
+
+            // Archivos en Raíz
             var archivosRaiz = listaArchivos.filter(doc => !doc.subcarpeta && !doc.carpeta);
             var chipsArchivosRaiz = '';
             if (archivosRaiz.length > 0) {
@@ -7540,36 +7530,12 @@ if (!mapaHitos[idHito]) {
             } else {
                 chipsArchivosRaiz = '<span class="text-[11px] text-slate-400 italic">Sin archivos sueltos en la raíz</span>';
             }
-    
+
             var detalleOp = a.detalle_operativo || a.accion || 'Sin detalle operativo registrado.';
             var fundJuridico = a.fundamento_juridico || 'Decreto 345 (Art. 5 Transitorio); Lineamientos Liquidación IEC (Arts. 5, 7, 17)';
-            var sugExp = a.sugerencia_expediente_tecnico || a.docRequerido || 'Cédula circunstanciada con firmas oficiales de entrega-recepción.';
-
-            var textoNotaAuditoria = a.nota_auditoria || '';
-            if (textoNotaAuditoria.includes(']:')) {
-                var lineasNota = textoNotaAuditoria.split('\n');
-                textoNotaAuditoria = lineasNota[lineasNota.length - 1] || textoNotaAuditoria;
-            }
-
-            var htmlCriteriosAuditoria = '';
-            if (textoNotaAuditoria && textoNotaAuditoria.trim() !== '') {
-                htmlCriteriosAuditoria = '<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1"><span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider">Criterio de Auditoría ASEG:</span><p class="text-slate-800 text-[11px] font-medium">' + textoNotaAuditoria + '</p></div>';
-            }
-
-            var htmlCitaLiteral = '';
-            if (a.cita_textual_literal && a.cita_textual_literal.trim() !== '') {
-                htmlCitaLiteral = '<div class="p-3 bg-amber-50/50 rounded-xl border border-amber-200 space-y-1"><span class="font-bold text-amber-950 block text-[9.5px] uppercase tracking-wider">Cita Textual Literal:</span><div class="text-slate-800 text-[11px] bg-white p-2.5 rounded-lg border border-amber-100">' + a.cita_textual_literal + '</div></div>';
-            }
-
-            var htmlCierrePinza = '';
-            if (a.accion_cierre_pinza && a.accion_cierre_pinza.trim() !== '') {
-                htmlCierrePinza = '<div class="p-3 bg-purple-50/60 rounded-xl border border-purple-200 space-y-1"><span class="font-bold text-purple-950 block text-[9.5px] uppercase tracking-wider">Acción de Cierre de Pinza:</span><p class="text-purple-950 text-[11px] font-semibold">' + a.accion_cierre_pinza + '</p></div>';
-            }
-
-            var displayClaseAcciones = window.__bdModoCompacto ? 'hidden' : '';
             
             filasAccionesHTML += 
-                '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 w-full block relative ' + displayClaseAcciones + ' hito-acciones-container-' + h.clave_hito + '">' +
+                '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 w-full block relative">' +
                     '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">' +
                         '<div class="flex items-start gap-3">' +
                             '<span class="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-indigo-950 font-mono font-black text-xs shrink-0 mt-0.5">' + idClaveAccion + '</span>' +
@@ -7589,24 +7555,20 @@ if (!mapaHitos[idHito]) {
                     '<div class="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-200/80 space-y-3 text-xs">' +
                         '<div class="bg-amber-50/80 border border-amber-300 rounded-xl p-3"><span class="text-[10px] font-black uppercase text-amber-900">Fundamento Jurídico:</span><p class="font-bold text-amber-950 text-xs mt-1">' + fundJuridico + '</p></div>' +
                         '<div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-500 uppercase">Detalle Operativo:</span><p class="text-[11px] text-slate-700 mt-1">' + detalleOp + '</p></div>' +
-                        htmlCriteriosAuditoria + htmlCitaLiteral + htmlCierrePinza +
                     '</div>' +
-                    // Árbol de Subcarpetas y Archivos Jerárquicos
-    '<div class="space-y-2 pt-2 border-t border-slate-100">' +
-        '<span class="text-[10px] font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 shrink-0 mb-2">' +
-            '<i class="fa-solid fa-folder-tree text-indigo-500"></i> ÁRBOLES DE EXPEDIENTES Y SUBCARPETAS:' +
-        '</span>' +
-        htmlArbolCarpetas +
-    '</div>' +
-
-    // Archivos en la Raíz
-    '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">' +
-        '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">' +
-            '<i class="fa-brands fa-google-drive text-amber-500"></i> ARCHIVOS EN RAÍZ:' +
-        '</span>' +
-        '<div class="flex flex-wrap items-center gap-1.5">' + chipsArchivosRaiz + '</div>' +
-    '</div>' +
-    '</div>';
+                    '<div class="space-y-2 pt-2 border-t border-slate-100">' +
+                        '<span class="text-[10px] font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 shrink-0 mb-2">' +
+                            '<i class="fa-solid fa-folder-tree text-indigo-500"></i> ÁRBOLES DE EXPEDIENTES Y SUBCARPETAS:' +
+                        '</span>' +
+                        htmlArbolCarpetas +
+                    '</div>' +
+                    '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">' +
+                        '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">' +
+                            '<i class="fa-brands fa-google-drive text-amber-500"></i> ARCHIVOS EN RAÍZ:' +
+                        '</span>' +
+                        '<div class="flex flex-wrap items-center gap-1.5">' + chipsArchivosRaiz + '</div>' +
+                    '</div>' +
+                '</div>';
         });
 
         htmlFinal += '<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 mb-5">' +
@@ -7616,7 +7578,7 @@ if (!mapaHitos[idHito]) {
                     '<div>' +
                         '<div class="flex flex-wrap items-center gap-2 mb-1">' +
                             '<span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-200">' + h.clave_hito + '</span>' +
-                           '<span class="text-xs font-semibold text-slate-500">' + areaRealPanel + '</span>'
+                            '<span class="text-xs font-semibold text-slate-500">' + h.area + '</span>' +
                             '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black border ' + badgeColor + '">' + promedioHito + '% Avance (' + h.acciones.length + ' Acc.)</span>' +
                         '</div>' +
                         '<h3 class="font-black text-slate-900 text-sm sm:text-base leading-snug">' + h.nombreHito + '</h3>' +
