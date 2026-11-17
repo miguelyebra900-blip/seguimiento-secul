@@ -2061,46 +2061,57 @@
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
-
-        <!-- FORMULARIO DE CARGA (Aquí es donde debe ir el campo de subcarpeta) -->
+<!-- FORMULARIO DE CARGA RÁPIDA -->
         <form onsubmit="guardarArchivoRapido(event)" class="p-6 space-y-4 text-xs text-slate-700">
             <input type="hidden" id="rapidoClaveAccion">
             
-            <!-- Datos de referencia -->
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                ...
+            <!-- 1. TARJETA INFORMATIVA: PANEL Y NOMBRE DE LA ACCIÓN -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2 shadow-2xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group text-indigo-600"></i> <span id="rapidoTextoPanel">Panel --</span>
+                    </span>
+                    <span class="text-[10px] font-mono font-bold text-slate-400" id="rapidoSubtituloClave">Clave: --</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Acción Operativa / Entregable:</span>
+                    <h4 class="text-xs font-bold text-slate-800 leading-snug mt-0.5" id="rapidoTextoTitulo">Cargando descripción de la acción...</h4>
+                </div>
             </div>
 
-<!-- VINCULAR CON SUBCARPETA EXISTENTE DEL EXPEDIENTE -->
-    <div>
-        <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-            <span><i class="fa-solid fa-folder-open text-indigo-600 mr-1"></i> Vincular a Subcarpeta del Expediente:</span>
-        </label>
-        <select id="rapidoSubcarpetaSelect" class="w-full text-xs font-bold p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-            <option value="">📁 Directorio Principal de la Acción (Raíz)</option>
-            <!-- Las subcarpetas creadas para esta acción se cargarán aquí automáticamente -->
-        </select>
-        <span class="text-[10px] text-slate-400 block mt-1">Selecciona la subcarpeta de destino previamente creada para este expediente.</span>
-    </div>
-
-            <!-- Input de Archivo -->
+            <!-- 2. VINCULAR A SUBCARPETA DE EXPEDIENTE -->
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Seleccionar Archivo PDF de Evidencia:</label>
-                <input type="file" id="rapidoFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" class="w-full text-xs ..." required>
+                <label class="block font-bold text-slate-700 mb-1 text-xs flex items-center justify-between">
+                    <span><i class="fa-solid fa-folder-open text-indigo-600 mr-1"></i> Vincular a Subcarpeta del Expediente:</span>
+                </label>
+                <select id="rapidoSubcarpetaSelect" class="w-full text-xs font-bold p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="">📁 Directorio Principal de la Acción (Raíz)</option>
+                </select>
+                <span class="text-[10px] text-slate-400 block mt-1">El archivo se anidará en la subcarpeta seleccionada de Google Drive.</span>
             </div>
 
-            <!-- Nota u Observación -->
+            <!-- 3. SELECCIONAR HASTA 5 ARCHIVOS DE EVIDENCIA (MÚLTIPLE) -->
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Nota o Justificación Breve (Opcional):</label>
-                <textarea id="rapidoNota" rows="2" ...></textarea>
+                <label class="block font-bold text-slate-700 mb-1 text-xs flex items-center justify-between">
+                    <span><i class="fa-solid fa-file-pdf text-emerald-600 mr-1"></i> Seleccionar Archivos de Evidencia (Máximo 5):</span>
+                </label>
+                <input type="file" id="rapidoFileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" class="w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer bg-slate-50 border border-slate-300 rounded-xl p-1.5" required>
+                <span class="text-[10px] text-slate-400 block mt-1">Puedes seleccionar múltiples archivos (hasta 5 simultáneos). Se aplicará la nomenclatura oficial de la clave y sufijo automáticamente.</span>
+            </div>
+
+            <!-- 4. NOTA O JUSTIFICACIÓN -->
+            <div>
+                <label class="block font-bold text-slate-700 mb-1 text-xs">Nota o Justificación Breve (Opcional):</label>
+                <textarea id="rapidoNota" rows="2" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Observaciones o notas adicionales sobre los archivos..."></textarea>
             </div>
 
             <!-- Botones de Acción -->
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="px-4 py-2 bg-slate-200 ...">Cancelar</button>
-                <button type="submit" id="btnSubmitRapido" class="px-5 py-2 bg-emerald-600 ...">Subir y Registrar Archivo</button>
+                <button type="button" onclick="closeModal('modal-agregar-archivos-rapido')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold transition">Cancelar</button>
+                <button type="submit" id="btnSubmitRapido" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition shadow-2xs">Subir y Registrar Archivo(s)</button>
             </div>
         </form>
+     
     </div>
 </div>
     <div id="modal-edicion-dinamica" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
@@ -9613,10 +9624,15 @@ window.guardarArchivoRapido = async function(e) {
     const claveAccion = document.getElementById('rapidoClaveAccion').value;
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
-    const subcarpetaVal = document.getElementById('rapidoSubcarpetaInput')?.value.trim() || '';
+    const subcarpetaVal = document.getElementById('rapidoSubcarpetaSelect')?.value.trim() || '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Por favor seleccione un archivo.");
+        alert("Por favor seleccione al menos un archivo.");
+        return;
+    }
+
+    if (fileInput.files.length > 5) {
+        alert("⚠️ Solo puedes subir un máximo de 5 archivos por interacción.");
         return;
     }
 
@@ -9626,99 +9642,88 @@ window.guardarArchivoRapido = async function(e) {
     const btnSubmit = document.getElementById('btnSubmitRapido');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo y registrando...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo evidencias...';
     }
 
     try {
-        // 1. Consultar cuántos archivos existen en evidencias_expedientes para calcular el sufijo exacto (-0.00x)
-        let contadorBase = 1;
-        if (supabaseClient) {
-            const { count, error: errCount } = await supabaseClient
-                .from('evidencias_expedientes_v2')
-                .select('*', { count: 'exact', head: true })
-                .eq('clave_accion', claveAccion);
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const archivoFisico = fileInput.files[i];
 
-            if (!errCount && count !== null) {
-                contadorBase = count + 1;
+            // Consultar contador actual para el sufijo (-0.00x)
+            let contadorBase = 1;
+            if (supabaseClient) {
+                const { count } = await supabaseClient
+                    .from('evidencias_expedientes_v2')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('clave_accion', claveAccion);
+                if (count !== null) contadorBase = count + 1;
             }
-        }
 
-        const archivoFisico = fileInput.files[0];
-        const sufijoIndex = `-0.00${contadorBase}`;
-        const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
+            const sufijoIndex = `-0.00${contadorBase}`;
+            const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
 
-        // 2. Subir a Google Drive enviando la subcarpeta configurada por el usuario
-        const base64Data = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-            reader.readAsDataURL(archivoFisico);
-        });
+            const base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(archivoFisico);
+            });
 
-        const payloadDrive = {
-            accion: 'subirArchivo',
-            fileName: nombreNominalDrive,
-            mimeType: archivoFisico.type || 'application/octet-stream',
-            fileData: base64Data,
-            panel: act.panel,
-            subcarpeta: subcarpetaVal // <--- Aquí viaja el nombre de la subcarpeta hacia Apps Script para alojarla en la ruta correcta de Drive
-        };
+            const payloadDrive = {
+                accion: 'subirArchivo',
+                fileName: nombreNominalDrive,
+                mimeType: archivoFisico.type || 'application/octet-stream',
+                fileData: base64Data,
+                panel: act.panel,
+                subcarpeta: subcarpetaVal
+            };
 
-        const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
-            method: 'POST',
-            body: JSON.stringify(payloadDrive)
-        });
-        const dataDrive = await resDrive.json();
+            const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
+                method: 'POST',
+                body: JSON.stringify(payloadDrive)
+            });
+            const dataDrive = await resDrive.json();
 
-        if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
-            throw new Error(dataDrive.message || "No se pudo obtener el enlace de Google Drive.");
-        }
+            if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
+                throw new Error(dataDrive.message || "Error al subir archivo a Google Drive.");
+            }
 
-        const urlDrive = dataDrive.fileUrl;
+            const urlDrive = dataDrive.fileUrl;
 
-        // 3. Registrar en Supabase (Tabla evidencias_expedientes)
-        if (supabaseClient) {
-            const { error: errInsert } = await supabaseClient
-                .from('evidencias_expedientes_v2')
-                .insert([{
+            if (supabaseClient) {
+                await supabaseClient.from('evidencias_expedientes_v2').insert([{
                     clave_accion: claveAccion,
                     nombre_archivo: nombreNominalDrive,
                     drive_url: urlDrive
                 }]);
+            }
 
-            if (errInsert) throw errInsert;
+            if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
+            act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
         }
-
-        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
-        act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
-        act.driveUrl = urlDrive;
         
         guardarDataset();
-
-        alert(`¡Archivo agregado exitosamente ${subcarpetaVal ? 'en la subcarpeta "' + subcarpetaVal + '"' : ''} con sufijo [${sufijoIndex}]!`);
-// 👉 LIMPIAR EL INPUT DE ARCHIVO Y ETIQUETAS
-        const fileInputReset = document.getElementById('rapidoFileInput');
-        if (fileInputReset) fileInputReset.value = '';
-        const notaInputReset = document.getElementById('rapidoNota');
-        if (notaInputReset) notaInputReset.value = '';
-        const subcarpetaReset = document.getElementById('rapidoSubcarpetaInput');
-        if (subcarpetaReset) subcarpetaReset.value = '';
-
+        alert(`¡${fileInput.files.length} archivo(s) subido(s) y registrado(s) exitosamente en la subcarpeta seleccionada!`);
+        
+        // Limpiar formulario
+        fileInput.value = '';
+        document.getElementById('rapidoNota').value = '';
+        
         closeModal('modal-agregar-archivos-rapido');
         await inicializarDatosDesdeSupabase();
-        actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        console.error("Error en carga rápida:", err);
+        console.error("Error:", err);
         alert("Error al guardar: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Subir y Registrar Archivo';
+            btnSubmit.innerHTML = 'Subir y Registrar Archivo';
         }
     }
 };
+        
   window.eliminarEvidenciaRapida = async function(idEvidencia, claveAccion) {
     if (!confirm("¿Estás seguro de eliminar este archivo de la base de datos probatoria?")) {
         return;
