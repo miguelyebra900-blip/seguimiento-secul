@@ -12672,6 +12672,38 @@ window.guardarNuevaCarpetaAccion = async function(e) {
     const siguiente = maxNum + 1;
     return String(siguiente).padStart(4, '0'); // Devuelve '0001', '0002', '0003', etc.
 }
+        // Ejemplo de tu función de guardado actual en el modal de subida:
+window.guardarArchivoEnAccion = async function(e) {
+    e.preventDefault();
+    
+    // ... (tu código actual que sube el archivo a Google Drive y obtiene la respuesta) ...
+    const respuestaDrive = { url: "...", fileId: "..." }; // Respuesta de tu Apps Script / Drive
+    
+    const idClaveAccion = document.getElementById('tuInputClaveAccion').value;
+    const act = accionesDataset.find(a => (a.clave_accion === idClaveAccion) || (a.id === idClaveAccion));
+    if (!act) return;
+
+    if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
+
+    // 👇 AQUÍ PEGOTAS EL BLOQUE DE LA NUMERACIÓN INTELIGENTE Y LA SUBCARPETA:
+    const subcarpetaSeleccionada = document.getElementById('selectSubcarpetaDestino').value; // El select del modal
+    const consecutivo = obtenerSiguienteNumeroSecuencial(act.archivosDrive);
+    const nombreFinalArchivo = `${idClaveAccion}-${consecutivo}.pdf`;
+
+    const nuevoArchivoObj = {
+        nombre: nombreFinalArchivo,
+        url: respuestaDrive.url,
+        id: respuestaDrive.fileId,
+        subcarpeta: subcarpetaSeleccionada // 👈 Esto asegura que el archivo caiga dentro de la carpeta seleccionada en el árbol
+    };
+
+    act.archivosDrive.push(nuevoArchivoObj);
+
+    // Guardar dataset y sincronizar con Supabase
+    if (typeof guardarDataset === 'function') guardarDataset();
+    
+    // ... (tus llamadas para actualizar Supabase y cerrar el modal) ...
+};
 
     </script>
 </body>
