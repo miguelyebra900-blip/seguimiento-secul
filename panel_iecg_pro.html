@@ -7389,15 +7389,18 @@ window.renderBaseDatosGeneralJerarquica = function() {
        var idHito = (act.hito_global || act.clave_hito || 'HITO-GRAL').trim();
         var panelAct = (act.panel || (cAccion ? cAccion.charAt(0) : 'A')).toUpperCase().trim();
 
-        if (!mapaHitos[idHito]) {
+ if (!mapaHitos[idHito]) {
+            // Tomar el área real de la acción correspondiente al panel, o resolverla limpiamente
+            var areaReal = act.area || ('Panel ' + panelAct);
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
-                area: act.area || ('Panel ' + panelAct),
+                area: areaReal, // 👈 Esto asigna correctamente Panel I · Auditoría & ASEG, Panel F, etc.
                 nombreHito: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
         }
+        
         mapaHitos[idHito].acciones.push(act);
     });
 
@@ -9536,33 +9539,37 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         return;
     }
     
-    // Inyectar clave
-    document.getElementById('rapidoClaveAccion').value = act.clave_accion || act.id;
+    // Inyectar clave en el campo oculto
+    const inputClave = document.getElementById('rapidoClaveAccion');
+    if (inputClave) inputClave.value = act.clave_accion || act.id;
     
-    const elClave = document.getElementById('rapidoSubtituloClave');
-    if (elClave) elClave.innerText = `Clave: ${act.clave_accion || act.id}`;
-    
-    // Inyectar Descripción de la Acción y Panel con precisión
-    const elTitulo = document.getElementById('rapidoTextoTitulo');
-    if (elTitulo) elTitulo.innerText = act.accion || act.hito || 'Sin descripción registrada';
+    // Actualizar todos los elementos de texto con la clave y título (evitando conflictos)
+    document.querySelectorAll('#rapidoSubtituloClave, [id*="rapidoSubtituloClave"]').forEach(el => {
+        el.innerText = `Clave: ${act.clave_accion || act.id}`;
+    });
+
+    document.querySelectorAll('#rapidoTextoTitulo, [id*="rapidoTextoTitulo"]').forEach(el => {
+        el.innerText = act.accion || act.hito || 'Sin descripción registrada';
+    });
     
     const elPanel = document.getElementById('rapidoTextoPanel');
-    if (elPanel) elPanel.innerText = `Panel ${act.panel || 'A'} — ${act.area || 'Área Estratégica'}`;
+    if (elPanel) {
+        elPanel.innerText = `Panel ${act.panel || 'A'} — ${act.area || 'Área Estratégica'}`;
+    }
 
     // Poblar el combobox con las subcarpetas creadas para esta acción
     const selectSub = document.getElementById('rapidoSubcarpetaSelect');
     if (selectSub) {
         selectSub.innerHTML = '<option value="">📁 Directorio Principal de la Acción (Raíz)</option>';
-        if (Array.isArray(act.subcarpetas) && act.subcarpetas.length > 0) {
-            act.subcarpetas.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = `📂 ${sub}`;
-                selectSub.appendChild(opt);
-            });
-        }
+        const subcarpetasDataset = Array.isArray(act.subcarpetas) ? act.subcarpetas : [];
+        subcarpetasDataset.forEach(nombreSub => {
+            const opt = document.createElement('option');
+            opt.value = nombreSub;
+            opt.textContent = `📁 ${nombreSub}`;
+            selectSub.appendChild(opt);
+        });
     }
-    
+
     // Limpiar campos de archivo y notas previas
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
@@ -9571,6 +9578,7 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
 
     openModal('modal-agregar-archivos-rapido');
 };
+        
         // Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
 window.guardarArchivoRapido = async function(e) {
     e.preventDefault();
@@ -9578,16 +9586,13 @@ window.guardarArchivoRapido = async function(e) {
     const claveAccion = document.getElementById('rapidoClaveAccion').value;
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
-    // 👈 AQUÍ LEEMOS EL SELECT CORRECTO DE TU MODAL RÁPIDO
-    const subcarpetaVal = document.getElementById('rapidoSubcarpetaSelect')?.value.trim() || '';
+    
+    // 👈 LEER EL SELECT CORRECTO DEL MODAL RÁPIDO
+    const selectSubcarpeta = document.getElementById('rapidoSubcarpetaSelect');
+    const subcarpetaVal = selectSubcarpeta ? selectSubcarpeta.value.trim() : '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("Por favor seleccione al menos un archivo.");
-        return;
-    }
-
-    if (fileInput.files.length > 5) {
-        alert("⚠️ Solo puedes subir un máximo de 5 archivos por interacción.");
         return;
     }
 
@@ -9597,7 +9602,7 @@ window.guardarArchivoRapido = async function(e) {
     const btnSubmit = document.getElementById('btnSubmitRapido');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo evidencias...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a subcarpeta...';
     }
 
     try {
@@ -9606,7 +9611,6 @@ window.guardarArchivoRapido = async function(e) {
         for (let i = 0; i < fileInput.files.length; i++) {
             const archivoFisico = fileInput.files[i];
 
-            // 1. Consultar contador actual para el sufijo (-0.00x)
             let contadorBase = 1;
             if (supabaseClient) {
                 const { count } = await supabaseClient
@@ -9632,7 +9636,7 @@ window.guardarArchivoRapido = async function(e) {
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaVal // Se envía al Apps Script de Drive
+                subcarpeta: subcarpetaVal // Enviar al script de Drive
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
@@ -9647,7 +9651,6 @@ window.guardarArchivoRapido = async function(e) {
 
             const urlDrive = dataDrive.fileUrl;
 
-            // 2. Insertar en tabla de evidencias en Supabase
             if (supabaseClient) {
                 await supabaseClient.from('evidencias_expedientes_v2').insert([{
                     clave_accion: claveAccion,
@@ -9656,18 +9659,27 @@ window.guardarArchivoRapido = async function(e) {
                 }]);
             }
 
-            // 3. Hacer push al arreglo local incluyendo la propiedad subcarpeta
+            // ASEGURAR QUE SE GUARDE LA PROPIEDAD subcarpeta EN EL ARREGLO
             act.archivosDrive.push({ 
                 nombre: nombreNominalDrive, 
                 url: urlDrive,
-                subcarpeta: subcarpetaVal // 👈 Esto es lo que garantiza que aparezca dentro de la carpeta del árbol
+                subcarpeta: subcarpetaVal // 👈 Esto hace que aparezca dentro de la carpeta del árbol
             });
         }
 
+        if (supabaseClient) {
+            await supabaseClient
+                .from('acciones_transicion_v2')
+                .update({ 
+                    archivos_drive: act.archivosDrive,
+                    subcarpetas: act.subcarpetas 
+                })
+                .eq('clave_accion', claveAccion);
+        }
+
         guardarDataset();
-        alert(`¡Archivo(s) subido(s) y registrado(s) exitosamente en la subcarpeta seleccionada!`);
+        alert(`¡Archivo(s) registrado(s) en la subcarpeta "${subcarpetaVal || 'Raíz'}" exitosamente!`);
         
-        // Limpiar formulario y cerrar modal
         fileInput.value = '';
         if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
         
