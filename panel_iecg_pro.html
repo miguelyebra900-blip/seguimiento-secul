@@ -7450,39 +7450,63 @@ window.renderBaseDatosGeneralJerarquica = function() {
             else if (estatus === 'Validación') badgeEst = 'bg-amber-50 text-amber-800 border-amber-200';
 
             // Archivos Drive
+// Archivos Drive
             var listaArchivos = Array.isArray(a.archivosDrive) ? a.archivosDrive : [];
             if (listaArchivos.length === 0 && a.driveUrl && a.driveUrl.trim() !== '') {
                 listaArchivos = [{ nombre: 'Expediente Digital Oficial', url: a.driveUrl }];
             }
 
-            var chipsArchivos = '';
-            if (listaArchivos.length > 0) {
-                chipsArchivos = listaArchivos.map(function(doc, docIdx) {
-                    var nombreDoc = doc.nombre || 'Expediente Drive';
-                    var urlDoc = doc.url || '#';
-                    var fileId = doc.id || doc.fileId || '';
-                    return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition group">' +
-                        '<a href="' + urlDoc + '" target="_blank" class="inline-flex items-center gap-1.5 truncate max-w-[210px]">' +
-                            '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
-                            '<span class="truncate">' + nombreDoc + '</span>' +
-                        '</a>' +
+            // 1. Procesar Subcarpetas y asociar sus archivos en árbol jerárquico
+            var subcarpetasDataset = Array.isArray(a.subcarpetas) ? a.subcarpetas : [];
+            var htmlArbolCarpetas = '';
+
+            if (subcarpetasDataset.length > 0) {
+                htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
+                    var archivosEnSub = listaArchivos.filter(doc => doc.subcarpeta === nombreSub || doc.carpeta === nombreSub);
+
+                    var chipsArchivosSub = '';
+                    if (archivosEnSub.length > 0) {
+                        chipsArchivosSub = archivosEnSub.map(function(doc) {
+                            var nombreDoc = doc.nombre || 'Evidencia Drive';
+                            var urlDoc = doc.url || '#';
+                            return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
+                                '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
+                                '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[180px] underline">' + nombreDoc + '</a>' +
+                                '<i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-slate-400"></i>' +
+                            '</div>';
+                        }).join('');
+                    } else {
+                        chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
+                    }
+
+                    return '<div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3 space-y-2 mb-2">' +
+                        '<div class="flex items-center gap-2 text-indigo-950 font-black text-xs">' +
+                            '<i class="fa-solid fa-folder-open text-indigo-600 text-sm"></i>' +
+                            '<span>' + nombreSub + '</span>' +
+                            '<span class="text-[9px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full ml-auto">' + archivosEnSub.length + ' archivos</span>' +
+                        '</div>' +
+                        '<div class="pl-5 border-l-2 border-indigo-200 ml-2 space-y-1.5 flex flex-wrap gap-1.5 pt-1">' +
+                            chipsArchivosSub +
+                        '</div>' +
                     '</div>';
                 }).join('');
             } else {
-                chipsArchivos = '<span class="text-[11px] text-slate-400 italic">Sin evidencias vinculadas en Google Drive</span>';
+                htmlArbolCarpetas = '<span class="text-[11px] text-slate-400 italic">No hay subcarpetas creadas.</span>';
             }
 
-            // Subcarpetas creadas
-            var chipsSubcarpetas = '';
-            if (Array.isArray(a.subcarpetas) && a.subcarpetas.length > 0) {
-                chipsSubcarpetas = a.subcarpetas.map(function(nombreSub) {
-                    return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-900 border border-indigo-200 rounded-lg text-[10.5px] font-bold shadow-2xs">' +
-                        '<i class="fa-solid fa-folder text-indigo-600"></i>' +
-                        '<span>' + nombreSub + '</span>' +
+            // Archivos sueltos en la raíz (sin subcarpeta)
+            var archivosRaiz = listaArchivos.filter(doc => !doc.subcarpeta && !doc.carpeta);
+            var chipsArchivosRaiz = '';
+            if (archivosRaiz.length > 0) {
+                chipsArchivosRaiz = archivosRaiz.map(function(doc) {
+                    return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">' +
+                        '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
+                        '<a href="' + (doc.url || '#') + '" target="_blank" class="truncate max-w-[210px]">' + (doc.nombre || 'Expediente Drive') + '</a>' +
+                        '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>' +
                     '</div>';
                 }).join('');
             } else {
-                chipsSubcarpetas = '<span class="text-[11px] text-slate-400 italic">Sin subcarpetas creadas</span>';
+                chipsArchivosRaiz = '<span class="text-[11px] text-slate-400 italic">Sin archivos sueltos en la raíz</span>';
             }
     
             var detalleOp = a.detalle_operativo || a.accion || 'Sin detalle operativo registrado.';
@@ -7535,15 +7559,22 @@ window.renderBaseDatosGeneralJerarquica = function() {
                         '<div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-500 uppercase">Detalle Operativo:</span><p class="text-[11px] text-slate-700 mt-1">' + detalleOp + '</p></div>' +
                         htmlCriteriosAuditoria + htmlCitaLiteral + htmlCierrePinza +
                     '</div>' +
-                    '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">' +
-                        '<span class="text-[10px] font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 shrink-0"><i class="fa-solid fa-folder-tree text-indigo-500"></i> SUBCARPETAS:</span>' +
-                        '<div class="flex flex-wrap items-center gap-1.5">' + chipsSubcarpetas + '</div>' +
-                    '</div>' +
-                    '<div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">' +
-                        '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Expedientes Drive:</span>' +
-                        '<div class="flex flex-wrap items-center gap-1.5">' + chipsArchivos + '</div>' +
-                    '</div>' +
-                '</div>';
+                    // Árbol de Subcarpetas y Archivos Jerárquicos
+    '<div class="space-y-2 pt-2 border-t border-slate-100">' +
+        '<span class="text-[10px] font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 shrink-0 mb-2">' +
+            '<i class="fa-solid fa-folder-tree text-indigo-500"></i> ÁRBOLES DE EXPEDIENTES Y SUBCARPETAS:' +
+        '</span>' +
+        htmlArbolCarpetas +
+    '</div>' +
+
+    // Archivos en la Raíz
+    '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">' +
+        '<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 shrink-0">' +
+            '<i class="fa-brands fa-google-drive text-amber-500"></i> ARCHIVOS EN RAÍZ:' +
+        '</span>' +
+        '<div class="flex flex-wrap items-center gap-1.5">' + chipsArchivosRaiz + '</div>' +
+    '</div>' +
+    '</div>';
         });
 
         htmlFinal += '<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 mb-5">' +
