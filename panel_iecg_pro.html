@@ -7388,26 +7388,25 @@ window.renderBaseDatosGeneralJerarquica = function() {
        var idHito = (act.hito_global || act.clave_hito || 'HITO-GRAL').trim();
         var panelAct = (act.panel || (cAccion ? cAccion.charAt(0) : 'A')).toUpperCase().trim();
         
-  if (!mapaHitos[idHito]) {
-            // Diccionario oficial de nombres de paneles para garantizar que nunca falle el texto
+if (!mapaHitos[idHito]) {
             var NOMBRES_PANELES_OFICIALES = {
-                'A': 'Panel A · Recursos Humanos & Estructura',
-                'B': 'Panel B · Gobernanza & Comité',
-                'C': 'Panel C · Asuntos Jurídicos & Litigios',
-                'D': 'Panel D · Fideicomisos & Fondos Especiales (FIARCA)',
-                'E': 'Panel E · Control Patrimonial & Bienes Muebles',
-                'F': 'Panel F · Cierre Fiscal, Presupuestal & Cuentas',
-                'G': 'Panel G · Tecnologías de la Información (TI)',
-                'H': 'Panel H · Archivo & Gestión Documental',
-                'I': 'Panel I · Fiscalización & Auditorías (ASEG)',
-                'J': 'Panel J · Asuntos Internos & Gobernanza'
+                'A': 'Panel A · Recursos Humanos y Estructura',
+                'B': 'Panel B · Gobernanza y Comité de Extinción',
+                'C': 'Panel C · Asuntos Jurídicos y Litigios',
+                'D': 'Panel D · Fideicomisos Banorte (FIARCA)',
+                'E': 'Panel E · Bienes Muebles e Inmuebles',
+                'F': 'Panel F · Cierre Fiscal, Cuentas y SAT',
+                'G': 'Panel G · Sistemas TI y DGTIT',
+                'H': 'Panel H · Archivo y Entrega-Recepción',
+                'I': 'Panel I · Auditoría y Fiscalización ASEG'
             };
 
-            var areaOficialPanel = NOMBRES_PANELES_OFICIALES[panelAct] || act.area || ('Panel ' + panelAct);
+            var areaOficialPanel = NOMBRES_PANELES_OFICIALES[panelAct] || ('Panel ' + panelAct);
+
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
-                area: areaOficialPanel, // 👈 Asigna el nombre exacto del panel según la letra (A-J)
+                area: areaOficialPanel, // 👈 FUERZA EL NOMBRE OFICIAL EXACTO Y EVITA QUE HEREDE TEXTOS GENÉRICOS
                 nombreHito: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
