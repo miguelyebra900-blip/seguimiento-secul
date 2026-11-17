@@ -3082,6 +3082,7 @@ return {
                     peso: itemDB.peso || (matchOficial ? matchOficial.peso : (100 / 3)),
                     driveUrl: ultimaUrl,
                     archivosDrive: listaArchivos,
+                    subcarpetas: itemDB.subcarpetas || (matchLocal ? matchLocal.subcarpetas : []), // 👈 Lee directamente de Supabase
                     // 👉 MAPEO EXACTO DE LAS COLUMNAS CRÍTICAS V8
                     fundamento_juridico: itemDB.fundamento_juridico || '',
                     riesgo_vinculado: itemDB.riesgo_vinculado || '',
@@ -12535,7 +12536,7 @@ window.abrirModalCrearCarpetaAccion = function(clave) {
     openModal('modal-crear-carpeta-accion');
 };
 
-        window.guardarNuevaCarpetaAccion = async function(e) {
+window.guardarNuevaCarpetaAccion = async function(e) {
     e.preventDefault();
     const clave = document.getElementById('carpetaClaveAccion').value;
     const nombreCarpeta = document.getElementById('inputNombreNuevaSubcarpeta').value.trim();
@@ -12544,31 +12545,37 @@ window.abrirModalCrearCarpetaAccion = function(clave) {
     const act = accionesDataset.find(a => (a.clave_accion === clave) || (a.id === clave));
     if (!act) return;
 
-    try {
-        // Enviar solicitud opcional a Google Apps Script para crear la carpeta físicamente en Drive
-        const payloadDrive = {
-            accion: 'crearSubcarpeta',
-            panel: act.panel,
-            claveAccion: clave,
-            nombreSubcarpeta: nombreCarpeta
-        };
+    if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
+    if (!act.subcarpetas.includes(nombreCarpeta)) {
+        act.subcarpetas.push(nombreCarpeta);
+    }
 
-        await fetch(APPS_SCRIPT_DRIVE_URL, {
-            method: 'POST',
-            body: JSON.stringify(payloadDrive)
-        }).catch(err => console.log("Aviso Drive:", err));
+    // 1. Guardar localmente
+    guardarDataset();
 
-        if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
-        if (!act.subcarpetas.includes(nombreCarpeta)) {
-            act.subcarpetas.push(nombreCarpeta);
+    // 2. Persistir en la base de datos de Supabase
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+        try {
+            const { error } = await supabaseClient
+                .from('acciones_transicion_v2')
+                .update({ subcarpetas: act.subcarpetas })
+                .eq('clave_accion', clave);
+
+            if (error) {
+                console.error("Error al sincronizar subcarpetas en Supabase:", error.message);
+            }
+        } catch (err) {
+            console.error("Excepción al actualizar subcarpetas:", err);
         }
+    }
 
-        guardarDataset();
-        alert(`¡Subcarpeta "${nombreCarpeta}" creada y vinculada con éxito a la acción ${clave}!`);
-        closeModal('modal-crear-carpeta-accion');
-        
-        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+    alert(`¡Subcarpeta "${nombreCarpeta}" creada y registrada con éxito para la acción ${clave}!`);
+    closeModal('modal-crear-carpeta-accion');
+    
+    // Refrescar vistas
+    if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+};
 
     } catch (err) {
         console.error("Error al crear carpeta:", err);
