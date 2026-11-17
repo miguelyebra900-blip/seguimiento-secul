@@ -9518,11 +9518,26 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         return;
     }
     
-    // Inyectar clave en el campo oculto
+    // Diccionario oficial de los 9 paneles
+    const NOMBRES_PANELES_OFICIALES = {
+        'A': 'Panel A · Recursos Humanos y Estructura',
+        'B': 'Panel B · Gobernanza y Comité de Extinción',
+        'C': 'Panel C · Asuntos Jurídicos y Litigios',
+        'D': 'Panel D · Fideicomisos Banorte (FIARCA)',
+        'E': 'Panel E · Bienes Muebles e Inmuebles',
+        'F': 'Panel F · Cierre Fiscal, Cuentas y SAT',
+        'G': 'Panel G · Sistemas TI y DGTIT',
+        'H': 'Panel H · Archivo y Entrega-Recepción',
+        'I': 'Panel I · Auditoría y Fiscalización ASEG'
+    };
+
+    const panelLetra = (act.panel || 'A').toUpperCase();
+    const nombreOficialPanel = NOMBRES_PANELES_OFICIALES[panelLetra] || (`Panel ${panelLetra}`);
+
+    // Inyectar clave
     const inputClave = document.getElementById('rapidoClaveAccion');
     if (inputClave) inputClave.value = act.clave_accion || act.id;
     
-    // Actualizar todos los elementos de texto con la clave y título (evitando conflictos)
     document.querySelectorAll('#rapidoSubtituloClave, [id*="rapidoSubtituloClave"]').forEach(el => {
         el.innerText = `Clave: ${act.clave_accion || act.id}`;
     });
@@ -9531,9 +9546,10 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         el.innerText = act.accion || act.hito || 'Sin descripción registrada';
     });
     
+    // 👈 AQUÍ COLOCAMOS EL NOMBRE OFICIAL CORRECTO DEL PANEL (Ej. Panel I · Auditoría y Fiscalización ASEG)
     const elPanel = document.getElementById('rapidoTextoPanel');
     if (elPanel) {
-        elPanel.innerText = `Panel ${act.panel || 'A'} — ${act.area || 'Área Estratégica'}`;
+        elPanel.innerText = nombreOficialPanel;
     }
 
     // Poblar el combobox con las subcarpetas creadas para esta acción
@@ -9549,7 +9565,6 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         });
     }
 
-    // Limpiar campos de archivo y notas previas
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
     const notaInput = document.getElementById('rapidoNota');
@@ -9566,12 +9581,12 @@ window.guardarArchivoRapido = async function(e) {
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
     
-    // 👈 LEER EL SELECT CORRECTO DEL MODAL RÁPIDO
+    // 👈 LEER EL SELECTOR DE SUBCARPETA DEL MODAL RÁPIDO
     const selectSubcarpeta = document.getElementById('rapidoSubcarpetaSelect');
-    const subcarpetaVal = selectSubcarpeta ? selectSubcarpeta.value.trim() : '';
+    const subcarpetaElegida = selectSubcarpeta ? selectSubcarpeta.value.trim() : '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Por favor seleccione al menos un archivo.");
+        alert("Por favor selecciona al menos un archivo.");
         return;
     }
 
@@ -9615,7 +9630,7 @@ window.guardarArchivoRapido = async function(e) {
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaVal // Enviar al script de Drive
+                subcarpeta: subcarpetaElegida // Enviar al Apps Script
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
@@ -9638,14 +9653,15 @@ window.guardarArchivoRapido = async function(e) {
                 }]);
             }
 
-            // ASEGURAR QUE SE GUARDE LA PROPIEDAD subcarpeta EN EL ARREGLO
+            // 👈 GUARDAR EXPLÍCITAMENTE LA PROPIEDAD subcarpeta EN EL OBJETO LOCAL
             act.archivosDrive.push({ 
                 nombre: nombreNominalDrive, 
                 url: urlDrive,
-                subcarpeta: subcarpetaVal // 👈 Esto hace que aparezca dentro de la carpeta del árbol
+                subcarpeta: subcarpetaElegida 
             });
         }
 
+        // Sincronizar con Supabase
         if (supabaseClient) {
             await supabaseClient
                 .from('acciones_transicion_v2')
@@ -9657,7 +9673,7 @@ window.guardarArchivoRapido = async function(e) {
         }
 
         guardarDataset();
-        alert(`¡Archivo(s) registrado(s) en la subcarpeta "${subcarpetaVal || 'Raíz'}" exitosamente!`);
+        alert(`¡Archivo(s) guardado(s) exitosamente en la subcarpeta "${subcarpetaElegida || 'Raíz'}"!`);
         
         fileInput.value = '';
         if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
