@@ -721,6 +721,8 @@
 
         </div>
     </div>
+
+
     
     <!-- ========================================================================= -->
     <!-- MODAL DIRECTIVO: MEMORIA DE CÁLCULO, METODOLOGÍA Y PONDERACIONES (ASEG)  -->
@@ -7179,6 +7181,7 @@ window.renderTablaExcelEnVivo = function() {
                             </button>
                         </div>
                     ` : `
+                    
                         <button type="button" onclick="cargarArchivoDirectoDesdeExcel('${idClave}', '${panel}')" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded border border-indigo-200 text-[10px] font-bold flex items-center gap-1 mx-auto" title="Subir expediente">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Subir
                         </button>
@@ -7570,7 +7573,7 @@ var filasAccionesHTML = '';
 
             var displayClaseAcciones = window.__bdModoCompacto ? 'hidden' : '';
             
-            filasAccionesHTML += 
+           filasAccionesHTML += 
                 '<div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-indigo-300 transition-all space-y-3.5 mb-3.5 w-full block relative ' + displayClaseAcciones + ' hito-acciones-container-' + h.clave_hito + '">' +
                     
                     // Cabecera Acción
@@ -7592,14 +7595,29 @@ var filasAccionesHTML = '';
                                 '</span>' +
                             '</div>' +
                         '</div>' +
+                        
+                        // Botonera Superior de la Acción
                         '<div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">' +
                             '<span class="px-3 py-1 rounded-xl font-bold text-xs border ' + badgeEst + '">' + estatus + ' (' + avanceNum + '%)</span>' +
+                            
+                            // 1. Botón + Subir
                             '<button type="button" onclick="abrirModalAgregarArchivosRapido(\'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"><i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> + Subir</button>' +
+                            
+                            // 2. Botón Carpeta (NUEVO)
+                            '<button type="button" onclick="abrirModalCrearCarpetaAccion(\'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-200 shadow-2xs"><i class="fa-solid fa-folder-plus text-[10px]"></i> Carpeta</button>' +
+                            
+                            // 3. Botón Vincular
                             '<button type="button" onclick="abrirModalVinculacionParaAccionEspecifica(\'' + h.clave_hito + '\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-purple-200"><i class="fa-solid fa-link text-[10px]"></i> Vincular</button>' +
+                            
+                            // 4. Botón Editar
                             '<button type="button" onclick="abrirModalEdicionDinamica(\'ACCION\', \'' + idClaveAccion + '\')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200"><i class="fa-solid fa-pen text-[10px]"></i> Editar</button>' +
+                            
+                            // 5. Botón Eliminar
                             '<button type="button" onclick="if(typeof solicitarEliminacionAccion===\'function\') solicitarEliminacionAccion(\'' + idClaveAccion + '\');" class="p-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition" title="Eliminar Acción"><i class="fa-solid fa-trash-can text-[10px]"></i></button>' +
                         '</div>' +
                     '</div>' +
+
+        
 
                     // Cédula Técnica Normativa
                     '<div class="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-200/80 space-y-3 text-xs">' +
@@ -9603,20 +9621,34 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         return;
     }
     
+    // Inyectar valores en los elementos visuales del modal
     document.getElementById('rapidoClaveAccion').value = act.clave_accion || act.id;
     document.getElementById('rapidoSubtituloClave').innerText = `Clave: ${act.clave_accion || act.id}`;
+    document.getElementById('rapidoTextoTitulo').innerText = act.accion || act.hito || 'Sin descripción';
+    document.getElementById('rapidoTextoPanel').innerText = `Panel ${act.panel || 'A'}`;
+
+    // Cargar subcarpetas existentes en el selector
+    const selectSub = document.getElementById('rapidoSubcarpetaSelect');
+    if (selectSub) {
+        selectSub.innerHTML = '<option value="">📁 Directorio Principal de la Acción (Raíz)</option>';
+        if (Array.isArray(act.subcarpetas) && act.subcarpetas.length > 0) {
+            act.subcarpetas.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = `📂 ${sub}`;
+                selectSub.appendChild(opt);
+            });
+        }
+    }
     
-    // Limpiar campos de archivo y nota
+    // Limpiar archivo y notas
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
     const notaInput = document.getElementById('rapidoNota');
     if (notaInput) notaInput.value = '';
-    const subcarpetaInput = document.getElementById('rapidoSubcarpetaInput');
-    if (subcarpetaInput) subcarpetaInput.value = '';
 
     openModal('modal-agregar-archivos-rapido');
 };
-    
 // Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
 window.guardarArchivoRapido = async function(e) {
     e.preventDefault();
@@ -12574,6 +12606,67 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
                 renderGraficosPro();
             }
         });
+
+<!-- MODAL CREAR SUBCARPETA POR ACCIÓN -->
+<div id="modal-crear-carpeta-accion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-folder-plus"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase text-indigo-400" id="lblClaveCarpetaModal">Clave: --</span>
+                    <h3 class="text-sm font-black text-white">Crear Subcarpeta de Expediente</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-crear-carpeta-accion')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/25 text-slate-300 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form onsubmit="guardarNuevaCarpetaAccion(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <input type="hidden" id="carpetaClaveAccion">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Nombre de la Subcarpeta / Secciones del Expediente:</label>
+                <input type="text" id="inputNombreNuevaSubcarpeta" placeholder="Ej. 01_Soporte_Documental, Oficios_ASEG..." class="w-full text-xs font-bold p-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                <span class="text-[10px] text-slate-400 block mt-1">Se creará la subcarpeta vinculada a esta acción tanto en Google Drive como en Supabase.</span>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-crear-carpeta-accion')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl font-bold transition">Cancelar</button>
+                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow-2xs">Crear y Registrar Carpeta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+window.abrirModalCrearCarpetaAccion = function(clave) {
+    document.getElementById('carpetaClaveAccion').value = clave;
+    document.getElementById('lblClaveCarpetaModal').innerText = `Clave: ${clave}`;
+    document.getElementById('inputNombreNuevaSubcarpeta').value = '';
+    openModal('modal-crear-carpeta-accion');
+};
+
+window.guardarNuevaCarpetaAccion = async function(e) {
+    e.preventDefault();
+    const clave = document.getElementById('carpetaClaveAccion').value;
+    const nombreCarpeta = document.getElementById('inputNombreNuevaSubcarpeta').value.trim();
+    if (!nombreCarpeta) return;
+
+    const act = accionesDataset.find(a => (a.clave_accion === clave) || (a.id === clave));
+    if (!act) return;
+
+    if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
+    if (!act.subcarpetas.includes(nombreCarpeta)) {
+        act.subcarpetas.push(nombreCarpeta);
+    }
+
+    guardarDataset();
+    alert(`¡Subcarpeta "${nombreCarpeta}" creada y vinculada con éxito a la acción ${clave}!`);
+    closeModal('modal-crear-carpeta-accion');
+    if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+};
+
+        
     </script>
 </body>
 </html>
