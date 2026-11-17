@@ -9578,6 +9578,7 @@ window.guardarArchivoRapido = async function(e) {
     const claveAccion = document.getElementById('rapidoClaveAccion').value;
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
+    // 👈 AQUÍ LEEMOS EL SELECT CORRECTO DE TU MODAL RÁPIDO
     const subcarpetaVal = document.getElementById('rapidoSubcarpetaSelect')?.value.trim() || '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -9600,17 +9601,19 @@ window.guardarArchivoRapido = async function(e) {
     }
 
     try {
+        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
+
         for (let i = 0; i < fileInput.files.length; i++) {
             const archivoFisico = fileInput.files[i];
 
-            // Consultar contador actual para el sufijo (-0.00x)
+            // 1. Consultar contador actual para el sufijo (-0.00x)
             let contadorBase = 1;
             if (supabaseClient) {
                 const { count } = await supabaseClient
                     .from('evidencias_expedientes_v2')
                     .select('*', { count: 'exact', head: true })
                     .eq('clave_accion', claveAccion);
-                if (count !== null) contadorBase = count + 1;
+                if (count !== null) contadorBase = count + 1 + i;
             }
 
             const sufijoIndex = `-0.00${contadorBase}`;
@@ -9629,7 +9632,7 @@ window.guardarArchivoRapido = async function(e) {
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaVal
+                subcarpeta: subcarpetaVal // Se envía al Apps Script de Drive
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
@@ -9644,6 +9647,7 @@ window.guardarArchivoRapido = async function(e) {
 
             const urlDrive = dataDrive.fileUrl;
 
+            // 2. Insertar en tabla de evidencias en Supabase
             if (supabaseClient) {
                 await supabaseClient.from('evidencias_expedientes_v2').insert([{
                     clave_accion: claveAccion,
@@ -9652,26 +9656,20 @@ window.guardarArchivoRapido = async function(e) {
                 }]);
             }
 
-if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
-        
-        // 1. Obtener la subcarpeta seleccionada en el <select> de tu modal de subida rápida
-        // (Asegúrate de que 'selectSubcarpetaDestino' sea el ID real de tu <select> en el HTML del modal)
-        const selectSub = document.getElementById('selectSubcarpetaDestino'); 
-        const subcarpetaElegida = selectSub ? selectSub.value : '';
+            // 3. Hacer push al arreglo local incluyendo la propiedad subcarpeta
+            act.archivosDrive.push({ 
+                nombre: nombreNominalDrive, 
+                url: urlDrive,
+                subcarpeta: subcarpetaVal // 👈 Esto es lo que garantiza que aparezca dentro de la carpeta del árbol
+            });
+        }
 
-        // 2. Hacer push incluyendo la propiedad subcarpeta
-        act.archivosDrive.push({ 
-            nombre: nombreNominalDrive, 
-            url: urlDrive,
-            subcarpeta: subcarpetaElegida // 👈 Esto asegurará que caiga directamente en el árbol de la carpeta seleccionada
-        });
-        
         guardarDataset();
-        alert(`¡${fileInput.files.length} archivo(s) subido(s) y registrado(s) exitosamente en la subcarpeta seleccionada!`);
+        alert(`¡Archivo(s) subido(s) y registrado(s) exitosamente en la subcarpeta seleccionada!`);
         
-        // Limpiar formulario
+        // Limpiar formulario y cerrar modal
         fileInput.value = '';
-        document.getElementById('rapidoNota').value = '';
+        if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
         
         closeModal('modal-agregar-archivos-rapido');
         await inicializarDatosDesdeSupabase();
@@ -9683,7 +9681,7 @@ if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = 'Subir y Registrar Archivo';
+            btnSubmit.innerHTML = 'Subir y Registrar Archivo(s)';
         }
     }
 };
@@ -12633,46 +12631,51 @@ window.guardarNuevaCarpetaAccion = async function(e) {
 window.eliminarArchivoDriveIndividual = async function(claveAccion, indexArchivo) {
     if (!confirm("¿Estás seguro de eliminar este archivo del expediente?")) return;
 
-    // 1. Buscar la acción localmente
     const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
     if (!act || !Array.isArray(act.archivosDrive)) return;
 
-    // 2. Remover el archivo del arreglo local
+    // Obtener el archivo a eliminar antes de sacarlo del arreglo
+    const archivoAEliminar = act.archivosDrive[indexArchivo];
+
+    // 1. Remover del arreglo local con splice
     act.archivosDrive.splice(indexArchivo, 1);
 
-    // 3. Guardar en localStorage localmente
+    // 2. Guardar localmente
     if (typeof guardarDataset === 'function') {
         guardarDataset();
     } else {
         localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
     }
 
-    // 4. PERSISTIR EL CAMBIO EN SUPABASE (Para que no regrese al recargar)
+    // 3. PERSISTIR LA ELIMINACIÓN EN SUPABASE (Para que no regrese al recargar)
     if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         try {
-            // Nota: Asegúrate de que el nombre de la columna en tu tabla de Supabase 
-            // sea 'archivos_drive' o 'archivosDrive' según lo tengas configurado.
-            const { error } = await supabaseClient
+            // Actualizar la tabla principal con el arreglo filtrado
+            await supabaseClient
                 .from('acciones_transicion_v2')
-                .update({ archivos_drive: act.archivosDrive }) 
+                .update({ archivos_drive: act.archivosDrive })
                 .eq('clave_accion', claveAccion);
 
-            if (error) {
-                console.error("Error al sincronizar la eliminación en Supabase:", error.message);
-                alert("Se quitó localmente, pero hubo un error al sincronizar con Supabase: " + error.message);
+            // Si el archivo tiene un ID o URL, borrarlo también de la tabla relacional de evidencias si aplica
+            if (archivoAEliminar && archivoAEliminar.url) {
+                await supabaseClient
+                    .from('evidencias_expedientes_v2')
+                    .delete()
+                    .eq('drive_url', archivoAEliminar.url);
             }
         } catch (err) {
-            console.error("Excepción al actualizar Supabase:", err);
+            console.error("Error al sincronizar la eliminación en Supabase:", err);
         }
     }
 
     alert("¡Archivo eliminado y sincronizado correctamente!");
-
-    // 5. Refrescar las vistas en pantalla
+    
+    // 4. Refrescar vistas
     if (typeof renderBaseDatosGeneralJerarquica === 'function') {
         renderBaseDatosGeneralJerarquica();
     }
 };
+        
         function obtenerSiguienteNumeroSecuencial(listaArchivos) {
     if (!Array.isArray(listaArchivos) || listaArchivos.length === 0) return '0001';
     
