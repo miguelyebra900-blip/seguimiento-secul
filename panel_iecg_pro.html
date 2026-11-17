@@ -7472,11 +7472,11 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
             if (subcarpetasDataset.length > 0) {
                 htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
-                    var archivosEnSub = listaArchivos.filter(function(doc) {
-                        var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
-                        var subNombre = (nombreSub || '').trim().toLowerCase();
-                        return subDoc === subNombre;
-                    });
+                var archivosEnSub = listaArchivos.filter(function(doc) {
+    var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
+    var subNombre = (nombreSub || '').trim().toLowerCase();
+    return subDoc === subNombre;
+});
 
                     var chipsArchivosSub = '';
                     if (archivosEnSub.length > 0) {
@@ -9581,12 +9581,17 @@ window.guardarArchivoRapido = async function(e) {
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
     
-    // 👈 LEER EL SELECTOR DE SUBCARPETA DEL MODAL RÁPIDO
-    const selectSubcarpeta = document.getElementById('rapidoSubcarpetaSelect');
-    const subcarpetaElegida = selectSubcarpeta ? selectSubcarpeta.value.trim() : '';
+    // 👈 CAPTURAR LA SUBCARPETA SELECCIONADA EN EL MODAL RÁPIDO
+    const selectSub = document.getElementById('rapidoSubcarpetaSelect');
+    const subcarpetaVal = selectSub ? selectSub.value.trim() : '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("Por favor selecciona al menos un archivo.");
+        return;
+    }
+
+    if (fileInput.files.length > 5) {
+        alert("⚠️ Solo puedes subir un máximo de 5 archivos por interacción.");
         return;
     }
 
@@ -9605,6 +9610,7 @@ window.guardarArchivoRapido = async function(e) {
         for (let i = 0; i < fileInput.files.length; i++) {
             const archivoFisico = fileInput.files[i];
 
+            // 1. Consultar contador actual para el sufijo (-0.00x)
             let contadorBase = 1;
             if (supabaseClient) {
                 const { count } = await supabaseClient
@@ -9630,7 +9636,7 @@ window.guardarArchivoRapido = async function(e) {
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaElegida // Enviar al Apps Script
+                subcarpeta: subcarpetaVal // Enviar al Script de Drive
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
@@ -9645,23 +9651,25 @@ window.guardarArchivoRapido = async function(e) {
 
             const urlDrive = dataDrive.fileUrl;
 
+            // 2. Insertar en tabla de evidencias en Supabase (si tienes columna subcarpeta, la incluimos)
             if (supabaseClient) {
                 await supabaseClient.from('evidencias_expedientes_v2').insert([{
                     clave_accion: claveAccion,
                     nombre_archivo: nombreNominalDrive,
-                    drive_url: urlDrive
+                    drive_url: urlDrive,
+                    subcarpeta: subcarpetaVal
                 }]);
             }
 
-            // 👈 GUARDAR EXPLÍCITAMENTE LA PROPIEDAD subcarpeta EN EL OBJETO LOCAL
+            // 3. 👈 HACER PUSH DENTRO DEL BUCLE INCLUYENDO EXPLÍCITAMENTE LA SUBCARPETA
             act.archivosDrive.push({ 
                 nombre: nombreNominalDrive, 
                 url: urlDrive,
-                subcarpeta: subcarpetaElegida 
+                subcarpeta: subcarpetaVal 
             });
         }
 
-        // Sincronizar con Supabase
+        // Sincronizar arreglo en la tabla principal de Supabase
         if (supabaseClient) {
             await supabaseClient
                 .from('acciones_transicion_v2')
@@ -9673,8 +9681,9 @@ window.guardarArchivoRapido = async function(e) {
         }
 
         guardarDataset();
-        alert(`¡Archivo(s) guardado(s) exitosamente en la subcarpeta "${subcarpetaElegida || 'Raíz'}"!`);
+        alert(`¡Archivo(s) guardado(s) exitosamente en la subcarpeta "${subcarpetaVal || 'Raíz'}"!`);
         
+        // Limpiar formulario y cerrar modal
         fileInput.value = '';
         if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
         
