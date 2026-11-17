@@ -7462,21 +7462,30 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
             if (subcarpetasDataset.length > 0) {
                 htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
-                    var archivosEnSub = listaArchivos.filter(doc => doc.subcarpeta === nombreSub || doc.carpeta === nombreSub);
+                   var archivosEnSub = listaArchivos.filter(function(doc) {
+    return (doc.subcarpeta && doc.subcarpeta.trim() === nombreSub.trim()) || 
+           (doc.carpeta && doc.carpeta.trim() === nombreSub.trim());
+});
+                var chipsArchivosSub = '';
+            if (archivosEnSub.length > 0) {
+                chipsArchivosSub = archivosEnSub.map(function(doc, docIdx) {
+                    var nombreDoc = doc.nombre || 'Evidencia Drive';
+                    var urlDoc = doc.url || '#';
+                    
+                    var btnBorrar = '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + a.clave_accion + '\', ' + docIdx + ')" class="ml-1 p-0.5 px-1.5 text-emerald-700 hover:text-white hover:bg-rose-600 rounded-md transition text-[10px]" title="Eliminar archivo">' +
+                        '<i class="fa-solid fa-xmark"></i>' +
+                    '</button>';
 
-                    var chipsArchivosSub = '';
-                    if (archivosEnSub.length > 0) {
-                        chipsArchivosSub = archivosEnSub.map(function(doc) {
-                            var nombreDoc = doc.nombre || 'Evidencia Drive';
-                            var urlDoc = doc.url || '#';
-                            return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
-                                '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
-                                '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[180px] underline">' + nombreDoc + '</a>' +
-                                '<i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-slate-400"></i>' +
-                            '</div>';
-                        }).join('');
-                    } else {
-                        chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
+                    return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
+                        '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
+                        '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[180px] underline">' + nombreDoc + '</a>' +
+                        '<i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-slate-400"></i>' +
+                        btnBorrar +
+                    '</div>';
+                }).join('');
+            } else {
+                chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
+            }
                     }
 
                     return '<div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3 space-y-2 mb-2">' +
@@ -7495,14 +7504,23 @@ window.renderBaseDatosGeneralJerarquica = function() {
             }
 
             // Archivos sueltos en la raíz (sin subcarpeta)
+           // Archivos sueltos en la raíz (sin subcarpeta)
             var archivosRaiz = listaArchivos.filter(doc => !doc.subcarpeta && !doc.carpeta);
             var chipsArchivosRaiz = '';
             if (archivosRaiz.length > 0) {
-                chipsArchivosRaiz = archivosRaiz.map(function(doc) {
+                chipsArchivosRaiz = archivosRaiz.map(function(doc, docIdx) {
+                    var nombreDoc = doc.nombre || 'Expediente Drive';
+                    var urlDoc = doc.url || '#';
+
+                    var btnBorrarRaiz = '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + a.clave_accion + '\', ' + docIdx + ')" class="ml-1 p-0.5 px-1.5 text-emerald-700 hover:text-white hover:bg-rose-600 rounded-md transition text-[10px]" title="Eliminar archivo">' +
+                        '<i class="fa-solid fa-xmark"></i>' +
+                    '</button>';
+
                     return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">' +
                         '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
-                        '<a href="' + (doc.url || '#') + '" target="_blank" class="truncate max-w-[210px]">' + (doc.nombre || 'Expediente Drive') + '</a>' +
+                        '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[210px]">' + nombreDoc + '</a>' +
                         '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>' +
+                        btnBorrarRaiz +
                     '</div>';
                 }).join('');
             } else {
@@ -12609,6 +12627,51 @@ window.guardarNuevaCarpetaAccion = async function(e) {
         alert("Error al registrar la subcarpeta: " + err.message);
     }
 };
+
+        window.eliminarArchivoDriveIndividual = async function(claveAccion, indexArchivo) {
+    if (!confirm("¿Estás seguro de eliminar este archivo del expediente?")) return;
+
+    const act = accionesDataset.find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+    if (!act || !Array.isArray(act.archivosDrive)) return;
+
+    // Remover el archivo del arreglo local
+    act.archivosDrive.splice(indexArchivo, 1);
+
+    // Guardar dataset local
+    if (typeof guardarDataset === 'function') guardarDataset();
+
+    // Sincronizar con Supabase
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+        try {
+            await supabaseClient
+                .from('acciones_transicion_v2')
+                .update({ archivos_drive: act.archivosDrive })
+                .eq('clave_accion', claveAccion);
+        } catch (err) {
+            console.error("Error al actualizar Supabase tras eliminar archivo:", err);
+        }
+    }
+
+    alert("¡Archivo eliminado correctamente!");
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+};
+
+        function obtenerSiguienteNumeroSecuencial(listaArchivos) {
+    if (!Array.isArray(listaArchivos) || listaArchivos.length === 0) return '0001';
+    
+    let maxNum = 0;
+    listaArchivos.forEach(doc => {
+        const nombre = doc.nombre || '';
+        const match = nombre.match(/-(\d{4})(\.\w+)?$/);
+        if (match && match[1]) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) maxNum = num;
+        }
+    });
+
+    const siguiente = maxNum + 1;
+    return String(siguiente).padStart(4, '0'); // Devuelve '0001', '0002', '0003', etc.
+}
 
     </script>
 </body>
