@@ -7537,17 +7537,23 @@ var filasAccionesHTML = '';
                 htmlInstrumentos += '</div>';
             }
 
-            // Bloques V8 Únicos y limpios
-            var htmlCriteriosAuditoria = '';
-            if (a.nota_auditoria && a.nota_auditoria.trim() !== '') {
-                htmlCriteriosAuditoria = 
-                    '<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">' +
-                        '<span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
-                            '<i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i> Criterio de Auditoría ASEG (Normativo):' +
-                        '</span>' +
-                        '<p class="text-slate-800 text-[11px] font-medium leading-relaxed">' + a.nota_auditoria + '</p>' +
-                    '</div>';
-            }
+       var textoNotaAuditoria = a.nota_auditoria || '';
+if (textoNotaAuditoria.includes(']:')) {
+    // Si trae historial acumulado, tomamos la última línea o limpiamos
+    var lineasNota = textoNotaAuditoria.split('\n');
+    textoNotaAuditoria = lineasNota[lineasNota.length - 1] || textoNotaAuditoria;
+}
+
+var htmlCriteriosAuditoria = '';
+if (textoNotaAuditoria && textoNotaAuditoria.trim() !== '') {
+    htmlCriteriosAuditoria = 
+        '<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">' +
+            '<span class="font-bold text-indigo-900 block text-[9.5px] uppercase tracking-wider flex items-center gap-1.5">' +
+                '<i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i> Criterio de Auditoría ASEG (Normativo):' +
+            '</span>' +
+            '<p class="text-slate-800 text-[11px] font-medium leading-relaxed">' + textoNotaAuditoria + '</p>' +
+        '</div>';
+}
 
             var htmlCitaLiteral = '';
             if (a.cita_textual_literal && a.cita_textual_literal.trim() !== '') {
@@ -9621,19 +9627,20 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         return;
     }
     
-    // Inyectar valores en los elementos visuales del modal
+    // 1. Inyectar clave y ocultos
     document.getElementById('rapidoClaveAccion').value = act.clave_accion || act.id;
     
     const elClave = document.getElementById('rapidoSubtituloClave');
     if (elClave) elClave.innerText = `Clave: ${act.clave_accion || act.id}`;
     
+    // 2. Inyectar Descripción de la Acción y Panel con precisión
     const elTitulo = document.getElementById('rapidoTextoTitulo');
-    if (elTitulo) elTitulo.innerText = act.accion || act.hito || 'Sin descripción';
+    if (elTitulo) elTitulo.innerText = act.accion || act.hito || 'Sin descripción registrada';
     
     const elPanel = document.getElementById('rapidoTextoPanel');
     if (elPanel) elPanel.innerText = `Panel ${act.panel || 'A'} — ${act.area || 'Área Estratégica'}`;
 
-    // Cargar subcarpetas existentes en el selector del modal de subida
+    // 3. Poblar el combobox con las subcarpetas creadas para esta acción
     const selectSub = document.getElementById('rapidoSubcarpetaSelect');
     if (selectSub) {
         selectSub.innerHTML = '<option value="">📁 Directorio Principal de la Acción (Raíz)</option>';
@@ -9647,7 +9654,7 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         }
     }
     
-    // Limpiar archivo y notas previas
+    // 4. Limpiar campos de archivo y notas
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
     const notaInput = document.getElementById('rapidoNota');
@@ -9655,7 +9662,8 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
 
     openModal('modal-agregar-archivos-rapido');
 };
-// Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
+        
+        // Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
 window.guardarArchivoRapido = async function(e) {
     e.preventDefault();
     
@@ -12661,7 +12669,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             openModal('modal-crear-carpeta-accion');
         };
 
-        window.guardarNuevaCarpetaAccion = async function(e) {
+   window.guardarNuevaCarpetaAccion = async function(e) {
     e.preventDefault();
     const clave = document.getElementById('carpetaClaveAccion').value;
     const nombreCarpeta = document.getElementById('inputNombreNuevaSubcarpeta').value.trim();
@@ -12670,31 +12678,18 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
     const act = accionesDataset.find(a => (a.clave_accion === clave) || (a.id === clave));
     if (!act) return;
 
-    try {
-        // Petición opcional para crear físicamente la subcarpeta en la estructura de Google Drive vía Apps Script
-        const payloadDrive = {
-            accion: 'crearSubcarpeta',
-            panel: act.panel,
-            claveAccion: clave,
-            nombreSubcarpeta: nombreCarpeta
-        };
+    if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
+    if (!act.subcarpetas.includes(nombreCarpeta)) {
+        act.subcarpetas.push(nombreCarpeta);
+    }
 
-        await fetch(APPS_SCRIPT_DRIVE_URL, {
-            method: 'POST',
-            body: JSON.stringify(payloadDrive)
-        }).catch(err => console.log("Aviso Drive local:", err));
-
-        if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
-        if (!act.subcarpetas.includes(nombreCarpeta)) {
-            act.subcarpetas.push(nombreCarpeta);
-        }
-
-        guardarDataset();
-        alert(`¡Subcarpeta "${nombreCarpeta}" creada y vinculada con éxito a la acción ${clave}!`);
-        closeModal('modal-crear-carpeta-accion');
-        
-        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+    guardarDataset();
+    alert(`¡Subcarpeta "${nombreCarpeta}" creada y registrada con éxito para la acción ${clave}!`);
+    closeModal('modal-crear-carpeta-accion');
+    
+    if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+    if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+};
 
     } catch (err) {
         console.error("Error al crear carpeta:", err);
