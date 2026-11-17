@@ -12607,9 +12607,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             }
         });
 
-</div> <!-- Cierre del contenedor general -->
-
-    <!-- ========================================================================= -->
+<!-- ========================================================================= -->
     <!-- MODAL CREAR SUBCARPETA POR ACCIÓN (HTML PURO) -->
     <!-- ========================================================================= -->
     <div id="modal-crear-carpeta-accion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
@@ -12644,7 +12642,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
     </div>
 
     <!-- ========================================================================= -->
-    <!-- SCRIPT DE GESTIÓN DE CARPETAS -->
+    <!-- SCRIPT DE GESTIÓN DE CARPETAS (JAVASCRIPT) -->
     <!-- ========================================================================= -->
     <script>
         window.abrirModalCrearCarpetaAccion = function(clave) {
@@ -12673,36 +12671,6 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             closeModal('modal-crear-carpeta-accion');
             if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
         };
-
-
-window.abrirModalCrearCarpetaAccion = function(clave) {
-    document.getElementById('carpetaClaveAccion').value = clave;
-    document.getElementById('lblClaveCarpetaModal').innerText = `Clave: ${clave}`;
-    document.getElementById('inputNombreNuevaSubcarpeta').value = '';
-    openModal('modal-crear-carpeta-accion');
-};
-
-window.guardarNuevaCarpetaAccion = async function(e) {
-    e.preventDefault();
-    const clave = document.getElementById('carpetaClaveAccion').value;
-    const nombreCarpeta = document.getElementById('inputNombreNuevaSubcarpeta').value.trim();
-    if (!nombreCarpeta) return;
-
-    const act = accionesDataset.find(a => (a.clave_accion === clave) || (a.id === clave));
-    if (!act) return;
-
-    if (!Array.isArray(act.subcarpetas)) act.subcarpetas = [];
-    if (!act.subcarpetas.includes(nombreCarpeta)) {
-        act.subcarpetas.push(nombreCarpeta);
-    }
-
-    guardarDataset();
-    alert(`¡Subcarpeta "${nombreCarpeta}" creada y vinculada con éxito a la acción ${clave}!`);
-    closeModal('modal-crear-carpeta-accion');
-    if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-};
-
-        
     </script>
 </body>
 </html>
