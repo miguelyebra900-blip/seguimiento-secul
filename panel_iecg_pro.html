@@ -7389,6 +7389,7 @@ window.renderBaseDatosGeneralJerarquica = function() {
         var panelAct = (act.panel || (cAccion ? cAccion.charAt(0) : 'A')).toUpperCase().trim();
         
 if (!mapaHitos[idHito]) {
+            // Diccionario institucional exacto por letra de panel (A hasta I)
             var NOMBRES_PANELES_OFICIALES = {
                 'A': 'Panel A · Recursos Humanos y Estructura',
                 'B': 'Panel B · Gobernanza y Comité de Extinción',
@@ -7401,12 +7402,13 @@ if (!mapaHitos[idHito]) {
                 'I': 'Panel I · Auditoría y Fiscalización ASEG'
             };
 
+            // Forzar siempre el nombre oficial según la letra del panel, ignorando valores genéricos
             var areaOficialPanel = NOMBRES_PANELES_OFICIALES[panelAct] || ('Panel ' + panelAct);
 
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
-                area: areaOficialPanel, // 👈 FUERZA EL NOMBRE OFICIAL EXACTO Y EVITA QUE HEREDE TEXTOS GENÉRICOS
+                area: areaOficialPanel, // 👈 Nombre oficial inquebrantable
                 nombreHito: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
