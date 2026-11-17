@@ -7466,15 +7466,14 @@ window.renderBaseDatosGeneralJerarquica = function() {
     return (doc.subcarpeta && doc.subcarpeta.trim() === nombreSub.trim()) || 
            (doc.carpeta && doc.carpeta.trim() === nombreSub.trim());
 });
-                var chipsArchivosSub = '';
+             var chipsArchivosSub = '';
             if (archivosEnSub.length > 0) {
                 chipsArchivosSub = archivosEnSub.map(function(doc, docIdx) {
                     var nombreDoc = doc.nombre || 'Evidencia Drive';
                     var urlDoc = doc.url || '#';
                     
-                 var btnBorrar = '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + a.clave_accion + '\', ' + docIdx + ')" class="ml-1 p-0.5 px-1.5 text-emerald-700 hover:text-white hover:bg-rose-600 rounded-md transition text-[10px]" title="Eliminar archivo">' +
-                    '<i class="fa-solid fa-xmark"></i>' +
-                    '</button>';
+                    // Botón de borrado con sintaxis limpia y segura
+                    var btnBorrar = '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + a.clave_accion + '\', ' + docIdx + ')" class="ml-1 px-1 text-emerald-700 hover:text-white hover:bg-rose-600 rounded transition text-[10px]" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>';
 
                     return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
                         '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
@@ -7485,8 +7484,8 @@ window.renderBaseDatosGeneralJerarquica = function() {
                 }).join('');
             } else {
                 chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
-            }
-                    }
+            }                    
+                }
 
                     return '<div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3 space-y-2 mb-2">' +
                         '<div class="flex items-center gap-2 text-indigo-950 font-black text-xs">' +
