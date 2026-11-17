@@ -7391,7 +7391,8 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
  if (!mapaHitos[idHito]) {
             // Tomar el área real de la acción correspondiente al panel, o resolverla limpiamente
-            var areaReal = act.area || ('Panel ' + panelAct);
+         // Asegúrate de extraer el nombre real del área del panel actual:
+        var areaRealPanel = h.acciones && h.acciones.length > 0 ? h.acciones[0].area : ('Panel ' + h.panel);
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
@@ -7465,9 +7466,10 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
             if (subcarpetasDataset.length > 0) {
                 htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
-                   var archivosEnSub = listaArchivos.filter(function(doc) {
-    return (doc.subcarpeta && doc.subcarpeta.trim() === nombreSub.trim()) || 
-           (doc.carpeta && doc.carpeta.trim() === nombreSub.trim());
+var archivosEnSub = listaArchivos.filter(function(doc) {
+    var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
+    var subNombre = (nombreSub || '').trim().toLowerCase();
+    return subDoc === subNombre;
 });
 var chipsArchivosSub = '';
             if (archivosEnSub.length > 0) {
@@ -7598,7 +7600,7 @@ var chipsArchivosSub = '';
                     '<div>' +
                         '<div class="flex flex-wrap items-center gap-2 mb-1">' +
                             '<span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-200">' + h.clave_hito + '</span>' +
-                            '<span class="text-xs font-semibold text-slate-500">' + h.area + '</span>' +
+                           '<span class="text-xs font-semibold text-slate-500">' + areaRealPanel + '</span>'
                             '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black border ' + badgeColor + '">' + promedioHito + '% Avance (' + h.acciones.length + ' Acc.)</span>' +
                         '</div>' +
                         '<h3 class="font-black text-slate-900 text-sm sm:text-base leading-snug">' + h.nombreHito + '</h3>' +
