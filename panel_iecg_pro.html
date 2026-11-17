@@ -7466,26 +7466,23 @@ window.renderBaseDatosGeneralJerarquica = function() {
     return (doc.subcarpeta && doc.subcarpeta.trim() === nombreSub.trim()) || 
            (doc.carpeta && doc.carpeta.trim() === nombreSub.trim());
 });
-             var chipsArchivosSub = '';
+var chipsArchivosSub = '';
             if (archivosEnSub.length > 0) {
                 chipsArchivosSub = archivosEnSub.map(function(doc, docIdx) {
                     var nombreDoc = doc.nombre || 'Evidencia Drive';
                     var urlDoc = doc.url || '#';
-                    
-                    // Botón de borrado con sintaxis limpia y segura
-                    var btnBorrar = '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + a.clave_accion + '\', ' + docIdx + ')" class="ml-1 px-1 text-emerald-700 hover:text-white hover:bg-rose-600 rounded transition text-[10px]" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>';
+                    var claveSegura = a.clave_accion || a.id || '';
 
                     return '<div class="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold shadow-2xs transition">' +
                         '<i class="fa-solid fa-file-lines text-emerald-600"></i>' +
                         '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[180px] underline">' + nombreDoc + '</a>' +
                         '<i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-slate-400"></i>' +
-                        btnBorrar +
+                        '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + claveSegura + '\', ' + docIdx + ')" class="ml-1 px-1 text-emerald-700 hover:text-white hover:bg-rose-600 rounded transition text-[10px]" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>' +
                     '</div>';
                 }).join('');
             } else {
                 chipsArchivosSub = '<span class="text-[10px] text-slate-400 italic pl-5">Carpeta vacía</span>';
-            }                    
-                }
+            }               
 
                     return '<div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3 space-y-2 mb-2">' +
                         '<div class="flex items-center gap-2 text-indigo-950 font-black text-xs">' +
@@ -7510,16 +7507,13 @@ window.renderBaseDatosGeneralJerarquica = function() {
                 chipsArchivosRaiz = archivosRaiz.map(function(doc, docIdx) {
                     var nombreDoc = doc.nombre || 'Expediente Drive';
                     var urlDoc = doc.url || '#';
-
-                    var btnBorrarRaiz = '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + a.clave_accion + '\', ' + docIdx + ')" class="ml-1 p-0.5 px-1.5 text-emerald-700 hover:text-white hover:bg-rose-600 rounded-md transition text-[10px]" title="Eliminar archivo">' +
-                        '<i class="fa-solid fa-xmark"></i>' +
-                    '</button>';
+                    var claveSegura = a.clave_accion || a.id || '';
 
                     return '<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[10.5px] font-bold shadow-2xs transition">' +
                         '<i class="fa-brands fa-google-drive text-emerald-600"></i>' +
                         '<a href="' + urlDoc + '" target="_blank" class="truncate max-w-[210px]">' + nombreDoc + '</a>' +
                         '<i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>' +
-                        btnBorrarRaiz +
+                        '<button type="button" onclick="event.preventDefault(); event.stopPropagation(); eliminarArchivoDriveIndividual(\'' + claveSegura + '\', ' + docIdx + ')" class="ml-1 px-1 text-emerald-700 hover:text-white hover:bg-rose-600 rounded transition text-[10px]" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>' +
                     '</div>';
                 }).join('');
             } else {
