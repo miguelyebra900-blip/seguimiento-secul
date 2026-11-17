@@ -7390,10 +7390,26 @@ window.renderBaseDatosGeneralJerarquica = function() {
         
 if (!mapaHitos[idHito]) {
             var areaRealPanel = (act && act.area) ? act.area : ('Panel ' + panelAct);
+  if (!mapaHitos[idHito]) {
+            // Diccionario oficial de nombres de paneles para garantizar que nunca falle el texto
+            var NOMBRES_PANELES_OFICIALES = {
+                'A': 'Panel A · Recursos Humanos & Estructura',
+                'B': 'Panel B · Gobernanza & Comité',
+                'C': 'Panel C · Asuntos Jurídicos & Litigios',
+                'D': 'Panel D · Fideicomisos & Fondos Especiales (FIARCA)',
+                'E': 'Panel E · Control Patrimonial & Bienes Muebles',
+                'F': 'Panel F · Cierre Fiscal, Presupuestal & Cuentas',
+                'G': 'Panel G · Tecnologías de la Información (TI)',
+                'H': 'Panel H · Archivo & Gestión Documental',
+                'I': 'Panel I · Fiscalización & Auditorías (ASEG)',
+                'J': 'Panel J · Asuntos Internos & Gobernanza'
+            };
+
+            var areaOficialPanel = NOMBRES_PANELES_OFICIALES[panelAct] || act.area || ('Panel ' + panelAct);
             mapaHitos[idHito] = {
                 clave_hito: idHito,
                 panel: panelAct,
-                area: areaRealPanel, // 👈 Ahora sí está declarada y asigna el nombre correcto del panel
+                area: areaOficialPanel, // 👈 Asigna el nombre exacto del panel según la letra (A-J)
                 nombreHito: act.hito || 'Hito Rector Normativo',
                 acciones: []
             };
@@ -9080,16 +9096,15 @@ window.agregarFilaAccionHito = function() {
                 <label class="block text-[10px] font-bold text-indigo-700 mb-0.5">Vincular Área SECUL:</label>
                 <select name="selVinculoSecul" onchange="manejarCambioSeculFila(this)" class="w-full p-1.5 border rounded-lg text-[10.5px] bg-white font-semibold mb-1">
                     <option value="Ninguna">Ninguna / Directa</option>
-                    <option value="Panel A - Recursos Humanos">Panel A - Recursos Humanos</option>
-                    <option value="Panel B - Asuntos Jurídicos">Panel B - Asuntos Jurídicos</option>
-                    <option value="Panel C - Patrimonio Inmobiliario">Panel C - Patrimonio Inmobiliario</option>
-                    <option value="Panel D – Fideicomisos">Panel D – Fideicomisos</option>
-                    <option value="Panel E - Control Patrimonial">Panel E - Control Patrimonial</option>
-                    <option value="Panel F - Financiero">Panel F - Financiero</option>
-                    <option value="Panel G - Tecnologías (TI)">Panel G - Tecnologías (TI)</option>
-                    <option value="Panel H - Archivo">Panel H - Archivo</option>
-                    <option value="Panel I - Fiscalización">Panel I - Fiscalización</option>
-                    <option value="Panel J - Asuntos Internos">Panel J - Asuntos Internos</option>
+                   <option value="Panel A · Recursos Humanos y Estructura">Panel A · Recursos Humanos y Estructura</option>
+                    <option value="Panel B · Gobernanza y Comité de Extinción">Panel B · Gobernanza y Comité de Extinción</option>
+                    <option value="Panel C · Asuntos Jurídicos y Litigios">Panel C · Asuntos Jurídicos y Litigios</option>
+                    <option value="Panel D · Fideicomisos Banorte (FIARCA)">Panel D · Fideicomisos Banorte (FIARCA)</option>
+                    <option value="Panel E · Bienes Muebles e Inmuebles">Panel E · Bienes Muebles e Inmuebles</option>
+                    <option value="Panel F · Cierre Fiscal, Cuentas y SAT">Panel F · Cierre Fiscal, Cuentas y SAT</option>
+                    <option value="Panel G · Sistemas TI y DGTIT">Panel G · Sistemas TI y DGTIT</option>
+                    <option value="Panel H · Archivo y Entrega-Recepción">Panel H · Archivo y Entrega-Recepción</option>
+                    <option value="Panel I · Auditoría y Fiscalización ASEG">Panel I · Auditoría y Fiscalización ASEG</option>
                     <option value="OTRA">Otra Área SECUL (Escribir)</option>
                 </select>
                 <input type="text" name="txtOtraSecul" placeholder="Especifique área SECUL..." class="w-full p-1 border rounded-lg text-[10.5px] bg-white hidden">
