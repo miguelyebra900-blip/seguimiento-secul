@@ -9654,16 +9654,7 @@ window.guardarArchivoRapido = async function(e) {
 
             const urlDrive = dataDrive.fileUrl;
 
-            // 👈 INSERCIÓN SEGURA (Sin invocar columnas que puedan faltar en Supabase)
-            if (supabaseClient) {
-                await supabaseClient.from('evidencias_expedientes_v2').insert([{
-                    clave_accion: claveAccion,
-                    nombre_archivo: nombreNominalDrive,
-                    drive_url: urlDrive
-                }]).select();
-            }
-
-            // Registrar en el arreglo local asegurando la subcarpeta
+            // 👈 GUARDAR DIRECTAMENTE EN EL ARREGLO LOCAL CON SU RESPECTIVA SUBCARPETA
             act.archivosDrive.push({ 
                 nombre: nombreNominalDrive, 
                 url: urlDrive,
@@ -9671,7 +9662,7 @@ window.guardarArchivoRapido = async function(e) {
             });
         }
 
-        // Sincronizar el arreglo completo con subcarpetas en acciones_transicion_v2
+        // Sincronizar el arreglo unificado de archivos y subcarpetas en la tabla principal de Supabase
         if (supabaseClient) {
             await supabaseClient
                 .from('acciones_transicion_v2')
