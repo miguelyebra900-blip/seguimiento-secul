@@ -2866,43 +2866,27 @@ try {
     console.error("🔴 Error crítico al inicializar Supabase:", err.message);
 }
 
-// Parche definitivo de blindaje para peticiones por clave de acción
-// Protección de consultas inválidas en Supabase
-// Protección de consultas inválidas en Supabase
-// Protección de consultas inválidas en Supabase
-// Protección de consultas inválidas en Supabase
-(function() {
-    if (!supabaseClient) {
-        console.warn("Supabase no está inicializado.");
-        return;
-    }
 
-    const originalFrom = supabaseClient.from.bind(supabaseClient);
 
+// Protección de consultas inválidas en Supabase
+// Protección limpia de Supabase sin enredos de sintaxis
+if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+    const originalFrom = supabaseClient.from;
     supabaseClient.from = function(table) {
-        const query = originalFrom(table);
-
+        const query = originalFrom.call(this, table);
         if (table === 'acciones_transicion_v2') {
-            const originalEq = query.eq.bind(query);
-
+            const originalEq = query.eq;
             query.eq = function(column, value) {
-                if (
-                    column === 'clave_accion' &&
-                    (
-                        value == null ||
-                        String(value).trim() === '' ||
-                        String(value).includes('undefined')
-                    )
-                ) {
-                    console.warn("Consulta bloqueada: clave_accion inválida", value);
+                if (column === 'clave_accion' && (!value || String(value).includes('undefined'))) {
+                    console.warn("⚠️ Consulta bloqueada por clave inválida:", value);
                     return this;
                 }
-                return originalEq(column, value);
+                return originalEq.call(this, column, value);
             };
         }
         return query;
     };
-})();
+}
         
         
     window.supabaseClient.from = function(table) {
@@ -2919,8 +2903,7 @@ try {
         }
         return query;
     };
-})();
-        
+})();  
        function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
