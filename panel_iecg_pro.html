@@ -3066,7 +3066,7 @@ async function inicializarDatosDesdeSupabase() {
         ]);
 
         if (resAcciones.error) {
-            console.error("Error en acciones_transicion_v2:", resAcciones.error);
+            console.error("Error en acciones:", resAcciones.error);
         }
 
         const accionesSupabase = resAcciones.data || [];
@@ -3148,7 +3148,7 @@ async function inicializarDatosDesdeSupabase() {
         }
 
         localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
-        console.log("¡Sincronización limpia y exitosa!");
+        console.log("¡Sincronización limpia completada!");
 
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
