@@ -2110,12 +2110,7 @@
                 </select>
                 <span class="text-[10px] text-slate-400 block mt-1">El archivo se anidará en la subcarpeta seleccionada de Google Drive.</span>
             </div>
-<!-- ASIGNAR O CREAR SUBCARPETA EN DRIVE -->
-            <div>
-                <label class="block font-bold text-slate-700 mb-1">Nombre de Subcarpeta / Expediente (Opcional):</label>
-                <input type="text" id="rapidoSubcarpetaInput" placeholder="Ej. Adendas_Banorte, Facturas_2026..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500">
-                <span class="text-[10px] text-slate-400 block mt-1">Si escribes un nombre, se creará o agrupará automáticamente como subcarpeta en la raíz de este Panel en Google Drive.</span>
-            </div>
+
             <!-- 3. SELECCIONAR HASTA 5 ARCHIVOS DE EVIDENCIA (MÚLTIPLE) -->
             <div>
                 <label class="block font-bold text-slate-700 mb-1 text-xs flex items-center justify-between">
@@ -2893,8 +2888,23 @@ if (typeof supabaseClient !== 'undefined' && supabaseClient) {
     };
 }
         
-    
-function updateAuthUI() {
+        
+    window.supabaseClient.from = function(table) {
+        const query = originalFrom.call(this, table);
+        if (table === 'acciones_transicion_v2') {
+            const originalEq = query.eq;
+            query.eq = function(column, value) {
+                if (column === 'clave_accion' && (!value || value.includes('undefined'))) {
+                    console.warn("⚠️ Intento de consulta con clave vacía bloqueado para evitar error 400.");
+                    return this; // Evita mandar el request malo
+                }
+                return originalEq.call(this, column, value);
+            };
+        }
+        return query;
+    };
+})();  
+       function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
             const role = document.getElementById('userRoleDisplay');
@@ -2910,6 +2920,7 @@ function updateAuthUI() {
                 if (lblAuditoriaUser) lblAuditoriaUser.innerText = `${currentUser.nombre} (${currentUser.usuario})`;
 
                 const rolStr = (currentUser.rol || '').toLowerCase();
+                // Si el rol es admin, auditor, contralor o asegurador se muestra el acceso directo
                 if (btnAdminTop) {
                     if (rolStr.includes('admin') || rolStr.includes('super') || rolStr.includes('auditor') || rolStr.includes('aseg')) {
                         btnAdminTop.classList.remove('hidden');
@@ -2926,19 +2937,19 @@ function updateAuthUI() {
                 if (lblAuditoriaUser) lblAuditoriaUser.innerText = "Modo Consulta";
                 if (btnAdminTop) btnAdminTop.classList.add('hidden');
             }
-
-            // <-- AQUÍ ADENTRO SÍ FUNCIONA PERFECTAMENTE:
-            const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
-            if (btnVinculo) {
-                if (currentUser && !currentUser.esAdmin) {
-                    btnVinculo.classList.remove('hidden');
-                    btnVinculo.classList.add('flex');
-                } else {
-                    btnVinculo.classList.add('hidden');
-                    btnVinculo.classList.remove('flex');
-                }
-            }
         }
+
+// Dentro de updateAuthUI(), agrega:
+const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
+if (btnVinculo) {
+    if (currentUser && !currentUser.esAdmin) {
+        btnVinculo.classList.remove('hidden');
+        btnVinculo.classList.add('flex');
+    } else {
+        btnVinculo.classList.add('hidden');
+        btnVinculo.classList.remove('flex');
+    }
+}
 
         function handleAuthClick() {
             if (currentUser) {
@@ -9588,13 +9599,13 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
         });
     }
 
- // Limpiar campos de archivo y nota
     const fileInput = document.getElementById('rapidoFileInput');
     if (fileInput) fileInput.value = '';
     const notaInput = document.getElementById('rapidoNota');
     if (notaInput) notaInput.value = '';
 
     openModal('modal-agregar-archivos-rapido');
+};
         
         // Procesar la subida rápida, calcular sufijo, subir a Drive y registrar en Supabase
 window.guardarArchivoRapido = async function(e) {
@@ -9603,10 +9614,12 @@ window.guardarArchivoRapido = async function(e) {
     const claveAccion = document.getElementById('rapidoClaveAccion').value;
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
-    const subcarpetaVal = document.getElementById('rapidoSubcarpetaInput')?.value.trim() || '';
+    
+    const selectSub = document.getElementById('rapidoSubcarpetaSelect');
+    const subcarpetaVal = selectSub ? selectSub.value.trim() : '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Por favor seleccione un archivo.");
+        alert("Por favor selecciona al menos un archivo.");
         return;
     }
 
@@ -9616,72 +9629,87 @@ window.guardarArchivoRapido = async function(e) {
     const btnSubmit = document.getElementById('btnSubmitRapido');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo y registrando...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a subcarpeta...';
     }
 
     try {
-        // 1. Consultar cuántos archivos existen en evidencias_expedientes para calcular el sufijo exacto (-0.00x)
-        let contadorBase = 1;
-        if (supabaseClient) {
-            const { count, error: errCount } = await supabaseClient
-                .from('evidencias_expedientes_v2')
-                .select('*', { count: 'exact', head: true })
-                .eq('clave_accion', claveAccion);
+        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
 
-            if (!errCount && count !== null) {
-                contadorBase = count + 1;
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const archivoFisico = fileInput.files[i];
+
+            let contadorBase = act.archivosDrive.length + 1 + i;
+            const sufijoIndex = `-0.00${contadorBase}`;
+            const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
+
+            const base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(archivoFisico);
+            });
+
+            const payloadDrive = {
+                accion: 'subirArchivo',
+                fileName: nombreNominalDrive,
+                mimeType: archivoFisico.type || 'application/octet-stream',
+                fileData: base64Data,
+                panel: act.panel,
+                subcarpeta: subcarpetaVal
+            };
+
+            const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
+                method: 'POST',
+                body: JSON.stringify(payloadDrive)
+            });
+            const dataDrive = await resDrive.json();
+
+            if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
+                throw new Error(dataDrive.message || "Error al subir archivo a Google Drive.");
             }
+
+            const urlDrive = dataDrive.fileUrl;
+
+            // 👈 GUARDAR DIRECTAMENTE EN EL ARREGLO LOCAL CON SU RESPECTIVA SUBCARPETA
+            act.archivosDrive.push({ 
+                nombre: nombreNominalDrive, 
+                url: urlDrive,
+                subcarpeta: subcarpetaVal 
+            });
         }
 
-        const archivoFisico = fileInput.files[0];
-        const sufijoIndex = `-0.00${contadorBase}`;
-        
-        // Incluir la subcarpeta estéticamente en el nombre del archivo para Google Drive y Supabase
-        const prefijoSub = subcarpetaVal ? `[Sub: ${subcarpetaVal}] ` : '';
-        const nombreNominalDrive = `${prefijoSub}[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
-
-       // 2. Subir a Google Drive
-        const urlDrive = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
-        if (!urlDrive || !urlDrive.startsWith('http')) {
-            throw new Error("No se pudo obtener el enlace de Google Drive.");
-        }
-
-        // 3. Registrar en Supabase (Únicamente con las columnas oficiales de la tabla)
+        // Sincronizar el arreglo unificado de archivos y subcarpetas en la tabla principal de Supabase
         if (supabaseClient) {
-            const { error: errInsert } = await supabaseClient
-                .from('evidencias_expedientes_v2')
-                .insert([{
-                    clave_accion: claveAccion,
-                    nombre_archivo: nombreNominalDrive,
-                    drive_url: urlDrive
-                }]);
-            if (errInsert) throw errInsert;
+            await supabaseClient
+                .from('acciones_transicion_v2')
+                .update({ 
+                    archivos_drive: act.archivosDrive,
+                    subcarpetas: act.subcarpetas 
+                })
+                .eq('clave_accion', claveAccion);
         }
 
-        // 4. Actualizar memoria local
-        act.driveUrl = urlDrive;
-        if (!act.archivosDrive) act.archivosDrive = [];
-        act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
-        
         guardarDataset();
-        alert(`¡Archivo agregado exitosamente ${subcarpetaVal ? 'en la subcarpeta "' + subcarpetaVal + '"' : ''} con sufijo [${sufijoIndex}]!`);
+        alert(`¡Archivo(s) guardado(s) exitosamente en la subcarpeta "${subcarpetaVal || 'Raíz'}"!`);
+        
+        fileInput.value = '';
+        if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
+        
         closeModal('modal-agregar-archivos-rapido');
-
-        // Sincronizar UI en tiempo real
         await inicializarDatosDesdeSupabase();
-        actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        console.error("Error en carga rápida:", err);
+        console.error("Error:", err);
         alert("Error al guardar: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Subir y Registrar Archivo';
+            btnSubmit.innerHTML = 'Subir y Registrar Archivo(s)';
         }
     }
 };
+        
   window.eliminarEvidenciaRapida = async function(idEvidencia, claveAccion) {
     if (!confirm("¿Estás seguro de eliminar este archivo de la base de datos probatoria?")) {
         return;
@@ -12533,7 +12561,47 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             }
         });
 
+        </script>
 
+<!-- ========================================================================= -->
+    <!-- MODAL CREAR SUBCARPETA POR ACCIÓN (HTML PURO) -->
+    <!-- ========================================================================= -->
+    <div id="modal-crear-carpeta-accion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-folder-plus"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase text-indigo-400" id="lblClaveCarpetaModal">Clave: --</span>
+                        <h3 class="text-sm font-black text-white">Crear Subcarpeta de Expediente</h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-crear-carpeta-accion')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/25 text-slate-300 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="guardarNuevaCarpetaAccion(event)" class="p-6 space-y-4 text-xs text-slate-700">
+                <input type="hidden" id="carpetaClaveAccion">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nombre de la Subcarpeta / Secciones del Expediente:</label>
+                    <input type="text" id="inputNombreNuevaSubcarpeta" placeholder="Ej. 01_Soporte_Documental, Oficios_ASEG..." class="w-full text-xs font-bold p-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                    <span class="text-[10px] text-slate-400 block mt-1">Se creará la subcarpeta vinculada a esta acción tanto en Google Drive como en Supabase.</span>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-crear-carpeta-accion')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl font-bold transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow-2xs">Crear y Registrar Carpeta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- SCRIPT DE GESTIÓN DE CARPETAS (JAVASCRIPT) -->
+    <!-- ========================================================================= -->
+    <script>
         // B. APERTURA Y REGISTRO DE SUBCARPETAS POR ACCIÓN
 window.abrirModalCrearCarpetaAccion = function(clave) {
     document.getElementById('carpetaClaveAccion').value = clave;
@@ -12696,134 +12764,6 @@ window.guardarArchivoEnAccion = async function(e) {
         }, 500);
     });
 
-  // 1. Función global para subir archivos a Google Drive con soporte para subcarpetas
-window.subirArchivoADrive = async function(file, panelLetra, subcarpeta = "", nombrePersonalizado = null) {
-    if (!file) throw new Error("No se ha seleccionado ningún archivo.");
-
-    const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
-    });
-
-    const nombreArchivoFinal = nombrePersonalizado ? nombrePersonalizado : file.name;
-
-    const payload = {
-        accion: 'subirArchivo',
-        fileName: nombreArchivoFinal,
-        mimeType: file.type || 'application/octet-stream',
-        fileData: 'data:' + (file.type || 'application/octet-stream') + ';base64,' + base64,
-        panel: (panelLetra || 'A').toUpperCase(),
-        subcarpeta: subcarpeta || '' // Envía la subcarpeta seleccionada al backend
-    };
-
-    const res = await fetch(APPS_SCRIPT_DRIVE_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-    if (data.status !== 'success') {
-        throw new Error(data.message || "Error al subir a Google Drive");
-    }
-    return data.fileUrl;
-};
-
-// 2. Función que procesa el formulario del modal de carga rápida de archivos
-async function guardarArchivoRapido(e) {
-    e.preventDefault();
-    
-    const claveAccion = document.getElementById('rapidoClaveAccion')?.value || '';
-    const panelActivo = document.getElementById('rapidoTextoPanel')?.textContent.replace('Panel ', '').trim() || 'A';
-    const subcarpetaSeleccionada = document.getElementById('rapidoSubcarpetaSelect')?.value || ''; // Lee la subcarpeta elegida
-    const fileInput = document.getElementById('rapidoFileInput');
-    const notaInput = document.getElementById('rapidoNota')?.value || '';
-    
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Selecciona al menos un archivo de evidencia.");
-        return;
-    }
-
-    const btnSubmit = document.getElementById('btnSubmitRapido');
-    if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a subcarpeta...';
-    }
-
-    try {
-        const archivo = fileInput.files[0];
-        const nombreConClave = `[${claveAccion}] ${archivo.name}`;
-        
-        // Sube a Google Drive pasando la subcarpeta seleccionada
-        const driveUrlFinal = await window.subirArchivoADrive(archivo, panelActivo, subcarpetaSeleccionada, nombreConClave);
-
-        // Guarda el registro en la tabla de Supabase incluyendo la subcarpeta
-        if (supabaseClient) {
-            const { error: errEvidencia } = await supabaseClient
-                .from('evidencias_expedientes_v2')
-                .insert([{
-                    clave_accion: claveAccion,
-                    nombre_archivo: nombreConClave,
-                    drive_url: driveUrlFinal,
-                    subcarpeta: subcarpetaSeleccionada // Registra la subcarpeta en la base de datos
-                }]);
-
-            if (errEvidencia) throw errEvidencia;
-        }
-
-        alert("¡Archivo subido y anidado en la subcarpeta de Google Drive correctamente!");
-        closeModal('modal-agregar-archivos-rapido');
-        
-        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
-        if (typeof actualizarDashboard === 'function') actualizarDashboard();
-        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
-
-    } catch (err) {
-        console.error("Error al subir archivo rápido:", err);
-        alert("Error al sincronizar con Drive/Supabase: " + err.message);
-    } finally {
-        if (btnSubmit) {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = 'Subir y Registrar Archivo(s)';
-        }
-    }
-}
-        
     </script>
-<!-- ========================================================================= -->
-    <!-- MODAL CREAR SUBCARPETA POR ACCIÓN (HTML PURO) -->
-    <!-- ========================================================================= -->
-    <div id="modal-crear-carpeta-accion" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-folder-plus"></i>
-                    </div>
-                    <div>
-                        <span class="text-[10px] font-black uppercase text-indigo-400" id="lblClaveCarpetaModal">Clave: --</span>
-                        <h3 class="text-sm font-black text-white">Crear Subcarpeta de Expediente</h3>
-                    </div>
-                </div>
-                <button type="button" onclick="closeModal('modal-crear-carpeta-accion')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/25 text-slate-300 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <form onsubmit="guardarNuevaCarpetaAccion(event)" class="p-6 space-y-4 text-xs text-slate-700">
-                <input type="hidden" id="carpetaClaveAccion">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nombre de la Subcarpeta / Secciones del Expediente:</label>
-                    <input type="text" id="inputNombreNuevaSubcarpeta" placeholder="Ej. 01_Soporte_Documental, Oficios_ASEG..." class="w-full text-xs font-bold p-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" required>
-                    <span class="text-[10px] text-slate-400 block mt-1">Se creará la subcarpeta vinculada a esta acción tanto en Google Drive como en Supabase.</span>
-                </div>
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modal-crear-carpeta-accion')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow-2xs">Crear y Registrar Carpeta</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 </body>
 </html>
