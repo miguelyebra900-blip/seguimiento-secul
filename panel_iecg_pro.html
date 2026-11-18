@@ -3018,56 +3018,122 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
+        console.warn("Supabase no disponible, usando catálogo local.");
         accionesDataset = ACCIONES_INICIALES;
         return;
     }
 
     try {
-        // Consulta limpia y directa a la tabla principal
-        const { data: accionesSupabase, error } = await supabaseClient
-            .from('acciones_transicion_v2')
-            .select('*');
+        // ÚNICA FUENTE DE VERDAD: Tablas terminadas en _v2
+        const [resAcciones, resEvidencias] = await Promise.all([
+            supabaseClient.from('acciones_transicion_v2').select('*'),
+            supabaseClient.from('evidencias_expedientes_v2').select('*').order('created_at', { ascending: true })
+        ]);
 
-        if (error) {
-            console.error("Error al consultar Supabase:", error.message);
-            return;
-        }
+        if (resAcciones.error) throw resAcciones.error;
 
-        // Si la tabla devolvió registros, cargarlos al dataset
-        if (accionesSupabase && accionesSupabase.length > 0) {
+        const accionesSupabase = resAcciones.data || [];
+        const evidenciasSupabase = resEvidencias.data || [];
+
+        // Mapeo exacto de evidencias y subcarpetas desde evidencias_expedientes_v2
+        const mapaEvidencias = {};
+        evidenciasSupabase.forEach(ev => {
+            const claveAcc = (ev.clave_accion || '').trim();
+            if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
+            mapaEvidencias[claveAcc].push({ 
+                id: ev.id, 
+                nombre: ev.nombre_archivo, 
+                url: ev.drive_url,
+                subcarpeta: ev.subcarpeta || '' 
+            });
+        });
+
+        // Diccionario oficial de tus prefijos por Panel (A - I)
+        const PREFIJO_A_PANEL = {
+            'RH_E': 'A', 
+            'ASI_P': 'B', 
+            'JUR_C': 'C', 
+            'FID_F': 'D',
+            'PTR_I': 'E', 'PTR_M': 'E', 
+            'FIN_P': 'F', 
+            'TIT_S': 'G', 
+            'ACH_D': 'H', 
+            'AUD_F': 'I'
+        };
+
+        if (accionesSupabase.length > 0) {
             accionesDataset = accionesSupabase.map(itemDB => {
                 const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
-                const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveAccion || a.clave_accion === claveAccion);
+                const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
+                
+                const listaArchivosTabla = mapaEvidencias[claveAccion] || [];
+                const listaArchivosJson = Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : [];
+                
+                // Unificar archivos de Drive conservando estrictamente la subcarpeta
+                const archivosUnificadosMap = {};
+                [...listaArchivosJson, ...listaArchivosTabla].forEach(doc => {
+                    if (doc && (doc.url || doc.drive_url)) {
+                        const u = doc.url || doc.drive_url;
+                        archivosUnificadosMap[u] = {
+                            nombre: doc.nombre || doc.nombre_archivo || 'Evidencia Drive',
+                            url: u,
+                            subcarpeta: doc.subcarpeta || doc.carpeta || ''
+                        };
+                    }
+                });
+                const archivosDriveFinales = Object.values(archivosUnificadosMap);
+                const ultimaUrl = archivosDriveFinales.length > 0 ? archivosDriveFinales[archivosDriveFinales.length - 1].url : (itemDB.drive_url || '');
 
+                // Detectar el panel real usando tus prefijos
+                const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
+                const panelReal = PREFIJO_A_PANEL[prefijo] || itemDB.panel || 'A';
+
+                let valorAvance = Number(itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (itemDB.avance || 0));
+                let estatusLimpio = valorAvance === 100 ? 'Concluido' : (valorAvance >= 75 ? 'Validación' : 'En Proceso');
+
+                // RESPETAR LOS DATOS ORIGINALES DE LA BASE DE DATOS _v2 (Cero reseteos a nombres pasados)
                 return {
                     id: claveAccion,
                     clave_accion: claveAccion,
-                    clave_hito: itemDB.clave_hito || claveAccion.split('-A-')[0],
-                    panel: itemDB.panel || (matchOficial ? matchOficial.panel : 'A'),
-                    area: itemDB.area || (matchOficial ? matchOficial.area : 'Área Estratégica'),
-                    hito: itemDB.hito || (matchOficial ? matchOficial.hito : 'Hito normativo'),
-                    accion: itemDB.accion_especifica || itemDB.accion || (matchOficial ? matchOficial.accion : 'Acción operativa'),
-                    responsable: itemDB.instancia_responsable || itemDB.responsable || 'Panel Operativo',
-                    estatus: itemDB.avance_porcentaje === 100 ? 'Concluido' : 'En Proceso',
-                    avance: Number(itemDB.avance_porcentaje || itemDB.avance || 0),
+                    clave_hito: claveHito,
+                    hito_global: itemDB.hito_global || itemDB.clave_hito || 'HITO-01', 
+                    panel: panelReal,
+                    area: itemDB.area || 'Área Estratégica de Seguimiento',
+                    hito: itemDB.hito || 'Hito normativo',
+                    accion: itemDB.accion_especifica || itemDB.accion || 'Acción operativa',
+                    responsable: itemDB.instancia_responsable || itemDB.responsable || panelReal,
+                    estatus: estatusLimpio,
+                    avance: valorAvance,
                     peso: itemDB.peso || 33.33,
-                    driveUrl: itemDB.drive_url || '',
-                    archivosDrive: Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : [],
-                    subcarpetas: Array.isArray(itemDB.subcarpetas) ? itemDB.subcarpetas : []
+                    driveUrl: ultimaUrl,
+                    archivosDrive: archivosDriveFinales,
+                    subcarpetas: Array.isArray(itemDB.subcarpetas) ? itemDB.subcarpetas : [],
+                    fundamento_juridico: itemDB.fundamento_juridico || '',
+                    riesgo_vinculado: itemDB.riesgo_vinculado || '',
+                    bloque_estrategico: itemDB.bloque_estrategico || 'Bloque 1',
+                    tercero_externo: itemDB.tercero_externo || '',
+                    accion_cierre_pinza: itemDB.accion_cierre_pinza || '',
+                    etiqueta_tramite: itemDB.etiqueta_tramite || '',
+                    vinculo_art6: itemDB.vinculo_art6 || 'NO',
+                    cita_textual_literal: itemDB.cita_textual_literal || '',
+                    nota_auditoria: itemDB.nota_auditoria || ''
                 };
             });
         }
 
         localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
+        console.log("¡Sincronización perfecta respetando tablas _v2 y prefijos!");
+
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+        if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
 
     } catch (err) {
-        console.error("Error en sincronización:", err.message);
+        console.error("Error al inicializar desde Supabase:", err.message);
         accionesDataset = ACCIONES_INICIALES;
     }
 }
-        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
