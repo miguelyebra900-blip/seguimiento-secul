@@ -2921,28 +2921,19 @@ function updateAuthUI() {
                 if (lblAuditoriaUser) lblAuditoriaUser.innerText = "Modo Consulta";
                 if (btnAdminTop) btnAdminTop.classList.add('hidden');
             }
-        }
 
-                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-slate-400";
-                if (name) name.innerText = "No autenticado";
-                if (role) role.innerHTML = '<i class="fa-solid fa-eye text-[8px] me-1"></i> Modo Consulta / ASEG';
-                if (btn) btn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i>Ingresar';
-                if (lblAuditoriaUser) lblAuditoriaUser.innerText = "Modo Consulta";
-                if (btnAdminTop) btnAdminTop.classList.add('hidden');
+            // <-- AQUÍ ADENTRO SÍ FUNCIONA PERFECTAMENTE:
+            const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
+            if (btnVinculo) {
+                if (currentUser && !currentUser.esAdmin) {
+                    btnVinculo.classList.remove('hidden');
+                    btnVinculo.classList.add('flex');
+                } else {
+                    btnVinculo.classList.add('hidden');
+                    btnVinculo.classList.remove('flex');
+                }
             }
         }
-
-// Dentro de updateAuthUI(), agrega:
-const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
-if (btnVinculo) {
-    if (currentUser && !currentUser.esAdmin) {
-        btnVinculo.classList.remove('hidden');
-        btnVinculo.classList.add('flex');
-    } else {
-        btnVinculo.classList.add('hidden');
-        btnVinculo.classList.remove('flex');
-    }
-}
 
         function handleAuthClick() {
             if (currentUser) {
