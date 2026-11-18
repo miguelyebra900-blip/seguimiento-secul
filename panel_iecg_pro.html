@@ -12654,6 +12654,21 @@ window.guardarArchivoEnAccion = async function(e) {
     // ... (tus llamadas para actualizar Supabase y cerrar el modal) ...
 };
 
+    // Blindaje de emergencia contra URLs huérfanas de Supabase en el DOM
+    window.addEventListener('DOMContentLoaded', () => {
+        setInterval(() => {
+            document.querySelectorAll('a[href*="supabase.co/rest"], img[src*="supabase.co/rest"], iframe[src*="supabase.co/rest"]').forEach(el => {
+                const url = el.getAttribute('href') || el.getAttribute('src');
+                if (url && url.includes('clave_accion=eq.')) {
+                    console.warn("🛡️ Enlace erróneo neutralizado automáticamente:", url);
+                    el.setAttribute('href', '#');
+                    el.setAttribute('src', '');
+                    el.style.display = 'none'; // Oculta el elemento dañado para que no genere error 400
+                }
+            });
+        }, 500);
+    });
+
     </script>
 </body>
 </html>
