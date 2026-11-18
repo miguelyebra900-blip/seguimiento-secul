@@ -5050,20 +5050,16 @@ async function ejecutarCargaUniversal(e) {
     }
 
     try {
-        // 1. CONTEO REAL EN SUPABASE: Consultar cuántos archivos existen en evidencias_expedientes para esta clave
+        // 1. Conteo real en Supabase para el sufijo (-0.00x)
         let contadorBase = 1;
-// Sincronizar el arreglo unificado de archivos y subcarpetas en la tabla principal de Supabase
         if (supabaseClient) {
-            const { error: errUpdate } = await supabaseClient
-                .from('acciones_transicion_v2')
-                .update({ 
-                    archivos_drive: act.archivosDrive,
-                    subcarpetas: act.subcarpetas 
-                })
-                .eq('clave_accion', claveAccion);
+            const { count, error: errCount } = await supabaseClient
+                .from('evidencias_expedientes_v2')
+                .select('*', { count: 'exact', head: true })
+                .eq('clave_accion', claveAccionFinal);
 
-            if (errUpdate) {
-                console.error("Error al actualizar Supabase:", errUpdate);
+            if (!errCount && count !== null) {
+                contadorBase = count + 1;
             }
         }
 
@@ -5078,7 +5074,7 @@ async function ejecutarCargaUniversal(e) {
             throw new Error("El servicio de Google Drive no devolvió un enlace válido.");
         }
 
-        // 3. INSERCIÓN OBLIGATORIA EN SUPABASE: Tabla evidencias_expedientes
+        // 3. Inserción en la tabla de evidencias
         if (supabaseClient) {
             const { error: errEvidencia } = await supabaseClient
                 .from('evidencias_expedientes_v2')
@@ -5111,7 +5107,7 @@ async function ejecutarCargaUniversal(e) {
         accionesDataset.push(nuevaAccionObj);
         guardarDataset();
 
-        // 5. Sincronizar tabla principal
+        // 5. Sincronizar tabla principal en Supabase usando el cliente oficial
         if (supabaseClient) {
             const hitoBase = nuevaAccionObj.clave_hito;
             const numConsecutivoActual = parseInt(claveAccionFinal.split('-A-')[1], 10) || 1;
@@ -5146,7 +5142,6 @@ async function ejecutarCargaUniversal(e) {
         }
     }
 }
-        
         // DRAG & DROP DEL BUZÓN UNIVERSAL
         const dropZone = document.getElementById('dropZoneUniversal');
         const fileInput = document.getElementById('buzonFileInput');
