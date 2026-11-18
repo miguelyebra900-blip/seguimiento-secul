@@ -2847,6 +2847,26 @@ try {
     console.error("🔴 Error crítico al inicializar Supabase:", err.message);
 }
 
+// Parche definitivo de blindaje para peticiones por clave de acción
+(function() {
+    if (!window.supabaseClient) return;
+    const originalFrom = window.supabaseClient.from;
+    window.supabaseClient.from = function(table) {
+        const query = originalFrom.call(this, table);
+        if (table === 'acciones_transicion_v2') {
+            const originalEq = query.eq;
+            query.eq = function(column, value) {
+                if (column === 'clave_accion' && (!value || value.includes('undefined'))) {
+                    console.warn("⚠️ Intento de consulta con clave vacía bloqueado para evitar error 400.");
+                    return this; // Evita mandar el request malo
+                }
+                return originalEq.call(this, column, value);
+            };
+        }
+        return query;
+    };
+})();
+        
        function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
