@@ -9595,6 +9595,7 @@ window.guardarArchivoRapido = async function(e) {
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
     
+    // Captura exacta del select de subcarpetas del modal de carga rápida
     const selectSub = document.getElementById('rapidoSubcarpetaSelect');
     const subcarpetaVal = selectSub ? selectSub.value.trim() : '';
     
@@ -9635,7 +9636,7 @@ window.guardarArchivoRapido = async function(e) {
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaVal
+                subcarpeta: subcarpetaVal // <--- Envía la subcarpeta exacta seleccionada
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
@@ -9650,15 +9651,27 @@ window.guardarArchivoRapido = async function(e) {
 
             const urlDrive = dataDrive.fileUrl;
 
-            // 👈 GUARDAR DIRECTAMENTE EN EL ARREGLO LOCAL CON SU RESPECTIVA SUBCARPETA
+            // 1. Guardar localmente en memoria con su subcarpeta
             act.archivosDrive.push({ 
                 nombre: nombreNominalDrive, 
                 url: urlDrive,
                 subcarpeta: subcarpetaVal 
             });
+
+            // 2. Registrar en la tabla relacional evidencias_expedientes_v2 (incluyendo la subcarpeta en Supabase)
+            if (supabaseClient) {
+                await supabaseClient
+                    .from('evidencias_expedientes_v2')
+                    .insert([{
+                        clave_accion: claveAccion,
+                        nombre_archivo: nombreNominalDrive,
+                        drive_url: urlDrive,
+                        subcarpeta: subcarpetaVal // <--- Guarda el nombre en la base de datos
+                    }]);
+            }
         }
 
-        // Sincronizar el arreglo unificado de archivos y subcarpetas en la tabla principal de Supabase
+        // 3. Sincronizar el arreglo unificado en la tabla principal de Supabase
         if (supabaseClient) {
             await supabaseClient
                 .from('acciones_transicion_v2')
@@ -9680,8 +9693,8 @@ window.guardarArchivoRapido = async function(e) {
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        console.error("Error:", err);
-        alert("Error al guardar: " + err.message);
+        console.error("Error al subir archivo rápido:", err);
+        alert("Error al sincronizar con Drive/Supabase: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -9689,6 +9702,7 @@ window.guardarArchivoRapido = async function(e) {
         }
     }
 };
+        
         
   window.eliminarEvidenciaRapida = async function(idEvidencia, claveAccion) {
     if (!confirm("¿Estás seguro de eliminar este archivo de la base de datos probatoria?")) {
