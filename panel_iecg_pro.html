@@ -3051,6 +3051,7 @@ if (btnVinculo) {
         }
 // Función para cargar los datos reales directamente desde Supabase al iniciar (Fuente Única de Verdad)
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
+// Carga directa y limpia desde Supabase (Sin parches sintácticos)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
         console.warn("Supabase no disponible, usando catálogo local.");
@@ -3058,31 +3059,19 @@ async function inicializarDatosDesdeSupabase() {
         return;
     }
 
-try {
+    try {
         const [resAcciones, resEvidencias] = await Promise.all([
-            supabaseClient
-                .from('acciones_transicion_v2')
-                .select('*'),
-
-            supabaseClient
-                .from('evidencias_expedientes_v2')
-                .select('*')
-                .order('created_at', { ascending: true })
+            supabaseClient.from('acciones_transicion_v2').select('*'),
+            supabaseClient.from('evidencias_expedientes_v2').select('*').order('created_at', { ascending: true })
         ]);
 
         if (resAcciones.error) {
-            console.error("🔴 ERROR EN acciones_transicion_v2:", resAcciones.error);
-        }
-
-        if (resEvidencias.error) {
-            console.error("🔴 ERROR EN evidencias_expedientes_v2:", resEvidencias.error);
-            throw resEvidencias.error;
+            console.error("Error en acciones_transicion_v2:", resAcciones.error);
         }
 
         const accionesSupabase = resAcciones.data || [];
         const evidenciasSupabase = resEvidencias.data || [];
 
-        // Mapeo exacto de evidencias y subcarpetas desde evidencias_expedientes_v2
         const mapaEvidencias = {};
         evidenciasSupabase.forEach(ev => {
             const claveAcc = (ev.clave_accion || '').trim();
@@ -3095,17 +3084,10 @@ try {
             });
         });
 
-        // Diccionario oficial de tus prefijos por Panel (A - I)
         const PREFIJO_A_PANEL = {
-            'RH_E': 'A', 
-            'ASI_P': 'B', 
-            'JUR_C': 'C', 
-            'FID_F': 'D',
-            'PTR_I': 'E', 'PTR_M': 'E', 
-            'FIN_P': 'F', 
-            'TIT_S': 'G', 
-            'ACH_D': 'H', 
-            'AUD_F': 'I'
+            'RH_E': 'A', 'ASI_P': 'B', 'JUR_C': 'C', 'FID_F': 'D',
+            'PTR_I': 'E', 'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G',
+            'ACH_D': 'H', 'AUD_F': 'I'
         };
 
         if (accionesSupabase.length > 0) {
@@ -3116,7 +3098,6 @@ try {
                 const listaArchivosTabla = mapaEvidencias[claveAccion] || [];
                 const listaArchivosJson = Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : [];
                 
-                // Unificar archivos de Drive conservando estrictamente la subcarpeta
                 const archivosUnificadosMap = {};
                 [...listaArchivosJson, ...listaArchivosTabla].forEach(doc => {
                     if (doc && (doc.url || doc.drive_url)) {
@@ -3131,14 +3112,12 @@ try {
                 const archivosDriveFinales = Object.values(archivosUnificadosMap);
                 const ultimaUrl = archivosDriveFinales.length > 0 ? archivosDriveFinales[archivosDriveFinales.length - 1].url : (itemDB.drive_url || '');
 
-                // Detectar el panel real usando tus prefijos
                 const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
                 const panelReal = PREFIJO_A_PANEL[prefijo] || itemDB.panel || 'A';
 
                 let valorAvance = Number(itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (itemDB.avance || 0));
                 let estatusLimpio = valorAvance === 100 ? 'Concluido' : (valorAvance >= 75 ? 'Validación' : 'En Proceso');
 
-                // RESPETAR LOS DATOS ORIGINALES DE LA BASE DE DATOS _v2 (Cero reseteos a nombres pasados)
                 return {
                     id: claveAccion,
                     clave_accion: claveAccion,
@@ -3169,7 +3148,7 @@ try {
         }
 
         localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
-        console.log("¡Sincronización perfecta respetando tablas _v2 y prefijos!");
+        console.log("¡Sincronización limpia y exitosa!");
 
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
@@ -3181,6 +3160,7 @@ try {
         accionesDataset = ACCIONES_INICIALES;
     }
 }
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
