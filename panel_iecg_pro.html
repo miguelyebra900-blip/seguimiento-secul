@@ -3000,8 +3000,9 @@ async function inicializarDatosDesdeSupabase() {
         const areasSupabase = resAreas.data || [];
         const evidenciasSupabase = resEvidencias.data || [];
 
-        // Mapear los archivos por clave de acción de forma agrupada
+   
 // Mapear los archivos por clave de acción de forma agrupada
+     // 1. Mapear evidencias asegurando que se conserve la subcarpeta
         const mapaEvidencias = {};
         evidenciasSupabase.forEach(ev => {
             const claveAcc = (ev.clave_accion || '').trim();
@@ -3010,7 +3011,7 @@ async function inicializarDatosDesdeSupabase() {
                 id: ev.id, 
                 nombre: ev.nombre_archivo, 
                 url: ev.drive_url,
-                subcarpeta: ev.subcarpeta || '' // 👈 ESTO ES LO QUE HACE QUE APAREZCA EN LA SUBCARPETA
+                subcarpeta: ev.subcarpeta || '' // 👈 Recuperar subcarpeta desde Supabase
             });
         });
 
@@ -3048,11 +3049,23 @@ async function inicializarDatosDesdeSupabase() {
                 const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
                 const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
                 
-                const listaArchivos = mapaEvidencias[claveAccion] || [];
-                const ultimaUrl = listaArchivos.length > 0 ? listaArchivos[listaArchivos.length - 1].url : (itemDB.drive_url || '');
-
-                // Sincronizar el arreglo de archivos local con el mapa de evidencias que trae la subcarpeta
-                const archivosDriveFinales = listaArchivos.length > 0 ? listaArchivos : (itemDB.archivos_drive || []);
+               const listaArchivosTabla = mapaEvidencias[claveAccion] || [];
+                const listaArchivosJson = Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : (Array.isArray(itemDB.archivosDrive) ? itemDB.archivosDrive : []);
+                
+                // Fusionar ambos orígenes garantizando que la propiedad subcarpeta se conserve intacta
+                const archivosUnificadosMap = {};
+                [...listaArchivosJson, ...listaArchivosTabla].forEach(doc => {
+                    if (doc && (doc.url || doc.drive_url)) {
+                        const u = doc.url || doc.drive_url;
+                        archivosUnificadosMap[u] = {
+                            nombre: doc.nombre || doc.nombre_archivo || 'Evidencia Drive',
+                            url: u,
+                            subcarpeta: doc.subcarpeta || doc.carpeta || ''
+                        };
+                    }
+                });
+                const archivosDriveFinales = Object.values(archivosUnificadosMap);
+                const ultimaUrl = archivosDriveFinales.length > 0 ? archivosDriveFinales[archivosDriveFinales.length - 1].url : (itemDB.drive_url || '');
 
                 const hitoInfo = mapaHitos[claveHito] || {};
                 const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
@@ -3086,8 +3099,8 @@ return {
                     avance: valorAvance,
                     peso: itemDB.peso || (matchOficial ? matchOficial.peso : (100 / 3)),
                     driveUrl: ultimaUrl,
-                    archivosDrive: archivosDriveFinales, // 👈 USAR EL ARREGLO CON SUBCARPETA
-                    subcarpetas: itemDB.subcarpetas || (matchOficial ? matchOficial.subcarpetas : []),
+                    archivosDrive: archivosDriveFinales, // 👈 USAR LA LISTA UNIFICADA ASEGURANDO SUBCARPETA
+                    subcarpetas: Array.isArray(itemDB.subcarpetas) ? itemDB.subcarpetas : (matchOficial ? matchOficial.subcarpetas : []),
     fundamento_juridico: itemDB.fundamento_juridico || '',
     riesgo_vinculado: itemDB.riesgo_vinculado || '',
     bloque_estrategico: itemDB.bloque_estrategico || (matchOficial ? matchOficial.bloque_estrategico : 'Bloque 1'),
