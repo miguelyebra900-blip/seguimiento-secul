@@ -2867,9 +2867,41 @@ try {
 }
 
 // Parche definitivo de blindaje para peticiones por clave de acción
+// Protección de consultas inválidas en Supabase
+// Protección de consultas inválidas en Supabase
 (function() {
-    if (!window.supabaseClient) return;
-    const originalFrom = window.supabaseClient.from;
+    if (!supabaseClient) {
+        console.warn("Supabase no está inicializado.");
+        return;
+    }
+
+    const originalFrom = supabaseClient.from.bind(supabaseClient);
+
+    supabaseClient.from = function(table) {
+        const query = originalFrom(table);
+
+        if (table === 'acciones_transicion_v2') {
+            const originalEq = query.eq.bind(query);
+
+            query.eq = function(column, value) {
+                if (
+                    column === 'clave_accion' &&
+                    (
+                        value == null ||
+                        String(value).trim() === '' ||
+                        String(value).includes('undefined')
+                    )
+                ) {
+                    console.warn("Consulta bloqueada: clave_accion inválida", value);
+                    return this;
+                }
+                return originalEq(column, value);
+            };
+        }
+        return query;
+    };
+})();
+        
     window.supabaseClient.from = function(table) {
         const query = originalFrom.call(this, table);
         if (table === 'acciones_transicion_v2') {
@@ -3023,14 +3055,26 @@ async function inicializarDatosDesdeSupabase() {
         return;
     }
 
-    try {
-        // ÚNICA FUENTE DE VERDAD: Tablas terminadas en _v2
+try {
         const [resAcciones, resEvidencias] = await Promise.all([
-            supabaseClient.from('acciones_transicion_v2').select('*'),
-            supabaseClient.from('evidencias_expedientes_v2').select('*').order('created_at', { ascending: true })
+            supabaseClient
+                .from('acciones_transicion_v2')
+                .select('*'),
+
+            supabaseClient
+                .from('evidencias_expedientes_v2')
+                .select('*')
+                .order('created_at', { ascending: true })
         ]);
 
-        if (resAcciones.error) throw resAcciones.error;
+        if (resAcciones.error) {
+            console.error("🔴 ERROR EN acciones_transicion_v2:", resAcciones.error);
+        }
+
+        if (resEvidencias.error) {
+            console.error("🔴 ERROR EN evidencias_expedientes_v2:", resEvidencias.error);
+            throw resEvidencias.error;
+        }
 
         const accionesSupabase = resAcciones.data || [];
         const evidenciasSupabase = resEvidencias.data || [];
