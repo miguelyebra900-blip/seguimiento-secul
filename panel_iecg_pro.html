@@ -5052,14 +5052,18 @@ async function ejecutarCargaUniversal(e) {
     try {
         // 1. CONTEO REAL EN SUPABASE: Consultar cuántos archivos existen en evidencias_expedientes para esta clave
         let contadorBase = 1;
+// Sincronizar el arreglo unificado de archivos y subcarpetas en la tabla principal de Supabase
         if (supabaseClient) {
-            const { count, error: errCount } = await supabaseClient
-                .from('evidencias_expedientes_v2')
-                .select('*', { count: 'exact', head: true })
-                .eq('clave_accion', claveAccionFinal);
+            const { error: errUpdate } = await supabaseClient
+                .from('acciones_transicion_v2')
+                .update({ 
+                    archivos_drive: act.archivosDrive,
+                    subcarpetas: act.subcarpetas 
+                })
+                .eq('clave_accion', claveAccion);
 
-            if (!errCount && count !== null) {
-                contadorBase = count + 1; // Si hay 2, el siguiente es 3 (-0.003)
+            if (errUpdate) {
+                console.error("Error al actualizar Supabase:", errUpdate);
             }
         }
 
