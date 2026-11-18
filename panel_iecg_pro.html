@@ -9571,6 +9571,7 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
     }
 
     // Poblar el combobox con las subcarpetas creadas para esta acción
+// Poblar el combobox con las subcarpetas creadas para esta acción
     const selectSub = document.getElementById('rapidoSubcarpetaSelect');
     if (selectSub) {
         selectSub.innerHTML = '<option value="">📁 Directorio Principal de la Acción (Raíz)</option>';
@@ -9582,11 +9583,6 @@ window.abrirModalAgregarArchivosRapido = function(idClave) {
             selectSub.appendChild(opt);
         });
     }
-
-    const fileInput = document.getElementById('rapidoFileInput');
-    if (fileInput) fileInput.value = '';
-    const notaInput = document.getElementById('rapidoNota');
-    if (notaInput) notaInput.value = '';
 
     openModal('modal-agregar-archivos-rapido');
 };
