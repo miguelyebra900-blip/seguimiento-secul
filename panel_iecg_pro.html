@@ -12748,6 +12748,100 @@ window.guardarArchivoEnAccion = async function(e) {
         }, 500);
     });
 
+  // 1. Función global para subir archivos a Google Drive con soporte para subcarpetas
+window.subirArchivoADrive = async function(file, panelLetra, subcarpeta = "", nombrePersonalizado = null) {
+    if (!file) throw new Error("No se ha seleccionado ningún archivo.");
+
+    const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+
+    const nombreArchivoFinal = nombrePersonalizado ? nombrePersonalizado : file.name;
+
+    const payload = {
+        accion: 'subirArchivo',
+        fileName: nombreArchivoFinal,
+        mimeType: file.type || 'application/octet-stream',
+        fileData: 'data:' + (file.type || 'application/octet-stream') + ';base64,' + base64,
+        panel: (panelLetra || 'A').toUpperCase(),
+        subcarpeta: subcarpeta || '' // Envía la subcarpeta seleccionada al backend
+    };
+
+    const res = await fetch(APPS_SCRIPT_DRIVE_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (data.status !== 'success') {
+        throw new Error(data.message || "Error al subir a Google Drive");
+    }
+    return data.fileUrl;
+};
+
+// 2. Función que procesa el formulario del modal de carga rápida de archivos
+async function guardarArchivoRapido(e) {
+    e.preventDefault();
+    
+    const claveAccion = document.getElementById('rapidoClaveAccion')?.value || '';
+    const panelActivo = document.getElementById('rapidoTextoPanel')?.textContent.replace('Panel ', '').trim() || 'A';
+    const subcarpetaSeleccionada = document.getElementById('rapidoSubcarpetaSelect')?.value || ''; // Lee la subcarpeta elegida
+    const fileInput = document.getElementById('rapidoFileInput');
+    const notaInput = document.getElementById('rapidoNota')?.value || '';
+    
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Selecciona al menos un archivo de evidencia.");
+        return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmitRapido');
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a subcarpeta...';
+    }
+
+    try {
+        const archivo = fileInput.files[0];
+        const nombreConClave = `[${claveAccion}] ${archivo.name}`;
+        
+        // Sube a Google Drive pasando la subcarpeta seleccionada
+        const driveUrlFinal = await window.subirArchivoADrive(archivo, panelActivo, subcarpetaSeleccionada, nombreConClave);
+
+        // Guarda el registro en la tabla de Supabase incluyendo la subcarpeta
+        if (supabaseClient) {
+            const { error: errEvidencia } = await supabaseClient
+                .from('evidencias_expedientes_v2')
+                .insert([{
+                    clave_accion: claveAccion,
+                    nombre_archivo: nombreConClave,
+                    drive_url: driveUrlFinal,
+                    subcarpeta: subcarpetaSeleccionada // Registra la subcarpeta en la base de datos
+                }]);
+
+            if (errEvidencia) throw errEvidencia;
+        }
+
+        alert("¡Archivo subido y anidado en la subcarpeta de Google Drive correctamente!");
+        closeModal('modal-agregar-archivos-rapido');
+        
+        if (typeof inicializarDatosDesdeSupabase === 'function') await inicializarDatosDesdeSupabase();
+        if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
+
+    } catch (err) {
+        console.error("Error al subir archivo rápido:", err);
+        alert("Error al sincronizar con Drive/Supabase: " + err.message);
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Subir y Registrar Archivo(s)';
+        }
+    }
+}
+        
     </script>
 </body>
 </html>
