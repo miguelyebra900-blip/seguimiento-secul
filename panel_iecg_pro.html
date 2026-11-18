@@ -9640,35 +9640,13 @@ window.guardarArchivoRapido = async function(e) {
         const prefijoSub = subcarpetaVal ? `[Sub: ${subcarpetaVal}] ` : '';
         const nombreNominalDrive = `${prefijoSub}[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
 
-        // 2. Subir a Google Drive
-        const base64Data = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-            reader.readAsDataURL(archivoFisico);
-        });
-
-       const payloadDrive = {
-            accion: 'subirArchivo',
-            fileName: nombreNominalDrive,
-            mimeType: archivoFisico.type || 'application/octet-stream',
-            fileData: base64Data,
-            panel: act.panel
-        };
-
-        const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
-            method: 'POST',
-            body: JSON.stringify(payloadDrive)
-        });
-        const dataDrive = await resDrive.json();
-
-        if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
-            throw new Error(dataDrive.message || "No se pudo obtener el enlace de Google Drive.");
+       // 2. Subir a Google Drive
+        const urlDrive = await window.subirArchivoADrive(archivoFisico, act.panel, nombreNominalDrive);
+        if (!urlDrive || !urlDrive.startsWith('http')) {
+            throw new Error("No se pudo obtener el enlace de Google Drive.");
         }
 
-        const urlDrive = dataDrive.fileUrl;
-
-        // 3. Registrar en Supabase (Únicamente con las columnas existentes: clave_accion, nombre_archivo, drive_url)
+        // 3. Registrar en Supabase (Únicamente con las columnas oficiales de la tabla)
         if (supabaseClient) {
             const { error: errInsert } = await supabaseClient
                 .from('evidencias_expedientes_v2')
@@ -9677,16 +9655,15 @@ window.guardarArchivoRapido = async function(e) {
                     nombre_archivo: nombreNominalDrive,
                     drive_url: urlDrive
                 }]);
-
             if (errInsert) throw errInsert;
         }
 
-        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
-        act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
+        // 4. Actualizar memoria local
         act.driveUrl = urlDrive;
+        if (!act.archivosDrive) act.archivosDrive = [];
+        act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
         
         guardarDataset();
-
         alert(`¡Archivo agregado exitosamente ${subcarpetaVal ? 'en la subcarpeta "' + subcarpetaVal + '"' : ''} con sufijo [${sufijoIndex}]!`);
         closeModal('modal-agregar-archivos-rapido');
 
