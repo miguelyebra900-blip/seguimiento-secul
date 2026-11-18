@@ -3001,16 +3001,17 @@ async function inicializarDatosDesdeSupabase() {
         const evidenciasSupabase = resEvidencias.data || [];
 
         // Mapear los archivos por clave de acción de forma agrupada
-        const mapaEvidencias = {};
+const mapaEvidencias = {};
         evidenciasSupabase.forEach(ev => {
-    const claveAcc = (ev.clave_accion || '').trim();
-    if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
-    mapaEvidencias[claveAcc].push({ 
-        id: ev.id, // <--- Importante para el borrado
-        nombre: ev.nombre_archivo, 
-        url: ev.drive_url 
-    });
-});
+            const claveAcc = (ev.clave_accion || '').trim();
+            if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
+            mapaEvidencias[claveAcc].push({ 
+                id: ev.id, 
+                nombre: ev.nombre_archivo, 
+                url: ev.drive_url,
+                subcarpeta: ev.subcarpeta || '' // 👈 ESTO FALTABA: Recupera la subcarpeta desde la base de datos
+            });
+        });
 
         // 2. Mapa de Áreas Estratégicas (clave_area / panel -> nombre_area)
         const mapaAreas = {};
@@ -9629,14 +9630,13 @@ window.guardarArchivoRapido = async function(e) {
                 reader.onerror = error => reject(error);
                 reader.readAsDataURL(archivoFisico);
             });
-
-            const payloadDrive = {
+const payloadDrive = {
                 accion: 'subirArchivo',
                 fileName: nombreNominalDrive,
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaVal // Enviar al Script de Drive
+                subcarpeta: subcarpetaVal // 👈 Envía la subcarpeta al Apps Script para que cree el archivo dentro de la carpeta correcta en Google Drive
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
