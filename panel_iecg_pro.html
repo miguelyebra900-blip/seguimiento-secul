@@ -71,6 +71,25 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
     <script>
+        // Neutralizador definitivo de peticiones malformadas con sufijos de índice
+(function() {
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, ...args) {
+        if (typeof url === 'string' && url.includes('acciones_transicion_v2') && url.endsWith(':1')) {
+            arguments[1] = url.replace(/:1$/, ''); // Limpia el :1 malformado automáticamente
+        }
+        return originalOpen.apply(this, arguments);
+    };
+
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        let url = args[0];
+        if (typeof url === 'string' && url.includes('acciones_transicion_v2') && url.endsWith(':1')) {
+            args[0] = url.replace(/:1$/, '');
+        }
+        return originalFetch.apply(this, args);
+    };
+})();
         async function registrarAccionEnSupabase(entidad, accionRealizada, detallesExtra) {
             let usuarioActual = "Operativo";
             try {
