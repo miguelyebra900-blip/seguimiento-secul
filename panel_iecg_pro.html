@@ -3001,7 +3001,8 @@ async function inicializarDatosDesdeSupabase() {
         const evidenciasSupabase = resEvidencias.data || [];
 
         // Mapear los archivos por clave de acción de forma agrupada
-const mapaEvidencias = {};
+// Mapear los archivos por clave de acción de forma agrupada
+        const mapaEvidencias = {};
         evidenciasSupabase.forEach(ev => {
             const claveAcc = (ev.clave_accion || '').trim();
             if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
@@ -3009,7 +3010,7 @@ const mapaEvidencias = {};
                 id: ev.id, 
                 nombre: ev.nombre_archivo, 
                 url: ev.drive_url,
-                subcarpeta: ev.subcarpeta || '' // 👈 ESTO FALTABA: Recupera la subcarpeta desde la base de datos
+                subcarpeta: ev.subcarpeta || '' // 👈 ESTO ES LO QUE HACE QUE APAREZCA EN LA SUBCARPETA
             });
         });
 
@@ -3049,6 +3050,9 @@ const mapaEvidencias = {};
                 
                 const listaArchivos = mapaEvidencias[claveAccion] || [];
                 const ultimaUrl = listaArchivos.length > 0 ? listaArchivos[listaArchivos.length - 1].url : (itemDB.drive_url || '');
+
+                // Sincronizar el arreglo de archivos local con el mapa de evidencias que trae la subcarpeta
+                const archivosDriveFinales = listaArchivos.length > 0 ? listaArchivos : (itemDB.archivos_drive || []);
 
                 const hitoInfo = mapaHitos[claveHito] || {};
                 const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
