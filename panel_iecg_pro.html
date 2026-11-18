@@ -2984,59 +2984,42 @@ async function inicializarDatosDesdeSupabase() {
         return;
     }
 
-        // Petición limpia, en paralelo y con manejo seguro de errores
-try {
-        const resAcciones = await supabaseClient.from('acciones_transicion_v2').select('*');
-        if (resAcciones.error) {
-            console.error("🔴 ERROR DE SUPABASE EN ACCIONES:", resAcciones.error);
-            throw resAcciones.error;
-        }
+    try {
+        // Fuente principal y única de verdad: acciones_transicion_v2 y evidencias
+        const [resAcciones, resEvidencias] = await Promise.all([
+            supabaseClient.from('acciones_transicion_v2').select('*'),
+            supabaseClient.from('evidencias_expedientes_v2').select('*').order('created_at', { ascending: true })
+        ]);
 
-        const resHitos = await supabaseClient.from('hitos_transicion_v2').select('*');
-        const resAreas = await supabaseClient.from('areas_estrategicas_v2').select('*');
-        const resEvidencias = await supabaseClient.from('evidencias_expedientes_v2').select('*');
+        if (resAcciones.error) throw resAcciones.error;
+
         const accionesSupabase = resAcciones.data || [];
-        const hitosSupabase = resHitos.data || [];
-        const areasSupabase = resAreas.data || [];
         const evidenciasSupabase = resEvidencias.data || [];
 
         // Mapeo seguro de evidencias y subcarpetas
         const mapaEvidencias = {};
-        if (Array.isArray(evidenciasSupabase)) {
-            evidenciasSupabase.forEach(ev => {
-                const claveAcc = (ev.clave_accion || '').trim();
-                if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
-                mapaEvidencias[claveAcc].push({ 
-                    id: ev.id, 
-                    nombre: ev.nombre_archivo, 
-                    url: ev.drive_url,
-                    subcarpeta: ev.subcarpeta || '' 
-                });
+        evidenciasSupabase.forEach(ev => {
+            const claveAcc = (ev.clave_accion || '').trim();
+            if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
+            mapaEvidencias[claveAcc].push({ 
+                id: ev.id, 
+                nombre: ev.nombre_archivo, 
+                url: ev.drive_url,
+                subcarpeta: ev.subcarpeta || '' 
             });
-        }
-
-        const mapaAreas = {};
-        areasSupabase.forEach(a => {
-            if (a.clave_area) mapaAreas[a.clave_area.trim()] = a.nombre_area;
-            if (a.panel) mapaAreas[a.panel.trim()] = a.nombre_area;
         });
 
-        const mapaHitos = {};
-        hitosSupabase.forEach(h => {
-            if (h.clave_hito) {
-                mapaHitos[h.clave_hito.trim()] = {
-                    titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
-                    panel: h.panel || 'A',
-                    clave_area: h.clave_area || 'RH_E',
-                    avance: Number(h.avance_porcentaje || 0)
-                };
-            }
-        });
-
+        // Diccionario oficial de prefijos de área a Panel (A - I)
         const PREFIJO_A_PANEL = {
-            'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
-            'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
-            'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
+            'RH_E': 'A', 
+            'ASI_P': 'B', 
+            'JUR_C': 'C', 
+            'FID_F': 'D',
+            'PTR_I': 'E', 'PTR_M': 'E', 
+            'FIN_P': 'F', 
+            'TIT_S': 'G', 
+            'ACH_D': 'H', 
+            'AUD_F': 'I'
         };
 
         if (accionesSupabase.length > 0) {
@@ -3047,6 +3030,7 @@ try {
                 const listaArchivosTabla = mapaEvidencias[claveAccion] || [];
                 const listaArchivosJson = Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : [];
                 
+                // Unificar archivos de Drive sin duplicados preservando la subcarpeta
                 const archivosUnificadosMap = {};
                 [...listaArchivosJson, ...listaArchivosTabla].forEach(doc => {
                     if (doc && (doc.url || doc.drive_url)) {
@@ -3061,11 +3045,9 @@ try {
                 const archivosDriveFinales = Object.values(archivosUnificadosMap);
                 const ultimaUrl = archivosDriveFinales.length > 0 ? archivosDriveFinales[archivosDriveFinales.length - 1].url : (itemDB.drive_url || '');
 
-                const hitoInfo = mapaHitos[claveHito] || {};
+                // Detectar panel real basándose en tus prefijos oficiales
                 const prefijo = claveAccion.split('-')[0] || claveHito.split('-')[0] || 'RH_E';
-                const panelReal = hitoInfo.panel || PREFIJO_A_PANEL[prefijo] || 'A';
-                const claveArea = hitoInfo.clave_area || prefijo;
-                const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
+                const panelReal = PREFIJO_A_PANEL[prefijo] || itemDB.panel || 'A';
 
                 let valorAvance = Number(itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (itemDB.avance || 0));
                 let estatusLimpio = valorAvance === 100 ? 'Concluido' : (valorAvance >= 75 ? 'Validación' : 'En Proceso');
@@ -3076,37 +3058,33 @@ try {
                     id: claveAccion,
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
-                    hito_global: itemDB.hito_global || hitoInfo.hito_global || 'HITO-01', 
+                    hito_global: itemDB.hito_global || itemDB.clave_hito || 'HITO-01', 
                     panel: panelReal,
-                    area: nombreAreaReal,
-                    hito: hitoInfo.titulo || itemDB.hito || (matchOficial ? matchOficial.hito : 'Hito normativo'),
-                    accion: itemDB.accion_especifica || (matchOficial ? matchOficial.accion : 'Acción operativa'),
-                    responsable: itemDB.instancia_responsable || (matchOficial ? matchOficial.responsable : panelReal),
+                    area: itemDB.area || (matchOficial ? matchOficial.area : 'Área Estratégica'),
+                    hito: itemDB.hito || (matchOficial ? matchOficial.hito : 'Hito normativo'),
+                    accion: itemDB.accion_especifica || itemDB.accion || (matchOficial ? matchOficial.accion : 'Acción operativa'),
+                    responsable: itemDB.instancia_responsable || itemDB.responsable || (matchOficial ? matchOficial.responsable : panelReal),
                     estatus: estatusLimpio,
                     avance: valorAvance,
-                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : (100 / 3)),
+                    peso: itemDB.peso || (matchOficial ? matchOficial.peso : 33.33),
                     driveUrl: ultimaUrl,
                     archivosDrive: archivosDriveFinales,
                     subcarpetas: Array.isArray(itemDB.subcarpetas) ? itemDB.subcarpetas : (matchOficial ? matchOficial.subcarpetas : []),
-                    fundamento_juridico: itemDB.fundamento_juridico || '',
+                    fundamento_juridico: itemDB.fundamento_juridico || (matchOficial ? matchOficial.fundamento_juridico : ''),
                     riesgo_vinculado: itemDB.riesgo_vinculado || '',
-                    bloque_estrategico: itemDB.bloque_estrategico || (matchOficial ? matchOficial.bloque_estrategico : 'Bloque 1'),
+                    bloque_estrategico: itemDB.bloque_estrategico || 'Bloque 1',
                     tercero_externo: itemDB.tercero_externo || '',
                     accion_cierre_pinza: itemDB.accion_cierre_pinza || '',
                     etiqueta_tramite: itemDB.etiqueta_tramite || '',
                     vinculo_art6: itemDB.vinculo_art6 || 'NO',
                     cita_textual_literal: itemDB.cita_textual_literal || '',
-                    instrumento_1: itemDB.instrumento_1 || '',
-                    instrumento_2: itemDB.instrumento_2 || '',
-                    instrumento_3: itemDB.instrumento_3 || '',
-                    sugerencia_expediente_tecnico: itemDB.sugerencia_expediente_tecnico || '',
                     nota_auditoria: itemDB.nota_auditoria || ''
                 };
             });
         }
 
         localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
-        console.log("¡Datos sincronizados correctamente desde Supabase sin errores de red!");
+        console.log("¡Datos sincronizados exitosamente desde la tabla principal de Supabase!");
 
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
@@ -3114,10 +3092,11 @@ try {
         if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
 
     } catch (err) {
-        console.error("Error crítico en inicializarDatosDesdeSupabase:", err.message);
+        console.error("Error al inicializar desde Supabase:", err.message);
         accionesDataset = ACCIONES_INICIALES;
     }
 }
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
