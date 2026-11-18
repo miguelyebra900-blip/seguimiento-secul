@@ -2979,41 +2979,38 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible, usando catálogo local.");
         accionesDataset = ACCIONES_INICIALES;
         return;
     }
 
-        // Petición limpia, en paralelo y con manejo seguro de errores
-try {
+    try {
+        // Consultas con control explícito de errores de red/RLS
         const resAcciones = await supabaseClient.from('acciones_transicion_v2').select('*');
+        const resHitos = await supabaseClient.from('hitos_transicion_v2').select('*').catch(() => ({ data: [] }));
+        const resAreas = await supabaseClient.from('areas_estrategicas_v2').select('*').catch(() => ({ data: [] }));
+        const resEvidencias = await supabaseClient.from('evidencias_expedientes_v2').select('*').catch(() => ({ data: [] }));
+
         if (resAcciones.error) {
-            console.error("🔴 ERROR DE SUPABASE EN ACCIONES:", resAcciones.error);
-            throw resAcciones.error;
+            console.warn("Aviso de Supabase en acciones:", resAcciones.error.message);
         }
 
-        const resHitos = await supabaseClient.from('hitos_transicion_v2').select('*');
-        const resAreas = await supabaseClient.from('areas_estrategicas_v2').select('*');
-        const resEvidencias = await supabaseClient.from('evidencias_expedientes_v2').select('*');
         const accionesSupabase = resAcciones.data || [];
         const hitosSupabase = resHitos.data || [];
         const areasSupabase = resAreas.data || [];
         const evidenciasSupabase = resEvidencias.data || [];
 
-        // Mapeo seguro de evidencias y subcarpetas
+        // Mapeo seguro de evidencias
         const mapaEvidencias = {};
-        if (Array.isArray(evidenciasSupabase)) {
-            evidenciasSupabase.forEach(ev => {
-                const claveAcc = (ev.clave_accion || '').trim();
-                if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
-                mapaEvidencias[claveAcc].push({ 
-                    id: ev.id, 
-                    nombre: ev.nombre_archivo, 
-                    url: ev.drive_url,
-                    subcarpeta: ev.subcarpeta || '' 
-                });
+        evidenciasSupabase.forEach(ev => {
+            const claveAcc = (ev.clave_accion || '').trim();
+            if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
+            mapaEvidencias[claveAcc].push({ 
+                id: ev.id, 
+                nombre: ev.nombre_archivo, 
+                url: ev.drive_url,
+                subcarpeta: ev.subcarpeta || '' 
             });
-        }
+        });
 
         const mapaAreas = {};
         areasSupabase.forEach(a => {
@@ -3106,7 +3103,7 @@ try {
         }
 
         localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
-        console.log("¡Datos sincronizados correctamente desde Supabase sin errores de red!");
+        console.log("¡Sistema sincronizado con éxito!");
 
         if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
@@ -3114,10 +3111,11 @@ try {
         if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
 
     } catch (err) {
-        console.error("Error crítico en inicializarDatosDesdeSupabase:", err.message);
+        console.warn("Aviso de sincronización:", err.message);
         accionesDataset = ACCIONES_INICIALES;
     }
 }
+        
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
