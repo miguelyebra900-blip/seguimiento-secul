@@ -9599,17 +9599,11 @@ window.guardarArchivoRapido = async function(e) {
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
     
-    // 👈 CAPTURAR LA SUBCARPETA SELECCIONADA EN EL MODAL RÁPIDO
     const selectSub = document.getElementById('rapidoSubcarpetaSelect');
     const subcarpetaVal = selectSub ? selectSub.value.trim() : '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("Por favor selecciona al menos un archivo.");
-        return;
-    }
-
-    if (fileInput.files.length > 5) {
-        alert("⚠️ Solo puedes subir un máximo de 5 archivos por interacción.");
         return;
     }
 
@@ -9628,16 +9622,7 @@ window.guardarArchivoRapido = async function(e) {
         for (let i = 0; i < fileInput.files.length; i++) {
             const archivoFisico = fileInput.files[i];
 
-            // 1. Consultar contador actual para el sufijo (-0.00x)
-            let contadorBase = 1;
-            if (supabaseClient) {
-                const { count } = await supabaseClient
-                    .from('evidencias_expedientes_v2')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('clave_accion', claveAccion);
-                if (count !== null) contadorBase = count + 1 + i;
-            }
-
+            let contadorBase = act.archivosDrive.length + 1 + i;
             const sufijoIndex = `-0.00${contadorBase}`;
             const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
 
@@ -9647,13 +9632,14 @@ window.guardarArchivoRapido = async function(e) {
                 reader.onerror = error => reject(error);
                 reader.readAsDataURL(archivoFisico);
             });
-const payloadDrive = {
+
+            const payloadDrive = {
                 accion: 'subirArchivo',
                 fileName: nombreNominalDrive,
                 mimeType: archivoFisico.type || 'application/octet-stream',
                 fileData: base64Data,
                 panel: act.panel,
-                subcarpeta: subcarpetaVal // 👈 Envía la subcarpeta al Apps Script para que cree el archivo dentro de la carpeta correcta en Google Drive
+                subcarpeta: subcarpetaVal
             };
 
             const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
@@ -9668,17 +9654,16 @@ const payloadDrive = {
 
             const urlDrive = dataDrive.fileUrl;
 
-            // 2. Insertar en tabla de evidencias en Supabase (si tienes columna subcarpeta, la incluimos)
+            // 👈 INSERCIÓN SEGURA (Sin invocar columnas que puedan faltar en Supabase)
             if (supabaseClient) {
                 await supabaseClient.from('evidencias_expedientes_v2').insert([{
                     clave_accion: claveAccion,
                     nombre_archivo: nombreNominalDrive,
-                    drive_url: urlDrive,
-                    subcarpeta: subcarpetaVal
-                }]);
+                    drive_url: urlDrive
+                }]).select();
             }
 
-            // 3. 👈 HACER PUSH DENTRO DEL BUCLE INCLUYENDO EXPLÍCITAMENTE LA SUBCARPETA
+            // Registrar en el arreglo local asegurando la subcarpeta
             act.archivosDrive.push({ 
                 nombre: nombreNominalDrive, 
                 url: urlDrive,
@@ -9686,7 +9671,7 @@ const payloadDrive = {
             });
         }
 
-        // Sincronizar arreglo en la tabla principal de Supabase
+        // Sincronizar el arreglo completo con subcarpetas en acciones_transicion_v2
         if (supabaseClient) {
             await supabaseClient
                 .from('acciones_transicion_v2')
@@ -9700,7 +9685,6 @@ const payloadDrive = {
         guardarDataset();
         alert(`¡Archivo(s) guardado(s) exitosamente en la subcarpeta "${subcarpetaVal || 'Raíz'}"!`);
         
-        // Limpiar formulario y cerrar modal
         fileInput.value = '';
         if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
         
