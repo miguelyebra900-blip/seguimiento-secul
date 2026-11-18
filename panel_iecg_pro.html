@@ -2110,7 +2110,12 @@
                 </select>
                 <span class="text-[10px] text-slate-400 block mt-1">El archivo se anidará en la subcarpeta seleccionada de Google Drive.</span>
             </div>
-
+<!-- ASIGNAR O CREAR SUBCARPETA EN DRIVE -->
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Nombre de Subcarpeta / Expediente (Opcional):</label>
+                <input type="text" id="rapidoSubcarpetaInput" placeholder="Ej. Adendas_Banorte, Facturas_2026..." class="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                <span class="text-[10px] text-slate-400 block mt-1">Si escribes un nombre, se creará o agrupará automáticamente como subcarpeta en la raíz de este Panel en Google Drive.</span>
+            </div>
             <!-- 3. SELECCIONAR HASTA 5 ARCHIVOS DE EVIDENCIA (MÚLTIPLE) -->
             <div>
                 <label class="block font-bold text-slate-700 mb-1 text-xs flex items-center justify-between">
@@ -9598,12 +9603,10 @@ window.guardarArchivoRapido = async function(e) {
     const claveAccion = document.getElementById('rapidoClaveAccion').value;
     const fileInput = document.getElementById('rapidoFileInput');
     const nota = document.getElementById('rapidoNota')?.value.trim() || '';
-    
-    const selectSub = document.getElementById('rapidoSubcarpetaSelect');
-    const subcarpetaVal = selectSub ? selectSub.value.trim() : '';
+    const subcarpetaVal = document.getElementById('rapidoSubcarpetaInput')?.value.trim() || '';
     
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Por favor selecciona al menos un archivo.");
+        alert("Por favor seleccione un archivo.");
         return;
     }
 
@@ -9613,87 +9616,96 @@ window.guardarArchivoRapido = async function(e) {
     const btnSubmit = document.getElementById('btnSubmitRapido');
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo a subcarpeta...';
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin me-1"></i> Subiendo y registrando...';
     }
 
     try {
-        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
-
-        for (let i = 0; i < fileInput.files.length; i++) {
-            const archivoFisico = fileInput.files[i];
-
-            let contadorBase = act.archivosDrive.length + 1 + i;
-            const sufijoIndex = `-0.00${contadorBase}`;
-            const nombreNominalDrive = `[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
-
-            const base64Data = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(archivoFisico);
-            });
-
-            const payloadDrive = {
-                accion: 'subirArchivo',
-                fileName: nombreNominalDrive,
-                mimeType: archivoFisico.type || 'application/octet-stream',
-                fileData: base64Data,
-                panel: act.panel,
-                subcarpeta: subcarpetaVal
-            };
-
-            const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
-                method: 'POST',
-                body: JSON.stringify(payloadDrive)
-            });
-            const dataDrive = await resDrive.json();
-
-            if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
-                throw new Error(dataDrive.message || "Error al subir archivo a Google Drive.");
-            }
-
-            const urlDrive = dataDrive.fileUrl;
-
-            // 👈 GUARDAR DIRECTAMENTE EN EL ARREGLO LOCAL CON SU RESPECTIVA SUBCARPETA
-            act.archivosDrive.push({ 
-                nombre: nombreNominalDrive, 
-                url: urlDrive,
-                subcarpeta: subcarpetaVal 
-            });
-        }
-
-        // Sincronizar el arreglo unificado de archivos y subcarpetas en la tabla principal de Supabase
+        // 1. Consultar cuántos archivos existen en evidencias_expedientes para calcular el sufijo exacto (-0.00x)
+        let contadorBase = 1;
         if (supabaseClient) {
-            await supabaseClient
-                .from('acciones_transicion_v2')
-                .update({ 
-                    archivos_drive: act.archivosDrive,
-                    subcarpetas: act.subcarpetas 
-                })
+            const { count, error: errCount } = await supabaseClient
+                .from('evidencias_expedientes_v2')
+                .select('*', { count: 'exact', head: true })
                 .eq('clave_accion', claveAccion);
+
+            if (!errCount && count !== null) {
+                contadorBase = count + 1;
+            }
         }
 
+        const archivoFisico = fileInput.files[0];
+        const sufijoIndex = `-0.00${contadorBase}`;
+        
+        // Incluir la subcarpeta estéticamente en el nombre del archivo para Google Drive y Supabase
+        const prefijoSub = subcarpetaVal ? `[Sub: ${subcarpetaVal}] ` : '';
+        const nombreNominalDrive = `${prefijoSub}[${claveAccion}${sufijoIndex}] ${archivoFisico.name}`;
+
+        // 2. Subir a Google Drive
+        const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(archivoFisico);
+        });
+
+        const payloadDrive = {
+            accion: 'subirArchivo',
+            fileName: nombreNominalDrive,
+            mimeType: archivoFisico.type || 'application/octet-stream',
+            fileData: base64Data,
+            panel: act.panel,
+            subcarpeta: subcarpetaVal
+        };
+
+        const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
+            method: 'POST',
+            body: JSON.stringify(payloadDrive)
+        });
+        const dataDrive = await resDrive.json();
+
+        if (dataDrive.status !== 'success' || !dataDrive.fileUrl) {
+            throw new Error(dataDrive.message || "No se pudo obtener el enlace de Google Drive.");
+        }
+
+        const urlDrive = dataDrive.fileUrl;
+
+        // 3. Registrar en Supabase (Únicamente con las columnas existentes: clave_accion, nombre_archivo, drive_url)
+        if (supabaseClient) {
+            const { error: errInsert } = await supabaseClient
+                .from('evidencias_expedientes_v2')
+                .insert([{
+                    clave_accion: claveAccion,
+                    nombre_archivo: nombreNominalDrive,
+                    drive_url: urlDrive
+                }]);
+
+            if (errInsert) throw errInsert;
+        }
+
+        if (!Array.isArray(act.archivosDrive)) act.archivosDrive = [];
+        act.archivosDrive.push({ nombre: nombreNominalDrive, url: urlDrive });
+        act.driveUrl = urlDrive;
+        
         guardarDataset();
-        alert(`¡Archivo(s) guardado(s) exitosamente en la subcarpeta "${subcarpetaVal || 'Raíz'}"!`);
-        
-        fileInput.value = '';
-        if (document.getElementById('rapidoNota')) document.getElementById('rapidoNota').value = '';
-        
+
+        alert(`¡Archivo agregado exitosamente ${subcarpetaVal ? 'en la subcarpeta "' + subcarpetaVal + '"' : ''} con sufijo [${sufijoIndex}]!`);
         closeModal('modal-agregar-archivos-rapido');
+
+        // Sincronizar UI en tiempo real
         await inicializarDatosDesdeSupabase();
+        actualizarDashboard();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
 
     } catch (err) {
-        console.error("Error:", err);
+        console.error("Error en carga rápida:", err);
         alert("Error al guardar: " + err.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = 'Subir y Registrar Archivo(s)';
+            btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Subir y Registrar Archivo';
         }
     }
 };
-        
   window.eliminarEvidenciaRapida = async function(idEvidencia, claveAccion) {
     if (!confirm("¿Estás seguro de eliminar este archivo de la base de datos probatoria?")) {
         return;
