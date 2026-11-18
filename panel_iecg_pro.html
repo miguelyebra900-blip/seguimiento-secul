@@ -2888,23 +2888,8 @@ if (typeof supabaseClient !== 'undefined' && supabaseClient) {
     };
 }
         
-        
-    window.supabaseClient.from = function(table) {
-        const query = originalFrom.call(this, table);
-        if (table === 'acciones_transicion_v2') {
-            const originalEq = query.eq;
-            query.eq = function(column, value) {
-                if (column === 'clave_accion' && (!value || value.includes('undefined'))) {
-                    console.warn("⚠️ Intento de consulta con clave vacía bloqueado para evitar error 400.");
-                    return this; // Evita mandar el request malo
-                }
-                return originalEq.call(this, column, value);
-            };
-        }
-        return query;
-    };
-})();  
-       function updateAuthUI() {
+    
+function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
             const role = document.getElementById('userRoleDisplay');
@@ -2920,7 +2905,6 @@ if (typeof supabaseClient !== 'undefined' && supabaseClient) {
                 if (lblAuditoriaUser) lblAuditoriaUser.innerText = `${currentUser.nombre} (${currentUser.usuario})`;
 
                 const rolStr = (currentUser.rol || '').toLowerCase();
-                // Si el rol es admin, auditor, contralor o asegurador se muestra el acceso directo
                 if (btnAdminTop) {
                     if (rolStr.includes('admin') || rolStr.includes('super') || rolStr.includes('auditor') || rolStr.includes('aseg')) {
                         btnAdminTop.classList.remove('hidden');
@@ -2937,19 +2921,19 @@ if (typeof supabaseClient !== 'undefined' && supabaseClient) {
                 if (lblAuditoriaUser) lblAuditoriaUser.innerText = "Modo Consulta";
                 if (btnAdminTop) btnAdminTop.classList.add('hidden');
             }
-        }
 
-// Dentro de updateAuthUI(), agrega:
-const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
-if (btnVinculo) {
-    if (currentUser && !currentUser.esAdmin) {
-        btnVinculo.classList.remove('hidden');
-        btnVinculo.classList.add('flex');
-    } else {
-        btnVinculo.classList.add('hidden');
-        btnVinculo.classList.remove('flex');
-    }
-}
+            // <-- AQUÍ ADENTRO SÍ FUNCIONA PERFECTAMENTE:
+            const btnVinculo = document.getElementById('btnSolicitarVinculacionPanelTop');
+            if (btnVinculo) {
+                if (currentUser && !currentUser.esAdmin) {
+                    btnVinculo.classList.remove('hidden');
+                    btnVinculo.classList.add('flex');
+                } else {
+                    btnVinculo.classList.add('hidden');
+                    btnVinculo.classList.remove('flex');
+                }
+            }
+        }
 
         function handleAuthClick() {
             if (currentUser) {
