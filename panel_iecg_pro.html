@@ -2979,13 +2979,13 @@ if (btnVinculo) {
 // Función definitiva para cargar datos reales desde Supabase (hitos_transicion y acciones_transicion)
 async function inicializarDatosDesdeSupabase() {
     if (!supabaseClient) {
-        console.warn("Supabase no disponible, usando catálogo oficial.");
+        console.warn("Supabase no disponible, usando catálogo local.");
         accionesDataset = ACCIONES_INICIALES;
         return;
     }
 
     try {
-        // 1. Consultar en paralelo las tablas operativas de Supabase (incluyendo evidencias_expedientes)
+        // Petición limpia, en paralelo y con manejo seguro de errores
         const [resAcciones, resHitos, resAreas, resEvidencias] = await Promise.all([
             supabaseClient.from('acciones_transicion_v2').select('*'),
             supabaseClient.from('hitos_transicion_v2').select('*'),
@@ -2993,66 +2993,63 @@ async function inicializarDatosDesdeSupabase() {
             supabaseClient.from('evidencias_expedientes_v2').select('*').order('created_at', { ascending: true })
         ]);
 
-        if (resAcciones.error) throw resAcciones.error;
+        if (resAcciones.error) {
+            console.error("Error al consultar acciones_transicion_v2:", resAcciones.error.message);
+            return;
+        }
 
         const accionesSupabase = resAcciones.data || [];
         const hitosSupabase = resHitos.data || [];
         const areasSupabase = resAreas.data || [];
         const evidenciasSupabase = resEvidencias.data || [];
 
-   
-// Mapear los archivos por clave de acción de forma agrupada
-     // 1. Mapear evidencias asegurando que se conserve la subcarpeta
+        // Mapeo seguro de evidencias y subcarpetas
         const mapaEvidencias = {};
-        evidenciasSupabase.forEach(ev => {
-            const claveAcc = (ev.clave_accion || '').trim();
-            if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
-            mapaEvidencias[claveAcc].push({ 
-                id: ev.id, 
-                nombre: ev.nombre_archivo, 
-                url: ev.drive_url,
-                subcarpeta: ev.subcarpeta || '' // 👈 Recuperar subcarpeta desde Supabase
+        if (Array.isArray(evidenciasSupabase)) {
+            evidenciasSupabase.forEach(ev => {
+                const claveAcc = (ev.clave_accion || '').trim();
+                if (!mapaEvidencias[claveAcc]) mapaEvidencias[claveAcc] = [];
+                mapaEvidencias[claveAcc].push({ 
+                    id: ev.id, 
+                    nombre: ev.nombre_archivo, 
+                    url: ev.drive_url,
+                    subcarpeta: ev.subcarpeta || '' 
+                });
             });
-        });
+        }
 
-        // 2. Mapa de Áreas Estratégicas (clave_area / panel -> nombre_area)
         const mapaAreas = {};
         areasSupabase.forEach(a => {
-            const claveA = (a.clave_area || '').trim();
-            const panelA = (a.panel || '').trim();
-            const nombreA = a.nombre_area || 'Área Estratégica';
-            if (claveA) mapaAreas[claveA] = nombreA;
-            if (panelA) mapaAreas[panelA] = nombreA;
+            if (a.clave_area) mapaAreas[a.clave_area.trim()] = a.nombre_area;
+            if (a.panel) mapaAreas[a.panel.trim()] = a.nombre_area;
         });
 
-        // 3. Mapa de Hitos (clave_hito -> titulo, panel, clave_area, avance_porcentaje)
         const mapaHitos = {};
         hitosSupabase.forEach(h => {
-            const claveH = (h.clave_hito || '').trim();
-            mapaHitos[claveH] = {
-                titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
-                panel: h.panel || 'A',
-                clave_area: h.clave_area || 'RH_E',
-                avance: Number(h.avance_porcentaje || 0)
-            };
+            if (h.clave_hito) {
+                mapaHitos[h.clave_hito.trim()] = {
+                    titulo: h.titulo || h.detalle_operativo || 'Hito normativo',
+                    panel: h.panel || 'A',
+                    clave_area: h.clave_area || 'RH_E',
+                    avance: Number(h.avance_porcentaje || 0)
+                };
+            }
         });
 
-        // Diccionario inquebrantable de Prefijo a Panel (A - J)
         const PREFIJO_A_PANEL = {
             'RH_E': 'A', 'JUR_C': 'B', 'PTR_I': 'C', 'FID_F': 'D',
             'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G', 'TIC_S': 'G',
             'ACH_D': 'H', 'AUD_F': 'I', 'ASI_P': 'J'
         };
 
- if (accionesSupabase.length > 0) {
+        if (accionesSupabase.length > 0) {
             accionesDataset = accionesSupabase.map(itemDB => {
                 const claveAccion = (itemDB.clave_accion || itemDB.id || '').trim();
                 const claveHito = (itemDB.clave_hito || (claveAccion ? claveAccion.split('-A-')[0] : '')).trim();
                 
-               const listaArchivosTabla = mapaEvidencias[claveAccion] || [];
-                const listaArchivosJson = Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : (Array.isArray(itemDB.archivosDrive) ? itemDB.archivosDrive : []);
+                const listaArchivosTabla = mapaEvidencias[claveAccion] || [];
+                const listaArchivosJson = Array.isArray(itemDB.archivos_drive) ? itemDB.archivos_drive : [];
                 
-                // Fusionar ambos orígenes garantizando que la propiedad subcarpeta se conserve intacta
                 const archivosUnificadosMap = {};
                 [...listaArchivosJson, ...listaArchivosTabla].forEach(doc => {
                     if (doc && (doc.url || doc.drive_url)) {
@@ -3073,19 +3070,12 @@ async function inicializarDatosDesdeSupabase() {
                 const claveArea = hitoInfo.clave_area || prefijo;
                 const nombreAreaReal = mapaAreas[claveArea] || mapaAreas[panelReal] || 'Área Estratégica de Seguimiento';
 
-                let valorAvance = 0;
-                if (itemDB.avance_porcentaje !== undefined && itemDB.avance_porcentaje !== null && !isNaN(Number(itemDB.avance_porcentaje))) {
-                    valorAvance = Number(itemDB.avance_porcentaje);
-                } else if (itemDB.avance !== undefined && itemDB.avance !== null && !isNaN(Number(itemDB.avance))) {
-                    valorAvance = Number(itemDB.avance);
-                }
-
-                let estatusLimpio = 'En Proceso';
-                if (valorAvance === 100) estatusLimpio = 'Concluido';
-                else if (valorAvance >= 75) estatusLimpio = 'Validación';
+                let valorAvance = Number(itemDB.avance_porcentaje !== undefined ? itemDB.avance_porcentaje : (itemDB.avance || 0));
+                let estatusLimpio = valorAvance === 100 ? 'Concluido' : (valorAvance >= 75 ? 'Validación' : 'En Proceso');
 
                 const matchOficial = ACCIONES_INICIALES.find(a => a.id === claveAccion || a.clave_accion === claveAccion);
-return {
+
+                return {
                     id: claveAccion,
                     clave_accion: claveAccion,
                     clave_hito: claveHito,
@@ -3099,39 +3089,38 @@ return {
                     avance: valorAvance,
                     peso: itemDB.peso || (matchOficial ? matchOficial.peso : (100 / 3)),
                     driveUrl: ultimaUrl,
-                    archivosDrive: archivosDriveFinales, // 👈 USAR LA LISTA UNIFICADA ASEGURANDO SUBCARPETA
+                    archivosDrive: archivosDriveFinales,
                     subcarpetas: Array.isArray(itemDB.subcarpetas) ? itemDB.subcarpetas : (matchOficial ? matchOficial.subcarpetas : []),
-    fundamento_juridico: itemDB.fundamento_juridico || '',
-    riesgo_vinculado: itemDB.riesgo_vinculado || '',
-    bloque_estrategico: itemDB.bloque_estrategico || (matchOficial ? matchOficial.bloque_estrategico : 'Bloque 1'),
-    tercero_externo: itemDB.tercero_externo || '',
-    accion_cierre_pinza: itemDB.accion_cierre_pinza || '',
-    etiqueta_tramite: itemDB.etiqueta_tramite || '',
-    vinculo_art6: itemDB.vinculo_art6 || 'NO',
-    cita_textual_literal: itemDB.cita_textual_literal || '',
-    instrumento_1: itemDB.instrumento_1 || '',
-    instrumento_2: itemDB.instrumento_2 || '',
-    instrumento_3: itemDB.instrumento_3 || '',
-    sugerencia_expediente_tecnico: itemDB.sugerencia_expediente_tecnico || '',
-    nota_auditoria: itemDB.nota_auditoria || ''
-};
+                    fundamento_juridico: itemDB.fundamento_juridico || '',
+                    riesgo_vinculado: itemDB.riesgo_vinculado || '',
+                    bloque_estrategico: itemDB.bloque_estrategico || (matchOficial ? matchOficial.bloque_estrategico : 'Bloque 1'),
+                    tercero_externo: itemDB.tercero_externo || '',
+                    accion_cierre_pinza: itemDB.accion_cierre_pinza || '',
+                    etiqueta_tramite: itemDB.etiqueta_tramite || '',
+                    vinculo_art6: itemDB.vinculo_art6 || 'NO',
+                    cita_textual_literal: itemDB.cita_textual_literal || '',
+                    instrumento_1: itemDB.instrumento_1 || '',
+                    instrumento_2: itemDB.instrumento_2 || '',
+                    instrumento_3: itemDB.instrumento_3 || '',
+                    sugerencia_expediente_tecnico: itemDB.sugerencia_expediente_tecnico || '',
+                    nota_auditoria: itemDB.nota_auditoria || ''
+                };
             });
         }
 
-            localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
-            console.log("¡Datos y evidencias sincronizados correctamente desde Supabase!");
+        localStorage.setItem('secul_acciones_v2', JSON.stringify(accionesDataset));
+        console.log("¡Datos sincronizados correctamente desde Supabase sin errores de red!");
 
-if (typeof actualizarDashboard === 'function') actualizarDashboard();
+        if (typeof actualizarDashboard === 'function') actualizarDashboard();
         if (typeof renderTablaMatriz === 'function') renderTablaMatriz();
         if (typeof renderBaseDatosGeneralJerarquica === 'function') renderBaseDatosGeneralJerarquica();
         if (typeof renderCronogramaRoadmap === 'function') renderCronogramaRoadmap();
 
-    } catch (err) { // <-- Aquí cierra correctamente el try y abre el catch
-        console.error("Error al conectar con Supabase:", err.message);
+    } catch (err) {
+        console.error("Error crítico en inicializarDatosDesdeSupabase:", err.message);
         accionesDataset = ACCIONES_INICIALES;
     }
-} // <-- Esta es la única llave que cierra la función async function inicializarDatosDesdeSupabase()
-        
+}
         async function registrarAuditoria(tipoAccion, detalles) {
             const nuevoLog = {
                 fecha: new Date().toLocaleString(),
