@@ -7489,9 +7489,14 @@ window.renderBaseDatosGeneralJerarquica = function() {
 
             if (subcarpetasDataset.length > 0) {
                 htmlArbolCarpetas = subcarpetasDataset.map(function(nombreSub) {
-                var archivosEnSub = listaArchivos.filter(function(doc) {
-    var subDoc = (doc.subcarpeta || doc.carpeta || '').trim().toLowerCase();
+var archivosEnSub = listaArchivos.filter(function(doc) {
+    if (!doc) return false;
+    // Limpiar y normalizar textos para evitar que fallen por espacios o mayúsculas
+    var subDoc = (doc.subcarpeta || doc.carpeta || doc.sub_carpeta || '').trim().toLowerCase();
     var subNombre = (nombreSub || '').trim().toLowerCase();
+    
+    // Si la subcarpeta está vacía en el archivo pero hay una sola subcarpeta creada, 
+    // o si coinciden exactamente los nombres:
     return subDoc === subNombre;
 });
 
