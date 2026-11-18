@@ -2984,20 +2984,17 @@ async function inicializarDatosDesdeSupabase() {
         return;
     }
 
-    try {
         // Petición limpia, en paralelo y con manejo seguro de errores
-        const [resAcciones, resHitos, resAreas, resEvidencias] = await Promise.all([
-            supabaseClient.from('acciones_transicion_v2').select('*'),
-            supabaseClient.from('hitos_transicion_v2').select('*'),
-            supabaseClient.from('areas_estrategicas_v2').select('*'),
-            supabaseClient.from('evidencias_expedientes_v2').select('*').order('created_at', { ascending: true })
-        ]);
-
+try {
+        const resAcciones = await supabaseClient.from('acciones_transicion_v2').select('*');
         if (resAcciones.error) {
-            console.error("Error al consultar acciones_transicion_v2:", resAcciones.error.message);
-            return;
+            console.error("🔴 ERROR DE SUPABASE EN ACCIONES:", resAcciones.error);
+            throw resAcciones.error;
         }
 
+        const resHitos = await supabaseClient.from('hitos_transicion_v2').select('*');
+        const resAreas = await supabaseClient.from('areas_estrategicas_v2').select('*');
+        const resEvidencias = await supabaseClient.from('evidencias_expedientes_v2').select('*');
         const accionesSupabase = resAcciones.data || [];
         const hitosSupabase = resHitos.data || [];
         const areasSupabase = resAreas.data || [];
