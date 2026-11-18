@@ -9648,13 +9648,12 @@ window.guardarArchivoRapido = async function(e) {
             reader.readAsDataURL(archivoFisico);
         });
 
-        const payloadDrive = {
+       const payloadDrive = {
             accion: 'subirArchivo',
             fileName: nombreNominalDrive,
             mimeType: archivoFisico.type || 'application/octet-stream',
             fileData: base64Data,
-            panel: act.panel,
-            subcarpeta: subcarpetaVal
+            panel: act.panel
         };
 
         const resDrive = await fetch(APPS_SCRIPT_DRIVE_URL, {
