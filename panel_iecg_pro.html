@@ -13310,34 +13310,70 @@ document.addEventListener('keydown', (e) => {
 
 
 // Genera el bloque HTML de las 10 etiquetas en formato VERTICAL
+// Función para expandir (+) o contraer (-) la Ficha Normativa de cada acción
+window.toggleFichaEtiquetas = function(btnHeader) {
+    const contenedorPadre = btnHeader.closest('.barra-etiquetas-v2');
+    if (!contenedorPadre) return;
+
+    const cuerpo = contenedorPadre.querySelector('.cuerpo-etiquetas-v2');
+    const icono = btnHeader.querySelector('.icono-toggle-ficha');
+    const textoEstado = btnHeader.querySelector('.texto-toggle-ficha');
+
+    if (cuerpo.classList.contains('hidden')) {
+        cuerpo.classList.remove('hidden');
+        if (icono) {
+            icono.classList.remove('fa-plus');
+            icono.classList.add('fa-minus');
+        }
+        if (textoEstado) textoEstado.innerText = 'Contraer (-)';
+    } else {
+        cuerpo.classList.add('hidden');
+        if (icono) {
+            icono.classList.remove('fa-minus');
+            icono.classList.add('fa-plus');
+        }
+        if (textoEstado) textoEstado.innerText = 'Expandir (+)';
+    }
+};
+
+// Genera el bloque expandible (+/-) con etiquetas compactas tipo píldora
 window.crearBarraEtiquetasAccion = function(claveAccion) {
     const botones = ETIQUETAS_SUPABASE_V2.map(cfg => `
         <button type="button"
             onclick="event.stopPropagation(); verEtiquetaSupabaseBD('${claveAccion}', '${cfg.col}')"
-            class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border text-[11px] font-bold transition shadow-2xs cursor-pointer ${cfg.color}">
-            <span class="flex items-center gap-2">
-                <i class="fa-solid ${cfg.icon} w-4 text-center text-xs"></i>
-                <span>${cfg.label}</span>
-            </span>
-            <span class="text-[10px] opacity-75 flex items-center gap-1">
-                <span>Ver nota</span>
-                <i class="fa-solid fa-chevron-right text-[9px]"></i>
-            </span>
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition shadow-2xs cursor-pointer ${cfg.color}"
+            title="Clic para abrir nota de ${cfg.label}">
+            <i class="fa-solid ${cfg.icon} text-[9px]"></i>
+            <span>${cfg.label}</span>
         </button>
     `).join('');
 
     return `
-        <div class="barra-etiquetas-v2 w-full mt-3 p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200 space-y-2">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <i class="fa-solid fa-tags text-indigo-600"></i> Ficha Normativa y Trazabilidad (Clic para consultar nota):
-            </span>
-            <div class="flex flex-col gap-1.5">
-                ${botones}
+        <div class="barra-etiquetas-v2 w-full mt-2.5 rounded-xl bg-slate-50/90 border border-slate-200 overflow-hidden">
+            <!-- Cabecera clickeable (+ / -) -->
+            <button type="button"
+                onclick="event.stopPropagation(); toggleFichaEtiquetas(this)"
+                class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-slate-100/80 transition cursor-pointer">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <i class="fa-solid fa-tags text-indigo-600"></i>
+                    <span>Ficha Normativa y Trazabilidad (10 Etiquetas)</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-indigo-700 shadow-2xs">
+                    <i class="fa-solid fa-plus icono-toggle-ficha text-[9px]"></i>
+                    <span class="texto-toggle-ficha">Expandir (+)</span>
+                </span>
+            </button>
+
+            <!-- Cuerpo colapsado por defecto con etiquetas compactas -->
+            <div class="cuerpo-etiquetas-v2 hidden px-3 pb-3 pt-2 border-t border-slate-200/80 bg-white/60">
+                <div class="flex flex-wrap gap-1.5">
+                    ${botones}
+                </div>
             </div>
         </div>
     `;
 };
-
+    
 // Inserta las etiquetas verticales estrictamente DEBAJO del recuadro "DETALLE OPERATIVO"
 (function iniciarInyectorEtiquetas() {
     const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
