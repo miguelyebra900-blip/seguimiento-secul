@@ -282,7 +282,7 @@
             </div>
 
             <!-- KPI 4: Expedientes Drive -->
-            <div onclick="abrirModalBaseDatosGeneral()" class="tech-card p-5 flex flex-col justify-between cursor-pointer group hover:shadow-lg transition-all duration-300">
+           <div onclick="abrirModalAnalisisDocumentalDrive()" class="tech-card p-5 flex flex-col justify-between cursor-pointer group hover:shadow-lg transition-all duration-300">
                 <div class="flex items-start justify-between gap-2">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-900/70">Expedientes Drive A–J</span>
                     <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
@@ -602,14 +602,18 @@
             </div>
         </div>
 <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2 shrink-0">
+            <!-- Elementos ocultos para que el script antiguo no marque error ni sobrescriba el clic -->
             <button type="button" id="drawerBtnDrive" class="hidden"></button>
-            <button type="button" id="drawerBtnEditar" onclick="abrirAccionEnBaseDatosDesdeDrawer()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+            <button type="button" id="drawerBtnEditar" class="hidden"></button>
+
+            <!-- Botón limpio que va DIRECTO al Modal Base de Datos General -->
+            <button type="button" onclick="irDirectoABaseDatosDesdeDrawer()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
                 <i class="fa-solid fa-database"></i> Gestionar / Editar en Base de Datos
             </button>
             <button type="button" onclick="cerrarDrawerJuridico()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition cursor-pointer">
                 Cerrar
             </button>
-        </div>
+        </div>>
     </aside>
 
     <!-- ========================================================================= -->
@@ -13481,6 +13485,246 @@ setInterval(() => {
         };
     }
 }, 300);
+
+<!-- ========================================================================= -->
+<!-- MODAL DE ANÁLISIS DOCUMENTAL: CARPETAS Y ARCHIVOS ANIDADOS POR ACCIÓN     -->
+<!-- ========================================================================= -->
+<div id="modal-analisis-documental-drive" class="fixed inset-0 z-50 hidden modal-glass flex items-center justify-center p-4" onclick="if(event.target===this) cerrarModalAnalisisDocumentalDrive()">
+    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900 px-6 py-4 text-white flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center justify-center text-lg">
+                    <i class="fa-brands fa-google-drive"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-emerald-300">AUDITORÍA DE SOPORTE DOCUMENTAL (DRIVE A–I)</span>
+                    <h3 class="text-base font-extrabold text-white">Análisis de Expedientes, Subcarpetas y Archivos Anidados</h3>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalAnalisisDocumentalDrive()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Barra de Métricas y Filtros Documentales -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 space-y-3 shrink-0 text-xs">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="docBadgePorcentaje" class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-2xs">--% Cobertura</span>
+                    <span id="docBadgeCon" class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">-- Con Documental</span>
+                    <span id="docBadgeSin" class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 font-bold">-- Sin Documental</span>
+                    <span id="docBadgeTotalArchivos" class="px-2.5 py-1 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200 font-bold">-- Archivos Totales</span>
+                </div>
+
+                <!-- Filtros rápidos -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" id="btnFiltroDoc_TODOS" onclick="renderListaAnalisisDocumental('TODOS')" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white text-[11px] cursor-pointer">Todas (37)</button>
+                    <button type="button" id="btnFiltroDoc_CON" onclick="renderListaAnalisisDocumental('CON')" class="px-3 py-1.5 rounded-xl font-bold bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50 text-[11px] cursor-pointer">✅ Con Documental</button>
+                    <button type="button" id="btnFiltroDoc_SIN" onclick="renderListaAnalisisDocumental('SIN')" class="px-3 py-1.5 rounded-xl font-bold bg-white text-rose-800 border border-rose-200 hover:bg-rose-50 text-[11px] cursor-pointer">⚠️ Sin Documental</button>
+                </div>
+            </div>
+
+            <!-- Barra visual de progreso documental -->
+            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div id="docBarraProgreso" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Lista de Acciones con Árbol de Carpetas y Archivos Anidados -->
+        <div id="contenedorAnalisisDocumental" class="p-5 overflow-y-auto space-y-3 flex-1 bg-slate-100/60 text-xs">
+            <!-- Render dinámico -->
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
+            <span>Sincronizado con <code class="font-mono text-indigo-600 font-bold">evidencias_expedientes_v2</code> y Google Drive</span>
+            <button type="button" onclick="cerrarModalAnalisisDocumentalDrive()" class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition cursor-pointer">
+                Cerrar Análisis
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+window.__filtroDocActual = 'TODOS';
+
+window.abrirModalAnalisisDocumentalDrive = function() {
+    const modal = document.getElementById('modal-analisis-documental-drive');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    renderListaAnalisisDocumental('TODOS');
+};
+
+window.cerrarModalAnalisisDocumentalDrive = function() {
+    const modal = document.getElementById('modal-analisis-documental-drive');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+};
+
+window.irASubirDocumentalEnBD = function(claveAccion) {
+    cerrarModalAnalisisDocumentalDrive();
+    if (typeof abrirModalBaseDatosGeneral === 'function') abrirModalBaseDatosGeneral();
+    setTimeout(() => {
+        const busq = document.getElementById('buscadorBDGeneral');
+        if (busq) {
+            busq.value = claveAccion;
+            busq.dispatchEvent(new Event('input'));
+        }
+    }, 100);
+};
+
+window.renderListaAnalisisDocumental = function(filtro = 'TODOS') {
+    window.__filtroDocActual = filtro;
+    const lista = Array.isArray(accionesDataset) ? accionesDataset : [];
+    const totalAcciones = lista.length || 37;
+
+    // Clasificar acciones con documental vs sin documental
+    let conDocCount = 0;
+    let totalArchivosCount = 0;
+
+    const enriquecidas = lista.map(act => {
+        const archivos = Array.isArray(act.archivosDrive) ? [...act.archivosDrive] : [];
+        if (archivos.length === 0 && act.driveUrl && act.driveUrl.trim() !== '') {
+            archivos.push({ nombre: 'Expediente vinculado en Drive', url: act.driveUrl, subcarpeta: 'Raíz' });
+        }
+        const tieneDoc = archivos.length > 0;
+        if (tieneDoc) {
+            conDocCount++;
+            totalArchivosCount += archivos.length;
+        }
+        return { ...act, _archivos: archivos, _tieneDoc: tieneDoc };
+    });
+
+    const sinDocCount = Math.max(0, totalAcciones - conDocCount);
+    const pctCobertura = totalAcciones > 0 ? Math.round((conDocCount / totalAcciones) * 100) : 0;
+
+    // Actualizar indicadores superiores
+    document.getElementById('docBadgePorcentaje').innerText = `${pctCobertura}% Cobertura Documental`;
+    document.getElementById('docBadgeCon').innerText = `✅ ${conDocCount} Con Documental`;
+    document.getElementById('docBadgeSin').innerText = `⚠️ ${sinDocCount} Sin Documental`;
+    document.getElementById('docBadgeTotalArchivos').innerText = `📄 ${totalArchivosCount} Archivos en Drive`;
+    document.getElementById('docBarraProgreso').style.width = `${pctCobertura}%`;
+
+    // Actualizar estilos de botones filtro
+    ['TODOS', 'CON', 'SIN'].forEach(f => {
+        const btn = document.getElementById(`btnFiltroDoc_${f}`);
+        if (!btn) return;
+        if (f === filtro) {
+            btn.className = 'px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white text-[11px] cursor-pointer shadow-2xs';
+        } else {
+            btn.className = 'px-3 py-1.5 rounded-xl font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 text-[11px] cursor-pointer';
+        }
+    });
+
+    // Filtrar elementos a mostrar
+    const filtradas = enriquecidas.filter(a => {
+        if (filtro === 'CON') return a._tieneDoc;
+        if (filtro === 'SIN') return !a._tieneDoc;
+        return true;
+    });
+
+    const contenedor = document.getElementById('contenedorAnalisisDocumental');
+    if (!contenedor) return;
+
+    if (filtradas.length === 0) {
+        contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 italic">No hay acciones en esta categoría.</div>`;
+        return;
+    }
+
+    contenedor.innerHTML = filtradas.map(act => {
+        const clave = act.clave_accion || act.id;
+
+        // Agrupar archivos por subcarpeta
+        let arbolHTML = '';
+        if (act._tieneDoc) {
+            const gruposCarpetas = {};
+            act._archivos.forEach(doc => {
+                const nombreCarpeta = (doc.subcarpeta && doc.subcarpeta.trim() !== '') ? doc.subcarpeta.trim() : 'Carpeta Principal (Raíz)';
+                if (!gruposCarpetas[nombreCarpeta]) gruposCarpetas[nombreCarpeta] = [];
+                gruposCarpetas[nombreCarpeta].push(doc);
+            });
+
+            // También incluir subcarpetas declaradas en la acción aunque estén vacías
+            if (Array.isArray(act.subcarpetas)) {
+                act.subcarpetas.forEach(sc => {
+                    const nom = typeof sc === 'string' ? sc : (sc.nombre || '');
+                    if (nom && !gruposCarpetas[nom]) gruposCarpetas[nom] = [];
+                });
+            }
+
+            const carpetasRender = Object.entries(gruposCarpetas).map(([carpeta, docs]) => {
+                const docsItems = docs.length > 0
+                    ? docs.map(d => `
+                        <a href="${d.url}" target="_blank" rel="noopener"
+                           class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-emerald-50/70 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 transition group">
+                            <span class="flex items-center gap-2 truncate pr-2">
+                                <i class="fa-regular fa-file-pdf text-emerald-600 shrink-0"></i>
+                                <span class="font-mono text-[11px] font-semibold truncate">${d.nombre}</span>
+                            </span>
+                            <span class="text-[10px] font-bold text-emerald-700 shrink-0 flex items-center gap-1">
+                                Abrir <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </span>
+                        </a>
+                    `).join('')
+                    : `<span class="text-[11px] italic text-slate-400 pl-2">Carpeta vacía (sin archivos aún)</span>`;
+
+                return `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-indigo-950 text-[11px] flex items-center gap-1.5">
+                                <i class="fa-solid fa-folder-open text-indigo-600"></i> ${carpeta}
+                            </span>
+                            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-mono text-[10px] font-bold">${docs.length} archivo(s)</span>
+                        </div>
+                        <div class="pl-3 border-l-2 border-indigo-200 space-y-1">
+                            ${docsItems}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            arbolHTML = `<div class="mt-2.5 space-y-2">${carpetasRender}</div>`;
+        } else {
+            arbolHTML = `
+                <div class="mt-2.5 p-2.5 rounded-xl bg-rose-50/60 border border-rose-200/80 flex items-center justify-between gap-2">
+                    <span class="text-[11px] text-rose-800 font-medium">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500 mr-1"></i>
+                        Pendiente de carga documental (${act.docRequerido || 'Sin evidencia vinculada en Drive'})
+                    </span>
+                    <button type="button" onclick="irASubirDocumentalEnBD('${clave}')"
+                        class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10.5px] shrink-0 transition cursor-pointer">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Cargar en BD
+                    </button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="p-4 rounded-2xl bg-white border ${act._tieneDoc ? 'border-emerald-200/90' : 'border-slate-200'} shadow-2xs">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-bold text-[11px] flex items-center justify-center border border-indigo-100">${act.panel || 'A'}</span>
+                        <span class="font-mono font-bold text-xs text-slate-900">${clave}</span>
+                        <span class="text-[11px] text-slate-500 hidden sm:inline">• ${act.area}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${act._tieneDoc ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                            ${act._tieneDoc ? `✅ ${act._archivos.length} Evidencia(s)` : '⚠️ Sin Documental'}
+                        </span>
+                        <span class="font-mono font-bold text-[11px] text-slate-600">${act.avance || 0}% avance</span>
+                    </div>
+                </div>
+                <p class="text-xs font-bold text-slate-800 mt-1.5 leading-snug">${act.accion}</p>
+                ${arbolHTML}
+            </div>
+        `;
+    }).join('');
+};
+ 
     
 </script>
 </body>
