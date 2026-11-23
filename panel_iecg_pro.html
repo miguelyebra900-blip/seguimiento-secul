@@ -3107,7 +3107,7 @@ async function inicializarDatosDesdeSupabase() {
                     etiqueta_tramite: itemDB.etiqueta_tramite || '',
                     vinculo_art6: itemDB.vinculo_art6 || 'NO',
                     cita_textual_literal: itemDB.cita_textual_literal || '',
-                    nota_auditoria: itemDB.nota_auditoria || ''
+                    nota_auditoria: itemDB.nota_auditoria || '', // <-- ESTA COMA ES OBLIGATORIA
                     instrumento_1: itemDB.instrumento_1 || '',
                     instrumento_2: itemDB.instrumento_2 || '',
                     instrumento_3: itemDB.instrumento_3 || '',
@@ -13188,7 +13188,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 600);
 });
 
-<!-- ========================================================================= -->
+    </script>
+
+    <!-- ========================================================================= -->
 <!-- NOTA EMERGENTE INTERACTIVA (FICHA TÉCNICA DE ETIQUETAS - BASE DE DATOS)  -->
 <!-- ========================================================================= -->
 <div id="popoverNotaEmergenteBD" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs" onclick="if(event.target===this) cerrarNotaEmergenteBD()">
@@ -13225,7 +13227,6 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     </div>
 </div>
-
 <script>
 // =========================================================================
 // MOTOR DE ETIQUETAS INTERACTIVAS Y NOTA EMERGENTE EN BASE DE DATOS GENERAL
