@@ -107,23 +107,24 @@
                 } catch (err) {}
             }
         }
-        (function verificarAccesoProtegido() {
+(function verificarAccesoProtegido() {
             const sesion = localStorage.getItem('secul_user');
             if (!sesion) {
-                window.__requiereLoginInicial = true;
+                window.location.replace('index.html');
                 return;
             }
             try {
                 const usuario = JSON.parse(sesion);
                 if (!usuario || !usuario.usuario) {
                     localStorage.removeItem('secul_user');
-                    window.__requiereLoginInicial = true;
+                    window.location.replace('index.html');
                 }
             } catch (e) {
                 localStorage.removeItem('secul_user');
-                window.__requiereLoginInicial = true;
+                window.location.replace('index.html');
             }
         })();
+        
     </script>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -2954,19 +2955,21 @@ function updateAuthUI() {
             }
         }
 
-        function handleAuthClick() {
+      function handleAuthClick() {
             if (currentUser) {
                 if (confirm("¿Deseas cerrar tu sesión institucional?")) {
-                    registrarAuditoria('Cierre de Sesión', { usuario: currentUser.usuario });
+                    if (typeof registrarAuditoria === 'function') {
+                        registrarAuditoria('Cierre de Sesión', { usuario: currentUser.usuario });
+                    }
                     currentUser = null;
                     localStorage.removeItem('secul_user');
-                    updateAuthUI();
+                    localStorage.removeItem('secul_vertiente_activa');
+                    window.location.replace('index.html');
                 }
             } else {
-                openModal('modal-auth');
+                window.location.replace('index.html');
             }
         }
-
         async function handleLoginSubmit(e) {
             e.preventDefault();
             const usuarioInput = document.getElementById('authUsuario').value.trim();
@@ -13747,7 +13750,32 @@ window.renderListaAnalisisDocumental = function(filtro = 'TODOS') {
         `;
     }).join('');
 };
- 
+
+    window.irDirectoABaseDatosDesdeDrawer = function() {
+    const clave = document.getElementById('drawerClave')?.innerText.trim() || '';
+
+    if (typeof cerrarDrawerJuridico === 'function') cerrarDrawerJuridico();
+
+    const modalEdit = document.getElementById('modal-edicion-dinamica');
+    if (modalEdit) {
+        modalEdit.classList.add('hidden');
+        modalEdit.style.display = 'none';
+    }
+
+    if (typeof abrirModalBaseDatosGeneral === 'function') {
+        abrirModalBaseDatosGeneral();
+    } else if (typeof openModal === 'function') {
+        openModal('modal-base-datos-general');
+    }
+
+    setTimeout(() => {
+        const busq = document.getElementById('buscadorBDGeneral');
+        if (busq) {
+            busq.value = clave;
+            busq.dispatchEvent(new Event('input'));
+        }
+    }, 80);
+};
     
 </script>
 </body>
