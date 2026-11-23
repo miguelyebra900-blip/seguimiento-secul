@@ -601,8 +601,8 @@
                 </div>
             </div>
         </div>
-
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2 shrink-0">
+<div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2 shrink-0">
+            <button type="button" id="drawerBtnDrive" class="hidden"></button>
             <button type="button" id="drawerBtnEditar" onclick="abrirAccionEnBaseDatosDesdeDrawer()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
                 <i class="fa-solid fa-database"></i> Gestionar / Editar en Base de Datos
             </button>
@@ -12538,10 +12538,7 @@ window.obtenerDatosCedulaDesdeFormularioAlta = function() {
             document.getElementById('drawerTercero').innerText = item.tercero_externo || 'N/A — Gestión interna';
             document.getElementById('drawerCierrePinza').innerText = item.accion_cierre_pinza || item.sugerencia_expediente_tecnico || '';
 
-            document.getElementById('drawerBtnDrive').onclick = function() {
-                cerrarDrawerJuridico();
-                irABaseDatosConAccion(item.clave_accion || item.id, true);
-            };
+   
             document.getElementById('drawerBtnEditar').onclick = function() {
                 cerrarDrawerJuridico();
                 irABaseDatosConAccion(item.clave_accion || item.id, true);
