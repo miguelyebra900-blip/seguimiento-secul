@@ -13322,50 +13322,58 @@ window.generarHtmlEtiquetasBD = function(claveAccion) {
 
 // Observador automático: cada vez que renderBaseDatosGeneralJerarquica() dibuja tarjetas
 // dentro de #contenedorHitosBaseDatosGeneral, inyecta las etiquetas en cada acción.
+// =========================================================================
+// DETECTOR DIRECTO DE TARJETAS DE ACCIÓN EN BASE DE DATOS GENERAL
+// =========================================================================
 (function observarContenedorBaseDatos() {
-    const target = document.getElementById('contenedorHitosBaseDatosGeneral');
-    if (!target) return;
+    const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
 
-    const inyectarEtiquetasEnTarjetas = () => {
-        // Busca cada bloque de acción que mencione una clave canónica (ej. AUD_F-H-0001-A-0001)
-        const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
-        const bloques = target.querySelectorAll('[data-clave-accion], .accion-card-bd, div');
+    window.inyectarEtiquetasEnBaseDatos = function() {
+        const target = document.getElementById('contenedorHitosBaseDatosGeneral');
+        if (!target) return;
 
-        bloques.forEach(el => {
-            if (el.dataset.etiquetasInyectadas === '1') return;
+        // Buscamos todos los elementos dentro del modal que contengan "DETALLE OPERATIVO:"
+        const candidatos = Array.from(target.querySelectorAll('div, p, span')).filter(el => {
+            return el.textContent && 
+                   el.textContent.trim().startsWith('DETALLE OPERATIVO:') &&
+                   el.tagName === 'DIV';
+        });
 
-            // Detecta si es el contenedor de detalle operativo o tarjeta de acción
-            const claveAttr = el.getAttribute('data-clave-accion');
-            if (claveAttr && !el.querySelector('.etiquetas-ficha-bd')) {
-                el.dataset.etiquetasInyectadas = '1';
-                el.insertAdjacentHTML('beforeend', generarHtmlEtiquetasBD(claveAttr));
-                return;
+        candidatos.forEach(cajaDetalle => {
+            const tarjetaAccion = cajaDetalle.parentElement;
+            if (!tarjetaAccion || tarjetaAccion.querySelector('.etiquetas-ficha-bd')) return;
+
+            // Subimos niveles hasta encontrar el contenedor de la acción que tiene la clave (ej. FIN_P-H-0001-A-0001)
+            let nivel = tarjetaAccion;
+            let claveEncontrada = null;
+            for (let i = 0; i < 6 && nivel && nivel !== target; i++) {
+                const match = nivel.textContent.match(regexClave);
+                if (match) {
+                    claveEncontrada = match[1];
+                    break;
+                }
+                nivel = nivel.parentElement;
             }
 
-            // Búsqueda por texto "DETALLE OPERATIVO:" dentro de la tarjeta de acción (como en tu captura)
-            if (el.children.length <= 4 && el.textContent.includes('DETALLE OPERATIVO:')) {
-                let padre = el.parentElement;
-                let claveEncontrada = null;
-                for (let i = 0; i < 4 && padre; i++) {
-                    const match = padre.textContent.match(regexClave);
-                    if (match) {
-                        claveEncontrada = match[1];
-                        break;
-                    }
-                    padre = padre.parentElement;
-                }
-                if (claveEncontrada && !el.parentElement.querySelector('.etiquetas-ficha-bd')) {
-                    el.dataset.etiquetasInyectadas = '1';
-                    el.insertAdjacentHTML('afterend', generarHtmlEtiquetasBD(claveEncontrada));
-                }
+            if (claveEncontrada) {
+                cajaDetalle.insertAdjacentHTML('afterend', generarHtmlEtiquetasBD(claveEncontrada));
             }
         });
     };
 
-    const observer = new MutationObserver(() => inyectarEtiquetasEnTarjetas());
-    observer.observe(target, { childList: true, subtree: true });
-})();
+    const target = document.getElementById('contenedorHitosBaseDatosGeneral');
+    if (target) {
+        const observer = new MutationObserver(() => {
+            window.inyectarEtiquetasEnBaseDatos();
+        });
+        observer.observe(target, { childList: true, subtree: true });
+    }
 
+    // Respaldo: ejecutar también al hacer clic en "Base de Datos IECG" o al expandir hitos
+    document.addEventListener('click', () => {
+        setTimeout(() => window.inyectarEtiquetasEnBaseDatos(), 120);
+    });
+})();
 
         
     </script>
