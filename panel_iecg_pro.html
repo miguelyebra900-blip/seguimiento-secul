@@ -13311,7 +13311,10 @@ document.addEventListener('keydown', (e) => {
 
 // Genera el bloque HTML de las 10 etiquetas en formato VERTICAL
 // Función para expandir (+) o contraer (-) la Ficha Normativa de cada acción
-window.toggleFichaEtiquetas = function(btnHeader) {
+// Memoria de acordeones abiertos para que no se cierren si el DOM se refresca
+window.__fichasAbiertasBD = window.__fichasAbiertasBD || {};
+
+window.toggleFichaEtiquetas = function(btnHeader, claveAccion) {
     const contenedorPadre = btnHeader.closest('.barra-etiquetas-v2');
     if (!contenedorPadre) return;
 
@@ -13319,25 +13322,22 @@ window.toggleFichaEtiquetas = function(btnHeader) {
     const icono = btnHeader.querySelector('.icono-toggle-ficha');
     const textoEstado = btnHeader.querySelector('.texto-toggle-ficha');
 
-    if (cuerpo.classList.contains('hidden')) {
+    const estaCerrado = cuerpo.classList.contains('hidden');
+    if (estaCerrado) {
         cuerpo.classList.remove('hidden');
-        if (icono) {
-            icono.classList.remove('fa-plus');
-            icono.classList.add('fa-minus');
-        }
+        if (claveAccion) window.__fichasAbiertasBD[claveAccion] = true;
+        if (icono) { icono.classList.remove('fa-plus'); icono.classList.add('fa-minus'); }
         if (textoEstado) textoEstado.innerText = 'Contraer (-)';
     } else {
         cuerpo.classList.add('hidden');
-        if (icono) {
-            icono.classList.remove('fa-minus');
-            icono.classList.add('fa-plus');
-        }
+        if (claveAccion) delete window.__fichasAbiertasBD[claveAccion];
+        if (icono) { icono.classList.remove('fa-minus'); icono.classList.add('fa-plus'); }
         if (textoEstado) textoEstado.innerText = 'Expandir (+)';
     }
 };
 
-// Genera el bloque expandible (+/-) con etiquetas compactas tipo píldora
 window.crearBarraEtiquetasAccion = function(claveAccion) {
+    const abierto = Boolean(window.__fichasAbiertasBD[claveAccion]);
     const botones = ETIQUETAS_SUPABASE_V2.map(cfg => `
         <button type="button"
             onclick="event.stopPropagation(); verEtiquetaSupabaseBD('${claveAccion}', '${cfg.col}')"
@@ -13349,23 +13349,21 @@ window.crearBarraEtiquetasAccion = function(claveAccion) {
     `).join('');
 
     return `
-        <div class="barra-etiquetas-v2 w-full mt-2.5 rounded-xl bg-slate-50/90 border border-slate-200 overflow-hidden">
-            <!-- Cabecera clickeable (+ / -) -->
+        <div class="barra-etiquetas-v2 w-full mt-2.5 rounded-xl bg-slate-50/90 border border-slate-200 overflow-hidden" data-ficha-clave="${claveAccion}">
             <button type="button"
-                onclick="event.stopPropagation(); toggleFichaEtiquetas(this)"
+                onclick="event.stopPropagation(); toggleFichaEtiquetas(this, '${claveAccion}')"
                 class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-slate-100/80 transition cursor-pointer">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                     <i class="fa-solid fa-tags text-indigo-600"></i>
                     <span>Ficha Normativa y Trazabilidad (10 Etiquetas)</span>
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-indigo-700 shadow-2xs">
-                    <i class="fa-solid fa-plus icono-toggle-ficha text-[9px]"></i>
-                    <span class="texto-toggle-ficha">Expandir (+)</span>
+                    <i class="fa-solid ${abierto ? 'fa-minus' : 'fa-plus'} icono-toggle-ficha text-[9px]"></i>
+                    <span class="texto-toggle-ficha">${abierto ? 'Contraer (-)' : 'Expandir (+)'}</span>
                 </span>
             </button>
 
-            <!-- Cuerpo colapsado por defecto con etiquetas compactas -->
-            <div class="cuerpo-etiquetas-v2 hidden px-3 pb-3 pt-2 border-t border-slate-200/80 bg-white/60">
+            <div class="cuerpo-etiquetas-v2 ${abierto ? '' : 'hidden'} px-3 pb-3 pt-2 border-t border-slate-200/80 bg-white/60">
                 <div class="flex flex-wrap gap-1.5">
                     ${botones}
                 </div>
@@ -13373,42 +13371,34 @@ window.crearBarraEtiquetasAccion = function(claveAccion) {
         </div>
     `;
 };
-    
-// Inserta las etiquetas verticales estrictamente DEBAJO del recuadro "DETALLE OPERATIVO"
-(function iniciarInyectorEtiquetas() {
+
+(function iniciarInyectorEtiquetasYFixBoton() {
     const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
 
     function pintarEtiquetasEnModal() {
         const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral');
         if (!contenedor) return;
 
-        // 1. Limpiar cualquier inserción previa que haya quedado arriba en la cabecera
-        contenedor.querySelectorAll('.barra-etiquetas-v2').forEach(el => {
-            if (!el.previousElementSibling || !el.previousElementSibling.textContent.includes('DETALLE OPERATIVO')) {
-                el.remove();
-            }
-        });
-
-        // 2. Localizar el texto exacto "DETALLE OPERATIVO:"
-        const titulosDetalle = Array.from(contenedor.querySelectorAll('span, div, label, strong, p')).filter(el => {
+        // Buscar TODOS los bloques que contengan "DETALLE OPERATIVO:" en cualquier tarjeta de acción
+        const nodosDetalle = Array.from(contenedor.querySelectorAll('span, div, label, strong, p')).filter(el => {
             return el.children.length === 0 &&
                    el.textContent.trim().toUpperCase().startsWith('DETALLE OPERATIVO');
         });
 
-        titulosDetalle.forEach(tituloEl => {
-            // El recuadro gris con borde que envuelve "DETALLE OPERATIVO:" y su párrafo
-            const cajaDetalle = tituloEl.parentElement;
+        nodosDetalle.forEach(lbl => {
+            // El recuadro gris con borde que envuelve "DETALLE OPERATIVO:"
+            const cajaDetalle = lbl.closest('div[class*="rounded"]') || lbl.parentElement;
             if (!cajaDetalle || !cajaDetalle.parentElement) return;
 
-            // Si ya tiene la barra vertical justo debajo, no duplicar
+            // Si ya tiene su barra justo debajo, no volver a insertarla (evita parpadeos)
             if (cajaDetalle.nextElementSibling && cajaDetalle.nextElementSibling.classList.contains('barra-etiquetas-v2')) {
                 return;
             }
 
-            // Subir en el DOM para leer la clave de acción (ej. FIN_P-H-0001-A-0001)
+            // Subir hasta encontrar la clave de la acción (sin límite corto de niveles)
             let nivel = cajaDetalle.parentElement;
             let claveEncontrada = null;
-            for (let i = 0; i < 6 && nivel && nivel !== contenedor; i++) {
+            while (nivel && nivel !== contenedor) {
                 const match = nivel.textContent.match(regexClave);
                 if (match) {
                     claveEncontrada = match[1];
@@ -13418,18 +13408,42 @@ window.crearBarraEtiquetasAccion = function(claveAccion) {
             }
 
             if (claveEncontrada) {
-                // Insertar inmediatamente DESPUÉS de cerrar el recuadro de DETALLE OPERATIVO
                 cajaDetalle.insertAdjacentHTML('afterend', crearBarraEtiquetasAccion(claveEncontrada));
             }
         });
     }
 
-    setInterval(() => {
-        const modalBD = document.getElementById('modal-base-datos-general');
-        if (modalBD && !modalBD.classList.contains('hidden')) {
-            pintarEtiquetasEnModal();
-        }
-    }, 300);
+    // 1. Observar cambios en el contenedor (solo cuando se dibujan tarjetas nuevas)
+    const contenedorBD = document.getElementById('contenedorHitosBaseDatosGeneral');
+    if (contenedorBD) {
+        const obs = new MutationObserver(() => pintarEtiquetasEnModal());
+        obs.observe(contenedorBD, { childList: true, subtree: true });
+    }
+
+    // 2. Corregir el botón "Gestionar / Editar en Base de Datos" del cajón lateral
+    // para que abra ÚNICAMENTE el Modal Base de Datos General (sin abrir el modal de edición encima)
+    const btnDrawerEditar = document.getElementById('drawerBtnEditar');
+    if (btnDrawerEditar) {
+        const nuevoBtn = btnDrawerEditar.cloneNode(true);
+        btnDrawerEditar.parentNode.replaceChild(nuevoBtn, btnDrawerEditar);
+        nuevoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const clave = document.getElementById('drawerClave')?.innerText.trim() || '';
+            if (typeof cerrarDrawerJuridico === 'function') cerrarDrawerJuridico();
+            if (typeof abrirModalBaseDatosGeneral === 'function') abrirModalBaseDatosGeneral();
+
+            // Filtrar automáticamente en el buscador de la Base de Datos por esa clave
+            setTimeout(() => {
+                const busq = document.getElementById('buscadorBDGeneral');
+                if (busq && clave) {
+                    busq.value = clave;
+                    busq.dispatchEvent(new Event('input'));
+                }
+                pintarEtiquetasEnModal();
+            }, 150);
+        });
+    }
 })();
     
 </script>
