@@ -602,18 +602,13 @@
             </div>
         </div>
 
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
-            <button type="button" id="drawerBtnDrive" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Subir Evidencia en Base de Datos
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2 shrink-0">
+            <button type="button" id="drawerBtnEditar" onclick="abrirAccionEnBaseDatosDesdeDrawer()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+                <i class="fa-solid fa-database"></i> Gestionar / Editar en Base de Datos
             </button>
-            <div class="flex items-center gap-2">
-                <button type="button" id="drawerBtnEditar" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-database"></i> Gestionar / Editar en Base de Datos
-                </button>
-                <button type="button" onclick="cerrarDrawerJuridico()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition">
-                    Cerrar
-                </button>
-            </div>
+            <button type="button" onclick="cerrarDrawerJuridico()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition cursor-pointer">
+                Cerrar
+            </button>
         </div>
     </aside>
 
@@ -13223,6 +13218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
 </div>
 
+
 <script>
 // Las 10 etiquetas mapeadas a sus columnas exactas en acciones_transicion_v2
 const ETIQUETAS_SUPABASE_V2 = [
@@ -13445,6 +13441,49 @@ window.crearBarraEtiquetasAccion = function(claveAccion) {
         });
     }
 })();
+
+    window.abrirAccionEnBaseDatosDesdeDrawer = function() {
+    const clave = document.getElementById('drawerClave')?.innerText.trim() || '';
+
+    // 1. Cerrar el cajón lateral
+    if (typeof cerrarDrawerJuridico === 'function') cerrarDrawerJuridico();
+
+    // 2. Asegurar que cualquier modal de edición esté cerrado
+    const modalEdit = document.getElementById('modal-edicion-dinamica');
+    if (modalEdit) {
+        modalEdit.classList.add('hidden');
+        modalEdit.style.display = 'none';
+    }
+
+    // 3. Abrir únicamente el Modal Base de Datos General
+    if (typeof abrirModalBaseDatosGeneral === 'function') {
+        abrirModalBaseDatosGeneral();
+    } else if (typeof openModal === 'function') {
+        openModal('modal-base-datos-general');
+    }
+
+    // 4. Filtrar directamente por la clave de la acción seleccionada
+    setTimeout(() => {
+        const busq = document.getElementById('buscadorBDGeneral');
+        if (busq && clave) {
+            busq.value = clave;
+            busq.dispatchEvent(new Event('input'));
+        }
+    }, 100);
+};
+
+// Reemplaza cualquier evento previo que le asigne la función original del drawer al botón
+setInterval(() => {
+    const btn = document.getElementById('drawerBtnEditar');
+    if (btn && btn.getAttribute('data-fixed-bd') !== '1') {
+        btn.setAttribute('data-fixed-bd', '1');
+        btn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            abrirAccionEnBaseDatosDesdeDrawer();
+        };
+    }
+}, 300);
     
 </script>
 </body>
