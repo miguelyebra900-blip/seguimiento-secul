@@ -2881,11 +2881,33 @@ if (typeof supabaseClient !== 'undefined' && supabaseClient) {
                 return originalEq.call(this, column, value);
             };
         }
-        return query;
+     return query;
     };
 }
+
+// Inicializar currentUser leyendo la sesión guardada desde index.html
+let currentUser = null;
+try {
+    const sesionGuardada = localStorage.getItem('secul_user');
+    if (sesionGuardada) {
+        const parsed = JSON.parse(sesionGuardada);
+        if (parsed && parsed.usuario) {
+            const rolStr = (parsed.rol || '').toLowerCase();
+            const esAdmin = parsed.esAdmin || rolStr === 'admin' || rolStr === 'master_admin' || parsed.usuario === 'dir_general';
+            currentUser = {
+                ...parsed,
+                esAdmin: esAdmin,
+                paneles_autorizados: Array.isArray(parsed.paneles_autorizados)
+                    ? parsed.paneles_autorizados
+                    : (esAdmin ? ['A','B','C','D','E','F','G','H','I','J'] : ['A'])
+            };
+        }
+    }
+} catch (e) {
+    console.warn("Error leyendo sesión de localStorage:", e);
+}
         
-    
+         
 function updateAuthUI() {
             const dot = document.getElementById('userStatusDot');
             const name = document.getElementById('userNameDisplay');
