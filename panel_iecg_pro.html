@@ -11198,85 +11198,348 @@ window.abrirModalVinculacionParaAccionEspecifica = function(claveHito, claveAcci
 // =========================================================================
 // 2. ENVIAR SOLICITUD A SUPABASE
 // =========================================================================
+const PANELES_OFICIALES_SECUL = {
+    "A": "Panel A · Recursos Humanos y Estructura",
+    "B": "Panel B · Gobernanza y Comité de Extinción",
+    "C": "Panel C · Asuntos Jurídicos y Litigios",
+    "D": "Panel D · Fideicomisos Banorte (FIARCA)",
+    "E": "Panel E · Bienes Muebles e Inmuebles",
+    "F": "Panel F · Cierre Fiscal, Cuentas y SAT",
+    "G": "Panel G · Sistemas TI y DGTIT",
+    "H": "Panel H · Archivo y Entrega-Recepción",
+    "I": "Panel I · Auditoría y Fiscalización ASEG"
+};
+
+function extraerLetraPanel(valor) {
+    if (!valor) return 'A';
+    const str = String(valor).trim().toUpperCase();
+    const matchPanel = str.match(/PANEL\s+([A-I])\b/);
+    if (matchPanel) return matchPanel[1];
+    if (/^[A-I]$/.test(str)) return str;
+    const prefijoMap = {
+        'RH_E': 'A', 'ASI_P': 'B', 'JUR_C': 'C', 'FID_F': 'D',
+        'PTR_I': 'E', 'PTR_M': 'E', 'FIN_P': 'F', 'TIT_S': 'G',
+        'TIC_S': 'G', 'ACH_D': 'H', 'AUD_F': 'I'
+    };
+    const prefijo = str.split('-')[0];
+    return prefijoMap[prefijo] || 'A';
+}
+
 window.enviarSolicitudVinculacionDesdeModal = async function() {
-    var areaDestino = document.getElementById('selFiltroAreaVinculo')?.value || '';
-    var hitoDestino = document.getElementById('selVinculoHitoObjetivo')?.value || '';
-    var accionDestino = document.getElementById('selVinculoAccionObjetivo')?.value || '';
-    var tipoCo = document.getElementById('selTipoCorresponsabilidad')?.value || 'Seguimiento y Validación de Entrega';
-    var motivoTexto = document.getElementById('txtVinculoMotivoOficial')?.value || '';
-    
-    if (!hitoDestino) {
-        alert('Por favor selecciona el Hito Rector a vincular.');
+    const btn = document.getElementById('btnSubmitVinculoOficial');
+    const hitoClave = document.getElementById('selVinculoHitoObjetivo')?.value || '';
+    const accionClave = document.getElementById('selVinculoAccionObjetivo')?.value || 'TODAS';
+    const tipoCorresp = document.getElementById('selTipoCorresponsabilidad')?.value || 'Aportación de Expediente';
+    const motivo = document.getElementById('txtVinculoMotivoOficial')?.value?.trim() || '';
+    const fileInput = document.getElementById('fileVinculoDocumental');
+
+    if (!hitoClave) {
+        alert("Selecciona primero el Hito Rector a vincular.");
+        return;
+    }
+    if (!motivo) {
+        alert("Escribe la justificación o causa raíz de la vinculación.");
         return;
     }
 
-    // Identificar solicitante: si el usuario es Admin pero está actuando en el panel Jurídico
-    var panelSolicitante = 'Panel B, D (Jurídico)';
-    var solicitanteNombre = (typeof currentUser !== 'undefined' && currentUser) 
-        ? (currentUser.nombre || currentUser.email || 'Dirección General Jurídica') 
-        : 'Dirección General Jurídica';
-    var solicitanteEmail = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.email || '') : '';
+    const registroRef = (typeof accionesDataset !== 'undefined' ? accionesDataset : []).find(
+        a => a.clave_accion === accionClave || a.id === accionClave || a.clave_hito === hitoClave
+    ) || {};
 
-    var esHitoCompleto = (!accionDestino || accionDestino.includes('Vincular el Hito completo') || accionDestino === '');
-    var nivelVinc = esHitoCompleto ? 'HITO' : 'ACCION';
-    var claveObjetivo = esHitoCompleto ? hitoDestino : accionDestino;
+    const panelDestino = extraerLetraPanel(
+        document.getElementById('selFiltroAreaVinculo')?.value ||
+        registroRef.panel ||
+        registroRef.clave_hito ||
+        hitoClave
+    );
 
-    var motivoFinal = motivoTexto.trim() !== '' 
-        ? motivoTexto.trim() 
-        : ('Solicitud de co-responsabilidad: ' + tipoCo);
+    const panelesSolicitante = (typeof currentUser !== 'undefined' && currentUser && Array.isArray(currentUser.paneles_autorizados) && currentUser.paneles_autorizados.length > 0)
+        ? currentUser.paneles_autorizados.map(p => extraerLetraPanel(p))
+        : ['CONSULTA'];
+
+    const panelOrigen = panelesSolicitante[0] || 'CONSULTA';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Enviando...';
+    }
 
     try {
-        var payload = {
-            id: 'SOL-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase(),
-            origen_sistema: 'MESA_VINCULACION_MENU',
-            tipo: 'SOLICITUD_VINCULACION',
-            clave: claveObjetivo,
-            campo: 'vinculo_secul',
-            valor_anterior: 'SIN_VINCULO',
-            valor_propuesto: 'VINCULADO_' + panelSolicitante,
-            motivo: motivoFinal,
-            solicitante: solicitanteNombre,
-            usuario_id: solicitanteEmail,
-            correo_contacto: solicitanteEmail,
-            panel_origen: panelSolicitante,
-            panel_solicitante: panelSolicitante,
-            panel_destino: areaDestino,
+        let oficioUrl = '';
+        if (fileInput && fileInput.files && fileInput.files.length > 0 && typeof window.subirArchivoADrive === 'function') {
+            const archivo = fileInput.files[0];
+            oficioUrl = await window.subirArchivoADrive(archivo, panelDestino, `VINCULACION_PANEL_${panelDestino}`, `[VINC_${panelDestino}] ${archivo.name}`);
+        }
+
+        const payloadSolicitud = {
+            tipo_solicitud: 'VINCULACION_CO_RESPONSABILIDAD',
+            comision_solicitante: panelesSolicitante.join(', '),
+            usuario_solicitante: (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || currentUser.usuario) : 'Modo Consulta',
+            usuario_id: (typeof currentUser !== 'undefined' && currentUser && currentUser.id) ? String(currentUser.id) : null,
+            correo_contacto: (typeof currentUser !== 'undefined' && currentUser && currentUser.correo) ? currentUser.correo : '',
+            panel_origen: panelOrigen,
+            panel_destino: panelDestino,
+            hito_objetivo: hitoClave,
+            accion_objetivo: accionClave,
+            nivel_vinculacion: accionClave === 'TODAS' ? 'HITO_COMPLETO' : 'ACCION_ESPECIFICA',
+            tipo_corresponsabilidad: tipoCorresp,
+            valor_anterior: registroRef.responsable || PANELES_OFICIALES_SECUL[panelDestino] || `Panel ${panelDestino}`,
+            justificacion: motivo,
+            oficio_url: oficioUrl,
             estatus: 'PENDIENTE',
-            fecha_solicitud: new Date().toISOString(),
-            tipo_corresponsabilidad: tipoCo,
-            nivel_vinculacion: nivelVinc,
-            hito_objetivo: hitoDestino,
-            accion_objetivo: esHitoCompleto ? null : accionDestino
+            fecha_solicitud: new Date().toISOString()
         };
 
-        var { data, error } = await supabaseClient
-            .from('solicitudes_auditoria_v2')
-            .insert([payload]);
-
-        if (error) {
-            console.error('Error al registrar en solicitudes_auditoria:', error);
-            alert('Aviso al procesar la vinculación: ' + error.message);
-            return;
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            const { error } = await supabaseClient
+                .from('solicitudes_auditoria_v2')
+                .insert([payloadSolicitud]);
+            if (error) throw error;
         }
 
-        alert('✅ Solicitud de vinculación enviada exitosamente.');
-
-        var modal = document.getElementById('modal-vinculacion-universal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
+        if (typeof registrarAccionEnSupabase === 'function') {
+            await registrarAccionEnSupabase('VINCULACION', `Solicitud enviada a Panel ${panelDestino}`, payloadSolicitud);
         }
 
-        if (typeof window.cargarNotificacionesVinculacionAuditoria === 'function') {
-            window.cargarNotificacionesVinculacionAuditoria();
+        if (typeof window.showSeculToast === 'function') {
+            window.showSeculToast(`Solicitud enviada a ${PANELES_OFICIALES_SECUL[panelDestino] || 'Panel ' + panelDestino}.`, 'success', 'Vinculación Registrada');
+        } else {
+            alert(`Solicitud de vinculación enviada a ${PANELES_OFICIALES_SECUL[panelDestino] || 'Panel ' + panelDestino}.`);
         }
 
-    } catch (e) {
-        console.error('Error general:', e);
-        alert('Ocurrió un error inesperado al enviar la solicitud: ' + e.message);
+        document.getElementById('txtVinculoMotivoOficial').value = '';
+        if (fileInput) fileInput.value = '';
+        if (typeof closeModal === 'function') closeModal('modal-vinculacion-universal');
+        if (typeof actualizarContadorAvisosVinculacion === 'function') await actualizarContadorAvisosVinculacion();
+
+    } catch (err) {
+        console.error("Error al registrar en solicitudes_auditoria:", err);
+        alert("Aviso al procesar la vinculación: " + (err.message || err));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a Validación';
+        }
     }
 };
 
+        let estadoCentroAvisos = {
+    pestana: 'RECIBIDAS',
+    solicitudes: []
+};
+
+function usuarioEsTitularDePanel(panelLetra) {
+    const letra = extraerLetraPanel(panelLetra);
+    if (!currentUser) return false;
+    const rolStr = String(currentUser.rol || '').toLowerCase();
+    if (currentUser.esAdmin || rolStr.includes('admin') || rolStr.includes('super') || rolStr.includes('auditor') || rolStr.includes('aseg')) {
+        return true;
+    }
+    const panelesUser = Array.isArray(currentUser.paneles_autorizados)
+        ? currentUser.paneles_autorizados.map(p => extraerLetraPanel(p))
+        : [];
+    return panelesUser.includes(letra);
+}
+
+async function obtenerSolicitudesVinculacion() {
+    if (!supabaseClient) return [];
+    const { data, error } = await supabaseClient
+        .from('solicitudes_auditoria_v2')
+        .select('*')
+        .order('created_at', { ascending: false });
+    if (error) {
+        console.error("Error al consultar solicitudes_auditoria_v2:", error);
+        return [];
+    }
+    return data || [];
+}
+
+window.actualizarContadorAvisosVinculacion = async function() {
+    const badge = document.getElementById('badgeContadorNotif');
+    const all = await obtenerSolicitudesVinculacion();
+    estadoCentroAvisos.solicitudes = all;
+
+    const recibidasPendientes = all.filter(s =>
+        (s.estatus || 'PENDIENTE').toUpperCase() === 'PENDIENTE' &&
+        usuarioEsTitularDePanel(s.panel_destino)
+    );
+
+    const nombreActual = currentUser ? (currentUser.nombre || currentUser.usuario) : '';
+    const enviadasResueltas = all.filter(s =>
+        nombreActual &&
+        s.usuario_solicitante === nombreActual &&
+        ['APROBADA', 'VALIDADA', 'RECHAZADA'].includes((s.estatus || '').toUpperCase())
+    );
+
+    const totalAvisos = recibidasPendientes.length + enviadasResueltas.length;
+    if (badge) {
+        if (totalAvisos > 0) {
+            badge.textContent = String(totalAvisos);
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+};
+
+window.abrirCentroAvisosPro = async function() {
+    const modal = document.getElementById('modal-bitacora-avisos');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    estadoCentroAvisos.solicitudes = await obtenerSolicitudesVinculacion();
+    renderListaAvisosVinculacion();
+};
+
+window.cerrarModalBitacoraAvisos = function() {
+    const modal = document.getElementById('modal-bitacora-avisos');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+};
+
+window.cambiarPestanaAvisos = function(pestana) {
+    estadoCentroAvisos.pestana = pestana;
+    const tabRec = document.getElementById('tab-avisos-recibidas');
+    const tabEnv = document.getElementById('tab-avisos-enviadas');
+
+    if (tabRec && tabEnv) {
+        if (pestana === 'RECIBIDAS') {
+            tabRec.className = "flex-1 py-2.5 px-4 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-bold";
+            tabEnv.className = "flex-1 py-2.5 px-4 text-center text-slate-500 hover:text-slate-800 border-b-2 border-transparent font-bold";
+        } else {
+            tabEnv.className = "flex-1 py-2.5 px-4 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-bold";
+            tabRec.className = "flex-1 py-2.5 px-4 text-center text-slate-500 hover:text-slate-800 border-b-2 border-transparent font-bold";
+        }
+    }
+    renderListaAvisosVinculacion();
+};
+
+function renderListaAvisosVinculacion() {
+    const cont = document.getElementById('contenedor-lista-avisos');
+    if (!cont) return;
+
+    const all = estadoCentroAvisos.solicitudes || [];
+    const recibidas = all.filter(s => usuarioEsTitularDePanel(s.panel_destino));
+
+    const nombreActual = currentUser ? (currentUser.nombre || currentUser.usuario) : '';
+    const enviadas = all.filter(s => {
+        if (!currentUser) return true;
+        return s.usuario_solicitante === nombreActual || s.comision_solicitante === 'CONSULTA';
+    });
+
+    const cntRec = document.getElementById('count-tab-recibidas');
+    const cntEnv = document.getElementById('count-tab-enviadas');
+    if (cntRec) cntRec.textContent = String(recibidas.length);
+    if (cntEnv) cntEnv.textContent = String(enviadas.length);
+
+    const listaActiva = estadoCentroAvisos.pestana === 'RECIBIDAS' ? recibidas : enviadas;
+
+    if (!listaActiva.length) {
+        cont.innerHTML = estadoCentroAvisos.pestana === 'RECIBIDAS'
+            ? `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200">
+                   <p class="font-bold text-slate-700 mb-1">No hay solicitudes pendientes para tu panel.</p>
+                   <p class="text-[11px]">Inicia sesión con el usuario titular del panel destino (por ejemplo, Panel B) para revisar y validar solicitudes entrantes.</p>
+               </div>`
+            : `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200">
+                   No hay solicitudes enviadas registradas en este perfil.
+               </div>`;
+        return;
+    }
+
+    cont.innerHTML = listaActiva.map(sol => {
+        const panelDest = extraerLetraPanel(sol.panel_destino);
+        const nombrePanelDest = PANELES_OFICIALES_SECUL[panelDest] || `Panel ${panelDest}`;
+        const estatus = (sol.estatus || 'PENDIENTE').toUpperCase();
+        const fechaStr = sol.fecha_solicitud ? new Date(sol.fecha_solicitud).toLocaleDateString('es-MX') : '--';
+
+        let badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+        if (estatus === 'APROBADA' || estatus === 'VALIDADA') badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        if (estatus === 'RECHAZADA') badgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
+
+        const puedeValidar = estadoCentroAvisos.pestana === 'RECIBIDAS' && estatus === 'PENDIENTE' && usuarioEsTitularDePanel(panelDest);
+
+        const accionesTitularHTML = puedeValidar
+            ? `<div class="flex items-center gap-2 pt-2.5 mt-2.5 border-t border-slate-200/80">
+                   <button type="button" onclick="resolverSolicitudVinculacion('${sol.id}', 'APROBADA')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1">
+                       <i class="fa-solid fa-check"></i> Aprobar y Vincular
+                   </button>
+                   <button type="button" onclick="resolverSolicitudVinculacion('${sol.id}', 'RECHAZADA')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] flex items-center gap-1">
+                       <i class="fa-solid fa-xmark"></i> Rechazar
+                   </button>
+               </div>`
+            : '';
+
+        const enlaceOficioHTML = sol.oficio_url
+            ? `<a href="${sol.oficio_url}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline font-bold text-[11px] mt-1.5">
+                   <i class="fa-solid fa-file-pdf"></i> Ver Oficio Soporte
+               </a>`
+            : '';
+
+        return `
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="font-mono-code font-bold text-indigo-950 text-xs">${sol.accion_objetivo && sol.accion_objetivo !== 'TODAS' ? sol.accion_objetivo : (sol.hito_objetivo || 'HITO')}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeColor}">${estatus}</span>
+                </div>
+                <p class="text-slate-800 font-semibold">${sol.justificacion || ''}</p>
+                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-1">
+                    <span><strong>Destino:</strong> ${nombrePanelDest} · <strong>Tipo:</strong> ${sol.tipo_corresponsabilidad || 'Vinculación'}</span>
+                    <span><strong>Solicitante:</strong> ${sol.usuario_solicitante || 'Modo Consulta'} · ${fechaStr}</span>
+                </div>
+                ${enlaceOficioHTML}
+                ${accionesTitularHTML}
+            </div>
+        `;
+    }).join('');
+}
+
+window.resolverSolicitudVinculacion = async function(solicitudId, nuevoEstatus) {
+    if (!supabaseClient || !solicitudId) return;
+    let observacionResolucion = '';
+    if (nuevoEstatus === 'RECHAZADA') {
+        const motivo = prompt("Indica el motivo del rechazo u observación para el área solicitante:");
+        if (motivo === null) return;
+        observacionResolucion = motivo.trim();
+    }
+
+    try {
+        const validadorNombre = currentUser ? (currentUser.nombre || currentUser.usuario) : 'Titular de Área';
+        const { error } = await supabaseClient
+            .from('solicitudes_auditoria_v2')
+            .update({
+                estatus: nuevoEstatus,
+                valor_anterior: observacionResolucion ? `Rechazada: ${observacionResolucion}` : `Validada por ${validadorNombre}`
+            })
+            .eq('id', solicitudId);
+
+        if (error) throw error;
+
+        if (typeof registrarAccionEnSupabase === 'function') {
+            await registrarAccionEnSupabase('VALIDACION_VINCULO', `Solicitud ${solicitudId} marcada como ${nuevoEstatus}`, {
+                solicitudId,
+                nuevoEstatus,
+                validador: validadorNombre,
+                observacionResolucion
+            });
+        }
+
+        if (typeof window.showSeculToast === 'function') {
+            window.showSeculToast(`Solicitud marcada como ${nuevoEstatus}.`, 'success', 'Resolución Registrada');
+        }
+
+        estadoCentroAvisos.solicitudes = await obtenerSolicitudesVinculacion();
+        renderListaAvisosVinculacion();
+        await actualizarContadorAvisosVinculacion();
+
+    } catch (err) {
+        console.error("Error al resolver solicitud:", err);
+        alert("No se pudo actualizar el estatus de la solicitud: " + (err.message || err));
+    }
+};
+        
+        
 // =========================================================================
 // 3. BITÁCORA DE SOLICITUDES CON AUTORIZACIÓN PARA LÍDER / ADMIN
 // =========================================================================
@@ -11288,14 +11551,6 @@ window.abrirModalBitacoraAvisos = function() {
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
     cambiarPestanaAvisos(window.pestanaAvisosActual);
-};
-
-window.cerrarModalBitacoraAvisos = function() {
-    var modal = document.getElementById('modal-bitacora-avisos');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-    }
 };
 
 window.autorizarSolicitudDesdeMenu = async function(idSolicitud, claveAccion) {
