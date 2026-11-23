@@ -13308,75 +13308,94 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') cerrarNotaEmergenteBD();
 });
 
-// Genera la barra de 10 etiquetas para una clave de acción
+
+// Genera el bloque HTML de las 10 etiquetas en formato VERTICAL
 window.crearBarraEtiquetasAccion = function(claveAccion) {
     const botones = ETIQUETAS_SUPABASE_V2.map(cfg => `
         <button type="button"
             onclick="event.stopPropagation(); verEtiquetaSupabaseBD('${claveAccion}', '${cfg.col}')"
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10.5px] font-bold transition shadow-2xs cursor-pointer ${cfg.color}">
-            <i class="fa-solid ${cfg.icon} text-[9px]"></i>
-            <span>${cfg.label}</span>
+            class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border text-[11px] font-bold transition shadow-2xs cursor-pointer ${cfg.color}">
+            <span class="flex items-center gap-2">
+                <i class="fa-solid ${cfg.icon} w-4 text-center text-xs"></i>
+                <span>${cfg.label}</span>
+            </span>
+            <span class="text-[10px] opacity-75 flex items-center gap-1">
+                <span>Ver nota</span>
+                <i class="fa-solid fa-chevron-right text-[9px]"></i>
+            </span>
         </button>
     `).join('');
 
     return `
-        <div class="barra-etiquetas-v2 mt-3 pt-3 border-t border-slate-200">
-            <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">
-                <i class="fa-solid fa-tags text-indigo-600 mr-1"></i> Etiquetas de Ficha Técnica (Clic para consultar en base de datos):
+        <div class="barra-etiquetas-v2 w-full mt-3 p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200 space-y-2">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-tags text-indigo-600"></i> Ficha Normativa y Trazabilidad (Clic para consultar nota):
             </span>
-            <div class="flex flex-wrap gap-1.5">${botones}</div>
+            <div class="flex flex-col gap-1.5">
+                ${botones}
+            </div>
         </div>
     `;
 };
 
-// Busca cada recuadro que muestra la clave de acción (ej. AUD_F-H-0012-A-0001) y coloca las etiquetas en su tarjeta
+// Inserta las etiquetas verticales estrictamente DEBAJO del recuadro "DETALLE OPERATIVO"
 (function iniciarInyectorEtiquetas() {
-    const regexClave = /^([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})$/;
+    const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
 
     function pintarEtiquetasEnModal() {
         const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral');
         if (!contenedor) return;
 
-        // Buscar todos los nodos hoja cuyo texto sea exactamente una clave de acción
-        const nodosClave = Array.from(contenedor.querySelectorAll('span, div, code, strong, p')).filter(el => {
-            return el.children.length === 0 && regexClave.test(el.textContent.trim());
+        // 1. Limpiar cualquier inserción previa que haya quedado arriba en la cabecera
+        contenedor.querySelectorAll('.barra-etiquetas-v2').forEach(el => {
+            if (!el.previousElementSibling || !el.previousElementSibling.textContent.includes('DETALLE OPERATIVO')) {
+                el.remove();
+            }
         });
 
-        nodosClave.forEach(nodo => {
-            const clave = nodo.textContent.trim();
+        // 2. Localizar el texto exacto "DETALLE OPERATIVO:"
+        const titulosDetalle = Array.from(contenedor.querySelectorAll('span, div, label, strong, p')).filter(el => {
+            return el.children.length === 0 &&
+                   el.textContent.trim().toUpperCase().startsWith('DETALLE OPERATIVO');
+        });
 
-            // Subir en el DOM hasta encontrar la tarjeta de esa acción (que contiene el botón "Editar" o "Vincular")
-            let tarjeta = nodo.parentElement;
-            for (let i = 0; i < 6 && tarjeta && tarjeta !== contenedor; i++) {
-                const textoTarjeta = tarjeta.textContent || '';
-                if (textoTarjeta.includes('Editar') || textoTarjeta.includes('Vincular')) {
-                    break;
-                }
-                tarjeta = tarjeta.parentElement;
+        titulosDetalle.forEach(tituloEl => {
+            // El recuadro gris con borde que envuelve "DETALLE OPERATIVO:" y su párrafo
+            const cajaDetalle = tituloEl.parentElement;
+            if (!cajaDetalle || !cajaDetalle.parentElement) return;
+
+            // Si ya tiene la barra vertical justo debajo, no duplicar
+            if (cajaDetalle.nextElementSibling && cajaDetalle.nextElementSibling.classList.contains('barra-etiquetas-v2')) {
+                return;
             }
 
-            if (tarjeta && tarjeta !== contenedor && !tarjeta.querySelector('.barra-etiquetas-v2')) {
-                // Insertar antes de "ÁRBOLES DE EXPEDIENTES" si existe, o al final de la tarjeta
-                const arbol = Array.from(tarjeta.querySelectorAll('div, span, p')).find(
-                    el => el.children.length === 0 && el.textContent.includes('ÁRBOLES DE EXPEDIENTES')
-                );
-                if (arbol && arbol.parentElement) {
-                    arbol.parentElement.insertAdjacentHTML('beforebegin', crearBarraEtiquetasAccion(clave));
-                } else {
-                    tarjeta.insertAdjacentHTML('beforeend', crearBarraEtiquetasAccion(clave));
+            // Subir en el DOM para leer la clave de acción (ej. FIN_P-H-0001-A-0001)
+            let nivel = cajaDetalle.parentElement;
+            let claveEncontrada = null;
+            for (let i = 0; i < 6 && nivel && nivel !== contenedor; i++) {
+                const match = nivel.textContent.match(regexClave);
+                if (match) {
+                    claveEncontrada = match[1];
+                    break;
                 }
+                nivel = nivel.parentElement;
+            }
+
+            if (claveEncontrada) {
+                // Insertar inmediatamente DESPUÉS de cerrar el recuadro de DETALLE OPERATIVO
+                cajaDetalle.insertAdjacentHTML('afterend', crearBarraEtiquetasAccion(claveEncontrada));
             }
         });
     }
 
-    // Revisar continuamente cada 400ms mientras el modal esté abierto (infalible ante cualquier render)
     setInterval(() => {
         const modalBD = document.getElementById('modal-base-datos-general');
         if (modalBD && !modalBD.classList.contains('hidden')) {
             pintarEtiquetasEnModal();
         }
-    }, 400);
+    }, 300);
 })();
+    
 </script>
 </body>
 </html>
