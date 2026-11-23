@@ -3108,6 +3108,10 @@ async function inicializarDatosDesdeSupabase() {
                     vinculo_art6: itemDB.vinculo_art6 || 'NO',
                     cita_textual_literal: itemDB.cita_textual_literal || '',
                     nota_auditoria: itemDB.nota_auditoria || ''
+                    instrumento_1: itemDB.instrumento_1 || '',
+                    instrumento_2: itemDB.instrumento_2 || '',
+                    instrumento_3: itemDB.instrumento_3 || '',
+                    sugerencia_expediente_tecnico: itemDB.sugerencia_expediente_tecnico || itemDB.docRequerido || ''
                 };
             });
         }
@@ -13184,6 +13188,185 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 600);
 });
 
+<!-- ========================================================================= -->
+<!-- NOTA EMERGENTE INTERACTIVA (FICHA TÉCNICA DE ETIQUETAS - BASE DE DATOS)  -->
+<!-- ========================================================================= -->
+<div id="popoverNotaEmergenteBD" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs" onclick="if(event.target===this) cerrarNotaEmergenteBD()">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <!-- Cabecera dinámica -->
+        <div id="notaEmergenteHeader" class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span id="notaEmergenteIcono" class="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-tag"></i>
+                </span>
+                <div>
+                    <span id="notaEmergenteClave" class="font-mono text-[10px] text-amber-300 font-bold block">--</span>
+                    <h4 id="notaEmergenteTitulo" class="text-xs sm:text-sm font-extrabold tracking-tight text-white">--</h4>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarNotaEmergenteBD()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Cuerpo de la nota -->
+        <div class="p-5 space-y-3 text-xs text-slate-700">
+            <div id="notaEmergenteContenido" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 leading-relaxed whitespace-pre-line max-h-72 overflow-y-auto font-medium">
+                --
+            </div>
+        </div>
+
+        <!-- Pie -->
+        <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Decreto No. 345 · Ficha de Trazabilidad</span>
+            <button type="button" onclick="cerrarNotaEmergenteBD()" class="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
+                Cerrar Nota
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// =========================================================================
+// MOTOR DE ETIQUETAS INTERACTIVAS Y NOTA EMERGENTE EN BASE DE DATOS GENERAL
+// =========================================================================
+const CONFIG_ETIQUETAS_BD = [
+    { key: 'instrumento_1',                 label: 'Instrumento 1',          icon: 'fa-file-contract',     color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100', headerBg: 'bg-indigo-950' },
+    { key: 'instrumento_2',                 label: 'Instrumento 2',          icon: 'fa-file-signature',    color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100', headerBg: 'bg-indigo-950' },
+    { key: 'instrumento_3',                 label: 'Instrumento 3',          icon: 'fa-file-shield',       color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100', headerBg: 'bg-indigo-950' },
+    { key: 'sugerencia_expediente_tecnico', label: 'Sugerencia Expediente',  icon: 'fa-folder-plus',       color: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100', headerBg: 'bg-emerald-950' },
+    { key: 'nota_auditoria',                label: 'Nota de Auditoría',      icon: 'fa-clipboard-check',   color: 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200', headerBg: 'bg-slate-900' },
+    { key: 'etiqueta_tramite',              label: 'Etiqueta Trámite',       icon: 'fa-folder-tree',       color: 'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100', headerBg: 'bg-sky-950' },
+    { key: 'cita_textual_literal',          label: 'Cita Textual Literal',   icon: 'fa-quote-left',        color: 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100', headerBg: 'bg-purple-950' },
+    { key: 'vinculo_art6',                  label: 'Vínculo Art. 6',         icon: 'fa-scale-balanced',    color: 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100', headerBg: 'bg-amber-950' },
+    { key: 'tercero_externo',               label: 'Tercero Externo',        icon: 'fa-building-columns',  color: 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100', headerBg: 'bg-rose-950' },
+    { key: 'accion_cierre_pinza',           label: 'Acción Cierre de Pinza', icon: 'fa-lock',              color: 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100', headerBg: 'bg-teal-950' }
+];
+
+window.abrirNotaEmergenteBD = function(claveAccion, campoKey) {
+    const act = (accionesDataset || []).find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+    const cfg = CONFIG_ETIQUETAS_BD.find(c => c.key === campoKey);
+    if (!act || !cfg) return;
+
+    // Respaldo de nombres alternativos por si viene de Supabase o del catálogo local
+    let valor = act[campoKey];
+    if (!valor && campoKey === 'sugerencia_expediente_tecnico') valor = act.docRequerido || act.sugerencia_expediente;
+    if (!valor && campoKey === 'tercero_externo') valor = act.terceroNombre;
+    if (!valor && campoKey === 'nota_auditoria') valor = act.observaciones || 'Sin observaciones de auditoría registradas para esta acción.';
+    if (!valor) valor = 'Sin información registrada para este campo.';
+
+    const modal = document.getElementById('popoverNotaEmergenteBD');
+    const header = document.getElementById('notaEmergenteHeader');
+    const icono = document.getElementById('notaEmergenteIcono');
+    const claveEl = document.getElementById('notaEmergenteClave');
+    const tituloEl = document.getElementById('notaEmergenteTitulo');
+    const contenidoEl = document.getElementById('notaEmergenteContenido');
+
+    header.className = `px-5 py-3.5 ${cfg.headerBg} text-white flex items-center justify-between gap-3`;
+    icono.innerHTML = `<i class="fa-solid ${cfg.icon}"></i>`;
+    claveEl.innerText = `${claveAccion} • Panel ${act.panel || ''}`;
+    tituloEl.innerText = cfg.label;
+    contenidoEl.innerText = valor;
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+};
+
+window.cerrarNotaEmergenteBD = function() {
+    const modal = document.getElementById('popoverNotaEmergenteBD');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarNotaEmergenteBD();
+});
+
+// Genera el bloque HTML de las 10 etiquetas para una clave de acción
+window.generarHtmlEtiquetasBD = function(claveAccion) {
+    const act = (accionesDataset || []).find(a => (a.clave_accion === claveAccion) || (a.id === claveAccion));
+    if (!act) return '';
+
+    const pills = CONFIG_ETIQUETAS_BD.map(cfg => {
+        let val = act[cfg.key];
+        if (!val && cfg.key === 'sugerencia_expediente_tecnico') val = act.docRequerido;
+        if (!val && cfg.key === 'tercero_externo') val = act.terceroNombre;
+        const tieneDato = val && String(val).trim() !== '' && !String(val).startsWith('NO APLICA') && val !== 'NO';
+        const opacidad = tieneDato ? '' : 'opacity-65';
+
+        return `
+            <button type="button"
+                onclick="event.stopPropagation(); abrirNotaEmergenteBD('${claveAccion}', '${cfg.key}')"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10.5px] font-bold transition shadow-2xs cursor-pointer ${cfg.color} ${opacidad}"
+                title="Clic para ver ${cfg.label}">
+                <i class="fa-solid ${cfg.icon} text-[9px]"></i>
+                <span>${cfg.label}</span>
+            </button>
+        `;
+    }).join('');
+
+    return `
+        <div class="etiquetas-ficha-bd mt-3 pt-2.5 border-t border-slate-200/80">
+            <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+                <i class="fa-solid fa-tags text-indigo-500 mr-1"></i> Ficha Normativa y Trazabilidad (Clic en cada etiqueta para desplegar nota):
+            </span>
+            <div class="flex flex-wrap gap-1.5">
+                ${pills}
+            </div>
+        </div>
+    `;
+};
+
+// Observador automático: cada vez que renderBaseDatosGeneralJerarquica() dibuja tarjetas
+// dentro de #contenedorHitosBaseDatosGeneral, inyecta las etiquetas en cada acción.
+(function observarContenedorBaseDatos() {
+    const target = document.getElementById('contenedorHitosBaseDatosGeneral');
+    if (!target) return;
+
+    const inyectarEtiquetasEnTarjetas = () => {
+        // Busca cada bloque de acción que mencione una clave canónica (ej. AUD_F-H-0001-A-0001)
+        const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
+        const bloques = target.querySelectorAll('[data-clave-accion], .accion-card-bd, div');
+
+        bloques.forEach(el => {
+            if (el.dataset.etiquetasInyectadas === '1') return;
+
+            // Detecta si es el contenedor de detalle operativo o tarjeta de acción
+            const claveAttr = el.getAttribute('data-clave-accion');
+            if (claveAttr && !el.querySelector('.etiquetas-ficha-bd')) {
+                el.dataset.etiquetasInyectadas = '1';
+                el.insertAdjacentHTML('beforeend', generarHtmlEtiquetasBD(claveAttr));
+                return;
+            }
+
+            // Búsqueda por texto "DETALLE OPERATIVO:" dentro de la tarjeta de acción (como en tu captura)
+            if (el.children.length <= 4 && el.textContent.includes('DETALLE OPERATIVO:')) {
+                let padre = el.parentElement;
+                let claveEncontrada = null;
+                for (let i = 0; i < 4 && padre; i++) {
+                    const match = padre.textContent.match(regexClave);
+                    if (match) {
+                        claveEncontrada = match[1];
+                        break;
+                    }
+                    padre = padre.parentElement;
+                }
+                if (claveEncontrada && !el.parentElement.querySelector('.etiquetas-ficha-bd')) {
+                    el.dataset.etiquetasInyectadas = '1';
+                    el.insertAdjacentHTML('afterend', generarHtmlEtiquetasBD(claveEncontrada));
+                }
+            }
+        });
+    };
+
+    const observer = new MutationObserver(() => inyectarEtiquetasEnTarjetas());
+    observer.observe(target, { childList: true, subtree: true });
+})();
+
+
+        
     </script>
 </body>
 </html>
