@@ -163,7 +163,7 @@
         <!-- Mensaje de Error -->
         <div id="errorMessage" class="hidden mb-5 p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center space-x-2.5">
             <i class="fa-solid fa-circle-exclamation text-rose-400 shrink-0"></i>
-            <span>Credenciales incorrectas. Por favor, verifica tus datos.</span>
+            <span id="errorText">Credenciales incorrectas. Por favor, verifica tus datos.</span>
         </div>
 
         <!-- Formulario de Acceso -->
@@ -208,7 +208,7 @@
             <div class="flex items-center justify-center space-x-2 text-[11px] text-slate-400 font-medium">
                 <span class="inline-flex items-center"><i class="fa-solid fa-scroll mr-1.5 text-sky-400/70"></i>Decreto 345</span>
                 <span class="text-slate-600">&bull;</span>
-                <span class="inline-flex items-center"><i class="fa-solid fa-landmark mr-1.5 text-sky-400/70"></i>IEC & Fórum</span>
+                <span class="inline-flex items-center"><i class="fa-solid fa-landmark mr-1.5 text-sky-400/70"></i>IECG & Fórum</span>
                 <span class="text-slate-600">&bull;</span>
                 <span class="inline-flex items-center"><i class="fa-solid fa-shield-halved mr-1.5 text-sky-400/70"></i>Sec. Cultura</span>
             </div>
@@ -274,6 +274,7 @@
             const userVal = document.getElementById('username').value.trim();
             const passVal = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
             const btn = document.getElementById('btnSubmit');
 
             errorDiv.classList.add('hidden');
@@ -289,12 +290,12 @@
                     .single();
 
                 if (error || !data) {
-                    errorDiv.innerText = "Credenciales incorrectas. Por favor, verifica tus datos.";
+                    errorText.innerText = "Credenciales incorrectas. Por favor, verifica tus datos.";
                     errorDiv.classList.remove('hidden');
                     btn.disabled = false;
                     btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-xs"></i>';
                 } else {
-                    // REGLAS DE NEGOCIO Y PERMISOS POR ROL / USUARIO
+                    // REGLAS DE NEGOCIO Y PERMISOS POR ROL / USUARIO (INTACTAS)
                     let rolStr = (data.rol || '').toLowerCase();
                     let usuarioStr = (data.usuario || '').toLowerCase();
 
@@ -333,7 +334,7 @@
                         localStorage.setItem('secul_vertiente_activa', vertientesPermitidas);
                         // Redirige según corresponda a su vertiente fija
                         if (vertientesPermitidas === "FORUM") {
-                            window.location.href = '/panel3.html';
+                            window.location.href = '/panel_forum_pro.html';
                         } else {
                             window.location.href = '/panel_iecg_pro.html';
                         }
@@ -341,7 +342,7 @@
                 }
             } catch (err) {
                 console.error("Error al autenticar:", err);
-                errorDiv.innerText = "Ocurrió un error en la conexión.";
+                errorText.innerText = "Ocurrió un error en la conexión.";
                 errorDiv.classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-xs"></i>';
@@ -353,6 +354,9 @@
             const btn = document.getElementById('btnSubmit');
             btn.disabled = false;
             btn.innerHTML = '<span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right text-xs"></i>';
+
+            const existente = document.getElementById('modalSelector');
+            if (existente) existente.remove();
 
             const modalHtml = `
             <div id="modalSelector" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
@@ -366,14 +370,14 @@
                     </div>
                     
                     <div class="space-y-3.5 pt-1">
-                        <button onclick="irAVertiente('IEC')" class="w-full p-4 rounded-2xl text-left transition-all duration-200 flex items-center justify-between group bg-slate-900/60 hover:bg-sky-950/50 border border-slate-800 hover:border-sky-500/40">
+                        <button onclick="irAVertiente('IEC')" class="w-full p-4 rounded-2xl text-left transition-all duration-200 flex items-center justify-between group bg-slate-900/60 hover:bg-sky-950/50 border border-slate-800 hover:border-sky-500/40 cursor-pointer">
                             <div class="flex items-center space-x-3.5">
                                 <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0 text-base group-hover:scale-105 transition-transform">
                                     <i class="fa-solid fa-landmark"></i>
                                 </div>
                                 <div>
                                     <strong class="block text-slate-100 text-xs font-bold tracking-wide group-hover:text-sky-300 transition-colors">
-                                        Opción 1: Instituto Estatal de la Cultura (IEC)
+                                        Opción 1: IECG (Instituto Estatal de la Cultura)
                                     </strong>
                                     <span class="text-[11px] text-slate-400">Liquidación, bienes muebles y ASEG</span>
                                 </div>
@@ -381,14 +385,14 @@
                             <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-sky-400 group-hover:translate-x-1 transition-all text-xs"></i>
                         </button>
 
-                        <button onclick="irAVertiente('FORUM')" class="w-full p-4 rounded-2xl text-left transition-all duration-200 flex items-center justify-between group bg-slate-900/60 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-500/40">
+                        <button onclick="irAVertiente('FORUM')" class="w-full p-4 rounded-2xl text-left transition-all duration-200 flex items-center justify-between group bg-slate-900/60 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-500/40 cursor-pointer">
                             <div class="flex items-center space-x-3.5">
                                 <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-400/20 text-indigo-400 flex items-center justify-center shrink-0 text-base group-hover:scale-105 transition-transform">
                                     <i class="fa-solid fa-masks-theater"></i>
                                 </div>
                                 <div>
                                     <strong class="block text-slate-100 text-xs font-bold tracking-wide group-hover:text-indigo-300 transition-colors">
-                                        Opción 2: Fórum Cultural Guanajuato
+                                        Opción 2: FORUM (Fórum Cultural Guanajuato)
                                     </strong>
                                     <span class="text-[11px] text-slate-400">Extinción, personal y subrogación</span>
                                 </div>
@@ -405,7 +409,7 @@
         function irAVertiente(vertiente) {
             localStorage.setItem('secul_vertiente_activa', vertiente);
             if (vertiente === 'FORUM') {
-                window.location.href = '/panel3.html';
+                window.location.href = '/panel_forum_pro.html';
             } else {
                 window.location.href = '/panel_iecg_pro.html';
             }
