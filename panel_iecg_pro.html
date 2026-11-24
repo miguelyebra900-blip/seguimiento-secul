@@ -14178,27 +14178,15 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
             const motivoRechazoHTML = (sol._est === 'RECHAZADA' && sol.observacion_resolucion)
                 ? `<p class="text-[11px] text-rose-700 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">Motivo rechazo: ${sol.observacion_resolucion}</p>`
                 : '';
-
-            return `
+return `
                 <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="font-mono font-extrabold text-indigo-950">${clave}</span>
-                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badge}">${sol._est}</span>
-                    </div>
-                    ${tituloAccionTxt ? `<p class="text-[11px] text-slate-500 font-medium leading-snug">${tituloAccionTxt}</p>` : ''}
-                    <p class="font-bold text-slate-800">${motivo}</p>
-                    <p class="text-[11px] text-slate-600">
-                        Solicita: <strong class="text-indigo-700">${nomOrig}</strong>
-                        &rarr; Dueño: <strong class="text-emerald-700">${nomDest}</strong>
-                    </p>
-                    <p class="text-[10.5px] text-slate-400">Tipo: ${tipo}${fechaTxt ? ' • ' + fechaTxt : ''}</p>
-                    ${motivoRechazoHTML}
-                    ${botonesValidacion}
+                    ...
                 </div>
             `;
         }).join('');
+    };
 
-   window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
+    window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
         let obs = '';
         if (nuevoEstatus === 'RECHAZADA') {
             obs = prompt('Indica el motivo del rechazo u observación:') || 'Rechazada por el validador';
@@ -14209,7 +14197,6 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                 .update({ estatus: nuevoEstatus, observacion_resolucion: obs })
                 .eq('id', id);
 
-            // Si la columna observacion_resolucion no existe en Supabase (error 400), actualizar solo estatus
             if (error) {
                 const retry = await supabaseClient
                     .from('solicitudes_auditoria')
@@ -14223,7 +14210,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         }
         window.renderizarBandejasAvisos();
     };
-    
+
     window.abrirModalBitacoraAvisos = function() {
         const modal = document.getElementById('modal-bitacora-avisos');
         if (modal) {
