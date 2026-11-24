@@ -13907,7 +13907,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
 </script>
 <script>
 // ============================================================================
-// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (AISLADO Y BLINDADO)
+// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (SIN ERRORES DE SINTAXIS)
 // ============================================================================
 (function() {
     const MATRIZ_PANELES = {
@@ -13922,7 +13922,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         I: { nombre: 'Panel I · Auditoría y Fiscalización ASEG', validadores: ['líder proyecto', 'lider proyecto', 'lider_seguimiento', 'liquidador'] }
     };
 
-let tabActual = 'RECIBIDAS';
+    let tabActual = 'RECIBIDAS';
 
     // Respaldo global para evitar ReferenceError en funciones previas y botones de cierre
     window.estadoCentroAvisos = window.estadoCentroAvisos || { recibidas: [], enviadas: [], historial: [] };
@@ -13954,7 +13954,7 @@ let tabActual = 'RECIBIDAS';
         return getPanelesValidacionUsuario()[0] || 'I';
     }
 
-    // 1. Interceptar Supabase para asignar panel_solicitante real (evita 'Panel A') y bloquear auto-vinculación
+    // Interceptar Supabase para asignar panel_solicitante real y evitar auto-vinculación
     if (typeof supabaseClient !== 'undefined' && supabaseClient && !supabaseClient.__vinculacionParcheada) {
         supabaseClient.__vinculacionParcheada = true;
         const origFrom = supabaseClient.from.bind(supabaseClient);
@@ -13979,7 +13979,7 @@ let tabActual = 'RECIBIDAS';
         };
     }
 
-    // 2. Sincronizar etiqueta visual de Comisión Solicitante en la Mesa de Vinculación
+    // Sincronizar etiqueta visual de Comisión Solicitante en la Mesa de Vinculación
     setInterval(() => {
         const modalVinc = document.getElementById('modal-vinculacion-universal');
         if (!modalVinc || modalVinc.classList.contains('hidden')) return;
@@ -13999,9 +13999,83 @@ let tabActual = 'RECIBIDAS';
                 }
             });
         }
-    }, 250);
+    }, 300);
 
-    // 3. Cambio de pestaña (RECIBIDAS, ENVIADAS, HISTORIAL)
+    // Envío directo desde Mesa de Vinculación hacia solicitudes_auditoria
+    window.enviarSolicitudVinculacionDesdeModal = async function() {
+        const hitoSel = document.getElementById('selVinculoHitoObjetivo');
+        const accionSel = document.getElementById('selVinculoAccionObjetivo');
+        const tipoSel = document.getElementById('selTipoCorresponsabilidad');
+        const txtMotivo = document.getElementById('txtVinculoMotivoOficial');
+        const btnSubmit = document.getElementById('btnSubmitVinculoOficial');
+
+        const claveObjetivo = (accionSel && accionSel.value && accionSel.value !== 'TODAS')
+            ? accionSel.value.trim()
+            : (hitoSel ? hitoSel.value.trim() : '');
+        const motivo = txtMotivo ? txtMotivo.value.trim() : '';
+
+        if (!claveObjetivo || !motivo) {
+            alert('⚠️ Selecciona un Hito/Acción y escribe la justificación de vinculación.');
+            return;
+        }
+
+        const panelOrigen = getPanelTitularOrigen();
+        const prefijo = claveObjetivo.split('_')[0].toUpperCase();
+        const mapaPref = { RH: 'A', ASI: 'B', JUR: 'C', FID: 'D', PTR: 'E', FIN: 'F', TIT: 'G', ARC: 'H', AUD: 'I' };
+        const panelDestino = mapaPref[prefijo] || 'I';
+
+        if (panelOrigen === panelDestino) {
+            alert(`⚠️ No puedes vincular una solicitud hacia tu mismo panel (${panelOrigen}).`);
+            return;
+        }
+
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Enviando...';
+        }
+
+        try {
+            const nombreUsuario = (typeof currentUser !== 'undefined' && currentUser)
+                ? (currentUser.nombre || currentUser.usuario)
+                : 'Enlace Operativo';
+
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                const { error } = await supabaseClient
+                    .from('solicitudes_auditoria')
+                    .insert([{
+                        clave_accion: claveObjetivo,
+                        panel_solicitante: panelOrigen,
+                        panel_destino: panelDestino,
+                        motivo_solicitud: motivo,
+                        tipo_solicitud: tipoSel ? tipoSel.value : 'Co-responsabilidad Art. 6',
+                        solicitante_nombre: nombreUsuario,
+                        estatus: 'PENDIENTE'
+                    }]);
+
+                if (error) {
+                    alert('Error al guardar en Supabase: ' + error.message);
+                    return;
+                }
+            }
+
+            if (txtMotivo) txtMotivo.value = '';
+            if (typeof closeModal === 'function') closeModal('modal-vinculacion-universal');
+            alert(`✅ Solicitud enviada correctamente (Panel ${panelOrigen} → Panel ${panelDestino}).`);
+            await window.renderizarBandejasAvisos();
+        } finally {
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a Validación';
+            }
+        }
+    };
+
+    window.procesarVinculacionUniversalOficial = function(e) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        return window.enviarSolicitudVinculacionDesdeModal();
+    };
+
+    // Cambio de pestaña (RECIBIDAS, ENVIADAS, HISTORIAL)
     window.cambiarPestanaAvisos = function(nuevaTab) {
         tabActual = (nuevaTab || 'RECIBIDAS').toUpperCase();
         const botones = {
@@ -14019,12 +14093,11 @@ let tabActual = 'RECIBIDAS';
     };
     window.cambiarPestanaAvisosV2 = window.cambiarPestanaAvisos;
 
-    // 4. Renderizado limpio de bandejas
+    // Renderizado limpio con extracción automática de columnas
     window.__cargandoAvisos = false;
     window.renderizarBandejasAvisos = async function() {
         if (window.__cargandoAvisos) return;
         const contenedor = document.getElementById('contenedor-lista-avisos');
-        if (!contenedor) return;
 
         window.__cargandoAvisos = true;
         let filas = [];
@@ -14035,8 +14108,6 @@ let tabActual = 'RECIBIDAS';
                     .select('*');
                 if (!error && Array.isArray(data)) {
                     filas = data.slice().reverse();
-                } else if (error) {
-                    console.warn('Aviso lectura solicitudes_auditoria:', error.message);
                 }
             }
         } finally {
@@ -14049,12 +14120,16 @@ let tabActual = 'RECIBIDAS';
         const miNombre  = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || '') : '';
 
         const items = filas.map(r => {
-            const est = String(r.estatus || 'PENDIENTE').trim().toUpperCase();
-            const pOrig = String(r.panel_solicitante || '').trim().toUpperCase();
+            const estRaw = String(r.estatus || 'PENDIENTE').trim().toUpperCase();
+            const esResuelta = (estRaw === 'APROBADA' || estRaw === 'RECHAZADA');
+            const est = esResuelta ? estRaw : 'PENDIENTE';
+
+            const claveRef = r.clave_accion || r.clave_objetivo || r.clave_hito || r.accion_id || '';
+            const pOrig = String(r.panel_solicitante || r.panel_origen || '').trim().toUpperCase();
             let pDest = String(r.panel_destino || '').trim().toUpperCase();
 
-            if (!pDest && r.clave_accion) {
-                const pref = r.clave_accion.split('_')[0].toUpperCase();
+            if (!pDest && claveRef) {
+                const pref = claveRef.split('_')[0].toUpperCase();
                 const mapaPref = { RH: 'A', ASI: 'B', JUR: 'C', FID: 'D', PTR: 'E', FIN: 'F', TIT: 'G', ARC: 'H', AUD: 'I' };
                 pDest = mapaPref[pref] || '';
             }
@@ -14075,10 +14150,16 @@ let tabActual = 'RECIBIDAS';
         const elRec = document.getElementById('count-tab-recibidas');
         const elEnv = document.getElementById('count-tab-enviadas');
         const elHis = document.getElementById('count-tab-historial');
+        const badgeTop = document.getElementById('badgeContadorNotif');
         if (elRec) elRec.innerText = recibidas.length;
         if (elEnv) elEnv.innerText = enviadas.length;
         if (elHis) elHis.innerText = historial.length;
+        if (badgeTop) {
+            badgeTop.innerText = recibidas.length;
+            badgeTop.classList.toggle('hidden', recibidas.length === 0);
+        }
 
+        if (!contenedor) return;
         const mostrar = tabActual === 'RECIBIDAS' ? recibidas : (tabActual === 'ENVIADAS' ? enviadas : historial);
 
         if (mostrar.length === 0) {
@@ -14090,8 +14171,8 @@ let tabActual = 'RECIBIDAS';
             contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${textosVacios[tabActual]}</div>`;
             return;
         }
-contenedor.innerHTML = mostrar.map(sol => {
-            // Extraer clave, motivo y tipo buscando en cualquier columna real de la fila
+
+        contenedor.innerHTML = mostrar.map(sol => {
             const entradas = Object.entries(sol).filter(([k, v]) =>
                 v !== null && v !== undefined && String(v).trim() !== '' &&
                 !['id', 'created_at', 'updated_at', 'estatus', 'panel_solicitante', 'panel_origen', 'panel_destino', '_est', '_pOrig', '_pDest', '_enviada', '_recibida'].includes(k)
@@ -14150,7 +14231,7 @@ contenedor.innerHTML = mostrar.map(sol => {
                 </div>
             `;
         }).join('');
-        
+    };
 
     window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
         let obs = '';
