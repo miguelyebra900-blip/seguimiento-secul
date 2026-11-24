@@ -7954,11 +7954,10 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         }
 
         // Bitácora de justificación técnica
-        var textareaSustento = document.querySelector('#modal-edicion-dinamica textarea') 
-                            || document.getElementById('inputSustentoAuditoria')
-                            || document.querySelector('textarea[placeholder*="motivo u oficio"]');
+      var textareaSustento = document.getElementById('inputMotivoEdit')
+                    || document.querySelector('#modal-edicion-dinamica textarea[placeholder*="motivo u oficio"]');
         var nuevaNota = textareaSustento ? textareaSustento.value.trim() : '';
-
+        
         var usuarioFirma = (typeof currentUser !== 'undefined' && currentUser) 
             ? (currentUser.nombre || currentUser.usuario) 
             : 'Enlace Operativo';
