@@ -12883,103 +12883,74 @@ function esSolicitudParaMiPanelReceptor(sol) {
     return Boolean(panelDestinoSol && panelesUser.includes(panelDestinoSol));
 }
 
-window.enviarSolicitudVinculacionDesdeModal = async function() {
-    const btn = document.getElementById("btnSubmitVinculoOficial");
-    const hitoClave = document.getElementById("selVinculoHitoObjetivo")?.value || "";
-    const accionClave = document.getElementById("selVinculoAccionObjetivo")?.value || "TODAS";
-    const tipoCorresp = document.getElementById("selTipoCorresponsabilidad")?.value || "Aportación de Expediente";
-    const motivo = document.getElementById("txtVinculoMotivoOficial")?.value?.trim() || "";
-    const fileInput = document.getElementById("fileVinculoDocumental");
+// Interceptar y reemplazar el envío del modal de vinculación para que guarde directo en Supabase
+    window.enviarSolicitudVinculacionDesdeModal = async function() {
+        const hitoSel = document.getElementById('selVinculoHitoObjetivo');
+        const accionSel = document.getElementById('selVinculoAccionObjetivo');
+        const tipoSel = document.getElementById('selTipoCorresponsabilidad');
+        const txtMotivo = document.getElementById('txtVinculoMotivoOficial');
+        const btnSubmit = document.getElementById('btnSubmitVinculoOficial');
 
-    if (!hitoClave) {
-        alert("Selecciona primero el Hito Rector a vincular.");
-        return;
-    }
-    if (!motivo) {
-        alert("Escribe la justificación o causa raíz de la vinculación.");
-        return;
-    }
+        const claveObjetivo = (accionSel && accionSel.value && accionSel.value !== 'TODAS')
+            ? accionSel.value.trim()
+            : (hitoSel ? hitoSel.value.trim() : '');
+        const motivo = txtMotivo ? txtMotivo.value.trim() : '';
 
-    const registroRef = (typeof accionesDataset !== "undefined" ? accionesDataset : []).find(
-        a => a.clave_accion === accionClave || a.id === accionClave || a.clave_hito === hitoClave
-    ) || {};
-
-    const panelDestino = normalizarPanelVinculo(
-        document.getElementById("selFiltroAreaVinculo")?.value ||
-        registroRef.panel ||
-        registroRef.clave_hito ||
-        hitoClave
-    ) || "B";
-
-    const panelesOrigen = obtenerPanelesDeSesionActual();
-    const panelOrigen = panelesOrigen[0] || "SIN_PANEL";
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Enviando...';
-    }
-
-    try {
-        let oficioUrl = "";
-        if (fileInput && fileInput.files && fileInput.files.length > 0 && typeof window.subirArchivoADrive === "function") {
-            const archivo = fileInput.files[0];
-            oficioUrl = await window.subirArchivoADrive(archivo, panelDestino, `VINCULACION_PANEL_${panelDestino}`, `[VINC_${panelDestino}] ${archivo.name}`);
+        if (!claveObjetivo || !motivo) {
+            alert('⚠️ Selecciona un Hito/Acción y escribe la justificación de vinculación.');
+            return;
         }
 
-        const u = (typeof currentUser !== "undefined" && currentUser) ? currentUser : null;
-        const payload = {
-            tipo_solicitud: "VINCULACION_CO_RESPONSABILIDAD",
-            comision_solicitante: panelesOrigen.length ? panelesOrigen.join(", ") : "SIN_PANEL",
-            usuario_solicitante: u ? (u.nombre || u.usuario) : "Usuario no identificado",
-            usuario_id: u && u.id ? String(u.id) : null,
-            correo_contacto: u && u.correo ? u.correo : "",
-            panel_origen: panelOrigen,
-            panel_destino: panelDestino,
-            hito_objetivo: hitoClave,
-            accion_objetivo: accionClave,
-            nivel_vinculacion: accionClave === "TODAS" ? "HITO_COMPLETO" : "ACCION_ESPECIFICA",
-            tipo_corresponsabilidad: tipoCorresp,
-            valor_anterior: registroRef.responsable || PANELES_VINCULACION_SECUL[panelDestino] || `Panel ${panelDestino}`,
-            justificacion: motivo,
-            oficio_url: oficioUrl,
-            estatus: "PENDIENTE",
-            fecha_solicitud: new Date().toISOString()
-        };
+        const panelOrigen = getPanelTitularOrigen();
+        const prefijo = claveObjetivo.split('_')[0].toUpperCase();
+        const mapaPref = { RH: 'A', ASI: 'B', JUR: 'C', FID: 'D', PTR: 'E', FIN: 'F', TIT: 'G', ARC: 'H', AUD: 'I' };
+        const panelDestino = mapaPref[prefijo] || 'I';
 
-        if (typeof supabaseClient !== "undefined" && supabaseClient) {
-            const { error } = await supabaseClient
-                .from("solicitudes_auditoria_v2")
-                .insert([payload]);
-            if (error) throw error;
+        if (panelOrigen === panelDestino) {
+            alert(`⚠️ No puedes vincular una solicitud hacia tu mismo panel (${panelOrigen}).`);
+            return;
         }
 
-        if (typeof registrarAccionEnSupabase === "function") {
-            await registrarAccionEnSupabase("VINCULACION", `Panel ${panelOrigen} solicitó vinculación a Panel ${panelDestino}`, payload);
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Enviando...';
         }
 
-        if (typeof window.showSeculToast === "function") {
-            window.showSeculToast(`Solicitud enviada a ${PANELES_VINCULACION_SECUL[panelDestino] || "Panel " + panelDestino}.`, "success", "Vinculación Registrada");
-        } else {
-            alert(`Solicitud de vinculación enviada a ${PANELES_VINCULACION_SECUL[panelDestino] || "Panel " + panelDestino}.`);
-        }
+        try {
+            const nombreUsuario = (typeof currentUser !== 'undefined' && currentUser)
+                ? (currentUser.nombre || currentUser.usuario)
+                : 'Enlace Operativo';
 
-        const motivoEl = document.getElementById("txtVinculoMotivoOficial");
-        if (motivoEl) motivoEl.value = "";
-        if (fileInput) fileInput.value = "";
-        if (typeof closeModal === "function") closeModal("modal-vinculacion-universal");
-        if (typeof window.actualizarContadorAvisosVinculacion === "function") {
-            await window.actualizarContadorAvisosVinculacion();
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                const { error } = await supabaseClient
+                    .from('solicitudes_auditoria')
+                    .insert([{
+                        clave_accion: claveObjetivo,
+                        panel_solicitante: panelOrigen,
+                        panel_destino: panelDestino,
+                        motivo_solicitud: motivo,
+                        tipo_solicitud: tipoSel ? tipoSel.value : 'Co-responsabilidad Art. 6',
+                        solicitante_nombre: nombreUsuario,
+                        estatus: 'PENDIENTE'
+                    }]);
+
+                if (error) {
+                    alert('Error al guardar en Supabase: ' + error.message);
+                    return;
+                }
+            }
+
+            if (txtMotivo) txtMotivo.value = '';
+            if (typeof closeModal === 'function') closeModal('modal-vinculacion-universal');
+            alert(`✅ Solicitud de vinculación enviada correctamente (Panel ${panelOrigen} → Panel ${panelDestino}).`);
+            await window.renderizarBandejasAvisos();
+        } finally {
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a Validación';
+            }
         }
-    } catch (err) {
-        console.error("Error al procesar vinculación:", err);
-        alert("Aviso al procesar la vinculación: " + (err.message || err));
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a Validación';
-        }
-    }
-};
+    };
 
 let estadoAvisosVinculo = {
     pestana: "RECIBIDAS",
