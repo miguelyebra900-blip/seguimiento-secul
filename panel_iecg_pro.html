@@ -13919,7 +13919,20 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         I: { nombre: 'Panel I · Auditoría y Fiscalización ASEG', validadores: ['líder proyecto', 'lider proyecto', 'lider_seguimiento', 'liquidador'] }
     };
 
-    let tabActual = 'RECIBIDAS';
+let tabActual = 'RECIBIDAS';
+
+    // Respaldo global para evitar ReferenceError en funciones previas y botones de cierre
+    window.estadoCentroAvisos = window.estadoCentroAvisos || { recibidas: [], enviadas: [], historial: [] };
+    window.actualizarContadorAvisosVinculacion = function() {
+        return window.renderizarBandejasAvisos();
+    };
+    window.cerrarModalBitacoraAvisos = function() {
+        const modal = document.getElementById('modal-bitacora-avisos');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    };
 
     function getPanelesValidacionUsuario() {
         if (typeof currentUser === 'undefined' || !currentUser) return [];
