@@ -7964,7 +7964,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
             : 'Enlace Operativo';
         var fechaHora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
-        var historialNotas = act.nota_auditoria || act.observacion || '';
+       var historialNotas = act.observacion || '';
         if (nuevaNota) {
             var entradaNueva = '[' + fechaHora + ' - ' + usuarioFirma + ']: ' + nuevaNota;
             historialNotas = historialNotas 
@@ -7982,8 +7982,7 @@ window.guardarFormularioEdicionDinamica = async function(e) {
         act.accion_especifica = nuevoTitulo || act.accion_especifica;
         act.responsable = responsableCapturado;
         act.estatus = estatusTxt;
-        act.avance = avanceNum;
-        act.nota_auditoria = historialNotas;
+         act.avance = avanceNum;
         act.observacion = historialNotas;
         var selA6Save = document.getElementById('selectArt6Edit');
         if (selA6Save) act.vinculo_art6 = selA6Save.value;
@@ -8013,7 +8012,6 @@ window.guardarFormularioEdicionDinamica = async function(e) {
                 avance_porcentaje: avanceNum,
                 drive_url: ultimoDriveUrl || act.driveUrl || '',
                 instancia_responsable: act.responsable,
-                nota_auditoria: historialNotas,
                 observacion: historialNotas,
                 updated_at: new Date().toISOString()
             }], { onConflict: 'clave_accion' });
