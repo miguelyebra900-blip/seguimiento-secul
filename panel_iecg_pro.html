@@ -12883,7 +12883,8 @@ function esSolicitudParaMiPanelReceptor(sol) {
     return Boolean(panelDestinoSol && panelesUser.includes(panelDestinoSol));
 }
 
-// Interceptar y reemplazar el envío del modal de vinculación para que guarde directo en Supabase
+
+    // Reemplazo directo del envío de vinculación para guardar en solicitudes_auditoria
     window.enviarSolicitudVinculacionDesdeModal = async function() {
         const hitoSel = document.getElementById('selVinculoHitoObjetivo');
         const accionSel = document.getElementById('selVinculoAccionObjetivo');
@@ -12942,7 +12943,7 @@ function esSolicitudParaMiPanelReceptor(sol) {
 
             if (txtMotivo) txtMotivo.value = '';
             if (typeof closeModal === 'function') closeModal('modal-vinculacion-universal');
-            alert(`✅ Solicitud de vinculación enviada correctamente (Panel ${panelOrigen} → Panel ${panelDestino}).`);
+            alert(`✅ Solicitud enviada correctamente (Panel ${panelOrigen} → Panel ${panelDestino}).`);
             await window.renderizarBandejasAvisos();
         } finally {
             if (btnSubmit) {
