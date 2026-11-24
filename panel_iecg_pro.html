@@ -2559,14 +2559,18 @@
         </div>
 
         <!-- Pestañas -->
-        <div class="flex border-b border-slate-200 bg-slate-50 text-xs font-bold">
-            <button type="button" id="tab-avisos-recibidas" onclick="cambiarPestanaAvisos('RECIBIDAS')" class="flex-1 py-2.5 px-4 text-center border-b-2 border-purple-600 text-purple-700 bg-white">
-                📥 Recibidas por Atender (<span id="count-tab-recibidas">0</span>)
-            </button>
-            <button type="button" id="tab-avisos-enviadas" onclick="cambiarPestanaAvisos('ENVIADAS')" class="flex-1 py-2.5 px-4 text-center text-slate-500 hover:text-slate-800 border-b-2 border-transparent">
-                📤 Mis Solicitudes Enviadas (<span id="count-tab-enviadas">0</span>)
-            </button>
-        </div>
+       <!-- Pestañas -->
+            <div class="grid grid-cols-3 border-b border-slate-200 bg-slate-50 text-xs font-bold">
+                <button type="button" id="tab-avisos-recibidas" onclick="cambiarPestanaAvisos('RECIBIDAS')" class="py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 cursor-pointer">
+                    📥 Recibidas por Atender (<span id="count-tab-recibidas">0</span>)
+                </button>
+                <button type="button" id="tab-avisos-enviadas" onclick="cambiarPestanaAvisos('ENVIADAS')" class="py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
+                    📤 Mis Solicitudes Enviadas (<span id="count-tab-enviadas">0</span>)
+                </button>
+                <button type="button" id="tab-avisos-historial" onclick="cambiarPestanaAvisos('HISTORIAL')" class="py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
+                    🗂️ Historial Resueltas (<span id="count-tab-historial">0</span>)
+                </button>
+            </div>
 
         <!-- Contenedor con scroll -->
         <div id="contenedor-lista-avisos" class="p-4 overflow-y-auto space-y-3 flex-1 text-xs">
@@ -13786,6 +13790,185 @@ window.renderListaAnalisisDocumental = function(filtro = 'TODOS') {
         }
     }, 80);
 };
+
+ // Obtener el panel real del usuario autenticado (nunca forzar 'A' si tiene otro asignado)
+window.obtenerPanelActualUsuario = function() {
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        if (currentUser.panel_id && currentUser.panel_id !== 'TODOS') {
+            return String(currentUser.panel_id).trim().toUpperCase();
+        }
+        if (Array.isArray(currentUser.paneles_autorizados) && currentUser.paneles_autorizados.length === 1) {
+            return String(currentUser.paneles_autorizados[0]).trim().toUpperCase();
+        }
+    }
+    // Si es admin multi-panel, tomar el panel seleccionado en la Mesa de Vinculación o el de la acción origen
+    const selOrigen = document.getElementById('selectPanelOrigenVinculacion');
+    if (selOrigen && selOrigen.value) return selOrigen.value.trim().toUpperCase();
+    return 'A';
+};
+
+// 1. FIX AL ENVIAR VINCULACIÓN: guarda el panel origen real y el panel destino seleccionado
+window.registrarSolicitudVinculacionLimpia = async function(datos) {
+    const panelOrigen = (datos.panel_origen || obtenerPanelActualUsuario()).toUpperCase();
+    const panelDestino = (datos.panel_destino || '').toUpperCase();
+
+    if (!panelDestino || panelOrigen === panelDestino) {
+        alert(`⚠️ El panel solicitante (${panelOrigen}) y el panel destino (${panelDestino}) no pueden ser el mismo.`);
+        return false;
+    }
+
+    const nuevaSolicitud = {
+        id: 'SOL-' + Date.now(),
+        clave_objetivo: datos.clave_objetivo,
+        titulo_objetivo: datos.titulo_objetivo || datos.clave_objetivo,
+        panel_origen: panelOrigen,
+        panel_destino: panelDestino,
+        tipo_corresponsabilidad: datos.tipo || 'Aportación de Expediente / Soporte',
+        justificacion: datos.justificacion,
+        usuario_solicitante: (currentUser && (currentUser.nombre || currentUser.usuario)) || 'Enlace Operativo',
+        usuario_id: (currentUser && currentUser.usuario) || '',
+        estatus: 'PENDIENTE',
+        fecha: new Date().toLocaleDateString('es-MX')
+    };
+
+    // Guardar en localStorage / Supabase según tu tabla de solicitudes_auditoria
+    const lista = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
+    lista.unshift(nuevaSolicitud);
+    localStorage.setItem('secul_solicitudes_vinculacion', JSON.stringify(lista));
+
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+        await supabaseClient.from('solicitudes_auditoria').insert([{
+            clave_accion: nuevaSolicitud.clave_objetivo,
+            panel_solicitante: panelOrigen,
+            panel_destino: panelDestino,
+            motivo_solicitud: nuevaSolicitud.justificacion,
+            tipo_solicitud: nuevaSolicitud.tipo_corresponsabilidad,
+            solicitante_nombre: nuevaSolicitud.usuario_solicitante,
+            estatus: 'PENDIENTE'
+        }]);
+    }
+    return true;
+};
+
+// 2. FIX AL RENDERIZAR EL CENTRO DE AVISOS (3 pestañas limpias y sin repeticiones)
+window.__tabAvisosActiva = 'RECIBIDAS';
+
+window.cambiarTabAvisos = function(tab) {
+    window.__tabAvisosActiva = tab;
+    ['RECIBIDAS', 'ENVIADAS', 'HISTORIAL'].forEach(t => {
+        const key = t === 'RECIBIDAS' ? 'Recibidas' : (t === 'ENVIADAS' ? 'Enviadas' : 'Historial');
+        const btn = document.getElementById(`tabAvisos${key}`);
+        if (!btn) return;
+        btn.className = (t === tab)
+            ? 'py-3 px-2 border-b-2 border-indigo-600 text-indigo-700 flex items-center justify-center gap-1.5 cursor-pointer bg-white'
+            : 'py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 cursor-pointer';
+    });
+    renderCentroAvisosLimpio();
+};
+
+window.renderCentroAvisosLimpio = function() {
+    const todas = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
+    const usuarioActual = (currentUser && currentUser.usuario) || '';
+    const esAdminGlobal = Boolean(currentUser && currentUser.esAdmin);
+    const miPanel = obtenerPanelActualUsuario();
+
+    // Separar estrictamente sin duplicar registros entre bandejas:
+    // A) HISTORIAL: Todas las que ya fueron APROBADAS o RECHAZADAS
+    const historial = todas.filter(s => {
+        const est = (s.estatus || '').toUpperCase();
+        return est === 'APROBADA' || est === 'RECHAZADA';
+    });
+
+    // B) SOLO PENDIENTES para las dos bandejas activas
+    const pendientes = todas.filter(s => (s.estatus || 'PENDIENTE').toUpperCase() === 'PENDIENTE');
+
+    // C) ENVIADAS: Las pendientes creadas por mi usuario o desde mi panel origen
+    const enviadas = pendientes.filter(s =>
+        (usuarioActual && s.usuario_id === usuarioActual) || s.panel_origen === miPanel
+    );
+
+    // D) RECIBIDAS POR ATENDER: Las pendientes dirigidas a mi panel destino (excluyendo las que yo mismo envié)
+    const recibidas = pendientes.filter(s => {
+        if (usuarioActual && s.usuario_id === usuarioActual) return false;
+        if (esAdminGlobal) return s.panel_origen !== miPanel;
+        return s.panel_destino === miPanel;
+    });
+
+    // Actualizar contadores de las 3 pestañas
+    const elRec = document.getElementById('countAvisosRecibidas');
+    const elEnv = document.getElementById('countAvisosEnviadas');
+    const elHis = document.getElementById('countAvisosHistorial');
+    if (elRec) elRec.innerText = recibidas.length;
+    if (elEnv) elEnv.innerText = enviadas.length;
+    if (elHis) elHis.innerText = historial.length;
+
+    const contenedor = document.getElementById('contenedorListaAvisos');
+    if (!contenedor) return;
+
+    const listaMostrar = window.__tabAvisosActiva === 'RECIBIDAS'
+        ? recibidas
+        : (window.__tabAvisosActiva === 'ENVIADAS' ? enviadas : historial);
+
+    if (listaMostrar.length === 0) {
+        const msgVacio = window.__tabAvisosActiva === 'RECIBIDAS'
+            ? `No hay solicitudes pendientes por atender para tu panel (${miPanel}).`
+            : (window.__tabAvisosActiva === 'ENVIADAS'
+                ? 'No tienes solicitudes pendientes enviadas.'
+                : 'Aún no hay solicitudes resueltas (aprobadas o rechazadas) en el historial.');
+        contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${msgVacio}</div>`;
+        return;
+    }
+
+    contenedor.innerHTML = listaMostrar.map(sol => {
+        const est = (sol.estatus || 'PENDIENTE').toUpperCase();
+        const badgeColor = est === 'APROBADA'
+            ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+            : (est === 'RECHAZADA' ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200');
+
+        // Solo mostrar botones Aceptar/Rechazar en la pestaña RECIBIDAS cuando esté PENDIENTE
+        const botonesAccion = (window.__tabAvisosActiva === 'RECIBIDAS' && est === 'PENDIENTE')
+            ? `<div class="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100">
+                <button type="button" onclick="resolverSolicitudVinculacion('${sol.id}', 'APROBADA')"
+                    class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer">
+                    <i class="fa-solid fa-check mr-1"></i> Aceptar Vinculación
+                </button>
+                <button type="button" onclick="resolverSolicitudVinculacion('${sol.id}', 'RECHAZADA')"
+                    class="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] cursor-pointer">
+                    <i class="fa-solid fa-xmark mr-1"></i> Rechazar
+                </button>
+               </div>`
+            : '';
+
+        return `
+            <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs text-xs space-y-1">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="font-mono font-extrabold text-indigo-950">${sol.clave_objetivo}</span>
+                    <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badgeColor}">${est}</span>
+                </div>
+                <p class="font-bold text-slate-800">${sol.justificacion}</p>
+                <p class="text-[11px] text-slate-600">
+                    Solicita: <strong class="text-indigo-700">Panel ${sol.panel_origen}</strong>
+                    &rarr; Dueño / Destino: <strong class="text-emerald-700">Panel ${sol.panel_destino}</strong>
+                </p>
+                <p class="text-[10.5px] text-slate-400">Tipo: ${sol.tipo_corresponsabilidad} • Fecha: ${sol.fecha}</p>
+                ${botonesAccion}
+            </div>
+        `;
+    }).join('');
+};
+
+// 3. AL RESOLVER (ACEPTAR/RECHAZAR): pasa automáticamente a la pestaña Historial y limpia las activas
+window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
+    const todas = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
+    const idx = todas.findIndex(s => s.id === idSol);
+    if (idx === -1) return;
+
+    todas[idx].estatus = nuevoEstatus;
+    todas[idx].fecha_resolucion = new Date().toLocaleDateString('es-MX');
+    localStorage.setItem('secul_solicitudes_vinculacion', JSON.stringify(todas));
+
+    renderCentroAvisosLimpio();
+};   
     
 </script>
 </body>
