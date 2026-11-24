@@ -13969,6 +13969,231 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
 
     renderCentroAvisosLimpio();
 };   
+
+    <script>
+// ============================================================================
+// PARCHE DEFINITIVO: VINCULACIÓN ENTRE PANELES Y CENTRO DE AVISOS (3 PESTAÑAS)
+// ============================================================================
+(function inicializarModuloVinculacionYAvisos() {
+    let pestanaAvisosActual = 'RECIBIDAS';
+
+    // 1. Detectar el panel real desde donde se solicita (prioriza la acción donde diste clic en "Vincular" o el panel titular del usuario)
+    window.__panelOrigenVinculacionDetectado = null;
+
+    document.addEventListener('click', function(e) {
+        const btnVincular = e.target.closest('button[onclick*="Vincular"], button[onclick*="vinculacion"]');
+        if (btnVincular) {
+            const tarjeta = btnVincular.closest('div[class*="rounded"]');
+            const txt = tarjeta ? tarjeta.textContent : '';
+            const matchPanel = txt.match(/Panel\s+([A-J])\b/i);
+            if (matchPanel) {
+                window.__panelOrigenVinculacionDetectado = matchPanel[1].toUpperCase();
+            } else {
+                const filtroBD = document.getElementById('filtroPanelBDGeneral');
+                if (filtroBD && /^[A-J]$/i.test(filtroBD.value)) {
+                    window.__panelOrigenVinculacionDetectado = filtroBD.value.toUpperCase();
+                }
+            }
+        }
+    }, true);
+
+    function obtenerPanelRemitenteReal() {
+        if (window.__panelOrigenVinculacionDetectado) return window.__panelOrigenVinculacionDetectado;
+        if (typeof currentUser !== 'undefined' && currentUser) {
+            if (currentUser.panel_id && /^[A-J]$/i.test(currentUser.panel_id)) {
+                return currentUser.panel_id.toUpperCase();
+            }
+            if (currentUser.panel_titular && /^[A-J]$/i.test(currentUser.panel_titular)) {
+                return currentUser.panel_titular.toUpperCase();
+            }
+            if (Array.isArray(currentUser.paneles_autorizados) && currentUser.paneles_autorizados.length > 0) {
+                // Si tiene varios (ej. G, H, I, J), usar el primero autorizado en lugar de 'A'
+                const primero = String(currentUser.paneles_autorizados[0]).trim().toUpperCase();
+                if (/^[A-J]$/.test(primero)) return primero;
+            }
+        }
+        return 'I';
+    }
+
+    // 2. Sincronizar el panel solicitante en el modal de vinculación cada vez que se abra
+    setInterval(() => {
+        const modalVinc = document.getElementById('modal-vinculacion') || document.querySelector('[id*="vinculacion"]:not(.hidden)');
+        if (modalVinc && !modalVinc.classList.contains('hidden')) {
+            const panelReal = obtenerPanelRemitenteReal();
+            // Actualizar cualquier select oculto o visible de panel origen para que NO use 'A'
+            const selOrigen = modalVinc.querySelector('#selectPanelSolicitante, #panelSolicitanteVinculacion, select[name="panel_origen"]');
+            if (selOrigen && selOrigen.value !== panelReal && selOrigen.dataset.userChanged !== '1') {
+                selOrigen.value = panelReal;
+            }
+            // Actualizar texto visual si existe etiqueta de Panel Solicitante
+            modalVinc.querySelectorAll('span, div, strong').forEach(el => {
+                if (el.children.length === 0 && /^Panel\s+A\b/.test(el.textContent.trim())) {
+                    el.textContent = el.textContent.replace(/^Panel\s+A\b/, `Panel ${panelReal}`);
+                }
+            });
+        }
+    }, 300);
+
+    // 3. Conectar exactamente con el onclick="cambiarPestanaAvisos(...)" de tu HTML
+    window.cambiarPestanaAvisos = function(tab) {
+        pestanaAvisosActual = (tab || 'RECIBIDAS').toUpperCase();
+
+        const tabsConfig = {
+            RECIBIDAS: document.getElementById('tab-avisos-recibidas'),
+            ENVIADAS:  document.getElementById('tab-avisos-enviadas'),
+            HISTORIAL: document.getElementById('tab-avisos-historial')
+        };
+
+        Object.entries(tabsConfig).forEach(([key, btn]) => {
+            if (!btn) return;
+            if (key === pestanaAvisosActual) {
+                btn.className = 'py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-extrabold cursor-pointer';
+            } else {
+                btn.className = 'py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold cursor-pointer';
+            }
+        });
+
+        window.renderBitacoraAvisosLimpia();
+    };
+
+    // 4. Renderizar las 3 bandejas sin duplicados y separando Pendientes de Resueltas
+    window.renderBitacoraAvisosLimpia = async function() {
+        const contenedor = document.getElementById('contenedor-lista-avisos');
+        if (!contenedor) return;
+
+        let registros = [];
+        // Leer de Supabase si está disponible, o de localStorage
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('solicitudes_auditoria')
+                .select('*')
+                .order('created_at', { ascending: false });
+            if (!error && Array.isArray(data)) {
+                registros = data;
+            }
+        }
+        if (registros.length === 0) {
+            registros = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
+        }
+
+        const usuarioActual = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.usuario || '') : '';
+        const nombreActual  = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || '') : '';
+        const panelUsuario  = obtenerPanelRemitenteReal();
+
+        // Normalizar campos
+        const normalizados = registros.map(r => {
+            const est = String(r.estatus || 'PENDIENTE').trim().toUpperCase();
+            const pOrig = String(r.panel_solicitante || r.panel_origen || '').trim().toUpperCase();
+            const pDest = String(r.panel_destino || '').trim().toUpperCase();
+            const solPor = String(r.solicitante_usuario || r.usuario_id || r.solicitante_nombre || '').trim();
+            const esMia = (usuarioActual && solPor === usuarioActual) || (nombreActual && solPor === nombreActual) || (pOrig === panelUsuario);
+            return { ...r, _estatus: est, _pOrig: pOrig, _pDest: pDest, _esMia: esMia };
+        });
+
+        // A) HISTORIAL: Todas las APROBADAS o RECHAZADAS (desaparecen de las bandejas activas)
+        const historial = normalizados.filter(r => r._estatus === 'APROBADA' || r._estatus === 'RECHAZADA');
+
+        // B) PENDIENTES: Solo las que siguen sin resolverse
+        const pendientes = normalizados.filter(r => r._estatus === 'PENDIENTE');
+
+        // C) MIS SOLICITUDES ENVIADAS: Pendientes creadas por mí o por mi panel
+        const enviadas = pendientes.filter(r => r._esMia);
+
+        // D) RECIBIDAS POR ATENDER: Pendientes dirigidas a otro panel o a mi panel destino (NUNCA las que yo mismo envié)
+        const recibidas = pendientes.filter(r => !r._esMia);
+
+        // Actualizar contadores exactos en las 3 pestañas
+        const cRec = document.getElementById('count-tab-recibidas');
+        const cEnv = document.getElementById('count-tab-enviadas');
+        const cHis = document.getElementById('count-tab-historial');
+        if (cRec) cRec.innerText = recibidas.length;
+        if (cEnv) cEnv.innerText = enviadas.length;
+        if (cHis) cHis.innerText = historial.length;
+
+        const lista = pestanaAvisosActual === 'RECIBIDAS'
+            ? recibidas
+            : (pestanaAvisosActual === 'ENVIADAS' ? enviadas : historial);
+
+        if (lista.length === 0) {
+            const mensajes = {
+                RECIBIDAS: 'No tienes solicitudes pendientes recibidas de otros paneles por atender.',
+                ENVIADAS:  'No tienes solicitudes pendientes enviadas en espera de respuesta.',
+                HISTORIAL: 'Aún no hay solicitudes aprobadas o rechazadas en el historial.'
+            };
+            contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${mensajes[pestanaAvisosActual]}</div>`;
+            return;
+        }
+
+        contenedor.innerHTML = lista.map(sol => {
+            const clave = sol.clave_accion || sol.clave_objetivo || 'SIN-CLAVE';
+            const motivo = sol.motivo_solicitud || sol.justificacion || 'Sin descripción';
+            const tipo = sol.tipo_solicitud || sol.tipo_corresponsabilidad || 'Aportación de Expediente';
+            const fecha = sol.created_at ? new Date(sol.created_at).toLocaleDateString('es-MX') : (sol.fecha || '');
+
+            const badgeClase = sol._estatus === 'APROBADA'
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                : (sol._estatus === 'RECHAZADA'
+                    ? 'bg-rose-100 text-rose-800 border-rose-200'
+                    : 'bg-amber-100 text-amber-800 border-amber-200');
+
+            // Botones Aceptar/Rechazar SOLO en Recibidas y cuando está PENDIENTE
+            const accionesHTML = (pestanaAvisosActual === 'RECIBIDAS' && sol._estatus === 'PENDIENTE')
+                ? `<div class="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="actualizarEstatusAviso('${sol.id}', 'APROBADA')"
+                        class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer">
+                        ✓ Aceptar Vinculación
+                    </button>
+                    <button type="button" onclick="actualizarEstatusAviso('${sol.id}', 'RECHAZADA')"
+                        class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] cursor-pointer">
+                        ✕ Rechazar
+                    </button>
+                   </div>`
+                : '';
+
+            return `
+                <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-mono font-extrabold text-indigo-950">${clave}</span>
+                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badgeClase}">${sol._estatus}</span>
+                    </div>
+                    <p class="font-bold text-slate-800">${motivo}</p>
+                    <p class="text-[11px] text-slate-600">
+                        Solicita: <strong class="text-indigo-700">Panel ${sol._pOrig || '?'}</strong>
+                        &rarr; Dueño: <strong class="text-emerald-700">Panel ${sol._pDest || '?'}</strong>
+                    </p>
+                    <p class="text-[10.5px] text-slate-400">Tipo: ${tipo} • Fecha: ${fecha}</p>
+                    ${accionesHTML}
+                </div>
+            `;
+        }).join('');
+    };
+
+    // 5. Al Aceptar o Rechazar: actualiza en Supabase/localStorage y mueve al instante a Historial
+    window.actualizarEstatusAviso = async function(idAviso, nuevoEstatus) {
+        if (typeof supabaseClient !== 'undefined' && supabaseClient && idAviso) {
+            await supabaseClient
+                .from('solicitudes_auditoria')
+                .update({ estatus: nuevoEstatus })
+                .eq('id', idAviso);
+        }
+        const local = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
+        const idx = local.findIndex(x => String(x.id) === String(idAviso));
+        if (idx !== -1) {
+            local[idx].estatus = nuevoEstatus;
+            localStorage.setItem('secul_solicitudes_vinculacion', JSON.stringify(local));
+        }
+        window.renderBitacoraAvisosLimpia();
+    };
+
+    // Enganchar la apertura del modal de avisos para que siempre cargue esta vista limpia
+    const origAbrirAvisos = window.abrirModalBitacoraAvisos;
+    window.abrirModalBitacoraAvisos = function() {
+        if (typeof origAbrirAvisos === 'function') origAbrirAvisos();
+        window.cambiarPestanaAvisos('RECIBIDAS');
+    };
+})();
+    
+</script>
     
 </script>
 </body>
