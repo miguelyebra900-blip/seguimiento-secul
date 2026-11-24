@@ -14186,20 +14186,32 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         }).join('');
     };
 
-    window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
+   window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
         let obs = '';
         if (nuevoEstatus === 'RECHAZADA') {
             obs = prompt('Indica el motivo del rechazo u observación:') || 'Rechazada por el validador';
         }
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            await supabaseClient
+            let { error } = await supabaseClient
                 .from('solicitudes_auditoria')
                 .update({ estatus: nuevoEstatus, observacion_resolucion: obs })
                 .eq('id', id);
+
+            // Si la columna observacion_resolucion no existe en Supabase (error 400), actualizar solo estatus
+            if (error) {
+                const retry = await supabaseClient
+                    .from('solicitudes_auditoria')
+                    .update({ estatus: nuevoEstatus })
+                    .eq('id', id);
+                if (retry.error) {
+                    alert('Error al actualizar en Supabase: ' + retry.error.message);
+                    return;
+                }
+            }
         }
         window.renderizarBandejasAvisos();
     };
-
+    
     window.abrirModalBitacoraAvisos = function() {
         const modal = document.getElementById('modal-bitacora-avisos');
         if (modal) {
