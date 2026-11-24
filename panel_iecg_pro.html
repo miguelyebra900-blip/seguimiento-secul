@@ -13969,10 +13969,10 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
 
     renderCentroAvisosLimpio();
 };   
-
+</script>
 <script>
 // ============================================================================
-// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (SIN DUPLICADOS NI SOBRESCRITURAS)
+// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (SIN ERRORES DE SINTAXIS)
 // ============================================================================
 (function() {
     const MATRIZ_PANELES = {
@@ -13992,13 +13992,13 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
     function getPanelesValidacionUsuario() {
         if (typeof currentUser === 'undefined' || !currentUser) return [];
         const info = `${currentUser.usuario || ''} ${currentUser.nombre || ''} ${currentUser.cargo || ''} ${currentUser.area || ''}`.toLowerCase();
+        if (info.includes('lider_seguimiento') || info.includes('líder proyecto') || info.includes('lider proyecto')) {
+            return ['I'];
+        }
         const res = [];
         Object.entries(MATRIZ_PANELES).forEach(([letra, cfg]) => {
             if (cfg.validadores.some(v => info.includes(v))) res.push(letra);
         });
-        if (info.includes('lider_seguimiento') || info.includes('líder proyecto') || info.includes('lider proyecto')) {
-            return ['I']; // Titular y Validador 1 del Panel I
-        }
         return res.length > 0 ? res : (currentUser.panel_id ? [currentUser.panel_id.toUpperCase()] : ['I']);
     }
 
@@ -14006,7 +14006,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         return getPanelesValidacionUsuario()[0] || 'I';
     }
 
-    // 1. Interceptar Supabase para corregir panel_solicitante (evita que mande 'A') y validar no auto-vinculación
+    // Interceptar Supabase para corregir panel_solicitante (evita que mande 'A')
     if (typeof supabaseClient !== 'undefined' && supabaseClient && !supabaseClient.__vinculacionParcheada) {
         supabaseClient.__vinculacionParcheada = true;
         const origFrom = supabaseClient.from.bind(supabaseClient);
@@ -14031,7 +14031,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         };
     }
 
-    // 2. Corregir texto de Comisión Solicitante en el Modal de Vinculación y bloquear el propio panel en destino
+    // Actualizar texto de Comisión Solicitante en el modal de vinculación
     setInterval(() => {
         const modalVinc = document.getElementById('modal-vinculacion') ||
             Array.from(document.querySelectorAll('div[id*="modal"]')).find(m => !m.classList.contains('hidden') && m.textContent.includes('Mesa de Vinculación'));
@@ -14048,41 +14048,27 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                 }
             }
         });
-
-        const selectArea = modalVinc.querySelector('select');
-        if (selectArea) {
-            Array.from(selectArea.options).forEach(opt => {
-                const m = opt.textContent.match(/Panel\s+([A-I])\b/i);
-                if (m && m[1].toUpperCase() === panelReal) {
-                    opt.disabled = true;
-                }
-            });
-        }
     }, 250);
 
-    // 3. Función única de cambio de pestaña (soporta RECIBIDAS, ENVIADAS e HISTORIAL)
+    // Cambio de pestaña (soporta RECIBIDAS, ENVIADAS e HISTORIAL)
     window.cambiarPestanaAvisos = function(nuevaTab) {
         tabActual = (nuevaTab || 'RECIBIDAS').toUpperCase();
-
         const botones = {
             RECIBIDAS: document.getElementById('tab-avisos-recibidas'),
             ENVIADAS:  document.getElementById('tab-avisos-enviadas'),
             HISTORIAL: document.getElementById('tab-avisos-historial')
         };
-
         Object.entries(botones).forEach(([clave, btn]) => {
             if (!btn) return;
-            if (clave === tabActual) {
-                btn.className = 'py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-extrabold cursor-pointer';
-            } else {
-                btn.className = 'py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold cursor-pointer';
-            }
+            btn.className = (clave === tabActual)
+                ? 'py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-extrabold cursor-pointer'
+                : 'py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold cursor-pointer';
         });
-
         renderizarBandejasAvisos();
     };
+    window.cambiarPestanaAvisosV2 = window.cambiarPestanaAvisos;
 
-    // 4. Renderizado limpio: separa estrictamente PENDIENTES (Recibidas vs Enviadas) de HISTORIAL (Aprobadas/Rechazadas)
+    // Renderizado limpio de bandejas
     window.renderizarBandejasAvisos = async function() {
         const contenedor = document.getElementById('contenedor-lista-avisos');
         if (!contenedor) return;
@@ -14201,18 +14187,16 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         renderizarBandejasAvisos();
     };
 
-    // Reemplazar apertura del modal de avisos para que nunca ejecute el renderizador antiguo
     window.abrirModalBitacoraAvisos = function() {
         const modal = document.getElementById('modal-bitacora-avisos');
         if (modal) {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
-        window.cambiarPestanaAvisos('RECIBIDAS');
+        window.cambiarPestanaAvisosV2('RECIBIDAS');
     };
 })();
 </script>
-    
 </script>
 </body>
 </html>
