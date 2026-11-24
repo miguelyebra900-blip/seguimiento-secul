@@ -14143,7 +14143,19 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
             return;
         }
 
-        contenedor.innerHTML = mostrar.map(sol => {
+      contenedor.innerHTML = mostrar.map(sol => {
+            const clave = sol.clave_accion || sol.clave_objetivo || sol.clave_hito || sol.accion_id || sol.hito_id || 'SIN-CLAVE';
+            const motivo = sol.motivo_solicitud || sol.justificacion || sol.descripcion || sol.motivo || sol.observacion || 'Solicitud de vinculación interinstitucional';
+            const tipo = sol.tipo_solicitud || sol.tipo_corresponsabilidad || sol.tipo || sol.subtipo || 'Co-responsabilidad Art. 6';
+            const fechaRaw = sol.created_at || sol.fecha_solicitud || sol.fecha_creacion || sol.fecha;
+            const fechaTxt = fechaRaw ? new Date(fechaRaw).toLocaleDateString('es-MX') : '';
+
+            // Buscar descripción real de la acción/hito en el catálogo en memoria si existe
+            const refCatalogo = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset))
+                ? accionesDataset.find(a => a.clave_accion === clave || a.id === clave || a.clave_hito === clave)
+                : null;
+            const tituloAccionTxt = refCatalogo ? (refCatalogo.accion || refCatalogo.hito) : '';
+
             const nomOrig = MATRIZ_PANELES[sol._pOrig]?.nombre || `Panel ${sol._pOrig || '?'}`;
             const nomDest = MATRIZ_PANELES[sol._pDest]?.nombre || `Panel ${sol._pDest || '?'}`;
             const badge = sol._est === 'APROBADA'
@@ -14170,21 +14182,21 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
             return `
                 <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                     <div class="flex items-center justify-between gap-2">
-                        <span class="font-mono font-extrabold text-indigo-950">${sol.clave_accion || ''}</span>
+                        <span class="font-mono font-extrabold text-indigo-950">${clave}</span>
                         <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badge}">${sol._est}</span>
                     </div>
-                    <p class="font-bold text-slate-800">${sol.motivo_solicitud || ''}</p>
+                    ${tituloAccionTxt ? `<p class="text-[11px] text-slate-500 font-medium leading-snug">${tituloAccionTxt}</p>` : ''}
+                    <p class="font-bold text-slate-800">${motivo}</p>
                     <p class="text-[11px] text-slate-600">
                         Solicita: <strong class="text-indigo-700">${nomOrig}</strong>
                         &rarr; Dueño: <strong class="text-emerald-700">${nomDest}</strong>
                     </p>
-                    <p class="text-[10.5px] text-slate-400">Tipo: ${sol.tipo_solicitud || ''} • ${sol.created_at ? new Date(sol.created_at).toLocaleDateString('es-MX') : ''}</p>
+                    <p class="text-[10.5px] text-slate-400">Tipo: ${tipo}${fechaTxt ? ' • ' + fechaTxt : ''}</p>
                     ${motivoRechazoHTML}
                     ${botonesValidacion}
                 </div>
             `;
         }).join('');
-    };
 
    window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
         let obs = '';
