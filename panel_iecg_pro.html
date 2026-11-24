@@ -14196,6 +14196,32 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         window.cambiarPestanaAvisosV2('RECIBIDAS');
     };
 })();
+
+// 4. Renderizado limpio sin error 400 de Supabase
+    window.__cargandoAvisos = false;
+    window.renderizarBandejasAvisos = async function() {
+        if (window.__cargandoAvisos) return;
+        const contenedor = document.getElementById('contenedor-lista-avisos');
+        if (!contenedor) return;
+
+        window.__cargandoAvisos = true;
+        let filas = [];
+        try {
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                // Sin .order('created_at') para evitar el 400 si la columna tiene otro nombre
+                const { data, error } = await supabaseClient
+                    .from('solicitudes_auditoria')
+                    .select('*');
+                if (!error && Array.isArray(data)) {
+                    filas = data.slice().reverse();
+                } else if (error) {
+                    console.warn('Aviso lectura solicitudes_auditoria:', error.message);
+                }
+            }
+        } finally {
+            window.__cargandoAvisos = false;
+        }
+    
 </script>
 </script>
 </body>
