@@ -12885,6 +12885,7 @@ function esSolicitudParaMiPanelReceptor(sol) {
 
 
     // Reemplazo directo del envío de vinculación para guardar en solicitudes_auditoria
+// 1. Envío directo desde Mesa de Vinculación hacia solicitudes_auditoria
     window.enviarSolicitudVinculacionDesdeModal = async function() {
         const hitoSel = document.getElementById('selVinculoHitoObjetivo');
         const accionSel = document.getElementById('selVinculoAccionObjetivo');
@@ -12953,177 +12954,136 @@ function esSolicitudParaMiPanelReceptor(sol) {
         }
     };
 
-let estadoAvisosVinculo = {
-    pestana: "RECIBIDAS",
-    items: []
-};
+    // 2. Renderizado tolerante a cualquier estatus pendiente y sincronización del badge rojo superior
+    window.__cargandoAvisos = false;
+    window.renderizarBandejasAvisos = async function() {
+        if (window.__cargandoAvisos) return;
+        const contenedor = document.getElementById('contenedor-lista-avisos');
 
-async function cargarSolicitudesDesdeBD() {
-    if (typeof supabaseClient === "undefined" || !supabaseClient) return [];
-    const { data, error } = await supabaseClient
-        .from("solicitudes_auditoria_v2")
-        .select("*")
-        .order("created_at", { ascending: false });
-    if (error) {
-        console.error("Error consultando solicitudes_auditoria_v2:", error);
-        return [];
-    }
-    return data || [];
-}
-
-window.actualizarContadorAvisosVinculacion = async function() {
-    const badge = document.getElementById("badgeContadorNotif");
-    const items = await cargarSolicitudesDesdeBD();
-    estadoAvisosVinculo.items = items;
-
-    if (!currentUser) {
-        if (badge) badge.classList.add("hidden");
-        return;
-    }
-
-    const pendientesParaMiPanel = items.filter(s =>
-        (s.estatus || "PENDIENTE").toUpperCase() === "PENDIENTE" &&
-        esSolicitudParaMiPanelReceptor(s)
-    );
-
-    const misEnviadasResueltas = items.filter(s =>
-        esMismaIdentidadSolicitante(s) &&
-        ["APROBADA", "VALIDADA", "RECHAZADA"].includes((s.estatus || "").toUpperCase())
-    );
-
-    const total = pendientesParaMiPanel.length + misEnviadasResueltas.length;
-    if (badge) {
-        if (total > 0) {
-            badge.textContent = String(total);
-            badge.classList.remove("hidden");
-        } else {
-            badge.classList.add("hidden");
+        window.__cargandoAvisos = true;
+        let filas = [];
+        try {
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                const { data, error } = await supabaseClient
+                    .from('solicitudes_auditoria')
+                    .select('*');
+                if (!error && Array.isArray(data)) {
+                    filas = data.slice().reverse();
+                }
+            }
+        } finally {
+            window.__cargandoAvisos = false;
         }
-    }
-};
 
-window.abrirCentroAvisosPro = async function() {
-    const modal = document.getElementById("modal-bitacora-avisos");
-    if (!modal) return;
-    modal.classList.remove("hidden");
-    modal.style.display = "flex";
-    estadoAvisosVinculo.items = await cargarSolicitudesDesdeBD();
-    renderBandejaVinculacionesPrivada();
-};
+        const panelesQueValido = getPanelesValidacionUsuario();
+        const miPanelOrigen = getPanelTitularOrigen();
+        const miUsuario = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.usuario || '') : '';
+        const miNombre  = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || '') : '';
 
-window.cerrarModalBitacoraAvisos = function() {
-    const modal = document.getElementById("modal-bitacora-avisos");
-    if (modal) {
-        modal.classList.add("hidden");
-        modal.style.display = "none";
-    }
-};
+        const items = filas.map(r => {
+            const estRaw = String(r.estatus || 'PENDIENTE').trim().toUpperCase();
+            const esResuelta = (estRaw === 'APROBADA' || estRaw === 'RECHAZADA');
+            const est = esResuelta ? estRaw : 'PENDIENTE';
 
-window.cambiarPestanaAvisos = function(pestana) {
-    estadoAvisosVinculo.pestana = pestana;
-    const tabRec = document.getElementById("tab-avisos-recibidas");
-    const tabEnv = document.getElementById("tab-avisos-enviadas");
+            const claveRef = r.clave_accion || r.clave_objetivo || r.clave_hito || r.accion_id || '';
+            const pOrig = String(r.panel_solicitante || r.panel_origen || '').trim().toUpperCase();
+            let pDest = String(r.panel_destino || '').trim().toUpperCase();
 
-    if (tabRec && tabEnv) {
-        if (pestana === "RECIBIDAS") {
-            tabRec.className = "flex-1 py-2.5 px-4 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-bold";
-            tabEnv.className = "flex-1 py-2.5 px-4 text-center text-slate-500 hover:text-slate-800 border-b-2 border-transparent font-bold";
-        } else {
-            tabEnv.className = "flex-1 py-2.5 px-4 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-bold";
-            tabRec.className = "flex-1 py-2.5 px-4 text-center text-slate-500 hover:text-slate-800 border-b-2 border-transparent font-bold";
+            if (!pDest && claveRef) {
+                const pref = claveRef.split('_')[0].toUpperCase();
+                const mapaPref = { RH: 'A', ASI: 'B', JUR: 'C', FID: 'D', PTR: 'E', FIN: 'F', TIT: 'G', ARC: 'H', AUD: 'I' };
+                pDest = mapaPref[pref] || '';
+            }
+
+            const autor = String(r.solicitante_usuario || r.solicitante_nombre || '').trim();
+            const esEnviadaPorMi = (miUsuario && autor === miUsuario) || (miNombre && autor === miNombre) || (pOrig === miPanelOrigen);
+            const esParaMiValidacion = panelesQueValido.includes(pDest) && !esEnviadaPorMi;
+
+            return { ...r, _est: est, _pOrig: pOrig, _pDest: pDest, _enviada: esEnviadaPorMi, _recibida: esParaMiValidacion };
+        });
+
+        const historial = items.filter(i => i._est === 'APROBADA' || i._est === 'RECHAZADA');
+        const pendientes = items.filter(i => i._est === 'PENDIENTE');
+
+        const recibidas = pendientes.filter(i => i._recibida);
+        const enviadas  = pendientes.filter(i => i._enviada);
+
+        // Sincronizar los 3 contadores del modal y el badge rojo de la barra superior
+        const elRec = document.getElementById('count-tab-recibidas');
+        const elEnv = document.getElementById('count-tab-enviadas');
+        const elHis = document.getElementById('count-tab-historial');
+        const badgeTop = document.getElementById('badgeContadorNotif');
+        if (elRec) elRec.innerText = recibidas.length;
+        if (elEnv) elEnv.innerText = enviadas.length;
+        if (elHis) elHis.innerText = historial.length;
+        if (badgeTop) {
+            badgeTop.innerText = recibidas.length;
+            badgeTop.classList.toggle('hidden', recibidas.length === 0);
         }
-    }
-    renderBandejaVinculacionesPrivada();
-};
 
-function renderBandejaVinculacionesPrivada() {
-    const cont = document.getElementById("contenedor-lista-avisos");
-    const cntRec = document.getElementById("count-tab-recibidas");
-    const cntEnv = document.getElementById("count-tab-enviadas");
-    if (!cont) return;
+        if (!contenedor) return;
+        const mostrar = tabActual === 'RECIBIDAS' ? recibidas : (tabActual === 'ENVIADAS' ? enviadas : historial);
 
-    if (!currentUser) {
-        if (cntRec) cntRec.textContent = "0";
-        if (cntEnv) cntEnv.textContent = "0";
-        cont.innerHTML = `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200">
-            Inicia sesión con el usuario de tu panel para ver únicamente las solicitudes que te corresponden.
-        </div>`;
-        return;
-    }
+        if (mostrar.length === 0) {
+            const textosVacios = {
+                RECIBIDAS: `No hay solicitudes pendientes por validar para tus paneles (${panelesQueValido.join(', ')}).`,
+                ENVIADAS:  'No tienes solicitudes pendientes enviadas.',
+                HISTORIAL: 'No hay solicitudes aprobadas o rechazadas en el historial.'
+            };
+            contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${textosVacios[tabActual]}</div>`;
+            return;
+        }
 
-    const todas = estadoAvisosVinculo.items || [];
-    const recibidas = todas.filter(esSolicitudParaMiPanelReceptor);
-    const enviadas = todas.filter(esMismaIdentidadSolicitante);
+        contenedor.innerHTML = mostrar.map(sol => {
+            const clave = sol.clave_accion || sol.clave_objetivo || sol.clave_hito || 'SIN-CLAVE';
+            const motivo = sol.motivo_solicitud || sol.justificacion || sol.descripcion || 'Solicitud de vinculación';
+            const tipo = sol.tipo_solicitud || sol.tipo_corresponsabilidad || 'Co-responsabilidad Art. 6';
+            const fechaRaw = sol.created_at || sol.fecha_solicitud || sol.fecha;
+            const fechaTxt = fechaRaw ? new Date(fechaRaw).toLocaleDateString('es-MX') : '';
 
-    if (cntRec) cntRec.textContent = String(recibidas.length);
-    if (cntEnv) cntEnv.textContent = String(enviadas.length);
+            const refCatalogo = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset))
+                ? accionesDataset.find(a => a.clave_accion === clave || a.id === clave || a.clave_hito === clave)
+                : null;
+            const tituloAccionTxt = refCatalogo ? (refCatalogo.accion || refCatalogo.hito) : '';
 
-    const panelesUser = obtenerPanelesDeSesionActual();
-    const lista = estadoAvisosVinculo.pestana === "RECIBIDAS" ? recibidas : enviadas;
+            const nomOrig = MATRIZ_PANELES[sol._pOrig]?.nombre || `Panel ${sol._pOrig || '?'}`;
+            const nomDest = MATRIZ_PANELES[sol._pDest]?.nombre || `Panel ${sol._pDest || '?'}`;
+            const badge = sol._est === 'APROBADA'
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                : (sol._est === 'RECHAZADA' ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200');
 
-    if (!lista.length) {
-        cont.innerHTML = estadoAvisosVinculo.pestana === "RECIBIDAS"
-            ? `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200">
-                   <p class="font-bold text-slate-700 mb-1">No hay solicitudes recibidas para tu panel (${panelesUser.join(", ") || "-"}).</p>
-                   <p class="text-[11px]">Solo el panel destino recibe solicitudes para aceptar o rechazar.</p>
-               </div>`
-            : `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200">
-                   No hay solicitudes enviadas desde tu panel (${panelesUser.join(", ") || "-"}).
-               </div>`;
-        return;
-    }
+            const botonesValidacion = (tabActual === 'RECIBIDAS' && sol._est === 'PENDIENTE')
+                ? `<div class="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="resolverAvisoVinculacion('${sol.id}', 'APROBADA')"
+                        class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer">
+                        ✓ Aceptar Vinculación
+                    </button>
+                    <button type="button" onclick="resolverAvisoVinculacion('${sol.id}', 'RECHAZADA')"
+                        class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] cursor-pointer">
+                        ✕ Rechazar
+                    </button>
+                   </div>`
+                : '';
 
-    cont.innerHTML = lista.map(sol => {
-        const pOrig = normalizarPanelVinculo(sol.panel_origen) || "N/D";
-        const pDest = normalizarPanelVinculo(sol.panel_destino) || "N/D";
-        const nomOrig = PANELES_VINCULACION_SECUL[pOrig] || `Panel ${pOrig}`;
-        const nomDest = PANELES_VINCULACION_SECUL[pDest] || `Panel ${pDest}`;
-        const estatus = (sol.estatus || "PENDIENTE").toUpperCase();
-        const fecha = sol.fecha_solicitud ? new Date(sol.fecha_solicitud).toLocaleDateString("es-MX") : "--";
-
-        let badgeClass = "bg-amber-100 text-amber-800 border-amber-200";
-        if (estatus === "APROBADA" || estatus === "VALIDADA") badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
-        if (estatus === "RECHAZADA") badgeClass = "bg-rose-100 text-rose-800 border-rose-200";
-
-        const puedeAceptar = estadoAvisosVinculo.pestana === "RECIBIDAS" &&
-            estatus === "PENDIENTE" &&
-            esSolicitudParaMiPanelReceptor(sol);
-
-        const botonesAceptarRechazar = puedeAceptar
-            ? `<div class="flex items-center gap-2 pt-2.5 mt-2.5 border-t border-slate-200/80">
-                   <button type="button" onclick="resolverSolicitudVinculacion('${sol.id}', 'APROBADA')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1">
-                       <i class="fa-solid fa-check"></i> Aceptar Vinculación
-                   </button>
-                   <button type="button" onclick="resolverSolicitudVinculacion('${sol.id}', 'RECHAZADA')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] flex items-center gap-1">
-                       <i class="fa-solid fa-xmark"></i> Rechazar
-                   </button>
-               </div>`
-            : "";
-
-        const linkOficio = sol.oficio_url
-            ? `<a href="${sol.oficio_url}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline font-bold text-[11px] mt-1.5">
-                   <i class="fa-solid fa-file-pdf"></i> Ver Oficio Soporte
-               </a>`
-            : "";
-
-        return `
-            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                <div class="flex items-center justify-between gap-2">
-                    <span class="font-mono-code font-bold text-indigo-950 text-xs">${sol.accion_objetivo && sol.accion_objetivo !== "TODAS" ? sol.accion_objetivo : (sol.hito_objetivo || "HITO")}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">${estatus}</span>
+            return `
+                <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-mono font-extrabold text-indigo-950">${clave}</span>
+                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badge}">${sol._est}</span>
+                    </div>
+                    ${tituloAccionTxt ? `<p class="text-[11px] text-slate-500 font-medium leading-snug">${tituloAccionTxt}</p>` : ''}
+                    <p class="font-bold text-slate-800">${motivo}</p>
+                    <p class="text-[11px] text-slate-600">
+                        Solicita: <strong class="text-indigo-700">${nomOrig}</strong>
+                        &rarr; Dueño: <strong class="text-emerald-700">${nomDest}</strong>
+                    </p>
+                    <p class="text-[10.5px] text-slate-400">Tipo: ${tipo}${fechaTxt ? ' • ' + fechaTxt : ''}</p>
+                    ${botonesValidacion}
                 </div>
-                <p class="text-slate-800 font-semibold">${sol.justificacion || ""}</p>
-                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-1">
-                    <span><strong>Solicita:</strong> ${nomOrig} → <strong>Dueño:</strong> ${nomDest}</span>
-                    <span><strong>Tipo:</strong> ${sol.tipo_corresponsabilidad || "Vinculación"} · ${fecha}</span>
-                </div>
-                ${linkOficio}
-                ${botonesAceptarRechazar}
-            </div>
-        `;
-    }).join("");
-}
-
+            `;
+        }).join('');
+    };
+        
 window.resolverSolicitudVinculacion = async function(solicitudId, nuevoEstatus) {
     if (!supabaseClient || !solicitudId) return;
 
