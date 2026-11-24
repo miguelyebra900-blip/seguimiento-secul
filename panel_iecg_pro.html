@@ -13972,7 +13972,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
 </script>
 <script>
 // ============================================================================
-// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (LLAVES BALANCEADAS)
+// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (AISLADO Y BLINDADO)
 // ============================================================================
 (function() {
     const MATRIZ_PANELES = {
@@ -14006,7 +14006,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         return getPanelesValidacionUsuario()[0] || 'I';
     }
 
-    // Interceptar Supabase para asignar panel_solicitante real y evitar auto-vinculación
+    // 1. Interceptar Supabase para asignar panel_solicitante real (evita 'Panel A') y bloquear auto-vinculación
     if (typeof supabaseClient !== 'undefined' && supabaseClient && !supabaseClient.__vinculacionParcheada) {
         supabaseClient.__vinculacionParcheada = true;
         const origFrom = supabaseClient.from.bind(supabaseClient);
@@ -14031,26 +14031,29 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         };
     }
 
-    // Sincronizar etiqueta de Comisión Solicitante en el modal de vinculación
+    // 2. Sincronizar etiqueta visual de Comisión Solicitante en la Mesa de Vinculación
     setInterval(() => {
-        const modalVinc = document.getElementById('modal-vinculacion') ||
-            Array.from(document.querySelectorAll('div[id*="modal"]')).find(m => !m.classList.contains('hidden') && m.textContent.includes('Mesa de Vinculación'));
-        if (!modalVinc) return;
+        const modalVinc = document.getElementById('modal-vinculacion-universal');
+        if (!modalVinc || modalVinc.classList.contains('hidden')) return;
 
         const panelReal = getPanelTitularOrigen();
         const cfg = MATRIZ_PANELES[panelReal];
+        const lblMiPanel = document.getElementById('vinculoMiPanelTexto');
+        if (lblMiPanel) {
+            lblMiPanel.textContent = cfg ? cfg.nombre : `Panel ${panelReal}`;
+        }
 
-        modalVinc.querySelectorAll('span, div, p, strong').forEach(el => {
-            if (el.children.length === 0) {
-                const t = el.textContent.trim();
-                if (t === 'Panel A' || /^Panel A,\s*B,\s*C/.test(t)) {
-                    el.textContent = cfg ? cfg.nombre : `Panel ${panelReal}`;
+        const selectArea = document.getElementById('selFiltroAreaVinculo');
+        if (selectArea) {
+            Array.from(selectArea.options).forEach(opt => {
+                if (opt.value && opt.value.toUpperCase() === panelReal) {
+                    opt.disabled = true;
                 }
-            }
-        });
-    }, 300);
+            });
+        }
+    }, 250);
 
-    // Cambio de pestaña (RECIBIDAS, ENVIADAS, HISTORIAL)
+    // 3. Cambio de pestaña (RECIBIDAS, ENVIADAS, HISTORIAL)
     window.cambiarPestanaAvisos = function(nuevaTab) {
         tabActual = (nuevaTab || 'RECIBIDAS').toUpperCase();
         const botones = {
@@ -14068,7 +14071,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
     };
     window.cambiarPestanaAvisosV2 = window.cambiarPestanaAvisos;
 
-    // Renderizado limpio sin error 400 ni bucles
+    // 4. Renderizado limpio de bandejas
     window.__cargandoAvisos = false;
     window.renderizarBandejasAvisos = async function() {
         if (window.__cargandoAvisos) return;
@@ -14201,10 +14204,12 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         const modal = document.getElementById('modal-bitacora-avisos');
         if (modal) {
             modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.style.display = 'flex';
         }
         window.cambiarPestanaAvisosV2('RECIBIDAS');
     };
+
+    window.abrirCentroAvisosPro = window.abrirModalBitacoraAvisos;
 })();
 </script>
 </script>
