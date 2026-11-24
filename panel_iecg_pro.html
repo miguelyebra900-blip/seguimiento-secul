@@ -13394,35 +13394,49 @@ window.crearBarraEtiquetasAccion = function(claveAccion) {
 (function iniciarInyectorEtiquetasYFixBoton() {
     const regexClave = /\b([A-Z]{2,5}_[A-Z]-H-\d{4}-A-\d{4})\b/;
 
-    function pintarEtiquetasEnModal() {
+    ffunction pintarEtiquetasEnModal() {
         const contenedor = document.getElementById('contenedorHitosBaseDatosGeneral');
         if (!contenedor) return;
 
-        // Buscar TODOS los bloques que contengan "DETALLE OPERATIVO:" en cualquier tarjeta de acción
+        // Buscar TODOS los bloques "DETALLE OPERATIVO:" dentro del modal
         const nodosDetalle = Array.from(contenedor.querySelectorAll('span, div, label, strong, p')).filter(el => {
             return el.children.length === 0 &&
                    el.textContent.trim().toUpperCase().startsWith('DETALLE OPERATIVO');
         });
 
         nodosDetalle.forEach(lbl => {
-            // El recuadro gris con borde que envuelve "DETALLE OPERATIVO:"
             const cajaDetalle = lbl.closest('div[class*="rounded"]') || lbl.parentElement;
             if (!cajaDetalle || !cajaDetalle.parentElement) return;
 
-            // Si ya tiene su barra justo debajo, no volver a insertarla (evita parpadeos)
+            // Si ya tiene la barra de etiquetas justo debajo, no duplicar
             if (cajaDetalle.nextElementSibling && cajaDetalle.nextElementSibling.classList.contains('barra-etiquetas-v2')) {
                 return;
             }
 
-            // Subir hasta encontrar la clave de la acción (sin límite corto de niveles)
+            // Subir hasta encontrar la tarjeta de la acción y extraer su clave exacta
             let nivel = cajaDetalle.parentElement;
             let claveEncontrada = null;
+
             while (nivel && nivel !== contenedor) {
-                const match = nivel.textContent.match(regexClave);
-                if (match) {
-                    claveEncontrada = match[1];
+                // 1) Intentar leerla directamente del botón Editar (ej. abrirEdicionDinamica('RH_E-H-0003-A-0001'))
+                const btnEdit = nivel.querySelector('button[onclick*="abrirEdicionDinamica"]');
+                if (btnEdit) {
+                    const mBtn = (btnEdit.getAttribute('onclick') || '').match(/abrirEdicionDinamica\(['"]([^'"]+)['"]\)/);
+                    if (mBtn && mBtn[1]) {
+                        claveEncontrada = mBtn[1].trim();
+                        break;
+                    }
+                }
+
+                // 2) Respaldo: buscar el badge de clave en la cabecera de la tarjeta (ej. FIN_P-H-..., RH_E-H-..., etc.)
+                const badgeClave = Array.from(nivel.querySelectorAll('span, div')).find(el =>
+                    el.children.length === 0 && /^[A-Z0-9_]+-H-\d+-A-\d+$/i.test(el.textContent.trim())
+                );
+                if (badgeClave) {
+                    claveEncontrada = badgeClave.textContent.trim();
                     break;
                 }
+
                 nivel = nivel.parentElement;
             }
 
@@ -13431,7 +13445,6 @@ window.crearBarraEtiquetasAccion = function(claveAccion) {
             }
         });
     }
-
     // 1. Observar cambios en el contenedor (solo cuando se dibujan tarjetas nuevas)
     const contenedorBD = document.getElementById('contenedorHitosBaseDatosGeneral');
     if (contenedorBD) {
