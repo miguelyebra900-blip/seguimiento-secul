@@ -13972,7 +13972,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
 </script>
 <script>
 // ============================================================================
-// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (SIN ERRORES DE SINTAXIS)
+// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (LLAVES BALANCEADAS)
 // ============================================================================
 (function() {
     const MATRIZ_PANELES = {
@@ -14006,7 +14006,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         return getPanelesValidacionUsuario()[0] || 'I';
     }
 
-    // Interceptar Supabase para corregir panel_solicitante (evita que mande 'A')
+    // Interceptar Supabase para asignar panel_solicitante real y evitar auto-vinculación
     if (typeof supabaseClient !== 'undefined' && supabaseClient && !supabaseClient.__vinculacionParcheada) {
         supabaseClient.__vinculacionParcheada = true;
         const origFrom = supabaseClient.from.bind(supabaseClient);
@@ -14031,7 +14031,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         };
     }
 
-    // Actualizar texto de Comisión Solicitante en el modal de vinculación
+    // Sincronizar etiqueta de Comisión Solicitante en el modal de vinculación
     setInterval(() => {
         const modalVinc = document.getElementById('modal-vinculacion') ||
             Array.from(document.querySelectorAll('div[id*="modal"]')).find(m => !m.classList.contains('hidden') && m.textContent.includes('Mesa de Vinculación'));
@@ -14048,9 +14048,9 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                 }
             }
         });
-    }, 250);
+    }, 300);
 
-    // Cambio de pestaña (soporta RECIBIDAS, ENVIADAS e HISTORIAL)
+    // Cambio de pestaña (RECIBIDAS, ENVIADAS, HISTORIAL)
     window.cambiarPestanaAvisos = function(nuevaTab) {
         tabActual = (nuevaTab || 'RECIBIDAS').toUpperCase();
         const botones = {
@@ -14064,22 +14064,32 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                 ? 'py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-extrabold cursor-pointer'
                 : 'py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold cursor-pointer';
         });
-        renderizarBandejasAvisos();
+        window.renderizarBandejasAvisos();
     };
     window.cambiarPestanaAvisosV2 = window.cambiarPestanaAvisos;
 
-    // Renderizado limpio de bandejas
+    // Renderizado limpio sin error 400 ni bucles
+    window.__cargandoAvisos = false;
     window.renderizarBandejasAvisos = async function() {
+        if (window.__cargandoAvisos) return;
         const contenedor = document.getElementById('contenedor-lista-avisos');
         if (!contenedor) return;
 
+        window.__cargandoAvisos = true;
         let filas = [];
-        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            const { data, error } = await supabaseClient
-                .from('solicitudes_auditoria')
-                .select('*')
-                .order('created_at', { ascending: false });
-            if (!error && Array.isArray(data)) filas = data;
+        try {
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                const { data, error } = await supabaseClient
+                    .from('solicitudes_auditoria')
+                    .select('*');
+                if (!error && Array.isArray(data)) {
+                    filas = data.slice().reverse();
+                } else if (error) {
+                    console.warn('Aviso lectura solicitudes_auditoria:', error.message);
+                }
+            }
+        } finally {
+            window.__cargandoAvisos = false;
         }
 
         const panelesQueValido = getPanelesValidacionUsuario();
@@ -14184,7 +14194,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                 .update({ estatus: nuevoEstatus, observacion_resolucion: obs })
                 .eq('id', id);
         }
-        renderizarBandejasAvisos();
+        window.renderizarBandejasAvisos();
     };
 
     window.abrirModalBitacoraAvisos = function() {
@@ -14196,32 +14206,6 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
         window.cambiarPestanaAvisosV2('RECIBIDAS');
     };
 })();
-
-// 4. Renderizado limpio sin error 400 de Supabase
-    window.__cargandoAvisos = false;
-    window.renderizarBandejasAvisos = async function() {
-        if (window.__cargandoAvisos) return;
-        const contenedor = document.getElementById('contenedor-lista-avisos');
-        if (!contenedor) return;
-
-        window.__cargandoAvisos = true;
-        let filas = [];
-        try {
-            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                // Sin .order('created_at') para evitar el 400 si la columna tiene otro nombre
-                const { data, error } = await supabaseClient
-                    .from('solicitudes_auditoria')
-                    .select('*');
-                if (!error && Array.isArray(data)) {
-                    filas = data.slice().reverse();
-                } else if (error) {
-                    console.warn('Aviso lectura solicitudes_auditoria:', error.message);
-                }
-            }
-        } finally {
-            window.__cargandoAvisos = false;
-        }
-    
 </script>
 </script>
 </body>
