@@ -14214,6 +14214,20 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                    </div>`
                 : '';
 
+           const obsResolucion = (sol.observacion_resolucion || sol.resolucion_auditoria || sol.observacion || '').trim();
+            const resolucionHTML = (obsResolucion && (sol._est === 'APROBADA' || sol._est === 'RECHAZADA'))
+                ? `<div class="mt-2 p-2.5 rounded-lg border text-[11px] ${
+                    sol._est === 'APROBADA'
+                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                        : 'bg-rose-50/80 border-rose-200 text-rose-950'
+                  }">
+                    <span class="font-extrabold uppercase text-[10px] block mb-0.5">
+                        ${sol._est === 'APROBADA' ? '✓ Dictamen / Resolución de Validación:' : '✕ Motivo de Rechazo / Resolución:'}
+                    </span>
+                    <span>${obsResolucion}</span>
+                   </div>`
+                : '';
+
             return `
                 <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                     <div class="flex items-center justify-between gap-2">
@@ -14227,6 +14241,7 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
                         &rarr; Dueño: <strong class="text-emerald-700">${nomDest}</strong>
                     </p>
                     <p class="text-[10.5px] text-slate-400">Tipo: ${tipo}${fechaTxt ? ' • ' + fechaTxt : ''}</p>
+                    ${resolucionHTML}
                     ${botonesValidacion}
                 </div>
             `;
@@ -14234,30 +14249,25 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
     };
 
     window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
-        let obs = '';
-        if (nuevoEstatus === 'RECHAZADA') {
-            obs = prompt('Indica el motivo del rechazo u observación:') || 'Rechazada por el validador';
-        }
+        const promptMsg = nuevoEstatus === 'RECHAZADA'
+            ? 'Indica el motivo del rechazo u observación de auditoría:'
+            : 'Indica la resolución u observación de validación (opcional):';
+        const obs = prompt(promptMsg) || (nuevoEstatus === 'RECHAZADA' ? 'Rechazada por el validador' : 'Validada y aprobada sin observaciones');
+
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            let { error } = await supabaseClient
+            const { error } = await supabaseClient
                 .from('solicitudes_auditoria')
                 .update({ estatus: nuevoEstatus, observacion_resolucion: obs })
                 .eq('id', id);
 
             if (error) {
-                const retry = await supabaseClient
-                    .from('solicitudes_auditoria')
-                    .update({ estatus: nuevoEstatus })
-                    .eq('id', id);
-                if (retry.error) {
-                    alert('Error al actualizar en Supabase: ' + retry.error.message);
-                    return;
-                }
+                alert('Error al guardar resolución en Supabase: ' + error.message);
+                return;
             }
         }
         window.renderizarBandejasAvisos();
     };
-
+    
     window.abrirModalBitacoraAvisos = function() {
         const modal = document.getElementById('modal-bitacora-avisos');
         if (modal) {
