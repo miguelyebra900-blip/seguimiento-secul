@@ -12886,7 +12886,10 @@ function esSolicitudParaMiPanelReceptor(sol) {
 
     // Reemplazo directo del envío de vinculación para guardar en solicitudes_auditoria
 // 1. Envío directo desde Mesa de Vinculación hacia solicitudes_auditoria
-    window.enviarSolicitudVinculacionDesdeModal = async function() {
+   window.procesarVinculacionUniversalOficial = function(e) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        return window.enviarSolicitudVinculacionDesdeModal();
+    };
         const hitoSel = document.getElementById('selVinculoHitoObjetivo');
         const accionSel = document.getElementById('selVinculoAccionObjetivo');
         const tipoSel = document.getElementById('selTipoCorresponsabilidad');
@@ -14087,17 +14090,27 @@ let tabActual = 'RECIBIDAS';
             contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${textosVacios[tabActual]}</div>`;
             return;
         }
+contenedor.innerHTML = mostrar.map(sol => {
+            // Extraer clave, motivo y tipo buscando en cualquier columna real de la fila
+            const entradas = Object.entries(sol).filter(([k, v]) =>
+                v !== null && v !== undefined && String(v).trim() !== '' &&
+                !['id', 'created_at', 'updated_at', 'estatus', 'panel_solicitante', 'panel_origen', 'panel_destino', '_est', '_pOrig', '_pDest', '_enviada', '_recibida'].includes(k)
+            );
 
-      contenedor.innerHTML = mostrar.map(sol => {
-            const clave = sol.clave_accion || sol.clave_objetivo || sol.clave_hito || sol.accion_id || sol.hito_id || 'SIN-CLAVE';
-            const motivo = sol.motivo_solicitud || sol.justificacion || sol.descripcion || sol.motivo || sol.observacion || 'Solicitud de vinculación interinstitucional';
-            const tipo = sol.tipo_solicitud || sol.tipo_corresponsabilidad || sol.tipo || sol.subtipo || 'Co-responsabilidad Art. 6';
+            const claveDetectada = sol.clave_accion || sol.clave_objetivo || sol.clave_hito || sol.accion_id ||
+                (entradas.find(([, v]) => /^[A-Z]{2,5}_[A-Z]-H-\d+/.test(String(v).trim()))?.[1]) || 'SIN-CLAVE';
+
+            const textosRestantes = entradas
+                .filter(([k, v]) => String(v).trim() !== String(claveDetectada).trim() && !['solicitante_usuario', 'solicitante_nombre'].includes(k))
+                .map(([, v]) => String(v).trim());
+
+            const motivo = sol.motivo_solicitud || sol.justificacion || sol.descripcion || sol.motivo || textosRestantes[0] || 'Solicitud de vinculación interinstitucional';
+            const tipo = sol.tipo_solicitud || sol.tipo_corresponsabilidad || sol.tipo || textosRestantes[1] || 'Co-responsabilidad Art. 6';
             const fechaRaw = sol.created_at || sol.fecha_solicitud || sol.fecha_creacion || sol.fecha;
             const fechaTxt = fechaRaw ? new Date(fechaRaw).toLocaleDateString('es-MX') : '';
 
-            // Buscar descripción real de la acción/hito en el catálogo en memoria si existe
             const refCatalogo = (typeof accionesDataset !== 'undefined' && Array.isArray(accionesDataset))
-                ? accionesDataset.find(a => a.clave_accion === clave || a.id === clave || a.clave_hito === clave)
+                ? accionesDataset.find(a => a.clave_accion === claveDetectada || a.id === claveDetectada || a.clave_hito === claveDetectada)
                 : null;
             const tituloAccionTxt = refCatalogo ? (refCatalogo.accion || refCatalogo.hito) : '';
 
@@ -14120,16 +14133,24 @@ let tabActual = 'RECIBIDAS';
                    </div>`
                 : '';
 
-            const motivoRechazoHTML = (sol._est === 'RECHAZADA' && sol.observacion_resolucion)
-                ? `<p class="text-[11px] text-rose-700 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">Motivo rechazo: ${sol.observacion_resolucion}</p>`
-                : '';
-return `
+            return `
                 <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
-                    ...
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-mono font-extrabold text-indigo-950">${claveDetectada}</span>
+                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badge}">${sol._est}</span>
+                    </div>
+                    ${tituloAccionTxt ? `<p class="text-[11px] text-slate-500 font-medium leading-snug">${tituloAccionTxt}</p>` : ''}
+                    <p class="font-bold text-slate-800">${motivo}</p>
+                    <p class="text-[11px] text-slate-600">
+                        Solicita: <strong class="text-indigo-700">${nomOrig}</strong>
+                        &rarr; Dueño: <strong class="text-emerald-700">${nomDest}</strong>
+                    </p>
+                    <p class="text-[10.5px] text-slate-400">Tipo: ${tipo}${fechaTxt ? ' • ' + fechaTxt : ''}</p>
+                    ${botonesValidacion}
                 </div>
             `;
         }).join('');
-    };
+        
 
     window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
         let obs = '';
