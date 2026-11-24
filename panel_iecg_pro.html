@@ -13972,335 +13972,246 @@ window.resolverSolicitudVinculacion = async function(idSol, nuevoEstatus) {
 
 <script>
 // ============================================================================
-// MATRIZ OFICIAL DE GOBERNANZA: VINCULACIÓN Y VALIDACIÓN POR PANEL TITULAR
+// MOTOR ÚNICO DE VINCULACIÓN Y CENTRO DE AVISOS (SIN DUPLICADOS NI SOBRESCRITURAS)
 // ============================================================================
-(function inicializarGobernanzaVinculacionYAvisos() {
-    const MATRIZ_GOBERNANZA_PANELES = {
-        A: {
-            nombre: 'Panel A · Recursos Humanos y Estructura',
-            vinculables: ['B','C','D','E','F','G','H','I'],
-            validadores: ['Coordinación de Recursos Humanos (SECUL)', 'rh', 'recursos_humanos']
-        },
-        B: {
-            nombre: 'Panel B · Gobernanza y Comité de Extinción',
-            vinculables: ['A','C','D','E','F','G','H','I'],
-            validadores: ['Liquidador IECG', 'liquidador']
-        },
-        C: {
-            nombre: 'Panel C · Asuntos Jurídicos y Litigios',
-            vinculables: ['A','B','D','E','F','G','H','I'],
-            validadores: ['Dirección General Jurídica', 'juridico', 'dgaj']
-        },
-        D: {
-            nombre: 'Panel D · Fideicomisos Banorte (FIARCA)',
-            vinculables: ['A','B','C','E','F','G','H','I'],
-            validadores: ['Liquidador IECG', 'Dirección General Jurídica', 'liquidador', 'juridico']
-        },
-        E: {
-            nombre: 'Panel E · Bienes Muebles e Inmuebles',
-            vinculables: ['A','B','C','D','F','G','H','I'],
-            validadores: ['Recursos Materiales y Servicios Generales', 'materiales', 'patrimonio']
-        },
-        F: {
-            nombre: 'Panel F · Cierre Fiscal, Cuentas y Finanzas',
-            vinculables: ['A','B','C','D','E','G','H','I'],
-            validadores: ['Coordinación de Análisis y Seguimiento de Recursos Financieros', 'finanzas', 'financiero']
-        },
-        G: {
-            nombre: 'Panel G · Sistemas TI y DGTIT',
-            vinculables: ['A','B','C','D','E','F','H','I'],
-            validadores: ['Coordinación de Tecnologías', 'sistemas', 'ti', 'dgtit']
-        },
-        H: {
-            nombre: 'Panel H · Archivo y Entrega-Recepción',
-            vinculables: ['A','B','C','D','E','F','G','I'],
-            validadores: ['Coordinación de Archivos', 'archivo']
-        },
-        I: {
-            nombre: 'Panel I · Auditoría y Fiscalización ASEG',
-            vinculables: ['A','B','C','D','E','F','G','H'],
-            validadores: ['Líder Proyecto Seguimiento Extinción IECG', 'Liquidador IECG', 'lider_seguimiento', 'liquidador']
-        }
+(function() {
+    const MATRIZ_PANELES = {
+        A: { nombre: 'Panel A · Recursos Humanos y Estructura', validadores: ['recursos humanos', 'rh', 'secu'] },
+        B: { nombre: 'Panel B · Gobernanza y Comité de Extinción', validadores: ['liquidador'] },
+        C: { nombre: 'Panel C · Asuntos Jurídicos y Litigios', validadores: ['jurídica', 'juridica', 'juridico', 'dgaj'] },
+        D: { nombre: 'Panel D · Fideicomisos Banorte (FIARCA)', validadores: ['liquidador', 'jurídica', 'juridica'] },
+        E: { nombre: 'Panel E · Bienes Muebles e Inmuebles', validadores: ['materiales', 'patrimonio'] },
+        F: { nombre: 'Panel F · Cierre Fiscal, Cuentas y Finanzas', validadores: ['financieros', 'finanzas', 'financiero'] },
+        G: { nombre: 'Panel G · Sistemas TI y DGTIT', validadores: ['tecnologías', 'tecnologias', 'sistemas', 'ti', 'dgtit'] },
+        H: { nombre: 'Panel H · Archivo y Entrega-Recepción', validadores: ['archivos', 'archivo'] },
+        I: { nombre: 'Panel I · Auditoría y Fiscalización ASEG', validadores: ['líder proyecto', 'lider proyecto', 'lider_seguimiento', 'liquidador'] }
     };
 
-    let pestanaAvisosActual = 'RECIBIDAS';
+    let tabActual = 'RECIBIDAS';
 
-    // 1. Identificar qué panel(es) titular(es) gobierna el usuario conectado según su cargo/usuario
-    function obtenerPanelesTitularesUsuario() {
+    function getPanelesValidacionUsuario() {
         if (typeof currentUser === 'undefined' || !currentUser) return [];
-        const txtUser = `${currentUser.usuario || ''} ${currentUser.nombre || ''} ${currentUser.cargo || ''} ${currentUser.area || ''}`.toLowerCase();
-
-        // Coincidencia directa por cargo/rol en la tabla
-        const panelesPorCargo = [];
-        Object.entries(MATRIZ_GOBERNANZA_PANELES).forEach(([letra, cfg]) => {
-            const coincide = cfg.validadores.some(v => txtUser.includes(v.toLowerCase()));
-            if (coincide) panelesPorCargo.push(letra);
+        const info = `${currentUser.usuario || ''} ${currentUser.nombre || ''} ${currentUser.cargo || ''} ${currentUser.area || ''}`.toLowerCase();
+        const res = [];
+        Object.entries(MATRIZ_PANELES).forEach(([letra, cfg]) => {
+            if (cfg.validadores.some(v => info.includes(v))) res.push(letra);
         });
-
-        // Caso específico: Dirección General Jurídica es titular del Panel C (y co-valida D)
-        if (txtUser.includes('jurídica') || txtUser.includes('juridica') || txtUser.includes('juridico')) {
-            if (!panelesPorCargo.includes('C')) panelesPorCargo.unshift('C');
+        if (info.includes('lider_seguimiento') || info.includes('líder proyecto') || info.includes('lider proyecto')) {
+            return ['I']; // Titular y Validador 1 del Panel I
         }
-        // Caso específico: Liquidador IECG es titular del Panel B (y co-valida D e I)
-        if (txtUser.includes('liquidador')) {
-            if (!panelesPorCargo.includes('B')) panelesPorCargo.unshift('B');
-        }
-        // Caso específico: Líder Proyecto Seguimiento Extinción IECG es titular del Panel I
-        if (txtUser.includes('líder proyecto') || txtUser.includes('lider proyecto') || txtUser.includes('lider_seguimiento')) {
-            if (!panelesPorCargo.includes('I')) panelesPorCargo.unshift('I');
-        }
-
-        if (panelesPorCargo.length > 0) return panelesPorCargo;
-
-        if (currentUser.panel_id && MATRIZ_GOBERNANZA_PANELES[currentUser.panel_id.toUpperCase()]) {
-            return [currentUser.panel_id.toUpperCase()];
-        }
-        return ['I'];
+        return res.length > 0 ? res : (currentUser.panel_id ? [currentUser.panel_id.toUpperCase()] : ['I']);
     }
 
-    function obtenerPanelSolicitantePrincipal() {
-        const titulares = obtenerPanelesTitularesUsuario();
-        return titulares[0] || 'I';
+    function getPanelTitularOrigen() {
+        return getPanelesValidacionUsuario()[0] || 'I';
     }
 
-    function usuarioEsConocimientoGlobal() {
-        if (typeof currentUser === 'undefined' || !currentUser) return false;
-        const txtUser = `${currentUser.usuario || ''} ${currentUser.nombre || ''} ${currentUser.cargo || ''}`.toLowerCase();
-        return txtUser.includes('dirección general de administración') ||
-               txtUser.includes('direccion general de administracion') ||
-               txtUser.includes('líder proyecto') ||
-               txtUser.includes('lider proyecto') ||
-               txtUser.includes('lider_seguimiento');
+    // 1. Interceptar Supabase para corregir panel_solicitante (evita que mande 'A') y validar no auto-vinculación
+    if (typeof supabaseClient !== 'undefined' && supabaseClient && !supabaseClient.__vinculacionParcheada) {
+        supabaseClient.__vinculacionParcheada = true;
+        const origFrom = supabaseClient.from.bind(supabaseClient);
+        supabaseClient.from = function(tabla) {
+            const builder = origFrom(tabla);
+            if (tabla === 'solicitudes_auditoria') {
+                const origInsert = builder.insert.bind(builder);
+                builder.insert = function(rows, opts) {
+                    const panelReal = getPanelTitularOrigen();
+                    const lista = Array.isArray(rows) ? rows : [rows];
+                    for (const r of lista) {
+                        r.panel_solicitante = panelReal;
+                        if (r.panel_destino && r.panel_destino.toUpperCase() === panelReal) {
+                            alert(`⚠️ No puedes vincular una solicitud hacia tu mismo panel (${panelReal}). Elige un panel destino distinto.`);
+                            return Promise.resolve({ data: null, error: { message: 'Auto-vinculación bloqueada' } });
+                        }
+                    }
+                    return origInsert(lista, opts);
+                };
+            }
+            return builder;
+        };
     }
 
-    // 2. Corregir el encabezado de la "Mesa de Vinculación de Hitos y Acciones" para que NO ponga Panel A
-    function sincronizarModalVinculacion() {
+    // 2. Corregir texto de Comisión Solicitante en el Modal de Vinculación y bloquear el propio panel en destino
+    setInterval(() => {
         const modalVinc = document.getElementById('modal-vinculacion') ||
-                          Array.from(document.querySelectorAll('div[id*="modal"]')).find(m =>
-                              !m.classList.contains('hidden') && m.textContent.includes('Mesa de Vinculación de Hitos y Acciones')
-                          );
+            Array.from(document.querySelectorAll('div[id*="modal"]')).find(m => !m.classList.contains('hidden') && m.textContent.includes('Mesa de Vinculación'));
         if (!modalVinc) return;
 
-        const panelOrigen = obtenerPanelSolicitantePrincipal();
-        const cfgOrigen = MATRIZ_GOBERNANZA_PANELES[panelOrigen];
+        const panelReal = getPanelTitularOrigen();
+        const cfg = MATRIZ_PANELES[panelReal];
 
-        // Cambiar el texto "COMISIÓN SOLICITANTE: Panel A" por el Panel Titular real del usuario
-        modalVinc.querySelectorAll('div, span, p, strong').forEach(el => {
+        modalVinc.querySelectorAll('span, div, p, strong').forEach(el => {
             if (el.children.length === 0) {
                 const t = el.textContent.trim();
-                if (t === 'Panel A' || /^Panel A\s*·/.test(t)) {
-                    el.textContent = cfgOrigen ? cfgOrigen.nombre : `Panel ${panelOrigen}`;
+                if (t === 'Panel A' || /^Panel A,\s*B,\s*C/.test(t)) {
+                    el.textContent = cfg ? cfg.nombre : `Panel ${panelReal}`;
                 }
             }
         });
 
-        // Forzar el valor del selector/input oculto de panel solicitante si existe
-        const inputOrigen = modalVinc.querySelector('#selectPanelSolicitante, #panelSolicitanteVinculacion, input[name="panel_origen"], select[name="panel_origen"]');
-        if (inputOrigen && inputOrigen.value !== panelOrigen) {
-            inputOrigen.value = panelOrigen;
-        }
-
-        // Filtrar en el dropdown de Hito/Área destino para que NO permita vincularse consigo mismo
-        const selArea = modalVinc.querySelector('select');
-        if (selArea && cfgOrigen) {
-            Array.from(selArea.options).forEach(opt => {
+        const selectArea = modalVinc.querySelector('select');
+        if (selectArea) {
+            Array.from(selectArea.options).forEach(opt => {
                 const m = opt.textContent.match(/Panel\s+([A-I])\b/i);
-                if (m) {
-                    const letraDestino = m[1].toUpperCase();
-                    opt.disabled = !cfgOrigen.vinculables.includes(letraDestino);
+                if (m && m[1].toUpperCase() === panelReal) {
+                    opt.disabled = true;
                 }
             });
         }
-    }
+    }, 250);
 
-    setInterval(sincronizarModalVinculacion, 250);
+    // 3. Función única de cambio de pestaña (soporta RECIBIDAS, ENVIADAS e HISTORIAL)
+    window.cambiarPestanaAvisos = function(nuevaTab) {
+        tabActual = (nuevaTab || 'RECIBIDAS').toUpperCase();
 
-    // 3. Interceptar el guardado de vinculación para asegurar que guarde panel_solicitante = panelOrigen real
-    const origInsertSupabase = window.enviarSolicitudVinculacion;
-    document.addEventListener('click', function(e) {
-        const btnEnviar = e.target.closest('button');
-        if (!btnEnviar) return;
-        const txt = btnEnviar.textContent || '';
-        if (txt.includes('Enviar Solicitud') || txt.includes('Solicitar Vinculación')) {
-            window.__ultimoPanelSolicitanteForzado = obtenerPanelSolicitantePrincipal();
-        }
-    }, true);
-
-    // 4. Pestañas del Centro de Avisos (Recibidas / Enviadas / Historial)
-    window.cambiarPestanaAvisos = function(tab) {
-        pestanaAvisosActual = (tab || 'RECIBIDAS').toUpperCase();
-        const mapTabs = {
+        const botones = {
             RECIBIDAS: document.getElementById('tab-avisos-recibidas'),
             ENVIADAS:  document.getElementById('tab-avisos-enviadas'),
             HISTORIAL: document.getElementById('tab-avisos-historial')
         };
-        Object.entries(mapTabs).forEach(([k, el]) => {
-            if (!el) return;
-            el.className = (k === pestanaAvisosActual)
-                ? 'py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-extrabold cursor-pointer'
-                : 'py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold cursor-pointer';
+
+        Object.entries(botones).forEach(([clave, btn]) => {
+            if (!btn) return;
+            if (clave === tabActual) {
+                btn.className = 'py-2.5 px-2 text-center border-b-2 border-purple-600 text-purple-700 bg-white font-extrabold cursor-pointer';
+            } else {
+                btn.className = 'py-2.5 px-2 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold cursor-pointer';
+            }
         });
-        window.renderBitacoraAvisosLimpia();
+
+        renderizarBandejasAvisos();
     };
 
-    // 5. Renderizado estricto según la Matriz de Validación 1 y Conocimiento
-    window.renderBitacoraAvisosLimpia = async function() {
+    // 4. Renderizado limpio: separa estrictamente PENDIENTES (Recibidas vs Enviadas) de HISTORIAL (Aprobadas/Rechazadas)
+    window.renderizarBandejasAvisos = async function() {
         const contenedor = document.getElementById('contenedor-lista-avisos');
         if (!contenedor) return;
 
-        let registros = [];
+        let filas = [];
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
             const { data, error } = await supabaseClient
                 .from('solicitudes_auditoria')
                 .select('*')
                 .order('created_at', { ascending: false });
-            if (!error && Array.isArray(data)) registros = data;
-        }
-        if (registros.length === 0) {
-            registros = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
+            if (!error && Array.isArray(data)) filas = data;
         }
 
-        const panelesQueValido = obtenerPanelesTitularesUsuario(); // Ej. Líder = ['I'], Liquidador = ['B','D','I'], DGJ = ['C','D']
-        const miPanelPrincipal = obtenerPanelSolicitantePrincipal();
-        const usuarioId = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.usuario || '') : '';
-        const usuarioNombre = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || '') : '';
+        const panelesQueValido = getPanelesValidacionUsuario();
+        const miPanelOrigen = getPanelTitularOrigen();
+        const miUsuario = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.usuario || '') : '';
+        const miNombre  = (typeof currentUser !== 'undefined' && currentUser) ? (currentUser.nombre || '') : '';
 
-        const normalizados = registros.map(r => {
+        const items = filas.map(r => {
             const est = String(r.estatus || 'PENDIENTE').trim().toUpperCase();
-            // Detectar panel origen y panel destino
-            let pOrig = String(r.panel_solicitante || r.panel_origen || '').trim().toUpperCase();
+            const pOrig = String(r.panel_solicitante || '').trim().toUpperCase();
             let pDest = String(r.panel_destino || '').trim().toUpperCase();
 
-            // Si no viene explícito panel_destino, deducirlo de la clave de acción (ej. AUD_F-H-0012 -> Panel I)
             if (!pDest && r.clave_accion) {
-                const c = r.clave_accion.toUpperCase();
-                if (c.startsWith('AUD_')) pDest = 'I';
-                else if (c.startsWith('JUR_')) pDest = 'C';
-                else if (c.startsWith('FIN_')) pDest = 'F';
-                else if (c.startsWith('RH_')) pDest = 'A';
-                else if (c.startsWith('PTR_')) pDest = 'E';
-                else if (c.startsWith('TIT_')) pDest = 'G';
+                const pref = r.clave_accion.split('_')[0].toUpperCase();
+                const mapaPref = { RH: 'A', ASI: 'B', JUR: 'C', FID: 'D', PTR: 'E', FIN: 'F', TIT: 'G', ARC: 'H', AUD: 'I' };
+                pDest = mapaPref[pref] || '';
             }
 
-            const remitenteStr = String(r.solicitante_usuario || r.usuario_id || r.solicitante_nombre || '').trim();
-            // Es ENVIADA solo si el usuario actual la creó o si su panel titular principal fue el remitente
-            const esEnviadaPorMi = (usuarioId && remitenteStr === usuarioId) ||
-                                   (usuarioNombre && remitenteStr === usuarioNombre) ||
-                                   (pOrig === miPanelPrincipal && !panelesQueValido.includes(pDest));
+            const autor = String(r.solicitante_usuario || r.solicitante_nombre || '').trim();
+            const esEnviadaPorMi = (miUsuario && autor === miUsuario) || (miNombre && autor === miNombre) || (pOrig === miPanelOrigen);
+            const esParaMiValidacion = panelesQueValido.includes(pDest) && !esEnviadaPorMi;
 
-            // Es RECIBIDA POR ATENDER solo si el usuario tiene facultad de VALIDACIÓN 1 sobre el panel destino
-            // y NO fue él mismo quien la envió
-            const soyValidadorDestino = panelesQueValido.includes(pDest) && !esEnviadaPorMi;
-
-            return {
-                ...r,
-                _estatus: est,
-                _pOrig: pOrig,
-                _pDest: pDest,
-                _esEnviadaPorMi: esEnviadaPorMi,
-                _soyValidadorDestino: soyValidadorDestino
-            };
+            return { ...r, _est: est, _pOrig: pOrig, _pDest: pDest, _enviada: esEnviadaPorMi, _recibida: esParaMiValidacion };
         });
 
-        // Separar las 3 bandejas sin cruces:
-        const historial = normalizados.filter(r => r._estatus === 'APROBADA' || r._estatus === 'RECHAZADA');
-        const pendientes = normalizados.filter(r => r._estatus === 'PENDIENTE');
+        const historial = items.filter(i => i._est === 'APROBADA' || i._est === 'RECHAZADA');
+        const pendientes = items.filter(i => i._est === 'PENDIENTE');
 
-        const recibidas = pendientes.filter(r => r._soyValidadorDestino);
-        const enviadas  = pendientes.filter(r => r._esEnviadaPorMi);
+        const recibidas = pendientes.filter(i => i._recibida);
+        const enviadas  = pendientes.filter(i => i._enviada);
 
-        const cRec = document.getElementById('count-tab-recibidas');
-        const cEnv = document.getElementById('count-tab-enviadas');
-        const cHis = document.getElementById('count-tab-historial');
-        if (cRec) cRec.innerText = recibidas.length;
-        if (cEnv) cEnv.innerText = enviadas.length;
-        if (cHis) cHis.innerText = historial.length;
+        const elRec = document.getElementById('count-tab-recibidas');
+        const elEnv = document.getElementById('count-tab-enviadas');
+        const elHis = document.getElementById('count-tab-historial');
+        if (elRec) elRec.innerText = recibidas.length;
+        if (elEnv) elEnv.innerText = enviadas.length;
+        if (elHis) elHis.innerText = historial.length;
 
-        const lista = pestanaAvisosActual === 'RECIBIDAS'
-            ? recibidas
-            : (pestanaAvisosActual === 'ENVIADAS' ? enviadas : historial);
+        const mostrar = tabActual === 'RECIBIDAS' ? recibidas : (tabActual === 'ENVIADAS' ? enviadas : historial);
 
-        if (lista.length === 0) {
-            const emptyMsg = {
-                RECIBIDAS: `No tienes solicitudes pendientes por validar (Validador de Paneles: ${panelesQueValido.join(', ') || 'Ninguno'}).`,
-                ENVIADAS:  'No tienes solicitudes enviadas pendientes de respuesta.',
-                HISTORIAL: 'Aún no hay solicitudes aprobadas o rechazadas en el historial.'
+        if (mostrar.length === 0) {
+            const textosVacios = {
+                RECIBIDAS: `No hay solicitudes pendientes por validar para tus paneles (${panelesQueValido.join(', ')}).`,
+                ENVIADAS:  'No tienes solicitudes pendientes enviadas.',
+                HISTORIAL: 'No hay solicitudes aprobadas o rechazadas en el historial.'
             };
-            contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${emptyMsg[pestanaAvisosActual]}</div>`;
+            contenedor.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">${textosVacios[tabActual]}</div>`;
             return;
         }
 
-        contenedor.innerHTML = lista.map(sol => {
-            const clave = sol.clave_accion || sol.clave_objetivo || 'SIN-CLAVE';
-            const motivo = sol.motivo_solicitud || sol.justificacion || 'Sin descripción';
-            const tipo = sol.tipo_solicitud || sol.tipo_corresponsabilidad || 'Aportación de Expediente';
-            const fecha = sol.created_at ? new Date(sol.created_at).toLocaleDateString('es-MX') : (sol.fecha || '');
-            const nomOrig = MATRIZ_GOBERNANZA_PANELES[sol._pOrig]?.nombre || `Panel ${sol._pOrig}`;
-            const nomDest = MATRIZ_GOBERNANZA_PANELES[sol._pDest]?.nombre || `Panel ${sol._pDest}`;
-
-            const badgeClase = sol._estatus === 'APROBADA'
+        contenedor.innerHTML = mostrar.map(sol => {
+            const nomOrig = MATRIZ_PANELES[sol._pOrig]?.nombre || `Panel ${sol._pOrig || '?'}`;
+            const nomDest = MATRIZ_PANELES[sol._pDest]?.nombre || `Panel ${sol._pDest || '?'}`;
+            const badge = sol._est === 'APROBADA'
                 ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                : (sol._estatus === 'RECHAZADA'
-                    ? 'bg-rose-100 text-rose-800 border-rose-200'
-                    : 'bg-amber-100 text-amber-800 border-amber-200');
+                : (sol._est === 'RECHAZADA' ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200');
 
-            // Botones Aceptar/Rechazar SOLO si soy Validador 1 del panel destino y está PENDIENTE
-            const accionesHTML = (pestanaAvisosActual === 'RECIBIDAS' && sol._soyValidadorDestino && sol._estatus === 'PENDIENTE')
+            const botonesValidacion = (tabActual === 'RECIBIDAS' && sol._est === 'PENDIENTE')
                 ? `<div class="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="actualizarEstatusAviso('${sol.id}', 'APROBADA')"
+                    <button type="button" onclick="resolverAvisoVinculacion('${sol.id}', 'APROBADA')"
                         class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer">
-                        ✓ Aceptar y Validar
+                        ✓ Aceptar Vinculación
                     </button>
-                    <button type="button" onclick="actualizarEstatusAviso('${sol.id}', 'RECHAZADA')"
+                    <button type="button" onclick="resolverAvisoVinculacion('${sol.id}', 'RECHAZADA')"
                         class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] cursor-pointer">
                         ✕ Rechazar
                     </button>
                    </div>`
                 : '';
 
+            const motivoRechazoHTML = (sol._est === 'RECHAZADA' && sol.observacion_resolucion)
+                ? `<p class="text-[11px] text-rose-700 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">Motivo rechazo: ${sol.observacion_resolucion}</p>`
+                : '';
+
             return `
                 <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                     <div class="flex items-center justify-between gap-2">
-                        <span class="font-mono font-extrabold text-indigo-950">${clave}</span>
-                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badgeClase}">${sol._estatus}</span>
+                        <span class="font-mono font-extrabold text-indigo-950">${sol.clave_accion || ''}</span>
+                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${badge}">${sol._est}</span>
                     </div>
-                    <p class="font-bold text-slate-800">${motivo}</p>
+                    <p class="font-bold text-slate-800">${sol.motivo_solicitud || ''}</p>
                     <p class="text-[11px] text-slate-600">
                         Solicita: <strong class="text-indigo-700">${nomOrig}</strong>
-                        &rarr; Valida / Dueño: <strong class="text-emerald-700">${nomDest}</strong>
+                        &rarr; Dueño: <strong class="text-emerald-700">${nomDest}</strong>
                     </p>
-                    <p class="text-[10.5px] text-slate-400">Tipo: ${tipo} • Fecha: ${fecha}</p>
-                    ${accionesHTML}
+                    <p class="text-[10.5px] text-slate-400">Tipo: ${sol.tipo_solicitud || ''} • ${sol.created_at ? new Date(sol.created_at).toLocaleDateString('es-MX') : ''}</p>
+                    ${motivoRechazoHTML}
+                    ${botonesValidacion}
                 </div>
             `;
         }).join('');
     };
 
-    window.actualizarEstatusAviso = async function(idAviso, nuevoEstatus) {
-        if (typeof supabaseClient !== 'undefined' && supabaseClient && idAviso) {
+    window.resolverAvisoVinculacion = async function(id, nuevoEstatus) {
+        let obs = '';
+        if (nuevoEstatus === 'RECHAZADA') {
+            obs = prompt('Indica el motivo del rechazo u observación:') || 'Rechazada por el validador';
+        }
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
             await supabaseClient
                 .from('solicitudes_auditoria')
-                .update({ estatus: nuevoEstatus })
-                .eq('id', idAviso);
+                .update({ estatus: nuevoEstatus, observacion_resolucion: obs })
+                .eq('id', id);
         }
-        const local = JSON.parse(localStorage.getItem('secul_solicitudes_vinculacion') || '[]');
-        const idx = local.findIndex(x => String(x.id) === String(idAviso));
-        if (idx !== -1) {
-            local[idx].estatus = nuevoEstatus;
-            localStorage.setItem('secul_solicitudes_vinculacion', JSON.stringify(local));
-        }
-        window.renderBitacoraAvisosLimpia();
+        renderizarBandejasAvisos();
     };
 
-    const origAbrirAvisos = window.abrirModalBitacoraAvisos;
+    // Reemplazar apertura del modal de avisos para que nunca ejecute el renderizador antiguo
     window.abrirModalBitacoraAvisos = function() {
-        if (typeof origAbrirAvisos === 'function') origAbrirAvisos();
+        const modal = document.getElementById('modal-bitacora-avisos');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
         window.cambiarPestanaAvisos('RECIBIDAS');
     };
 })();
-    
 </script>
-    
     
 </script>
 </body>
