@@ -11114,7 +11114,7 @@ window.cargarNotificacionesVinculacionAuditoria = async function() {
         var res = await supabaseClient
             .from('solicitudes_auditoria_forum')
             .select('*')
-            .eq('tipo', 'SOLICITUD_VINCULACION');
+           .eq('tipo_solicitud', 'SOLICITUD_VINCULACION'
 
         if (!res || res.error || !res.data) return;
         var data = res.data || [];
